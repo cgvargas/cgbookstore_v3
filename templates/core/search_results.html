@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Resultados para "{{ search_query }}" - CG.BookStore{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Resultados da Busca por: <span class="text-primary">"{{ search_query }}"</span></h1>
+
+    {% if books %}
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        {% for book in books %}
+        <div class="col">
+            <div class="card h-100 book-card">
+                 {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}" class="card-img-top book-cover" alt="{{ book.title }}">
+                {% else %}
+                    <img src="https://via.placeholder.com/300x400.png?text=Capa+Indisponível" class="card-img-top book-cover" alt="Capa indisponível">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ book.title }}</h5>
+                    <p class="card-text text-muted">{{ book.author.name }}</p>
+                    <p class="price">R$ {{ book.price }}</p>
+                </div>
+                 <div class="card-footer bg-transparent border-0 text-center pb-3">
+                    <a href="#" class="btn btn-primary">Ver Detalhes</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-warning" role="alert">
+        Nenhum livro encontrado com o termo "{{ search_query }}". Tente buscar por outro título ou autor.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+# Arquivos de Bytecode e Cache do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Configurações de Ambiente
+.env
+.env.*
+
+# Ambiente Virtual
+venv/
+env/
+.venv/
+.env/
+
+# Banco de Dados
+*.sqlite3
+db.sqlite3
+
+# Configurações de IDEs
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Arquivos de Mídia e Estáticos (se coletados)
+/media/
+/static_root/
+/staticfiles/
+
+# Logs
+*.log
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db

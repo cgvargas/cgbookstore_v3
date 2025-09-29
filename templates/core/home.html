@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %} <!-- Carrega a tag 'static' se precisar de imagens locais no futuro -->
+
+{% block title %}Bem-vindo à CG.BookStore{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Seção de Boas-Vindas -->
+    <div class="p-5 mb-4 bg-light rounded-3 text-center">
+        <div class="container-fluid py-5">
+            <h1 class="display-5 fw-bold">Sua Aventura Literária Começa Aqui</h1>
+            <p class="fs-4">Explore milhares de títulos, descubra novos autores e mergulhe em histórias fascinantes com nosso assistente literário inteligente.</p>
+            <a href="{% url 'core:book_list' %}" class="btn btn-primary btn-lg">Ver Catálogo Completo</a>
+        </div>
+    </div>
+
+    <!-- Seção de Lançamentos -->
+    <h2 class="mb-4">Últimos Lançamentos</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for book in latest_books %}
+        <div class="col">
+            <div class="card h-100 book-card">
+                <!-- Imagem de Capa (Placeholder) -->
+                {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}" class="card-img-top book-cover" alt="{{ book.title }}">
+                {% else %}
+                    <img src="https://via.placeholder.com/300x400.png?text=Capa+Indisponível" class="card-img-top book-cover" alt="Capa indisponível">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ book.title }}</h5>
+                    <p class="card-text text-muted">{{ book.author.name }}</p>
+                    <p class="price">R$ {{ book.price }}</p>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-center pb-3">
+                    <a href="#" class="btn btn-primary">Ver Detalhes</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>Nenhum livro cadastrado ainda.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
