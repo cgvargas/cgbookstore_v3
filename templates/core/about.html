@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Sobre Nós - CG.BookStore{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="mb-4">Sobre a CG.BookStore</h1>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title">Nossa História</h3>
+                    <p class="card-text">
+                        A CG.BookStore nasceu com a missão de democratizar o acesso à leitura e proporcionar 
+                        experiências literárias únicas através da tecnologia. Combinamos um catálogo completo 
+                        de livros com um assistente literário inteligente, criando uma ponte entre leitores e 
+                        suas próximas grandes descobertas.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title">Missão</h3>
+                    <p class="card-text">
+                        Conectar leitores aos livros certos, no momento certo, através de tecnologia inovadora 
+                        e recomendações personalizadas.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title">Valores</h3>
+                    <ul>
+                        <li><strong>Paixão pela Leitura:</strong> Acreditamos no poder transformador dos livros</li>
+                        <li><strong>Inovação:</strong> Utilizamos tecnologia para melhorar a experiência de compra</li>
+                        <li><strong>Acessibilidade:</strong> Livros para todos, sem exceção</li>
+                        <li><strong>Qualidade:</strong> Curadoria cuidadosa do nosso catálogo</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">Por Que Escolher a CG.BookStore?</h3>
+                    <div class="row mt-3">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <i class="fas fa-book text-primary fa-2x me-3"></i>
+                                <div>
+                                    <h5>Catálogo Completo</h5>
+                                    <p>Mais de 2 milhões de títulos disponíveis</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <i class="fas fa-robot text-primary fa-2x me-3"></i>
+                                <div>
+                                    <h5>Assistente Literário</h5>
+                                    <p>Recomendações personalizadas com IA</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <i class="fas fa-shipping-fast text-primary fa-2x me-3"></i>
+                                <div>
+                                    <h5>Entrega Rápida</h5>
+                                    <p>Receba em casa com segurança</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <i class="fas fa-heart text-primary fa-2x me-3"></i>
+                                <div>
+                                    <h5>Biblioteca Pessoal</h5>
+                                    <p>Organize suas leituras e acompanhe seu progresso</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5">
+                <h3>Pronto para começar sua jornada literária?</h3>
+                <a href="{% url 'core:book_list' %}" class="btn btn-primary btn-lg mt-3">Explorar Catálogo</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
