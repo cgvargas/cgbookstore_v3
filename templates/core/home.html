@@ -20,136 +20,219 @@
         </div>
     </div>
 
-    <!-- Carrossel de Últimos Lançamentos -->
-    <section class="books-carousel-section">
+    <!-- Seções Dinâmicas -->
+    {% for section in sections %}
+    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %}"
+             {% if section.background_color %}style="background-color: {{ section.background_color }};"{% endif %}>
         <div class="container">
+            <!-- Cabeçalho da Seção -->
             <div class="carousel-header">
                 <h2>
-                    <i class="fas fa-fire text-danger me-2"></i>Últimos Lançamentos
+                    {% if section.content_type == 'books' %}
+                        <i class="fas fa-book text-primary me-2"></i>
+                    {% elif section.content_type == 'authors' %}
+                        <i class="fas fa-user-edit text-success me-2"></i>
+                    {% elif section.content_type == 'videos' %}
+                        <i class="fas fa-video text-danger me-2"></i>
+                    {% endif %}
+                    {{ section.title }}
                 </h2>
-                <a href="{% url 'core:book_list' %}" class="view-all-link">
-                    Ver todos <i class="fas fa-chevron-right ms-1"></i>
-                </a>
+                {% if section.subtitle %}
+                    <p class="text-muted">{{ section.subtitle }}</p>
+                {% endif %}
+                {% if section.show_see_more and section.see_more_url %}
+                    <a href="{{ section.see_more_url }}" class="view-all-link">
+                        Ver todos <i class="fas fa-chevron-right ms-1"></i>
+                    </a>
+                {% endif %}
             </div>
 
-            <!-- Swiper -->
-            <div class="swiper books-swiper">
-                <div class="swiper-wrapper">
-                    {% for book in latest_books %}
-                    <div class="swiper-slide">
-                        <div class="card book-card">
-                            <!-- Imagem de Capa -->
-                            {% if book.cover_image %}
-                                <img src="{{ book.cover_image.url }}" class="book-cover" alt="{{ book.title }}">
-                            {% else %}
-                                <img src="https://via.placeholder.com/300x400/6c757d/ffffff?text=Sem+Capa"
-                                     class="book-cover" alt="Sem capa">
-                            {% endif %}
-
-                            <div class="card-body">
-                                <!-- Título -->
-                                <h5 class="card-title">{{ book.title }}</h5>
-
-                                <!-- Autor -->
-                                <p class="card-text">{{ book.author.name }}</p>
-
-                                <!-- Avaliação (se houver) -->
-                                {% if book.average_rating %}
-                                <div class="book-rating">
-                                    <span class="stars">
-                                        {% for i in "12345" %}
-                                            {% if forloop.counter <= book.rating_stars %}
-                                                <i class="fas fa-star"></i>
-                                            {% else %}
-                                                <i class="far fa-star"></i>
+            <!-- Renderização por Layout -->
+            {% if section.layout == 'carousel' %}
+                <!-- Layout Carrossel (Swiper) -->
+                <div class="swiper books-swiper">
+                    <div class="swiper-wrapper">
+                        {% for item in section.get_items %}
+                            {% with obj=item.content_object %}
+                            <div class="swiper-slide">
+                                {% if section.content_type == 'books' %}
+                                    <!-- Card de Livro -->
+                                    <div class="card book-card">
+                                        {% if obj.cover_image %}
+                                            <img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">
+                                        {% else %}
+                                            <img src="https://via.placeholder.com/300x400/6c757d/ffffff?text=Sem+Capa"
+                                                 class="book-cover" alt="Sem capa">
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ item.get_display_title|truncatewords:8 }}</h5>
+                                            {% if obj.author %}
+                                                <p class="card-text text-muted small mb-2">{{ obj.author.name }}</p>
                                             {% endif %}
-                                        {% endfor %}
-                                    </span>
-                                    {% if book.ratings_count %}
-                                    <span class="rating-count">({{ book.ratings_count }})</span>
-                                    {% endif %}
-                                </div>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="price-tag">R$ {{ obj.price }}</span>
+                                                {% if obj.average_rating %}
+                                                    <span class="rating">
+                                                        <i class="fas fa-star text-warning"></i> {{ obj.average_rating }}
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                            <a href="{% url 'core:book_detail' obj.slug %}" class="btn btn-sm btn-outline-primary w-100">
+                                                Ver Detalhes
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% elif section.content_type == 'authors' %}
+                                    <!-- Card de Autor -->
+                                    <div class="card author-card text-center">
+                                        <div class="card-body">
+                                            <i class="fas fa-user-circle fa-4x text-secondary mb-3"></i>
+                                            <h5 class="card-title">{{ item.get_display_title }}</h5>
+                                            {% if obj.bio %}
+                                                <p class="card-text text-muted small">{{ obj.bio|truncatewords:15 }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% elif section.content_type == 'videos' %}
+                                    <!-- Card de Vídeo -->
+                                    <div class="card video-card">
+                                        {% if obj.thumbnail_url %}
+                                            <img src="{{ obj.thumbnail_url }}" class="card-img-top" alt="{{ obj.title }}">
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ item.get_display_title|truncatewords:8 }}</h5>
+                                            <p class="card-text text-muted small">
+                                                <i class="fas fa-play-circle"></i> {{ obj.get_video_type_display }}
+                                            </p>
+                                            {% if obj.duration %}
+                                                <span class="badge bg-dark">{{ obj.duration }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 {% endif %}
-
-                                <!-- Preço -->
-                                <p class="price">R$ {{ book.price }}</p>
-
-                                <!-- Botão Ver Detalhes -->
-                                <a href="{% url 'core:book_detail' book.slug %}" class="btn btn-primary w-100 mt-2">
-                                    <i class="fas fa-eye me-2"></i>Ver Detalhes
-                                </a>
                             </div>
+                            {% endwith %}
+                        {% endfor %}
+                    </div>
+                    <!-- Navegação do Swiper -->
+                    <div class="swiper-button-prev"></div>
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-pagination"></div>
+                </div>
+
+            {% elif section.layout == 'grid' %}
+                <!-- Layout Grid -->
+                <div class="row g-4">
+                    {% for item in section.get_items %}
+                        {% with obj=item.content_object %}
+                        <div class="col-md-{{ 12|divisibleby:section.items_per_row }}">
+                            {% if section.content_type == 'books' %}
+                                <!-- Card de Livro -->
+                                <div class="card book-card h-100">
+                                    {% if obj.cover_image %}
+                                        <img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">
+                                    {% else %}
+                                        <img src="https://via.placeholder.com/300x400/6c757d/ffffff?text=Sem+Capa"
+                                             class="book-cover" alt="Sem capa">
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ item.get_display_title }}</h5>
+                                        {% if obj.author %}
+                                            <p class="card-text text-muted small">{{ obj.author.name }}</p>
+                                        {% endif %}
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="price-tag">R$ {{ obj.price }}</span>
+                                            <a href="{% url 'core:book_detail' obj.slug %}" class="btn btn-sm btn-outline-primary">
+                                                Ver Detalhes
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
                         </div>
-                    </div>
-                    {% empty %}
-                    <div class="swiper-slide">
-                        <p class="text-center">Nenhum livro cadastrado ainda.</p>
-                    </div>
+                        {% endwith %}
                     {% endfor %}
                 </div>
 
-                <!-- Navegação -->
-                <div class="swiper-button-next"></div>
-                <div class="swiper-button-prev"></div>
-
-                <!-- Paginação -->
-                <div class="swiper-pagination"></div>
-            </div>
+            {% elif section.layout == 'list' %}
+                <!-- Layout Lista -->
+                <div class="list-group">
+                    {% for item in section.get_items %}
+                        {% with obj=item.content_object %}
+                        {% if section.content_type == 'books' %}
+                            <a href="{% url 'core:book_detail' obj.slug %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        {% if obj.cover_image %}
+                                            <img src="{{ obj.cover_image.url }}" style="width: 50px; height: 70px; object-fit: cover;" class="me-3" alt="{{ obj.title }}">
+                                        {% endif %}
+                                        <div>
+                                            <h5 class="mb-1">{{ item.get_display_title }}</h5>
+                                            {% if obj.author %}
+                                                <p class="mb-1 text-muted small">{{ obj.author.name }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">R$ {{ obj.price }}</span>
+                                </div>
+                            </a>
+                        {% endif %}
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
     </section>
+    {% endfor %}
 
-    <!-- Você pode adicionar mais seções de carrossel aqui -->
-    <!-- Por exemplo: "Mais Vendidos", "Ficção Científica", etc. -->
+    <!-- Mensagem caso não haja seções -->
+    {% if not sections %}
+    <div class="container text-center py-5">
+        <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+        <h3>Nenhuma seção configurada</h3>
+        <p class="text-muted">Configure seções no painel admin para exibi-las aqui.</p>
+        <a href="/admin/core/section/add/" class="btn btn-primary">Criar Primeira Seção</a>
+    </div>
+    {% endif %}
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Inicializar Swiper
-    const swiper = new Swiper('.books-swiper', {
-        // Configurações
-        slidesPerView: 2,
-        spaceBetween: 20,
-        loop: false,
-
-        // Navegação
-        navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
-        },
-
-        // Paginação
-        pagination: {
-            el: '.swiper-pagination',
-            clickable: true,
-        },
-
-        // Responsividade
-        breakpoints: {
-            // Quando largura >= 576px
-            576: {
-                slidesPerView: 2,
-                spaceBetween: 20,
+    // Inicializar todos os carrosséis Swiper
+    document.querySelectorAll('.books-swiper').forEach((swiperEl) => {
+        new Swiper(swiperEl, {
+            slidesPerView: 1,
+            spaceBetween: 20,
+            navigation: {
+                nextEl: swiperEl.querySelector('.swiper-button-next'),
+                prevEl: swiperEl.querySelector('.swiper-button-prev'),
             },
-            // Quando largura >= 768px
-            768: {
-                slidesPerView: 3,
-                spaceBetween: 25,
+            pagination: {
+                el: swiperEl.querySelector('.swiper-pagination'),
+                clickable: true,
             },
-            // Quando largura >= 992px
-            992: {
-                slidesPerView: 4,
-                spaceBetween: 25,
+            breakpoints: {
+                640: {
+                    slidesPerView: 2,
+                    spaceBetween: 20,
+                },
+                768: {
+                    slidesPerView: 3,
+                    spaceBetween: 30,
+                },
+                1024: {
+                    slidesPerView: 4,
+                    spaceBetween: 30,
+                },
+                1280: {
+                    slidesPerView: 5,
+                    spaceBetween: 30,
+                },
             },
-            // Quando largura >= 1200px
-            1200: {
-                slidesPerView: 5,
-                spaceBetween: 30,
-            },
-        },
+        });
     });
-});
 </script>
 {% endblock %}

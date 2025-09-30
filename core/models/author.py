@@ -1,6 +1,6 @@
 """
 Model de Autor.
-Representa autores de livros com biografia.
+Representa autores de livros com biografia e foto.
 """
 
 from django.db import models
@@ -14,15 +14,48 @@ class Author(models.Model):
         max_length=200,
         verbose_name="Nome"
     )
+
     slug = models.SlugField(
         unique=True,
-        blank=True
+        blank=True,
+        verbose_name="Slug"
     )
+
     bio = models.TextField(
         blank=True,
         null=True,
         verbose_name="Biografia"
     )
+
+    photo = models.ImageField(
+        upload_to='authors/photos/',
+        blank=True,
+        null=True,
+        verbose_name="Foto",
+        help_text="Foto do autor (recomendado: 400x400px)"
+    )
+
+    # Redes sociais
+    website = models.URLField(
+        blank=True,
+        verbose_name="Website",
+        help_text="Site oficial do autor"
+    )
+
+    twitter = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="Twitter/X",
+        help_text="Nome de usuário (sem @)"
+    )
+
+    instagram = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="Instagram",
+        help_text="Nome de usuário (sem @)"
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Criado em"
@@ -41,3 +74,9 @@ class Author(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_books_count(self):
+        """Retorna quantidade de livros do autor."""
+        return self.books.count()
+
+    get_books_count.short_description = "Livros"

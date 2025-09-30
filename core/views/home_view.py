@@ -1,18 +1,26 @@
 # C:\Users\claud\OneDrive\ProjectsDjango\CGBookStore_v3\core\views\home_view.py
 
 from django.views.generic import TemplateView
-from core.models import Book, Category
+from core.models import Section
 
 
 class HomeView(TemplateView):
     """
     View para a página inicial.
-    Exibe os últimos lançamentos e categorias em destaque.
+    Exibe seções dinâmicas gerenciadas pelo admin.
     """
     template_name = 'core/home.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['latest_books'] = Book.objects.order_by('-publication_date')[:6]
-        context['featured_categories'] = Category.objects.filter(featured=True)[:4]
+
+        # Buscar todas as seções ativas ordenadas
+        sections = Section.objects.filter(active=True).prefetch_related(
+            'items',
+            'items__content_type',
+            'items__content_object'
+        ).order_by('order')
+
+        context['sections'] = sections
+
         return context
