@@ -1,4 +1,6 @@
 import logging
+import dj_database_url
+from decouple import config
 import os
 from pathlib import Path
 
@@ -15,9 +17,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-9eojq)3m)cznln$43_3%1lh5ofx4qjh+!7+%51f5m+2(t@_swe'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -69,12 +71,7 @@ WSGI_APPLICATION = 'cgbookstore.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+DATABASES = { 'default': dj_database_url.config( default=config('DATABASE_URL'), conn_max_age=600, conn_health_checks=True, ) }
 
 
 # Password validation
@@ -126,3 +123,4 @@ LOGIN_REDIRECT_URL = '/'
 
 # Redireciona para a home page após o logout (opcional, já que a LogoutView pode fazer isso)
 LOGOUT_REDIRECT_URL = '/'
+
