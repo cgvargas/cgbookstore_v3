@@ -10,6 +10,7 @@ from .search_view import SearchView
 from .about_view import AboutView
 from .contact_view import ContactView
 from .library_view import LibraryView
+from .event_views import EventListView
 
 __all__ = [
     'HomeView',
@@ -19,4 +20,5 @@ __all__ = [
     'AboutView',
     'ContactView',
     'LibraryView',
+    'EventListView',
 ]

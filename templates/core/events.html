@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eventos Literários - CG.BookStore{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    
+    <!-- Hero Section com Evento em Destaque -->
+    {% if featured_event %}
+    <section class="featured-event mb-5">
+        <div class="card border-0 shadow-lg overflow-hidden">
+            <div class="row g-0">
+                <div class="col-md-5">
+                    {% if featured_event.banner_image %}
+                        <img src="{{ featured_event.banner_image.url }}" 
+                             class="img-fluid h-100 object-fit-cover" 
+                             alt="{{ featured_event.title }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/600x400/007bff/ffffff?text=Evento+em+Destaque" 
+                             class="img-fluid h-100 object-fit-cover" 
+                             alt="Sem imagem">
+                    {% endif %}
+                </div>
+                <div class="col-md-7">
+                    <div class="card-body p-5">
+                        <span class="badge bg-danger mb-3">
+                            <i class="fas fa-star me-1"></i> DESTAQUE
+                        </span>
+                        <h2 class="card-title fw-bold mb-3">{{ featured_event.title }}</h2>
+                        <p class="card-text lead mb-4">{{ featured_event.description|truncatewords:40 }}</p>
+                        
+                        <div class="event-details mb-4">
+                            <div class="mb-2">
+                                <i class="fas fa-calendar-alt text-primary me-2"></i>
+                                <strong>Data:</strong> {{ featured_event.start_date|date:"d/m/Y - H:i" }}
+                            </div>
+                            <div class="mb-2">
+                                <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                                <strong>Local:</strong> {{ featured_event.get_location_display }}
+                            </div>
+                            {% if featured_event.is_free %}
+                            <div class="mb-2">
+                                <span class="badge bg-success">Entrada Gratuita</span>
+                            </div>
+                            {% elif featured_event.price %}
+                            <div class="mb-2">
+                                <i class="fas fa-ticket-alt text-warning me-2"></i>
+                                <strong>Ingresso:</strong> R$ {{ featured_event.price }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <a href="{{ featured_event.event_url }}" 
+                           target="_blank" 
+                           class="btn btn-primary btn-lg">
+                            <i class="fas fa-external-link-alt me-2"></i>
+                            Acessar Evento
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Eventos Acontecendo Agora -->
+    {% if ongoing_events %}
+    <section class="ongoing-events mb-5">
+        <h3 class="mb-4">
+            <i class="fas fa-play-circle text-success me-2"></i>
+            Acontecendo Agora
+        </h3>
+        <div class="row g-4">
+            {% for event in ongoing_events %}
+            <div class="col-md-6">
+                <div class="card h-100 border-success shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <i class="fas fa-circle blink me-1"></i> AO VIVO
+                    </div>
+                    {% if event.thumbnail_image or event.banner_image %}
+                    <img src="{% if event.thumbnail_image %}{{ event.thumbnail_image.url }}{% else %}{{ event.banner_image.url }}{% endif %}" 
+                         class="card-img-top" 
+                         style="height: 200px; object-fit: cover;" 
+                         alt="{{ event.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ event.title }}</h5>
+                        <p class="card-text text-muted small">{{ event.short_description|truncatewords:15 }}</p>
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                {{ event.get_location_display }}
+                            </small>
+                        </div>
+                        <a href="{{ event.event_url }}" target="_blank" class="btn btn-success btn-sm w-100">
+                            <i class="fas fa-external-link-alt me-1"></i>
+                            Participar Agora
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Próximos Eventos -->
+    {% if upcoming_events %}
+    <section class="upcoming-events mb-5">
+        <h3 class="mb-4">
+            <i class="fas fa-calendar-plus text-primary me-2"></i>
+            Próximos Eventos
+        </h3>
+        <div class="row g-4">
+            {% for event in upcoming_events %}
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm hover-card">
+                    {% if event.thumbnail_image or event.banner_image %}
+                    <img src="{% if event.thumbnail_image %}{{ event.thumbnail_image.url }}{% else %}{{ event.banner_image.url }}{% endif %}" 
+                         class="card-img-top" 
+                         style="height: 200px; object-fit: cover;" 
+                         alt="{{ event.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <span class="badge bg-primary mb-2">{{ event.get_event_type_display }}</span>
+                        <h5 class="card-title">{{ event.title }}</h5>
+                        <p class="card-text text-muted small">{{ event.short_description|truncatewords:12 }}</p>
+                        
+                        <div class="event-info small text-muted mb-3">
+                            <div class="mb-1">
+                                <i class="fas fa-clock me-1"></i>
+                                {{ event.start_date|date:"d/m/Y - H:i" }}
+                            </div>
+                            <div>
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                {{ event.get_location_display }}
+                            </div>
+                        </div>
+                        
+                        <a href="{{ event.event_url }}" target="_blank" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="fas fa-external-link-alt me-1"></i>
+                            Saiba Mais
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Eventos Passados -->
+    {% if past_events %}
+    <section class="past-events mb-5">
+        <h3 class="mb-4">
+            <i class="fas fa-history text-secondary me-2"></i>
+            Eventos Anteriores
+        </h3>
+        <div class="row g-3">
+            {% for event in past_events %}
+            <div class="col-md-6">
+                <div class="card shadow-sm opacity-75">
+                    <div class="card-body d-flex">
+                        {% if event.thumbnail_image %}
+                        <img src="{{ event.thumbnail_image.url }}" 
+                             class="me-3 rounded" 
+                             style="width: 100px; height: 100px; object-fit: cover;" 
+                             alt="{{ event.title }}">
+                        {% endif %}
+                        <div class="flex-grow-1">
+                            <h6 class="card-title mb-1">{{ event.title }}</h6>
+                            <small class="text-muted d-block mb-2">
+                                {{ event.start_date|date:"d/m/Y" }} - {{ event.get_location_display }}
+                            </small>
+                            <span class="badge bg-secondary">Finalizado</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Nenhum evento encontrado -->
+    {% if not upcoming_events and not ongoing_events and not past_events %}
+    <div class="text-center py-5">
+        <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+        <h3>Nenhum evento agendado no momento</h3>
+        <p class="text-muted">Fique atento! Novos eventos literários serão divulgados em breve.</p>
+    </div>
+    {% endif %}
+    
+</div>
+
+<style>
+.hover-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.blink {
+    animation: blink 1.5s infinite;
+}
+
+.object-fit-cover {
+    object-fit: cover;
+}
+</style>
+{% endblock %}

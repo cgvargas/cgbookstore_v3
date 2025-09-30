@@ -1,0 +1,135 @@
+{% load static %}
+
+<!-- Widget de Evento em Destaque -->
+{% if featured_event %}
+<section class="event-widget-section py-4 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <!-- Imagem do Evento -->
+            <div class="col-md-4">
+                <a href="{{ featured_event.event_url }}" target="_blank" class="event-widget-link">
+                    {% if featured_event.thumbnail_image %}
+                        <img src="{{ featured_event.thumbnail_image.url }}"
+                             class="img-fluid rounded shadow-sm event-widget-image"
+                             alt="{{ featured_event.title }}">
+                    {% elif featured_event.banner_image %}
+                        <img src="{{ featured_event.banner_image.url }}"
+                             class="img-fluid rounded shadow-sm event-widget-image"
+                             alt="{{ featured_event.title }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/400x300/6c757d/ffffff?text=Evento"
+                             class="img-fluid rounded shadow-sm event-widget-image"
+                             alt="Sem imagem">
+                    {% endif %}
+                </a>
+            </div>
+
+            <!-- Informações do Evento -->
+            <div class="col-md-8">
+                <div class="event-widget-content">
+                    <!-- Badge de Tipo -->
+                    <span class="badge bg-primary mb-2">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        {{ featured_event.get_event_type_display }}
+                    </span>
+
+                    <!-- Título -->
+                    <h4 class="event-widget-title mb-2">
+                        <a href="{{ featured_event.event_url }}" target="_blank" class="text-decoration-none text-dark">
+                            {{ featured_event.title }}
+                        </a>
+                    </h4>
+
+                    <!-- Descrição Curta -->
+                    <p class="text-muted mb-3">
+                        {{ featured_event.short_description|truncatewords:25 }}
+                    </p>
+
+                    <!-- Informações Rápidas -->
+                    <div class="event-widget-info mb-3">
+                        <div class="row g-2">
+                            <!-- Data -->
+                            <div class="col-auto">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock text-primary me-1"></i>
+                                    {{ featured_event.start_date|date:"d/m/Y - H:i" }}
+                                </small>
+                            </div>
+
+                            <!-- Local -->
+                            <div class="col-auto">
+                                <small class="text-muted">
+                                    <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                    {{ featured_event.get_location_display }}
+                                </small>
+                            </div>
+
+                            <!-- Preço -->
+                            {% if featured_event.is_free %}
+                            <div class="col-auto">
+                                <small class="badge bg-success">Gratuito</small>
+                            </div>
+                            {% elif featured_event.price %}
+                            <div class="col-auto">
+                                <small class="text-muted">
+                                    <i class="fas fa-ticket-alt text-warning me-1"></i>
+                                    R$ {{ featured_event.price }}
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="event-widget-actions">
+                        <a href="{{ featured_event.event_url }}"
+                           target="_blank"
+                           class="btn btn-primary btn-sm me-2">
+                            <i class="fas fa-external-link-alt me-1"></i>
+                            Ver Evento
+                        </a>
+
+                        <a href="{% url 'core:events' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-calendar-check me-1"></i>
+                            Todos os Eventos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.event-widget-section {
+    border-top: 3px solid #007bff;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.event-widget-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.event-widget-link:hover .event-widget-image {
+    transform: scale(1.05);
+}
+
+.event-widget-title {
+    font-weight: 600;
+}
+
+.event-widget-title a:hover {
+    color: #007bff !important;
+}
+
+@media (max-width: 768px) {
+    .event-widget-image {
+        height: 150px;
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{% endif %}

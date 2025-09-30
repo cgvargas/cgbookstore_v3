@@ -6,7 +6,8 @@ from core.views import (
     SearchView,
     AboutView,
     ContactView,
-    LibraryView
+    LibraryView,
+    EventListView
 )
 
 app_name = 'core'
@@ -19,4 +20,5 @@ urlpatterns = [
     path('sobre/', AboutView.as_view(), name='about'),
     path('contato/', ContactView.as_view(), name='contact'),
     path('biblioteca/', LibraryView.as_view(), name='library'),
+    path('eventos/', EventListView.as_view(), name='events'),
 ]

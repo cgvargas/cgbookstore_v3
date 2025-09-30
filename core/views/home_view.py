@@ -1,13 +1,14 @@
 # C:\Users\claud\OneDrive\ProjectsDjango\CGBookStore_v3\core\views\home_view.py
 
 from django.views.generic import TemplateView
-from core.models import Section
+from django.utils import timezone
+from core.models import Section, Event
 
 
 class HomeView(TemplateView):
     """
     View para a página inicial.
-    Exibe seções dinâmicas gerenciadas pelo admin.
+    Exibe seções dinâmicas gerenciadas pelo admin e widget de evento.
     """
     template_name = 'core/home.html'
 
@@ -22,5 +23,17 @@ class HomeView(TemplateView):
         ).order_by('order')
 
         context['sections'] = sections
+
+        # Buscar evento em destaque (próximo evento futuro)
+        now = timezone.now()
+        featured_event = Event.objects.filter(
+            active=True,
+            featured=True,
+            start_date__gt=now
+        ).exclude(
+            status='cancelled'
+        ).order_by('start_date').first()
+
+        context['featured_event'] = featured_event
 
         return context

@@ -9,6 +9,7 @@ from .book import Book
 from .video import Video
 from .section import Section
 from .section_item import SectionItem
+from .event import Event
 
 __all__ = [
     'Category',
@@ -17,4 +18,5 @@ __all__ = [
     'Video',
     'Section',
     'SectionItem',
+    'Event',
 ]
