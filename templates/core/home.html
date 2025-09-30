@@ -1,46 +1,155 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/carousel.css' %}">
+{% endblock %}
+
 {% block title %}Bem-vindo à CG.BookStore{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container-fluid px-0">
     <!-- Seção de Boas-Vindas -->
-    <div class="p-5 mb-4 bg-light rounded-3 text-center">
-        <div class="container-fluid py-5">
-            <h1 class="display-5 fw-bold">Sua Aventura Literária Começa Aqui</h1>
-            <p class="fs-4">Explore milhares de títulos, descubra novos autores e mergulhe em histórias fascinantes com nosso assistente literário inteligente.</p>
-            <a href="{% url 'core:book_list' %}" class="btn btn-primary btn-lg">Ver Catálogo Completo</a>
+    <div class="container">
+        <div class="p-5 mb-4 bg-light rounded-3 text-center">
+            <div class="container-fluid py-5">
+                <h1 class="display-5 fw-bold">Sua Aventura Literária Começa Aqui</h1>
+                <p class="fs-4">Explore milhares de títulos, descubra novos autores e mergulhe em histórias fascinantes com nosso assistente literário inteligente.</p>
+                <a href="{% url 'core:book_list' %}" class="btn btn-primary btn-lg">Ver Catálogo Completo</a>
+            </div>
         </div>
     </div>
 
-    <!-- Seção de Lançamentos -->
-    <h2 class="mb-4">Últimos Lançamentos</h2>
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-        {% for book in latest_books %}
-        <div class="col">
-            <div class="card h-100 book-card">
-                <!-- Imagem de Capa -->
-                {% if book.cover_image %}
-                    <img src="{{ book.cover_image.url }}" class="card-img-top book-cover" alt="{{ book.title }}">
-                {% else %}
-                    <img src="https://via.placeholder.com/300x400.png?text=Capa+Indisponível" class="card-img-top book-cover" alt="Capa indisponível">
-                {% endif %}
-                <div class="card-body">
-                    <h5 class="card-title">{{ book.title }}</h5>
-                    <p class="card-text text-muted">{{ book.author.name }}</p>
-                    <p class="price">R$ {{ book.price }}</p>
+    <!-- Carrossel de Últimos Lançamentos -->
+    <section class="books-carousel-section">
+        <div class="container">
+            <div class="carousel-header">
+                <h2>
+                    <i class="fas fa-fire text-danger me-2"></i>Últimos Lançamentos
+                </h2>
+                <a href="{% url 'core:book_list' %}" class="view-all-link">
+                    Ver todos <i class="fas fa-chevron-right ms-1"></i>
+                </a>
+            </div>
+
+            <!-- Swiper -->
+            <div class="swiper books-swiper">
+                <div class="swiper-wrapper">
+                    {% for book in latest_books %}
+                    <div class="swiper-slide">
+                        <div class="card book-card">
+                            <!-- Imagem de Capa -->
+                            {% if book.cover_image %}
+                                <img src="{{ book.cover_image.url }}" class="book-cover" alt="{{ book.title }}">
+                            {% else %}
+                                <img src="https://via.placeholder.com/300x400/6c757d/ffffff?text=Sem+Capa"
+                                     class="book-cover" alt="Sem capa">
+                            {% endif %}
+
+                            <div class="card-body">
+                                <!-- Título -->
+                                <h5 class="card-title">{{ book.title }}</h5>
+
+                                <!-- Autor -->
+                                <p class="card-text">{{ book.author.name }}</p>
+
+                                <!-- Avaliação (se houver) -->
+                                {% if book.average_rating %}
+                                <div class="book-rating">
+                                    <span class="stars">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= book.rating_stars %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </span>
+                                    {% if book.ratings_count %}
+                                    <span class="rating-count">({{ book.ratings_count }})</span>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                <!-- Preço -->
+                                <p class="price">R$ {{ book.price }}</p>
+
+                                <!-- Botão Ver Detalhes -->
+                                <a href="{% url 'core:book_detail' book.slug %}" class="btn btn-primary w-100 mt-2">
+                                    <i class="fas fa-eye me-2"></i>Ver Detalhes
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="swiper-slide">
+                        <p class="text-center">Nenhum livro cadastrado ainda.</p>
+                    </div>
+                    {% endfor %}
                 </div>
-                <div class="card-footer bg-transparent border-0 text-center pb-3">
-                    <a href="{% url 'core:book_detail' book.slug %}" class="btn btn-primary">
-                        <i class="fas fa-eye me-2"></i>Ver Detalhes
-                    </a>
-                </div>
+
+                <!-- Navegação -->
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+
+                <!-- Paginação -->
+                <div class="swiper-pagination"></div>
             </div>
         </div>
-        {% empty %}
-        <p>Nenhum livro cadastrado ainda.</p>
-        {% endfor %}
-    </div>
+    </section>
+
+    <!-- Você pode adicionar mais seções de carrossel aqui -->
+    <!-- Por exemplo: "Mais Vendidos", "Ficção Científica", etc. -->
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Inicializar Swiper
+    const swiper = new Swiper('.books-swiper', {
+        // Configurações
+        slidesPerView: 2,
+        spaceBetween: 20,
+        loop: false,
+
+        // Navegação
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+
+        // Paginação
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+        },
+
+        // Responsividade
+        breakpoints: {
+            // Quando largura >= 576px
+            576: {
+                slidesPerView: 2,
+                spaceBetween: 20,
+            },
+            // Quando largura >= 768px
+            768: {
+                slidesPerView: 3,
+                spaceBetween: 25,
+            },
+            // Quando largura >= 992px
+            992: {
+                slidesPerView: 4,
+                spaceBetween: 25,
+            },
+            // Quando largura >= 1200px
+            1200: {
+                slidesPerView: 5,
+                spaceBetween: 30,
+            },
+        },
+    });
+});
+</script>
 {% endblock %}
