@@ -1,12 +1,11 @@
-# C:\Users\claud\OneDrive\ProjectsDjango\CGBookStore_v3\core\views\__init__.py
-
 """
-Core Views Package
-Centraliza todas as views do app core para facilitar imports
+Views do app Core.
+Importa e expõe todas as views para uso nas URLs.
 """
 
 from .home_view import HomeView
 from .book_views import BookListView
+from .book_detail_view import BookDetailView
 from .search_view import SearchView
 from .about_view import AboutView
 from .contact_view import ContactView
@@ -15,6 +14,7 @@ from .library_view import LibraryView
 __all__ = [
     'HomeView',
     'BookListView',
+    'BookDetailView',
     'SearchView',
     'AboutView',
     'ContactView',

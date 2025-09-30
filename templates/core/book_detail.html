@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ book.title }} - CGBookStore{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Início</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'core:book_list' %}">Livros</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ book.title }}</li>
+        </ol>
+    </nav>
+
+    <!-- Detalhes do Livro -->
+    <div class="row">
+        <!-- Coluna da Capa -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm">
+                {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}" class="card-img-top" alt="{{ book.title }}">
+                {% else %}
+                    <img src="https://via.placeholder.com/400x600/6c757d/ffffff?text=Sem+Capa" 
+                         class="card-img-top" alt="Sem capa">
+                {% endif %}
+            </div>
+            
+            <!-- Botões de Ação -->
+            <div class="d-grid gap-2 mt-3">
+                {% if user.is_authenticated %}
+                    <button class="btn btn-primary btn-lg" disabled>
+                        <i class="fas fa-book-reader me-2"></i>Adicionar à Biblioteca
+                    </button>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Entrar para Adicionar
+                    </a>
+                {% endif %}
+                
+                {% if book.preview_link %}
+                    <a href="{{ book.preview_link }}" target="_blank" class="btn btn-outline-secondary">
+                        <i class="fas fa-external-link-alt me-2"></i>Visualizar no Google Books
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Coluna de Informações -->
+        <div class="col-md-8">
+            <!-- Título e Subtítulo -->
+            <h1 class="display-5 fw-bold">{{ book.title }}</h1>
+            {% if book.subtitle %}
+                <h2 class="h4 text-muted mb-3">{{ book.subtitle }}</h2>
+            {% endif %}
+
+            <!-- Autor -->
+            <p class="lead">
+                <i class="fas fa-user me-2"></i>
+                <strong>Por:</strong> {{ book.author.name }}
+            </p>
+
+            <!-- Avaliação (se houver) -->
+            {% if book.average_rating %}
+                <div class="mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="me-2">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= book.rating_stars %}
+                                    <i class="fas fa-star text-warning"></i>
+                                {% else %}
+                                    <i class="far fa-star text-warning"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="text-muted">
+                            {{ book.average_rating }} 
+                            {% if book.ratings_count %}
+                                ({{ book.ratings_count }} avaliações)
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Categoria -->
+            {% if book.category %}
+                <p>
+                    <i class="fas fa-tag me-2"></i>
+                    <strong>Categoria:</strong> 
+                    <span class="badge bg-primary">{{ book.category.name }}</span>
+                </p>
+            {% endif %}
+
+            <hr>
+
+            <!-- Detalhes em Grid -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="card bg-light h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="fas fa-calendar-alt me-2"></i>Publicação
+                            </h6>
+                            <p class="card-text mb-0">{{ book.publication_date|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {% if book.publisher %}
+                <div class="col-md-6">
+                    <div class="card bg-light h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="fas fa-building me-2"></i>Editora
+                            </h6>
+                            <p class="card-text mb-0">{{ book.publisher }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if book.isbn %}
+                <div class="col-md-6">
+                    <div class="card bg-light h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="fas fa-barcode me-2"></i>ISBN
+                            </h6>
+                            <p class="card-text mb-0">{{ book.isbn }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if book.page_count %}
+                <div class="col-md-6">
+                    <div class="card bg-light h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="fas fa-file-alt me-2"></i>Páginas
+                            </h6>
+                            <p class="card-text mb-0">{{ book.page_count }} páginas</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="col-md-6">
+                    <div class="card bg-light h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="fas fa-language me-2"></i>Idioma
+                            </h6>
+                            <p class="card-text mb-0">
+                                {% if book.language == 'pt' %}Português
+                                {% elif book.language == 'en' %}Inglês
+                                {% elif book.language == 'es' %}Espanhol
+                                {% elif book.language == 'fr' %}Francês
+                                {% else %}{{ book.language }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card bg-success text-white h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="fas fa-tag me-2"></i>Preço
+                            </h6>
+                            <p class="card-text mb-0 fs-4 fw-bold">R$ {{ book.price }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Descrição -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle me-2"></i>Sobre este livro
+                    </h5>
+                    <p class="card-text">{{ book.description|linebreaks }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Livros Relacionados -->
+    {% if related_books %}
+    <hr class="my-5">
+    <h3 class="mb-4">
+        <i class="fas fa-book me-2"></i>Livros Relacionados
+    </h3>
+    <div class="row">
+        {% for related_book in related_books %}
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow-sm">
+                {% if related_book.cover_image %}
+                    <img src="{{ related_book.cover_image.url }}" class="card-img-top" alt="{{ related_book.title }}">
+                {% else %}
+                    <img src="https://via.placeholder.com/300x450/6c757d/ffffff?text=Sem+Capa" 
+                         class="card-img-top" alt="Sem capa">
+                {% endif %}
+                <div class="card-body">
+                    <h6 class="card-title">{{ related_book.title|truncatewords:5 }}</h6>
+                    <p class="card-text text-muted small">{{ related_book.author.name }}</p>
+                    <a href="{% url 'core:book_detail' related_book.slug %}" class="btn btn-sm btn-outline-primary w-100">
+                        Ver Detalhes
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
