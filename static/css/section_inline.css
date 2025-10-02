@@ -1,0 +1,12 @@
+/* Melhorar visual dos dropdowns */
+select[name$="-book"],
+select[name$="-author"],
+select[name$="-video"] {
+    min-width: 300px !important;
+    font-size: 13px !important;
+}
+
+/* Esconder campos não relevantes */
+.field-book, .field-author, .field-video {
+    transition: opacity 0.3s;
+}

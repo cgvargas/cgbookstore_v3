@@ -1,0 +1,54 @@
+/**
+ * Estilos para sistema de busca de SectionItem
+ */
+
+/* Botão de busca */
+.search-object-btn {
+    transition: all 0.2s ease;
+}
+
+.search-object-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.search-object-btn:active {
+    transform: translateY(0);
+}
+
+/* Instrução de busca */
+.search-instruction {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Melhorar visual do campo object_id */
+input[name$="object_id"] {
+    width: 100px !important;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Ajuda visual */
+.search-help {
+    margin-top: 10px;
+}
+
+.search-help a {
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.search-help a:hover {
+    text-decoration: underline;
+}

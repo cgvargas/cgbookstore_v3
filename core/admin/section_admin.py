@@ -1,24 +1,135 @@
 """
-Admin para Section e SectionItem - Versão Estável
+Admin para Section e SectionItem - Versão com Dropdown Dinâmico Simples
 """
+from django import forms
 from django.contrib import admin
+from django.contrib.contenttypes.models import ContentType
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
 from core.models import Section, SectionItem, Book, Author, Video
+
+
+class SectionItemAdminForm(forms.ModelForm):
+    """Form customizado com dropdown para selecionar objetos."""
+
+    # Campo dropdown para Book
+    book = forms.ModelChoiceField(
+        queryset=Book.objects.all().select_related('author', 'category').order_by('title'),
+        required=False,
+        label="📚 Selecionar Livro",
+        help_text="Escolha um livro da lista",
+        empty_label="--- Selecione um livro ---"
+    )
+
+    # Campo dropdown para Author
+    author = forms.ModelChoiceField(
+        queryset=Author.objects.all().order_by('name'),
+        required=False,
+        label="👤 Selecionar Autor",
+        help_text="Escolha um autor da lista",
+        empty_label="--- Selecione um autor ---"
+    )
+
+    # Campo dropdown para Video
+    video = forms.ModelChoiceField(
+        queryset=Video.objects.all().order_by('title'),
+        required=False,
+        label="🎬 Selecionar Vídeo",
+        help_text="Escolha um vídeo da lista",
+        empty_label="--- Selecione um vídeo ---"
+    )
+
+    class Meta:
+        model = SectionItem
+        fields = ['section', 'content_type', 'book', 'author', 'video', 'order', 'active', 'custom_title',
+                  'custom_description']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Melhorar exibição dos livros no dropdown
+        self.fields['book'].label_from_instance = lambda \
+            obj: f"{obj.title} - {obj.author.name if obj.author else 'Sem autor'}"
+
+        # Se já existe um objeto, preencher o campo apropriado
+        if self.instance and self.instance.pk and self.instance.object_id:
+            content_obj = self.instance.content_object
+            if isinstance(content_obj, Book):
+                self.fields['book'].initial = content_obj
+            elif isinstance(content_obj, Author):
+                self.fields['author'].initial = content_obj
+            elif isinstance(content_obj, Video):
+                self.fields['video'].initial = content_obj
+
+    def clean(self):
+        cleaned_data = super().clean()
+        content_type = cleaned_data.get('content_type')
+        book = cleaned_data.get('book')
+        author = cleaned_data.get('author')
+        video = cleaned_data.get('video')
+
+        # Determinar qual objeto foi selecionado e configurar object_id
+        if content_type:
+            model_class = content_type.model_class()
+
+            if model_class == Book:
+                if book:
+                    cleaned_data['object_id'] = book.id
+                else:
+                    raise ValidationError('Selecione um livro da lista.')
+            elif model_class == Author:
+                if author:
+                    cleaned_data['object_id'] = author.id
+                else:
+                    raise ValidationError('Selecione um autor da lista.')
+            elif model_class == Video:
+                if video:
+                    cleaned_data['object_id'] = video.id
+                else:
+                    raise ValidationError('Selecione um vídeo da lista.')
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        """Garantir que object_id seja setado antes de salvar."""
+        instance = super().save(commit=False)
+
+        # Pegar os dados limpos
+        content_type = self.cleaned_data.get('content_type')
+        book = self.cleaned_data.get('book')
+        author = self.cleaned_data.get('author')
+        video = self.cleaned_data.get('video')
+
+        # Setar object_id baseado no tipo selecionado
+        if content_type:
+            model_class = content_type.model_class()
+
+            if model_class == Book and book:
+                instance.object_id = book.id
+            elif model_class == Author and author:
+                instance.object_id = author.id
+            elif model_class == Video and video:
+                instance.object_id = video.id
+
+        if commit:
+            instance.save()
+
+        return instance
 
 
 class SectionItemInline(admin.TabularInline):
     """Inline para gerenciar itens dentro de uma seção."""
 
     model = SectionItem
+    form = SectionItemAdminForm
     extra = 1
-    fields = ['content_type', 'object_id', 'item_preview', 'order', 'active', 'custom_title']
+    fields = ['content_type', 'book', 'author', 'video', 'item_preview', 'order', 'active']
     readonly_fields = ['item_preview']
 
     def get_queryset(self, request):
         """Retorna queryset ordenado."""
         qs = super().get_queryset(request)
-        return qs.order_by('order')
+        return qs.select_related('content_type', 'section').order_by('order')
 
     def item_preview(self, obj):
         """Exibe preview visual do item vinculado."""
@@ -29,8 +140,7 @@ class SectionItemInline(admin.TabularInline):
 
         if not content_obj:
             return format_html(
-                '<span style="color: red; font-weight: bold;">⚠️ Objeto não encontrado (ID: {})</span>',
-                obj.object_id
+                '<span style="color: red; font-weight: bold;">⚠️ Objeto não encontrado</span>'
             )
 
         # Preview para Book
@@ -38,32 +148,24 @@ class SectionItemInline(admin.TabularInline):
             if content_obj.cover_image:
                 return format_html(
                     '<div style="display: flex; align-items: center; gap: 10px;">'
-                    '<img src="{}" style="width: 40px; height: 60px; object-fit: cover; border-radius: 4px;" />'
+                    '<img src="{}" style="width: 40px; height: 60px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />'
                     '<div>'
-                    '<strong>{}</strong><br/>'
-                    '<span style="color: #666; font-size: 0.9em;">{}</span><br/>'
-                    '<span style="color: #999; font-size: 0.85em;">Slug: {}</span>'
+                    '<strong style="font-size: 13px;">{}</strong><br/>'
+                    '<span style="color: #666; font-size: 11px;">{}</span>'
                     '</div>'
                     '</div>',
                     content_obj.cover_image.url,
-                    content_obj.title[:40],
-                    content_obj.author.name if content_obj.author else 'Sem autor',
-                    content_obj.slug or '<span style="color:red;">VAZIO</span>'
+                    content_obj.title[:30] + '...' if len(content_obj.title) > 30 else content_obj.title,
+                    content_obj.author.name if content_obj.author else 'Sem autor'
                 )
             else:
                 return format_html(
                     '<div style="display: flex; align-items: center; gap: 10px;">'
                     '<div style="width: 40px; height: 60px; background: #e0e0e0; border-radius: 4px; '
                     'display: flex; align-items: center; justify-content: center; font-size: 20px;">📚</div>'
-                    '<div>'
-                    '<strong>{}</strong><br/>'
-                    '<span style="color: #666; font-size: 0.9em;">{}</span><br/>'
-                    '<span style="color: #999; font-size: 0.85em;">Slug: {}</span>'
-                    '</div>'
+                    '<strong style="font-size: 13px;">{}</strong>'
                     '</div>',
-                    content_obj.title[:40],
-                    content_obj.author.name if content_obj.author else 'Sem autor',
-                    content_obj.slug or '<span style="color:red;">VAZIO</span>'
+                    content_obj.title[:30]
                 )
 
         # Preview para Author
@@ -71,64 +173,42 @@ class SectionItemInline(admin.TabularInline):
             if content_obj.photo:
                 return format_html(
                     '<div style="display: flex; align-items: center; gap: 10px;">'
-                    '<img src="{}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;" />'
-                    '<div>'
-                    '<strong>{}</strong><br/>'
-                    '<span style="color: #666; font-size: 0.9em;">Autor</span><br/>'
-                    '<span style="color: #999; font-size: 0.85em;">Slug: {}</span>'
-                    '</div>'
+                    '<img src="{}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />'
+                    '<strong style="font-size: 13px;">{}</strong>'
                     '</div>',
                     content_obj.photo.url,
-                    content_obj.name,
-                    content_obj.slug
+                    content_obj.name
                 )
             else:
                 return format_html(
                     '<div style="display: flex; align-items: center; gap: 10px;">'
                     '<div style="width: 50px; height: 50px; background: #e0e0e0; border-radius: 50%; '
                     'display: flex; align-items: center; justify-content: center; font-size: 24px;">👤</div>'
-                    '<div>'
-                    '<strong>{}</strong><br/>'
-                    '<span style="color: #666; font-size: 0.9em;">Autor</span><br/>'
-                    '<span style="color: #999; font-size: 0.85em;">Slug: {}</span>'
-                    '</div>'
+                    '<strong style="font-size: 13px;">{}</strong>'
                     '</div>',
-                    content_obj.name,
-                    content_obj.slug
+                    content_obj.name
                 )
 
         # Preview para Video
         elif isinstance(content_obj, Video):
-            if content_obj.thumbnail_url:
-                return format_html(
-                    '<div style="display: flex; align-items: center; gap: 10px;">'
-                    '<img src="{}" style="width: 80px; height: 45px; object-fit: cover; border-radius: 4px;" />'
-                    '<div>'
-                    '<strong>{}</strong><br/>'
-                    '<span style="color: #666; font-size: 0.9em;">{}</span>'
-                    '</div>'
-                    '</div>',
-                    content_obj.thumbnail_url,
-                    content_obj.title[:40],
-                    content_obj.get_platform_display()
-                )
-            else:
-                return format_html(
-                    '<div style="display: flex; align-items: center; gap: 10px;">'
-                    '<div style="width: 80px; height: 45px; background: #e0e0e0; border-radius: 4px; '
-                    'display: flex; align-items: center; justify-content: center; font-size: 20px;">🎥</div>'
-                    '<div>'
-                    '<strong>{}</strong><br/>'
-                    '<span style="color: #666; font-size: 0.9em;">{}</span>'
-                    '</div>'
-                    '</div>',
-                    content_obj.title[:40],
-                    content_obj.get_platform_display()
-                )
+            return format_html(
+                '<div style="padding: 5px;">'
+                '<strong style="font-size: 13px;">🎬 {}</strong><br/>'
+                '<span style="color: #666; font-size: 11px;">{}</span>'
+                '</div>',
+                content_obj.title[:30],
+                content_obj.get_platform_display()
+            )
 
         return format_html('<em>{}</em>', str(content_obj))
 
-    item_preview.short_description = 'Preview do Item'
+    item_preview.short_description = 'Preview'
+
+    class Media:
+        css = {
+            'all': ('admin/css/section_inline.css',)
+        }
+        js = ('admin/js/section_inline.js',)
 
 
 @admin.register(Section)
@@ -210,41 +290,12 @@ class SectionAdmin(admin.ModelAdmin):
 
     items_count.short_description = 'Itens (Ativos/Total)'
 
-    def save_formset(self, request, form, formset, change):
-        """Valida os SectionItems antes de salvar."""
-        instances = formset.save(commit=False)
-
-        for instance in instances:
-            if instance.object_id <= 0:
-                raise ValidationError(
-                    f'ID do objeto inválido: {instance.object_id}. O ID deve ser maior que 0.'
-                )
-
-            try:
-                obj = instance.content_object
-                if not obj:
-                    raise ValidationError(
-                        f'Objeto não encontrado: {instance.content_type} com ID {instance.object_id}'
-                    )
-
-                if isinstance(obj, Book):
-                    if not obj.slug or obj.slug == '':
-                        raise ValidationError(
-                            f'O livro "{obj.title}" (ID: {obj.id}) não possui slug válido. '
-                            f'Edite o livro e salve para gerar o slug automaticamente.'
-                        )
-
-            except Exception as e:
-                raise ValidationError(f'Erro ao validar item: {str(e)}')
-
-            instance.save()
-
-        formset.save_m2m()
-
 
 @admin.register(SectionItem)
 class SectionItemAdmin(admin.ModelAdmin):
     """Administração individual de itens de seção."""
+
+    form = SectionItemAdminForm
 
     list_display = [
         'id',
@@ -269,16 +320,19 @@ class SectionItemAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
 
     fieldsets = (
-        ('Seção', {
+        (None, {
             'fields': ('section',)
         }),
-        ('Conteúdo', {
-            'fields': (
-                'content_type',
-                'object_id'
-            )
+        ('1️⃣ Primeiro: Selecione o Tipo', {
+            'fields': ('content_type',),
+            'description': '<strong>Escolha Book, Author ou Video</strong>'
         }),
-        ('Customização', {
+        ('2️⃣ Depois: Selecione o Objeto', {
+            'fields': ('book', 'author', 'video'),
+            'description': '<strong>Escolha o item correspondente ao tipo selecionado acima</strong>'
+        }),
+        ('Customização (Opcional)', {
+            'classes': ('collapse',),
             'fields': (
                 'custom_title',
                 'custom_description'
@@ -291,16 +345,3 @@ class SectionItemAdmin(admin.ModelAdmin):
             )
         })
     )
-
-    def save_model(self, request, obj, form, change):
-        """Valida antes de salvar."""
-        if obj.object_id <= 0:
-            raise ValidationError('ID do objeto deve ser maior que 0.')
-
-        content_obj = obj.content_object
-        if not content_obj:
-            raise ValidationError(
-                f'Objeto não encontrado: {obj.content_type} com ID {obj.object_id}'
-            )
-
-        super().save_model(request, obj, form, change)
