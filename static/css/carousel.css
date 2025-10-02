@@ -1,10 +1,11 @@
 /* ========================================
    CARROSSEL DE LIVROS - ESTILO AMAZON
+   Adaptado para Sistema de Temas
 ======================================== */
 
 .books-carousel-section {
     margin: 3rem 0;
-    background: #fff;
+    background: var(--card-bg);
     padding: 2rem 0;
 }
 
@@ -19,19 +20,19 @@
 .carousel-header h2 {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #232f3e;
+    color: var(--text-primary);
     margin: 0;
 }
 
 .carousel-header .view-all-link {
-    color: #007185;
+    color: var(--text-link);
     text-decoration: none;
     font-weight: 500;
     font-size: 0.95rem;
 }
 
 .carousel-header .view-all-link:hover {
-    color: #c7511f;
+    color: var(--text-link-hover);
     text-decoration: underline;
 }
 
@@ -45,16 +46,16 @@
 .swiper-slide .book-card {
     height: 100%;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
     overflow: hidden;
-    background: #fff;
+    background: var(--card-bg);
 }
 
 .swiper-slide .book-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-    border-color: #c7511f;
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-hover);
 }
 
 /* Imagem de Capa */
@@ -62,7 +63,7 @@
     width: 100%;
     height: 300px;
     object-fit: cover;
-    border-bottom: 1px solid #e7e7e7;
+    border-bottom: 1px solid var(--border-color);
 }
 
 /* Corpo do Card */
@@ -71,12 +72,13 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    background: var(--card-bg);
 }
 
 .swiper-slide .card-title {
     font-size: 0.95rem;
     font-weight: 600;
-    color: #0f1111;
+    color: var(--text-primary);
     margin: 0;
     height: 2.8em;
     overflow: hidden;
@@ -87,14 +89,15 @@
 
 .swiper-slide .card-text {
     font-size: 0.85rem;
-    color: #565959;
+    color: var(--text-secondary);
     margin: 0;
 }
 
-.swiper-slide .price {
+.swiper-slide .price,
+.price-tag {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #b12704;
+    color: var(--price-color);
     margin: 0;
 }
 
@@ -107,46 +110,47 @@
 }
 
 .book-rating .stars {
-    color: #ffa41c;
+    color: var(--star-color);
 }
 
 .book-rating .rating-count {
-    color: #007185;
+    color: var(--text-link);
 }
 
 /* Botões de Navegação do Swiper */
 .swiper-button-next,
 .swiper-button-prev {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--card-bg);
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: var(--shadow-md);
     transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
 }
 
 .swiper-button-next:hover,
 .swiper-button-prev:hover {
-    background: #fff;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    background: var(--body-bg);
+    box-shadow: var(--shadow-lg);
 }
 
 .swiper-button-next::after,
 .swiper-button-prev::after {
     font-size: 1.25rem;
-    color: #232f3e;
+    color: var(--text-primary);
     font-weight: bold;
 }
 
 /* Paginação */
 .swiper-pagination-bullet {
-    background: #c7511f;
+    background: var(--secondary-color);
     opacity: 0.4;
 }
 
 .swiper-pagination-bullet-active {
     opacity: 1;
-    background: #c7511f;
+    background: var(--secondary-color);
 }
 
 /* Responsividade */
