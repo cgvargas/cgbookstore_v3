@@ -1,0 +1,35 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">CGBookStore Admin</a>
+</h1>
+{% endblock %}
+
+{% block nav-global %}
+<div style="float: right; margin-right: 20px;">
+    <a href="{% url 'admin:google_books_search' %}"
+       style="background: #28a745;
+              color: white;
+              padding: 8px 16px;
+              border-radius: 4px;
+              text-decoration: none;
+              font-weight: 600;
+              display: inline-block;
+              transition: all 0.3s;">
+        🔍 Buscar no Google Books
+    </a>
+</div>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Hover effect para o botão */
+    a[href*="google-books"]:hover {
+        background: #218838 !important;
+        transform: translateY(-1px);
+    }
+</style>
+{% endblock %}
