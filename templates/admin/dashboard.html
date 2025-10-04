@@ -56,6 +56,12 @@
         font-size: 16px;
     }
 
+    .dashboard-header a:hover {
+        background: rgba(255,255,255,0.3) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -303,8 +309,23 @@
 
 {% block content %}
 <div class="dashboard-header">
-    <h1>Dashboard CGBookStore</h1>
-    <p>Visão geral do sistema - Bem-vindo, {{ user.get_full_name|default:user.username }}!</p>
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h1>Dashboard CGBookStore</h1>
+            <p>Visão geral do sistema - Bem-vindo, {{ user.get_full_name|default:user.username }}</p>
+        </div>
+        <a href="{% url 'core:home' %}"
+           style="background: rgba(255,255,255,0.2);
+                  padding: 12px 24px;
+                  border-radius: 6px;
+                  color: white;
+                  text-decoration: none;
+                  font-weight: 600;
+                  transition: all 0.3s;
+                  white-space: nowrap;">
+            🏠 Voltar ao Site
+        </a>
+    </div>
 </div>
 
 <!-- ESTATÍSTICAS PRINCIPAIS -->

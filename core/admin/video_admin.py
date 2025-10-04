@@ -33,7 +33,7 @@ class VideoAdmin(admin.ModelAdmin):
         'related_author__name'
     ]
     prepopulated_fields = {'slug': ('title',)}
-    readonly_fields = ['created_at', 'updated_at', 'embed_code', 'thumbnail_url']
+    readonly_fields = ['created_at', 'updated_at']
     list_editable = ['featured', 'active']
     date_hierarchy = 'created_at'
 

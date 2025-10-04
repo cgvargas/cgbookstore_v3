@@ -154,15 +154,24 @@ class Video(models.Model):
             self.slug = slugify(self.title)
 
         # Extrair código de embed do YouTube
-        if self.platform == 'youtube' and not self.embed_code and self.video_url:
-            if 'youtube.com/watch?v=' in self.video_url:
-                self.embed_code = self.video_url.split('watch?v=')[1].split('&')[0]
-            elif 'youtu.be/' in self.video_url:
-                self.embed_code = self.video_url.split('youtu.be/')[1].split('?')[0]
+        if self.platform == 'youtube' and self.video_url:
+            # Limpar embed_code e thumbnail_url para reprocessar
+            video_id = None
 
-            # Gerar thumbnail automaticamente para YouTube
-            if self.embed_code and not self.thumbnail_url:
-                self.thumbnail_url = f"https://img.youtube.com/vi/{self.embed_code}/maxresdefault.jpg"
+            # Tentar extrair ID de diferentes formatos de URL
+            if 'youtube.com/watch?v=' in self.video_url:
+                video_id = self.video_url.split('watch?v=')[1].split('&')[0]
+            elif 'youtu.be/' in self.video_url:
+                video_id = self.video_url.split('youtu.be/')[1].split('?')[0]
+            elif 'youtube.com/shorts/' in self.video_url:
+                # YouTube Shorts
+                video_id = self.video_url.split('shorts/')[1].split('?')[0]
+
+            # Salvar embed_code
+            if video_id:
+                self.embed_code = video_id
+                # Gerar thumbnail automaticamente para YouTube
+                self.thumbnail_url = f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
 
         super().save(*args, **kwargs)
 
@@ -175,4 +184,22 @@ class Video(models.Model):
             return f"https://www.youtube.com/embed/{self.embed_code}"
         elif self.platform == 'vimeo' and self.embed_code:
             return f"https://player.vimeo.com/video/{self.embed_code}"
+        return None
+
+    def get_embed_html(self):
+        """Retorna código HTML iframe para embed do vídeo"""
+        if self.platform == 'youtube' and self.embed_code:
+            return f'''<iframe width="100%" height="100%" 
+                        src="https://www.youtube.com/embed/{self.embed_code}" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                       </iframe>'''
+        elif self.platform == 'vimeo' and self.embed_code:
+            return f'''<iframe width="100%" height="100%" 
+                        src="https://player.vimeo.com/video/{self.embed_code}" 
+                        frameborder="0" 
+                        allow="autoplay; fullscreen; picture-in-picture" 
+                        allowfullscreen>
+                       </iframe>'''
         return None
