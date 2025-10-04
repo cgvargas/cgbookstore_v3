@@ -305,6 +305,9 @@
         }
     }
 </style>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -498,7 +501,78 @@
             {% endfor %}
         </ul>
     </div>
-
 </div>
+
+<!-- SEÇÃO DE GRÁFICOS -->
+<div class="content-section" style="margin-top: 30px;">
+    <div class="section-header">
+        <h2 class="section-title">📊 Análises e Estatísticas</h2>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-top: 20px;">
+
+        <!-- Gráfico: Livros por Categoria -->
+        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px;">
+            <h3 style="color: var(--text-primary); margin: 0 0 15px 0; font-size: 16px;">Livros por Categoria</h3>
+            <div style="height: 300px;">
+                <canvas id="booksByCategoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Gráfico: Eventos por Status -->
+        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px;">
+            <h3 style="color: var(--text-primary); margin: 0 0 15px 0; font-size: 16px;">Eventos por Status</h3>
+            <div style="height: 300px;">
+                <canvas id="eventsByStatusChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Gráfico: Origem das Capas -->
+        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px;">
+            <h3 style="color: var(--text-primary); margin: 0 0 15px 0; font-size: 16px;">Origem das Capas</h3>
+            <div style="height: 300px;">
+                <canvas id="coverSourceChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Dados para os gráficos (JSON) -->
+<script>
+    // Dados: Livros por Categoria
+    window.booksByCategoryData = {
+        labels: [
+            {% for category in books_by_category %}
+                "{{ category.name }}"{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        values: [
+            {% for category in books_by_category %}
+                {{ category.book_count }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    };
+
+    // Dados: Eventos por Status
+    window.eventsByStatusData = {
+        upcoming: {{ event_stats.upcoming }},
+        happening: {{ event_stats.happening }},
+        finished: {{ event_stats.finished }}
+    };
+    console.log('📊 Dados de Eventos:', window.eventsByStatusData);
+
+    // Dados: Origem das Capas
+    window.coverSourceData = {
+        from_google: Number("{{ cover_stats.from_google }}"),
+        placeholder: Number("{{ cover_stats.without_cover }}"),
+        total: Number("{{ stats.total_books }}"),
+        percentage: Number("{{ cover_stats.percentage }}".replace(',', '.'))
+    };
+    console.log('📊 Dados de Capas:', window.coverSourceData);
+</script>
+
+<!-- Admin Charts Script -->
+<script src="{% static 'js/admin-charts.js' %}"></script>
 
 {% endblock %}
