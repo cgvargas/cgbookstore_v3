@@ -30,6 +30,8 @@
     --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
     --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
+    --sidebar-bg: #f8f9fa;
+    --sidebar-stats-bg: #e9ecef;
     --price-color: #b12704;
     --success-color: #067d62;
     --warning-color: #f08804;
@@ -68,6 +70,8 @@
     --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #1a1d20;
+    --sidebar-stats-bg: #232628;
     --price-color: #ff7f7f;
     --success-color: #5dd39e;
     --warning-color: #ffb347;
@@ -355,6 +359,56 @@ footer a:hover {
 }
 
 /* ==========================================
+   DROPDOWN MENUS - SCROLL PARA PRATELEIRAS
+========================================== */
+
+/* Dropdown com scroll quando houver muitas prateleiras */
+.dropdown-menu-scrollable {
+    max-height: 450px;
+    overflow-y: auto;
+}
+
+/* Customizar scrollbar para dropdown */
+.dropdown-menu-scrollable::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dropdown-menu-scrollable::-webkit-scrollbar-track {
+    background: var(--body-bg);
+    border-radius: 4px;
+}
+
+.dropdown-menu-scrollable::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.dropdown-menu-scrollable::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* Header de seção no dropdown (não sofre scroll) */
+.dropdown-menu-scrollable .dropdown-header {
+    position: sticky;
+    top: 0;
+    background-color: var(--card-bg);
+    z-index: 1;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Espaçamento melhor para itens de prateleira */
+.dropdown-menu-scrollable .dropdown-item {
+    padding: 0.5rem 1rem;
+    transition: background-color 0.2s ease;
+}
+
+/* Divider mais suave */
+.dropdown-menu-scrollable .dropdown-divider {
+    margin: 0.25rem 0;
+    opacity: 0.5;
+}
+
+/* ==========================================
    FORMS
 ========================================== */
 .form-control {
@@ -503,6 +557,8 @@ i.fas, i.far, i.fab {
         --border-hover: #ff9a62;
         --price-color: #ff7f7f;
         --success-color: #5dd39e;
+        --sidebar-bg: #1a1d20;
+        --sidebar-stats-bg: #232628;
         --star-color: #ffb347;
         --star-empty: #555555;
         --input-bg: #2a2d30;

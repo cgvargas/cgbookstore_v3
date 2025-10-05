@@ -36,3 +36,25 @@ def render_stars(rating):
     stars_html += '</span>'
     
     return mark_safe(stars_html)
+
+
+@register.filter(name='get_item')
+def get_item(dictionary, key):
+    """
+    Obtém um item de um dicionário usando uma chave.
+
+    Uso no template: {{ dict|get_item:key }}
+    """
+    if dictionary is None:
+        return None
+    return dictionary.get(key)
+
+
+@register.filter(name='range')
+def filter_range(value):
+    """
+    Retorna um range de 0 até value.
+
+    Uso no template: {% for i in 5|range %}
+    """
+    return range(int(value))

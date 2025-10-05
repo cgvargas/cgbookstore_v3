@@ -5,6 +5,7 @@ Exibe informações completas de um livro específico.
 
 from django.views.generic import DetailView
 from core.models import Book
+from accounts.models import BookShelf
 
 
 class BookDetailView(DetailView):
@@ -29,5 +30,15 @@ class BookDetailView(DetailView):
         ).exclude(
             id=book.id
         )[:4]
+
+        # Adicionar prateleiras personalizadas se usuário autenticado
+        if self.request.user.is_authenticated:
+            # Buscar prateleiras personalizadas do usuário
+            custom_shelves = BookShelf.objects.filter(
+                user=self.request.user,
+                shelf_type='custom'
+            ).values_list('custom_shelf_name', flat=True).distinct().order_by('custom_shelf_name')
+
+            context['custom_shelves'] = list(custom_shelves)
 
         return context

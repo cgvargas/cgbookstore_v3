@@ -30,15 +30,132 @@
             <!-- Botões de Ação -->
             <div class="d-grid gap-2 mt-3">
                 {% if user.is_authenticated %}
-                    <button class="btn btn-primary btn-lg" disabled>
-                        <i class="fas fa-book-reader me-2"></i>Adicionar à Biblioteca
-                    </button>
+                    <!-- Container para botão de biblioteca -->
+                    <div id="library-button-container">
+                        <!-- Dropdown Button Group -->
+                        <div class="btn-group w-100" role="group">
+                            <button type="button"
+                                    class="btn btn-primary btn-lg btn-add-to-library-main"
+                                    data-book-id="{{ book.id }}"
+                                    onclick="addToDefaultShelf({{ book.id }})">
+                                <i class="fas fa-book-reader me-2"></i>
+                                <span id="library-button-text">Adicionar à Biblioteca</span>
+                            </button>
+                            <button type="button"
+                                    class="btn btn-primary btn-lg dropdown-toggle dropdown-toggle-split"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                <span class="visually-hidden">Escolher prateleira</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-scrollable">
+                                <li><h6 class="dropdown-header">Adicionar a:</h6></li>
+
+                                <!-- Prateleiras Padrão (4 fixas) -->
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="addToShelf({{ book.id }}, 'favorites'); return false;">
+                                        <i class="fas fa-heart text-danger me-2"></i>Favoritos
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="addToShelf({{ book.id }}, 'to_read'); return false;">
+                                        <i class="fas fa-bookmark text-primary me-2"></i>Quero Ler
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="addToShelf({{ book.id }}, 'reading'); return false;">
+                                        <i class="fas fa-book-open text-success me-2"></i>Lendo
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="addToShelf({{ book.id }}, 'read'); return false;">
+                                        <i class="fas fa-check-circle text-info me-2"></i>Lidos
+                                    </a>
+                                </li>
+
+                                <!-- Prateleiras Personalizadas (dinâmicas) -->
+                                {% if custom_shelves %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header"><i class="fas fa-folder me-1"></i>Minhas Prateleiras:</h6></li>
+                                    {% for shelf_name in custom_shelves %}
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="addToShelf({{ book.id }}, 'custom', '{{ shelf_name|escapejs }}'); return false;">
+                                                <i class="fas fa-folder text-warning me-2"></i>{{ shelf_name }}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                {% endif %}
+
+                                <!-- Opção de criar nova prateleira -->
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="showCustomShelfModal({{ book.id }}); return false;">
+                                        <i class="fas fa-plus-circle text-warning me-2"></i>Nova Prateleira Personalizada
+                                    </a>
+                                </li>
+
+                                <!-- Link para gerenciar biblioteca -->
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-muted" href="{% url 'core:library' %}">
+                                        <i class="fas fa-cog me-2"></i>Gerenciar Biblioteca
+                                    </a>
+                                </li>
+                            </ul>
+                            <!-- Modal - Criar Prateleira Personalizada -->
+                            <div class="modal fade" id="customShelfModal" tabindex="-1" aria-labelledby="customShelfModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="customShelfModalLabel">
+                                                <i class="fas fa-folder-plus me-2"></i>Nova Prateleira Personalizada
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form id="customShelfForm">
+                                                <div class="mb-3">
+                                                    <label for="customShelfName" class="form-label">Nome da Prateleira</label>
+                                                    <input type="text"
+                                                           class="form-control"
+                                                           id="customShelfName"
+                                                           placeholder="Ex: Ficção Científica Favorita"
+                                                           maxlength="100"
+                                                           required>
+                                                    <div class="form-text">Máximo 100 caracteres</div>
+                                                    <div id="customShelfError" class="text-danger mt-2" style="display: none;"></div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                <i class="fas fa-times me-2"></i>Cancelar
+                                            </button>
+                                            <button type="button" class="btn btn-primary" id="createCustomShelfBtn" onclick="createAndAddToCustomShelf()">
+                                                <i class="fas fa-check me-2"></i>Criar e Adicionar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Indicador de prateleiras atuais -->
+                        <div id="current-shelves-indicator" class="mt-2" style="display: none;">
+                            <div class="alert alert-info py-2 px-3 mb-0">
+                                <small>
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    <strong>Já na biblioteca:</strong>
+                                    <div id="current-shelves-list" class="mt-1"></div>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
                 {% else %}
                     <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary btn-lg">
                         <i class="fas fa-sign-in-alt me-2"></i>Entrar para Adicionar
                     </a>
                 {% endif %}
-                
+
                 {% if book.preview_link %}
                     <a href="{{ book.preview_link }}" target="_blank" class="btn btn-outline-secondary">
                         <i class="fas fa-external-link-alt me-2"></i>Visualizar no Google Books
@@ -75,7 +192,7 @@
                             {% endfor %}
                         </div>
                         <span class="text-muted">
-                            {{ book.average_rating }} 
+                            {{ book.average_rating }}
                             {% if book.ratings_count %}
                                 ({{ book.ratings_count }} avaliações)
                             {% endif %}
@@ -88,7 +205,7 @@
             {% if book.category %}
                 <p>
                     <i class="fas fa-tag me-2"></i>
-                    <strong>Categoria:</strong> 
+                    <strong>Categoria:</strong>
                     <span class="badge bg-primary">{{ book.category.name }}</span>
                 </p>
             {% endif %}
@@ -98,77 +215,59 @@
             <!-- Detalhes em Grid -->
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                    <div class="card bg-light h-100">
+                    <div class="card">
                         <div class="card-body">
-                            <h6 class="card-title">
-                                <i class="fas fa-calendar-alt me-2"></i>Publicação
-                            </h6>
-                            <p class="card-text mb-0">{{ book.publication_date|date:"d/m/Y" }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {% if book.publisher %}
-                <div class="col-md-6">
-                    <div class="card bg-light h-100">
-                        <div class="card-body">
-                            <h6 class="card-title">
+                            <h6 class="card-subtitle mb-2 text-muted">
                                 <i class="fas fa-building me-2"></i>Editora
                             </h6>
-                            <p class="card-text mb-0">{{ book.publisher }}</p>
+                            <p class="card-text mb-0">{{ book.publisher|default:"Não informado" }}</p>
                         </div>
                     </div>
                 </div>
-                {% endif %}
-
-                {% if book.isbn %}
                 <div class="col-md-6">
-                    <div class="card bg-light h-100">
+                    <div class="card">
                         <div class="card-body">
-                            <h6 class="card-title">
-                                <i class="fas fa-barcode me-2"></i>ISBN
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                <i class="fas fa-calendar-alt me-2"></i>Publicação
                             </h6>
-                            <p class="card-text mb-0">{{ book.isbn }}</p>
+                            <p class="card-text mb-0">{{ book.publication_date|date:"Y"|default:"Não informado" }}</p>
                         </div>
                     </div>
                 </div>
-                {% endif %}
-
-                {% if book.page_count %}
                 <div class="col-md-6">
-                    <div class="card bg-light h-100">
+                    <div class="card">
                         <div class="card-body">
-                            <h6 class="card-title">
+                            <h6 class="card-subtitle mb-2 text-muted">
                                 <i class="fas fa-file-alt me-2"></i>Páginas
                             </h6>
-                            <p class="card-text mb-0">{{ book.page_count }} páginas</p>
+                            <p class="card-text mb-0">{{ book.page_count|default:"Não informado" }}</p>
                         </div>
                     </div>
                 </div>
-                {% endif %}
-
                 <div class="col-md-6">
-                    <div class="card bg-light h-100">
+                    <div class="card">
                         <div class="card-body">
-                            <h6 class="card-title">
-                                <i class="fas fa-language me-2"></i>Idioma
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                <i class="fas fa-globe me-2"></i>Idioma
                             </h6>
-                            <p class="card-text mb-0">
-                                {% if book.language == 'pt' %}Português
-                                {% elif book.language == 'en' %}Inglês
-                                {% elif book.language == 'es' %}Espanhol
-                                {% elif book.language == 'fr' %}Francês
-                                {% else %}{{ book.language }}
-                                {% endif %}
-                            </p>
+                            <p class="card-text mb-0">{{ book.language|default:"Não informado" }}</p>
                         </div>
                     </div>
                 </div>
-
                 <div class="col-md-6">
-                    <div class="card bg-success text-white h-100">
+                    <div class="card">
                         <div class="card-body">
-                            <h6 class="card-title">
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                <i class="fas fa-barcode me-2"></i>ISBN-13
+                            </h6>
+                            <p class="card-text mb-0">{{ book.isbn_13|default:"Não informado" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">
                                 <i class="fas fa-tag me-2"></i>Preço
                             </h6>
                             <p class="card-text mb-0 fs-4 fw-bold">R$ {{ book.price }}</p>
@@ -202,7 +301,7 @@
                 {% if related_book.cover_image %}
                     <img src="{{ related_book.cover_image.url }}" class="card-img-top" alt="{{ related_book.title }}">
                 {% else %}
-                    <img src="https://via.placeholder.com/300x450/6c757d/ffffff?text=Sem+Capa" 
+                    <img src="https://via.placeholder.com/300x450/6c757d/ffffff?text=Sem+Capa"
                          class="card-img-top" alt="Sem capa">
                 {% endif %}
                 <div class="card-body">
@@ -218,4 +317,202 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Variável global para armazenar as prateleiras atuais do livro
+    let currentBookShelves = [];
+    const bookId = {{ book.id }};
+
+    /**
+     * Adiciona livro à prateleira padrão (Quero Ler)
+     */
+    function addToDefaultShelf(bookId) {
+        addToShelf(bookId, 'to_read');
+    }
+
+    /**
+     * Adiciona livro a uma prateleira específica
+     */
+    function addToShelf(bookId, shelfType, customShelfName = '') {
+        const button = document.querySelector('.btn-add-to-library-main');
+
+        // Mostrar loading
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adicionando...';
+        }
+
+        // Usar LibraryManager com os 3 parâmetros
+        LibraryManager.addToShelf(bookId, shelfType, customShelfName)
+            .then(data => {
+                if (data.success) {
+                    // Atualizar lista de prateleiras
+                    loadBookShelves();
+                }
+            })
+            .finally(() => {
+                // Restaurar botão
+                if (button) {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-book-reader me-2"></i><span id="library-button-text">Adicionar à Biblioteca</span>';
+                }
+            });
+    }
+
+    /**
+     * Carrega as prateleiras atuais do livro
+     */
+    function loadBookShelves() {
+        LibraryManager.getBookShelves(bookId)
+            .then(data => {
+                if (data.success) {
+                    currentBookShelves = data.shelves;
+                    updateLibraryIndicator();
+                }
+            });
+    }
+
+    /**
+     * Atualiza o indicador visual de prateleiras
+     */
+    function updateLibraryIndicator() {
+        const indicator = document.getElementById('current-shelves-indicator');
+        const list = document.getElementById('current-shelves-list');
+        const buttonText = document.getElementById('library-button-text');
+
+        if (currentBookShelves.length > 0) {
+            // Mostrar indicador
+            indicator.style.display = 'block';
+
+            // Atualizar texto do botão
+            if (buttonText) {
+                buttonText.textContent = 'Adicionar a outra prateleira';
+            }
+
+            // Criar lista de badges
+            const badges = currentBookShelves.map(shelf => {
+                const icons = {
+                    'favorites': '<i class="fas fa-heart"></i>',
+                    'to_read': '<i class="fas fa-bookmark"></i>',
+                    'reading': '<i class="fas fa-book-open"></i>',
+                    'read': '<i class="fas fa-check-circle"></i>',
+                    'abandoned': '<i class="fas fa-times-circle"></i>',
+                    'custom': '<i class="fas fa-folder"></i>'
+                };
+                const icon = icons[shelf.shelf_type] || icons.custom;
+                return `<span class="badge bg-primary me-1">${icon} ${shelf.shelf_display}</span>`;
+            }).join('');
+
+            list.innerHTML = badges;
+        } else {
+            // Esconder indicador
+            indicator.style.display = 'none';
+
+            // Restaurar texto do botão
+            if (buttonText) {
+                buttonText.textContent = 'Adicionar à Biblioteca';
+            }
+        }
+    }
+
+    /**
+     * Mostra modal de criar prateleira personalizada
+     */
+    function showCustomShelfModal(bookId) {
+        // Guardar bookId globalmente
+        window.currentBookIdForCustomShelf = bookId;
+
+        // Limpar form
+        document.getElementById('customShelfName').value = '';
+        document.getElementById('customShelfError').style.display = 'none';
+
+        // Mostrar modal
+        const modal = new bootstrap.Modal(document.getElementById('customShelfModal'));
+        modal.show();
+
+        // Focar no input
+        setTimeout(() => {
+            document.getElementById('customShelfName').focus();
+        }, 500);
+    }
+
+    /**
+     * Cria prateleira personalizada e adiciona livro
+     */
+    function createAndAddToCustomShelf() {
+        const nameInput = document.getElementById('customShelfName');
+        const errorDiv = document.getElementById('customShelfError');
+        const createBtn = document.getElementById('createCustomShelfBtn');
+
+        const customShelfName = nameInput.value.trim();
+        const bookId = window.currentBookIdForCustomShelf;
+
+        // Validação
+        if (!customShelfName) {
+            errorDiv.textContent = 'Por favor, insira um nome para a prateleira.';
+            errorDiv.style.display = 'block';
+            nameInput.focus();
+            return;
+        }
+
+        if (customShelfName.length > 100) {
+            errorDiv.textContent = 'Nome muito longo (máximo 100 caracteres).';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        // Loading
+        createBtn.disabled = true;
+        createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Criando...';
+        errorDiv.style.display = 'none';
+
+        // Adicionar diretamente (a API valida se já existe)
+        LibraryManager.addToShelf(bookId, 'custom', customShelfName)
+            .then(data => {
+                if (data.success) {
+                    // Fechar modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('customShelfModal'));
+                    modal.hide();
+
+                    // Atualizar lista de prateleiras
+                    loadBookShelves();
+                } else {
+                    // Mostrar erro
+                    errorDiv.textContent = data.message;
+                    errorDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                errorDiv.textContent = 'Erro ao criar prateleira. Tente novamente.';
+                errorDiv.style.display = 'block';
+            })
+            .finally(() => {
+                // Restaurar botão
+                createBtn.disabled = false;
+                createBtn.innerHTML = '<i class="fas fa-check me-2"></i>Criar e Adicionar';
+            });
+    }
+
+    // Permitir Enter no formulário
+    document.addEventListener('DOMContentLoaded', function() {
+        const customShelfNameInput = document.getElementById('customShelfName');
+        if (customShelfNameInput) {
+            customShelfNameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    createAndAddToCustomShelf();
+                }
+            });
+        }
+    });
+
+    // Carregar prateleiras ao carregar a página
+    {% if user.is_authenticated %}
+    document.addEventListener('DOMContentLoaded', function() {
+        loadBookShelves();
+    });
+    {% endif %}
+</script>
 {% endblock %}

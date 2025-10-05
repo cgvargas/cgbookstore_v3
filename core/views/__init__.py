@@ -11,6 +11,13 @@ from .about_view import AboutView
 from .contact_view import ContactView
 from .library_view import LibraryView
 from .event_views import EventListView
+from .library_ajax_views import (
+    add_to_shelf,
+    remove_from_shelf,
+    get_book_shelves,
+    create_custom_shelf,
+    move_to_shelf,
+)
 
 __all__ = [
     'HomeView',
@@ -22,3 +29,4 @@ __all__ = [
     'LibraryView',
     'EventListView',
 ]
+

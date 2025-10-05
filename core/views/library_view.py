@@ -5,7 +5,7 @@ Integrada com os models de BookShelf, ReadingProgress, etc.
 
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Q
+from django.db.models import Count, F
 from accounts.models import BookShelf, ReadingProgress, BookReview
 
 
@@ -45,37 +45,54 @@ class LibraryView(LoginRequiredMixin, TemplateView):
             user=user, shelf_type='read'
         ).count()
 
-        # Prateleiras com livros
+        # Prateleiras com livros (limitar a 50 por prateleira)
         context['favorites'] = BookShelf.objects.filter(
             user=user, shelf_type='favorites'
-        ).select_related('book', 'book__author', 'book__category')[:10]
+        ).select_related('book', 'book__author', 'book__category')[:50]
 
         context['to_read'] = BookShelf.objects.filter(
             user=user, shelf_type='to_read'
-        ).select_related('book', 'book__author', 'book__category')[:10]
+        ).select_related('book', 'book__author', 'book__category')[:50]
 
         context['reading'] = BookShelf.objects.filter(
             user=user, shelf_type='reading'
-        ).select_related('book', 'book__author', 'book__category')[:10]
+        ).select_related('book', 'book__author', 'book__category')[:50]
 
         context['read'] = BookShelf.objects.filter(
             user=user, shelf_type='read'
-        ).select_related('book', 'book__author', 'book__category')[:10]
+        ).select_related('book', 'book__author', 'book__category')[:50]
 
-        # Progressos de leitura ativos (incompletos)
-        from django.db.models import F
-        context['reading_progress'] = ReadingProgress.objects.filter(
-            user=user
-        ).filter(
-            current_page__lt=F('total_pages')  # Página atual menor que total
-        ).select_related('book', 'book__author').order_by('-last_updated')[:5]
+        # Prateleiras personalizadas com contagem e livros
+        custom_shelves_list = []
 
-        # Prateleiras personalizadas
-        context['custom_shelves'] = BookShelf.objects.filter(
+        custom_shelves_data = BookShelf.objects.filter(
             user=user, shelf_type='custom'
         ).values('custom_shelf_name').annotate(
             count=Count('id')
         ).order_by('custom_shelf_name')
+
+        for shelf in custom_shelves_data:
+            shelf_name = shelf['custom_shelf_name']
+            books = BookShelf.objects.filter(
+                user=user,
+                shelf_type='custom',
+                custom_shelf_name=shelf_name
+            ).select_related('book', 'book__author', 'book__category')[:50]
+
+            custom_shelves_list.append({
+                'name': shelf_name,
+                'count': shelf['count'],
+                'books': books
+            })
+
+        context['custom_shelves'] = custom_shelves_list
+
+        # Progressos de leitura ativos (incompletos)
+        context['reading_progress'] = ReadingProgress.objects.filter(
+            user=user
+        ).filter(
+            current_page__lt=F('total_pages')
+        ).select_related('book', 'book__author').order_by('-last_updated')[:5]
 
         # Estatísticas de gamificação
         if hasattr(user, 'profile'):
