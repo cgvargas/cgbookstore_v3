@@ -1,32 +1,297 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Catálogo de Livros - CG.BookStore{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/catalog-filters.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h1 class="mb-4">Nosso Catálogo</h1>
-    <div class="row row-cols-1 row-cols-md-4 g-4">
-        {% for book in books %}
-        <div class="col">
-            <div class="card h-100 book-card">
-                 {% if book.cover_image %}
-                    <img src="{{ book.cover_image.url }}" class="card-img-top book-cover" alt="{{ book.title }}">
-                {% else %}
-                    <img src="https://via.placeholder.com/300x400.png?text=Capa+Indisponível" class="card-img-top book-cover" alt="Capa indisponível">
-                {% endif %}
-                <div class="card-body">
-                    <h5 class="card-title">{{ book.title }}</h5>
-                    <p class="card-text text-muted">{{ book.author.name }}</p>
-                    <p class="price">R$ {{ book.price }}</p>
-                    <a href="{% url 'core:book_detail' book.slug %}" class="btn btn-primary w-100">
-                        <i class="fas fa-eye me-2"></i>Ver Detalhes
-                    </a>
+<div class="container my-4">
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Nosso Catálogo</h1>
+
+        <!-- Busca Mobile (visível apenas em telas pequenas) -->
+        <button class="btn btn-outline-primary d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#mobileFilters">
+            <i class="fas fa-filter"></i> Filtros
+        </button>
+    </div>
+
+    <!-- Contador de Resultados e Filtros Ativos -->
+    {% if total_results > 0 %}
+    <div class="results-info mb-3">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="badge bg-primary">
+                <i class="fas fa-book"></i> {{ total_results }} livro{{ total_results|pluralize }}
+            </span>
+
+            {% if current_search %}
+            <span class="badge bg-info">
+                <i class="fas fa-search"></i> "{{ current_search }}"
+            </span>
+            {% endif %}
+
+            {% for cat_slug in current_categories %}
+                {% for category in all_categories %}
+                    {% if category.slug == cat_slug %}
+                    <span class="badge bg-secondary">
+                        <i class="fas fa-tag"></i> {{ category.name }}
+                    </span>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+
+            {% if current_price_min %}
+            <span class="badge bg-success">
+                <i class="fas fa-dollar-sign"></i> Min: R$ {{ current_price_min }}
+            </span>
+            {% endif %}
+
+            {% if current_price_max %}
+            <span class="badge bg-success">
+                <i class="fas fa-dollar-sign"></i> Max: R$ {{ current_price_max }}
+            </span>
+            {% endif %}
+
+            {% if has_filters %}
+            <a href="{% url 'core:book_list' %}" class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-times"></i> Limpar Filtros
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- SIDEBAR DE FILTROS -->
+        <aside class="col-md-3 mb-4">
+            <div class="filters-sidebar collapse d-md-block" id="mobileFilters">
+                <div class="card sticky-top" style="top: 80px;">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-sliders-h"></i> Filtros
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" action="{% url 'core:book_list' %}" id="filterForm">
+
+                            <!-- BUSCA -->
+                            <div class="filter-section mb-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-search"></i> Buscar
+                                </label>
+                                <div class="input-group">
+                                    <input
+                                        type="text"
+                                        name="q"
+                                        class="form-control"
+                                        placeholder="Título ou autor..."
+                                        value="{{ current_search }}"
+                                    >
+                                    <button class="btn btn-outline-secondary" type="submit">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- CATEGORIAS -->
+                            <div class="filter-section mb-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-tags"></i> Categorias
+                                </label>
+                                <div class="categories-list">
+                                    {% for category in all_categories %}
+                                    <div class="form-check">
+                                        <input
+                                            class="form-check-input filter-checkbox"
+                                            type="checkbox"
+                                            name="category"
+                                            value="{{ category.slug }}"
+                                            id="cat_{{ category.slug }}"
+                                            {% if category.slug in current_categories %}checked{% endif %}
+                                        >
+                                        <label class="form-check-label" for="cat_{{ category.slug }}">
+                                            {{ category.name }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- FAIXA DE PREÇO -->
+                            <div class="filter-section mb-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-dollar-sign"></i> Preço
+                                </label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <input
+                                            type="number"
+                                            name="price_min"
+                                            class="form-control form-control-sm"
+                                            placeholder="Mín"
+                                            step="0.01"
+                                            min="0"
+                                            value="{{ current_price_min }}"
+                                        >
+                                    </div>
+                                    <div class="col-6">
+                                        <input
+                                            type="number"
+                                            name="price_max"
+                                            class="form-control form-control-sm"
+                                            placeholder="Máx"
+                                            step="0.01"
+                                            min="0"
+                                            value="{{ current_price_max }}"
+                                        >
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted">Valores em R$</small>
+                            </div>
+
+                            <!-- ORDENAÇÃO -->
+                            <div class="filter-section mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-sort"></i> Ordenar por
+                                </label>
+                                <select name="sort_by" class="form-select filter-select">
+                                    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>
+                                        Mais Recentes
+                                    </option>
+                                    <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>
+                                        Mais Antigos
+                                    </option>
+                                    <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>
+                                        Menor Preço
+                                    </option>
+                                    <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>
+                                        Maior Preço
+                                    </option>
+                                    <option value="title_asc" {% if current_sort == 'title_asc' %}selected{% endif %}>
+                                        Título (A-Z)
+                                    </option>
+                                    <option value="title_desc" {% if current_sort == 'title_desc' %}selected{% endif %}>
+                                        Título (Z-A)
+                                    </option>
+                                    <option value="rating" {% if current_sort == 'rating' %}selected{% endif %}>
+                                        Melhor Avaliação
+                                    </option>
+                                </select>
+                            </div>
+
+                            <!-- BOTÕES -->
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-filter"></i> Aplicar Filtros
+                                </button>
+                                {% if has_filters %}
+                                <a href="{% url 'core:book_list' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-undo"></i> Limpar
+                                </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
-        {% empty %}
-        <p>Nenhum livro encontrado no catálogo.</p>
-        {% endfor %}
+        </aside>
+
+        <!-- GRID DE LIVROS -->
+        <main class="col-md-9">
+            {% if books %}
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+                {% for book in books %}
+                <div class="col">
+                    <div class="card h-100 book-card">
+                        {% if book.cover_image %}
+                            <img src="{{ book.cover_image.url }}" class="card-img-top book-cover" alt="{{ book.title }}">
+                        {% else %}
+                            <img src="https://via.placeholder.com/300x400.png?text=Capa+Indisponível" class="card-img-top book-cover" alt="Capa indisponível">
+                        {% endif %}
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ book.title }}</h5>
+                            <p class="card-text text-muted small">{{ book.author.name }}</p>
+
+                            {% if book.average_rating %}
+                            <div class="mb-2">
+                                <span class="text-warning">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= book.rating_stars %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                                <small class="text-muted">({{ book.average_rating }})</small>
+                            </div>
+                            {% endif %}
+
+                            <p class="price fw-bold text-success mb-2">R$ {{ book.price }}</p>
+
+                            <a href="{% url 'core:book_detail' book.slug %}" class="btn btn-primary w-100 mt-auto">
+                                <i class="fas fa-eye me-2"></i>Ver Detalhes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- PAGINAÇÃO -->
+            {% if is_paginated %}
+            <nav aria-label="Navegação de páginas" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <!-- MENSAGEM: NENHUM LIVRO ENCONTRADO -->
+            <div class="text-center py-5">
+                <i class="fas fa-book-open fa-4x text-muted mb-3"></i>
+                <h3>Nenhum livro encontrado</h3>
+                <p class="text-muted">Tente ajustar os filtros ou limpar a busca.</p>
+                <a href="{% url 'core:book_list' %}" class="btn btn-primary">
+                    <i class="fas fa-undo"></i> Ver Todos os Livros
+                </a>
+            </div>
+            {% endif %}
+        </main>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/catalog-filters.js' %}"></script>
 {% endblock %}
