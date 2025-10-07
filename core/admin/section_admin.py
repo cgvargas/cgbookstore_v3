@@ -134,7 +134,7 @@ class SectionItemInline(admin.TabularInline):
     def item_preview(self, obj):
         """Exibe preview visual do item vinculado."""
         if not obj.pk:
-            return format_html('<em style="color: #666;">Salve para ver preview</em>')
+            return format_html('<em style="color: #666;">{}</em>', 'Salve para ver preview')
 
         content_obj = obj.content_object
 

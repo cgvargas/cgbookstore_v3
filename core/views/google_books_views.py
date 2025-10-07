@@ -6,7 +6,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse
-from core.utils.google_books_api import search_books, download_cover
+from core.utils.google_books_api import search_books, download_cover, get_book_by_id, parse_google_books_date
 from core.models import Book, Author, Category
 from django.utils.text import slugify
 
@@ -156,12 +156,12 @@ def google_books_import(request, google_book_id):
             author=author,
             category=category,
             publisher=book_data.get('publisher', ''),
-            publication_date=book_data.get('published_date'),
+            publication_date=parse_google_books_date(book_data.get('published_date')),
             isbn=isbn or '',
             page_count=book_data.get('page_count'),
             language=book_data.get('language', 'pt-BR'),
             description=book_data.get('description', ''),
-            price=book_data.get('price', 49.90),  # Preço padrão se não houver
+            price=book_data.get('price') or None,
             average_rating=book_data.get('average_rating', 0.0),
             ratings_count=book_data.get('ratings_count', 0),
             preview_link=book_data.get('preview_link', ''),

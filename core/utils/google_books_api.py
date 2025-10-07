@@ -9,6 +9,7 @@ from typing import Dict, List, Optional
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.conf import settings
+from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -131,15 +132,16 @@ def get_book_by_id(google_book_id: str) -> Optional[Dict]:
         return None
 
 
+"""
+Correções para google_books_api.py
+Substitua as funções extract_book_info e download_cover
+"""
+
+
 def extract_book_info(item: Dict) -> Optional[Dict]:
     """
     Extrai informações relevantes de um item da resposta da API.
-
-    Args:
-        item: Item da resposta da API
-
-    Returns:
-        Dict com informações processadas do livro
+    ATUALIZADO: Busca imagens em alta resolução.
     """
     try:
         volume_info = item.get('volumeInfo', {})
@@ -153,9 +155,29 @@ def extract_book_info(item: Dict) -> Optional[Dict]:
             elif identifier.get('type') == 'ISBN_10':
                 isbn_10 = identifier.get('identifier')
 
-        # Imagens
+        # IMAGENS - BUSCAR A MAIOR RESOLUÇÃO DISPONÍVEL
         image_links = volume_info.get('imageLinks', {})
-        thumbnail = image_links.get('thumbnail', '').replace('http://', 'https://')
+
+        # Ordem de preferência: large > medium > small > thumbnail > smallThumbnail
+        thumbnail = None
+        for size in ['extraLarge', 'large', 'medium', 'small', 'thumbnail', 'smallThumbnail']:
+            if size in image_links:
+                thumbnail = image_links[size]
+                break
+
+        # Converter para HTTPS e otimizar URL
+        if thumbnail:
+            thumbnail = thumbnail.replace('http://', 'https://')
+            # Remover parâmetros que limitam qualidade
+            thumbnail = thumbnail.replace('&edge=curl', '')
+            # Tentar obter zoom máximo (0 = sem zoom/máxima qualidade)
+            if 'zoom=' in thumbnail:
+                thumbnail = thumbnail.replace('zoom=1', 'zoom=0')
+                thumbnail = thumbnail.replace('zoom=2', 'zoom=0')
+            else:
+                # Adicionar zoom=0 se não existir
+                if '?' in thumbnail:
+                    thumbnail += '&zoom=0'
 
         # Preço (pode não estar disponível)
         sale_info = item.get('saleInfo', {})
@@ -178,7 +200,6 @@ def extract_book_info(item: Dict) -> Optional[Dict]:
             'categories': volume_info.get('categories', []),
             'language': volume_info.get('language'),
             'thumbnail': thumbnail,
-            'small_thumbnail': image_links.get('smallThumbnail', '').replace('http://', 'https://'),
             'preview_link': volume_info.get('previewLink'),
             'info_link': volume_info.get('infoLink'),
             'average_rating': volume_info.get('averageRating'),
@@ -196,27 +217,51 @@ def extract_book_info(item: Dict) -> Optional[Dict]:
 def download_cover(image_url: str, book_slug: str, existing_cover: str = None) -> Optional[str]:
     """
     Baixa uma capa de livro da URL e salva no media storage.
-
-    Args:
-        image_url: URL da imagem
-        book_slug: Slug do livro para nomear o arquivo
-        existing_cover: Caminho da capa existente para sobrescrever
-
-    Returns:
-        Caminho relativo da imagem salva ou None
+    ATUALIZADO: Otimiza URL para máxima qualidade.
     """
     try:
         if not image_url:
             return None
 
-        # Baixar imagem
-        response = requests.get(image_url, timeout=10)
+        # Otimizar URL para máxima qualidade
+        optimized_url = image_url
+
+        # Remover limitadores de qualidade
+        optimized_url = optimized_url.replace('&edge=curl', '')
+        optimized_url = optimized_url.replace('&source=gbs_api', '')
+
+        # Ajustar zoom para máxima qualidade
+        if 'zoom=' in optimized_url:
+            # zoom=0 retorna a melhor qualidade disponível
+            optimized_url = optimized_url.replace('zoom=1', 'zoom=0')
+            optimized_url = optimized_url.replace('zoom=2', 'zoom=0')
+            optimized_url = optimized_url.replace('zoom=3', 'zoom=0')
+        else:
+            # Adicionar zoom=0 se não existir
+            if '?' in optimized_url:
+                optimized_url += '&zoom=0'
+
+        # Adicionar parâmetro para imagem grande se for URL do Google Books
+        if 'books.google.com' in optimized_url and 'img=' in optimized_url:
+            # img=1 retorna maior resolução
+            if 'img=0' in optimized_url:
+                optimized_url = optimized_url.replace('img=0', 'img=1')
+
+        logger.info(f"Baixando capa otimizada: {optimized_url}")
+
+        # Baixar imagem com timeout maior para imagens grandes
+        response = requests.get(optimized_url, timeout=15)
         response.raise_for_status()
 
-        # Nome do arquivo - usar o existente ou criar novo com sufixo _google
+        # Verificar se é realmente uma imagem
+        content_type = response.headers.get('Content-Type', '')
+        if 'image' not in content_type:
+            logger.warning(f"URL não retornou imagem: {content_type}")
+            return None
+
+        # Nome do arquivo
         if existing_cover:
             filename = existing_cover
-            # Deletar arquivo antigo se existir
             if default_storage.exists(filename):
                 default_storage.delete(filename)
         else:
@@ -228,7 +273,74 @@ def download_cover(image_url: str, book_slug: str, existing_cover: str = None) -
             ContentFile(response.content)
         )
 
-        logger.info(f"Capa baixada: {path}")
+        logger.info(f"Capa salva em alta resolução: {path} ({len(response.content)} bytes)")
+        return path
+
+    except Exception as e:
+        logger.error(f"Erro ao baixar capa: {e}")
+        return None
+
+
+def download_cover(image_url: str, book_slug: str, existing_cover: str = None) -> Optional[str]:
+    """
+    Baixa uma capa de livro da URL e salva no media storage.
+    ATUALIZADO: Otimiza URL para máxima qualidade.
+    """
+    try:
+        if not image_url:
+            return None
+
+        # Otimizar URL para máxima qualidade
+        optimized_url = image_url
+
+        # Remover limitadores de qualidade
+        optimized_url = optimized_url.replace('&edge=curl', '')
+        optimized_url = optimized_url.replace('&source=gbs_api', '')
+
+        # Ajustar zoom para máxima qualidade
+        if 'zoom=' in optimized_url:
+            # zoom=0 retorna a melhor qualidade disponível
+            optimized_url = optimized_url.replace('zoom=1', 'zoom=0')
+            optimized_url = optimized_url.replace('zoom=2', 'zoom=0')
+            optimized_url = optimized_url.replace('zoom=3', 'zoom=0')
+        else:
+            # Adicionar zoom=0 se não existir
+            if '?' in optimized_url:
+                optimized_url += '&zoom=0'
+
+        # Adicionar parâmetro para imagem grande se for URL do Google Books
+        if 'books.google.com' in optimized_url and 'img=' in optimized_url:
+            # img=1 retorna maior resolução
+            if 'img=0' in optimized_url:
+                optimized_url = optimized_url.replace('img=0', 'img=1')
+
+        logger.info(f"Baixando capa otimizada: {optimized_url}")
+
+        # Baixar imagem com timeout maior para imagens grandes
+        response = requests.get(optimized_url, timeout=15)
+        response.raise_for_status()
+
+        # Verificar se é realmente uma imagem
+        content_type = response.headers.get('Content-Type', '')
+        if 'image' not in content_type:
+            logger.warning(f"URL não retornou imagem: {content_type}")
+            return None
+
+        # Nome do arquivo
+        if existing_cover:
+            filename = existing_cover
+            if default_storage.exists(filename):
+                default_storage.delete(filename)
+        else:
+            filename = f'books/covers/{book_slug}.jpg'
+
+        # Salvar no storage
+        path = default_storage.save(
+            filename,
+            ContentFile(response.content)
+        )
+
+        logger.info(f"Capa salva em alta resolução: {path} ({len(response.content)} bytes)")
         return path
 
     except Exception as e:
@@ -331,3 +443,27 @@ def get_book_by_isbn(isbn: str) -> Optional[Dict]:
         return results['books'][0]
 
     return None
+
+def parse_google_books_date(date_string):
+    """
+    Converte data do Google Books para formato Django.
+    Aceita: '2005', '2005-07', '2005-07-16'
+    Retorna: date object ou '2000-01-01' como fallback
+    """
+    if not date_string:
+        return datetime(2000, 1, 1).date()  # Fallback padrão
+
+    try:
+        # Tentar formato completo
+        if len(date_string) == 10:  # YYYY-MM-DD
+            return datetime.strptime(date_string, '%Y-%m-%d').date()
+        # Apenas ano
+        elif len(date_string) == 4:  # YYYY
+            return datetime.strptime(f"{date_string}-01-01", '%Y-%m-%d').date()
+        # Ano e mês
+        elif len(date_string) == 7:  # YYYY-MM
+            return datetime.strptime(f"{date_string}-01", '%Y-%m-%d').date()
+        else:
+            return datetime(2000, 1, 1).date()
+    except:
+        return datetime(2000, 1, 1).date()

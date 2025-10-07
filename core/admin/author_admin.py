@@ -3,6 +3,7 @@ Admin para Author
 """
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from core.models import Author, Book
 
 
@@ -23,7 +24,7 @@ class BookInline(admin.TabularInline):
 class AuthorAdmin(admin.ModelAdmin):
     """Administração de Autores com inline de livros."""
 
-    list_display = ['name', 'photo_preview', 'books_count', 'has_social_media', 'created_at']
+    list_display = ['name', 'photo_preview', 'books_count', 'social_media_display', 'created_at']
     search_fields = ['name', 'bio']
     prepopulated_fields = {'slug': ('name',)}
     readonly_fields = ['created_at', 'photo_preview']
@@ -66,14 +67,14 @@ class AuthorAdmin(admin.ModelAdmin):
                 '<span style="color: green; font-weight: bold;">{} livros</span>',
                 count
             )
-        return format_html('<span style="color: gray;">0 livros</span>')
+        return mark_safe('<span style="color: gray;">0 livros</span>')
 
     books_count.short_description = "Livros"
 
-    def has_social_media(self, obj):
+    def social_media_display(self, obj):
         """Indica se tem redes sociais cadastradas."""
         if obj.website or obj.twitter or obj.instagram:
-            return format_html('<span style="color: green;">✓</span>')
-        return format_html('<span style="color: gray;">✗</span>')
+            return mark_safe('<span style="color: green;">✓</span>')
+        return mark_safe('<span style="color: gray;">✗</span>')
 
-    has_social_media.short_description = "Redes Sociais"
+    social_media_display.short_description = "Redes Sociais"
