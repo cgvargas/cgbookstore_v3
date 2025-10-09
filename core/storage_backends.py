@@ -8,7 +8,7 @@ from django.core.files.storage import Storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 from django.utils.deconstruct import deconstructible
-from core.utils.supabase_storage import supabase_storage
+from core.utils.supabase_storage import supabase_storage_admin
 import os
 import logging
 from io import BytesIO
@@ -38,7 +38,7 @@ class SupabaseMediaStorage(Storage):
         """
         self.location = location or ''
         self.base_url = base_url or settings.SUPABASE_URL
-        self._supabase = supabase_storage
+        self._supabase = supabase_storage_admin
 
         # Mapeamento de pastas para buckets
         self.bucket_mapping = {
