@@ -16,13 +16,23 @@ logger = logging.getLogger(__name__)
 class SupabaseStorage:
     """Classe para gerenciar upload e download de arquivos no Supabase Storage"""
 
-    def __init__(self):
-        """Inicializa o cliente Supabase"""
+    def __init__(self, use_service_key=False):
+        """
+        Inicializa o cliente Supabase
+
+        Args:
+            use_service_key: Se True, usa SERVICE_KEY (para operações admin)
+        """
         self.url = settings.SUPABASE_URL
-        self.key = settings.SUPABASE_ANON_KEY
+
+        # Usar SERVICE_KEY para operações administrativas
+        if use_service_key and hasattr(settings, 'SUPABASE_SERVICE_KEY'):
+            self.key = settings.SUPABASE_SERVICE_KEY
+        else:
+            self.key = settings.SUPABASE_ANON_KEY
 
         if not self.url or not self.key:
-            raise ValueError("SUPABASE_URL e SUPABASE_ANON_KEY devem estar configurados no .env")
+            raise ValueError("SUPABASE_URL e chave devem estar configurados no .env")
 
         self.client: Client = create_client(self.url, self.key)
         self.storage = self.client.storage
@@ -35,36 +45,29 @@ class SupabaseStorage:
     def create_buckets(self):
         """Cria os buckets necessários se não existirem"""
         buckets_to_create = [
-            {
-                'id': self.BOOK_COVERS_BUCKET,
-                'name': 'Book Covers',
-                'public': True
-            },
-            {
-                'id': self.USER_AVATARS_BUCKET,
-                'name': 'User Avatars',
-                'public': True
-            },
-            {
-                'id': self.AUTHOR_PHOTOS_BUCKET,
-                'name': 'Author Photos',
-                'public': True
-            }
+            self.BOOK_COVERS_BUCKET,
+            self.USER_AVATARS_BUCKET,
+            self.AUTHOR_PHOTOS_BUCKET
         ]
 
-        existing_buckets = self.storage.list_buckets()
-        existing_ids = [b.id for b in existing_buckets]
+        try:
+            existing_buckets = self.storage.list_buckets()
+            existing_ids = [b.id for b in existing_buckets]
+        except Exception as e:
+            logger.warning(f"Erro ao listar buckets: {str(e)}")
+            existing_ids = []
 
-        for bucket_config in buckets_to_create:
-            if bucket_config['id'] not in existing_ids:
+        for bucket_id in buckets_to_create:
+            if bucket_id not in existing_ids:
                 try:
+                    # Criar bucket público
                     self.storage.create_bucket(
-                        bucket_config['id'],
-                        {'public': bucket_config['public']}
+                        id=bucket_id,
+                        options={'public': True}
                     )
-                    logger.info(f"Bucket '{bucket_config['id']}' criado com sucesso")
+                    logger.info(f"Bucket '{bucket_id}' criado com sucesso")
                 except Exception as e:
-                    logger.error(f"Erro ao criar bucket '{bucket_config['id']}': {str(e)}")
+                    logger.error(f"Erro ao criar bucket '{bucket_id}': {str(e)}")
 
     def upload_file(self, file: BinaryIO, bucket: str, folder: str = "",
                     filename: Optional[str] = None) -> Optional[str]:
@@ -212,3 +215,6 @@ class SupabaseStorage:
 
 # Instância global para uso em todo o projeto
 supabase_storage = SupabaseStorage()
+
+# Instância com SERVICE_KEY para operações administrativas
+supabase_storage_admin = SupabaseStorage(use_service_key=True)

@@ -198,9 +198,12 @@
                             {% endif %}
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <a class="dropdown-item" href="{% url 'accounts:logout' %}">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Sair
-                                </a>
+                                <form method="POST" action="{% url 'accounts:logout' %}" id="logoutForm">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item" style="...">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Sair
+                                    </button>
+                                </form>
                             </li>
                         </ul>
                     </li>

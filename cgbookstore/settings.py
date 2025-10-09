@@ -4,6 +4,11 @@ from decouple import config
 import os
 from pathlib import Path
 
+# Supabase Configuration
+SUPABASE_URL = config('SUPABASE_URL', default='')
+SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='')
+SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='')
+
 logger = logging.getLogger(__name__)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -113,9 +118,37 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 # CONFIGURAÇÃO DE MÍDIA E ARMAZENAMENTO
 # ==============================================================================
 
-# Por padrão, usa armazenamento local
+# Armazenamento local (fallback)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Controle de uso do Supabase Storage
+USE_SUPABASE_STORAGE = config('USE_SUPABASE_STORAGE', default=True, cast=bool)
+
+# Configuração de Storage Backends (Django 4.2+)
+if USE_SUPABASE_STORAGE and SUPABASE_URL and SUPABASE_ANON_KEY:
+    # Usar Supabase Storage para uploads
+    STORAGES = {
+        "default": {
+            "BACKEND": "core.storage_backends.SupabaseMediaStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+    logger.info("✅ Usando Supabase Storage para arquivos de mídia")
+else:
+    # Usar armazenamento local
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+    logger.info("⚠️ Usando armazenamento local para arquivos de mídia")
+
 
 # Google Books API Configuration
 GOOGLE_BOOKS_API_KEY = config('GOOGLE_BOOKS_API_KEY', default='')

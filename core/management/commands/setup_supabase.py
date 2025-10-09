@@ -36,8 +36,8 @@ class Command(BaseCommand):
 
             # Criar buckets
             self.stdout.write('\nCriando buckets de storage...')
-            from core.utils.supabase_storage import supabase_storage
-            supabase_storage.create_buckets()
+            from core.utils.supabase_storage import supabase_storage_admin
+            supabase_storage_admin.create_buckets()
 
             # Testar conexão com o banco
             self.stdout.write('\nTestando conexão com o banco de dados...')
