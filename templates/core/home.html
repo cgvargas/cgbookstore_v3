@@ -141,7 +141,13 @@
                                                 <p class="card-text text-muted small mb-2">{{ obj.author.name }}</p>
                                             {% endif %}
                                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <span class="price-tag">R$ {{ obj.price }}</span>
+                                                <span class="price-tag">
+                                                    {% if obj.price %}
+                                                        R$ {{ obj.price|floatformat:2 }}
+                                                    {% else %}
+                                                        Consulte
+                                                    {% endif %}
+                                                </span>
                                                 {% if obj.average_rating %}
                                                     {{ obj.average_rating|render_stars }}
                                                 {% else %}
@@ -249,7 +255,13 @@
                                             </div>
                                         {% endif %}
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <span class="price-tag">R$ {{ obj.price }}</span>
+                                            <span class="price-tag">
+                                                {% if obj.price %}
+                                                    R$ {{ obj.price|floatformat:2 }}
+                                                {% else %}
+                                                    Consulte
+                                                {% endif %}
+                                            </span>
                                             <a href="{% url 'core:book_detail' obj.slug %}" class="btn btn-sm btn-outline-primary">
                                                 Ver Detalhes
                                             </a>

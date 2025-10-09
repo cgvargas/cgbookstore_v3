@@ -14,6 +14,7 @@ class BookAdmin(admin.ModelAdmin):
         'author',
         'category',
         'price',
+        'purchase_partner_name',
         'average_rating',
         'has_google_books_data',
         'publication_date',
@@ -61,11 +62,15 @@ class BookAdmin(admin.ModelAdmin):
                 'language'
             )
         }),
-        ('Precificação e Imagens', {
+        ('Compra e Imagens', {  # ← TÍTULO ATUALIZADO
             'fields': (
                 'price',
+                'purchase_partner_name',  # ← NOVO CAMPO
+                'purchase_partner_url',  # ← NOVO CAMPO
                 'cover_image'
-            )
+            ),
+            'description': 'Configure o preço médio de mercado e o parceiro comercial onde o livro pode ser adquirido'
+            # ← NOVA DESCRIÇÃO
         }),
         ('Integração Google Books', {
             'classes': ('collapse',),

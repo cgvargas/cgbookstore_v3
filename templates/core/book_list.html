@@ -230,7 +230,13 @@
                             </div>
                             {% endif %}
 
-                            <p class="price fw-bold text-success mb-2">R$ {{ book.price }}</p>
+                            <p class="price fw-bold text-success mb-2">
+                                {% if book.price %}
+                                    R$ {{ book.price|floatformat:2 }}
+                                {% else %}
+                                    <span class="text-muted">Preço sob consulta</span>
+                                {% endif %}
+                            </p>
 
                             <a href="{% url 'core:book_detail' book.slug %}" class="btn btn-primary w-100 mt-auto">
                                 <i class="fas fa-eye me-2"></i>Ver Detalhes

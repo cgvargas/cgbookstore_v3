@@ -98,8 +98,8 @@ class BookReview(models.Model):
         unique_together = ['user', 'book']
         indexes = [
             models.Index(fields=['user', 'book']),
-            models.Index(fields=['book', '-created_at']),
-            models.Index(fields=['is_public', '-created_at']),
+            models.Index(fields=['book', 'created_at']),
+            models.Index(fields=['is_public', 'created_at']),
         ]
 
     def __str__(self):

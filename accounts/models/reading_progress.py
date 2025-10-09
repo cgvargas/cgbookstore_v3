@@ -77,7 +77,7 @@ class ReadingProgress(models.Model):
         unique_together = ['user', 'book']
         indexes = [
             models.Index(fields=['user', 'book']),
-            models.Index(fields=['user', '-last_updated']),
+            models.Index(fields=['user', 'last_updated']),
         ]
 
     def __str__(self):

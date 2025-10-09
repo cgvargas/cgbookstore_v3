@@ -67,8 +67,26 @@ class Book(models.Model):
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        verbose_name="Preço"
+        verbose_name="Preço Médio",
+        null=True,
+        blank=True,
+        help_text="Valor médio de mercado (informativo)"
     )
+
+    # ========== CAMPOS DE PARCEIRO COMERCIAL ==========
+    purchase_partner_name = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="Parceiro Comercial",
+        help_text="Nome do parceiro onde o livro pode ser adquirido (ex: Amazon, Saraiva, Cultura)"
+    )
+    purchase_partner_url = models.URLField(
+        max_length=500,
+        blank=True,
+        verbose_name="Link para Compra",
+        help_text="URL completa da página do livro no site do parceiro comercial"
+    )
+
     cover_image = models.ImageField(
         upload_to='books/covers/',
         blank=True,
@@ -148,7 +166,7 @@ class Book(models.Model):
         indexes = [
             models.Index(fields=['isbn']),
             models.Index(fields=['google_books_id']),
-            models.Index(fields=['-created_at']),
+            models.Index(fields=['created_at']),
         ]
 
     def save(self, *args, **kwargs):
