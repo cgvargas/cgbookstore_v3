@@ -20,14 +20,18 @@ class UserProfileInline(admin.StackedInline):
 
     fieldsets = (
         ('Informações Pessoais', {
-            'fields': ('avatar', 'bio', 'favorite_genre')
+            'fields': ('avatar', 'banner', 'bio', 'favorite_genre', 'theme_preference')
         }),
         ('Gamificação', {
-            'fields': ('reading_goal', 'points'),
+            'fields': ('total_xp', 'level', 'reading_goal_year', 'streak_days'),
+            'classes': ('collapse',)
+        }),
+        ('Premium', {
+            'fields': ('is_premium', 'premium_expires_at'),
             'classes': ('collapse',)
         }),
         ('Privacidade', {
-            'fields': ('library_is_public', 'show_reading_progress'),
+            'fields': ('is_profile_public', 'allow_followers'),
             'classes': ('collapse',)
         }),
     )
@@ -39,7 +43,7 @@ class UserAdmin(BaseUserAdmin):
     inlines = (UserProfileInline,)
 
     list_display = ('username', 'email', 'first_name', 'last_name',
-                    'is_staff', 'get_level', 'get_points')
+                    'is_staff', 'get_level', 'get_xp')
 
     def get_level(self, obj):
         """Exibe o nível do usuário."""
@@ -49,13 +53,13 @@ class UserAdmin(BaseUserAdmin):
 
     get_level.short_description = 'Nível'
 
-    def get_points(self, obj):
-        """Exibe os pontos do usuário."""
+    def get_xp(self, obj):
+        """Exibe os pontos XP do usuário."""
         if hasattr(obj, 'profile'):
-            return f"{obj.profile.points} pontos"
-        return "0 pontos"
+            return f"{obj.profile.total_xp} XP"
+        return "0 XP"
 
-    get_points.short_description = 'Pontos'
+    get_xp.short_description = 'Experiência'
 
 
 # Re-registrar UserAdmin
@@ -67,40 +71,57 @@ admin.site.register(User, UserAdmin)
 class UserProfileAdmin(admin.ModelAdmin):
     """Admin para UserProfile."""
 
-    list_display = ('user', 'level_display', 'points', 'reading_goal',
-                    'books_read_display', 'library_is_public', 'created_at')
+    list_display = ('user', 'level_display', 'total_xp', 'reading_goal_year',
+                    'books_read_display', 'is_profile_public', 'is_premium', 'created_at')
 
-    list_filter = ('library_is_public', 'show_reading_progress', 'created_at')
+    list_filter = ('is_profile_public', 'is_premium', 'allow_followers', 'created_at')
 
-    search_fields = ('user__username', 'user__email', 'bio', 'favorite_genre')
+    search_fields = ('user__username', 'user__email', 'bio')
 
     readonly_fields = ('created_at', 'updated_at', 'level_display',
-                       'books_read_display', 'goal_percentage_display')
+                       'books_read_display', 'goal_percentage_display',
+                       'streak_display', 'total_pages_read', 'books_read_count')
 
     fieldsets = (
         ('Usuário', {
             'fields': ('user',)
         }),
-        ('Perfil', {
-            'fields': ('avatar', 'bio', 'favorite_genre')
+        ('Perfil Visual', {
+            'fields': ('avatar', 'banner', 'bio', 'theme_preference', 'favorite_genre')
         }),
         ('Gamificação', {
-            'fields': ('reading_goal', 'points', 'level_display',
-                       'books_read_display', 'goal_percentage_display')
+            'fields': ('total_xp', 'level_display', 'streak_display', 'reading_goal_year',
+                       'books_read_display', 'goal_percentage_display',
+                       'books_read_count', 'total_pages_read')
+        }),
+        ('Premium', {
+            'fields': ('is_premium', 'premium_expires_at')
         }),
         ('Privacidade', {
-            'fields': ('library_is_public', 'show_reading_progress')
+            'fields': ('is_profile_public', 'allow_followers')
         }),
         ('Datas', {
-            'fields': ('created_at', 'updated_at'),
+            'fields': ('created_at', 'updated_at', 'last_activity_date'),
             'classes': ('collapse',)
         }),
     )
 
     def level_display(self, obj):
         """Exibe o nível com badge colorido."""
-        colors = {1: '#6c757d', 2: '#007bff', 3: '#28a745', 4: '#ffc107', 5: '#dc3545'}
-        color = colors.get(obj.level, '#6c757d')
+        colors = {
+            range(1, 6): '#6c757d',    # Cinza: Níveis 1-5
+            range(6, 11): '#007bff',   # Azul: Níveis 6-10
+            range(11, 16): '#28a745',  # Verde: Níveis 11-15
+            range(16, 21): '#ffc107',  # Amarelo: Níveis 16-20
+            range(21, 31): '#dc3545',  # Vermelho: Níveis 21-30
+        }
+
+        color = '#6c757d'
+        for level_range, range_color in colors.items():
+            if obj.level in level_range:
+                color = range_color
+                break
+
         return format_html(
             '<span style="background: {}; color: white; padding: 4px 12px; '
             'border-radius: 4px; font-weight: bold;">Nível {} - {}</span>',
@@ -108,6 +129,17 @@ class UserProfileAdmin(admin.ModelAdmin):
         )
 
     level_display.short_description = 'Nível'
+
+    def streak_display(self, obj):
+        """Exibe o streak de dias consecutivos."""
+        if obj.streak_days > 0:
+            return format_html(
+                '<span style="color: #ff6b35; font-weight: bold;">🔥 {} dias</span>',
+                obj.streak_days
+            )
+        return "Sem streak"
+
+    streak_display.short_description = 'Streak'
 
     def books_read_display(self, obj):
         """Exibe quantidade de livros lidos este ano."""
@@ -118,7 +150,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 
     def goal_percentage_display(self, obj):
         """Exibe percentual da meta com barra de progresso."""
-        percentage = obj.reading_goal_percentage()
+        percentage = obj.goal_percentage()
         color = '#28a745' if percentage >= 100 else '#007bff'
         percentage_str = f'{percentage:.1f}%'
         return format_html(
@@ -184,7 +216,7 @@ class BookShelfAdmin(admin.ModelAdmin):
 
     def has_notes(self, obj):
         """Indica se tem notas."""
-        return '📝' if obj.notes else '—'
+        return '✓' if obj.notes else '✗'
 
     has_notes.short_description = 'Notas'
 
@@ -298,7 +330,7 @@ class ReadingProgressAdmin(admin.ModelAdmin):
         date = obj.estimated_finish_date
         if date and not obj.is_finished:
             return date.strftime('%d/%m/%Y')
-        return "—"
+        return "-"
 
     estimated_finish_display.short_description = 'Previsão de Término'
 

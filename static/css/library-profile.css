@@ -1,0 +1,381 @@
+/**
+ * BIBLIOTECA PESSOAL 2.0 - PERFIL VISUAL PREMIUM
+ * CSS para card hero de perfil, temas de categoria e animações
+ */
+
+/* ========== CARD HERO DE PERFIL ========== */
+
+.profile-hero {
+    margin-bottom: 3rem;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    background: var(--card-bg);
+}
+
+.banner-container {
+    position: relative;
+    height: 300px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.profile-banner {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.banner-container:hover .profile-banner {
+    transform: scale(1.05);
+}
+
+.edit-banner-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.edit-banner-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: translateY(-2px);
+}
+
+.profile-header {
+    padding: 2rem;
+    background: var(--card-bg);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 2rem;
+    align-items: start;
+    margin-top: -60px; /* Sobrepõe o banner */
+    position: relative;
+}
+
+.avatar-section {
+    position: relative;
+}
+
+.avatar-frame {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 5px solid var(--theme-color);
+    padding: 5px;
+    background: var(--card-bg);
+    box-shadow: 0 0 30px var(--theme-glow);
+    animation: glow 2s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.avatar-frame img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-frame::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 70%
+    );
+    transform: rotate(0deg);
+    animation: shimmer 3s linear infinite;
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 20px var(--theme-glow);
+    }
+    50% {
+        box-shadow: 0 0 40px var(--theme-glow), 0 0 60px var(--theme-glow);
+    }
+}
+
+@keyframes shimmer {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.profile-info h2 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.user-level {
+    font-size: 1.1rem;
+    color: var(--theme-color);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.user-stats {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.user-bio {
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-style: italic;
+    line-height: 1.6;
+}
+
+.profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.profile-actions .btn {
+    white-space: nowrap;
+    min-width: 160px;
+}
+
+
+/* ========== TEMAS DE CATEGORIA ========== */
+
+/* FREE - Fantasia (Roxo/Dourado) */
+.theme-fantasy {
+    --theme-color: #9333ea;
+    --theme-secondary: #fbbf24;
+    --theme-glow: rgba(147, 51, 234, 0.6);
+    --theme-bg: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%);
+}
+
+/* FREE - Clássicos (Marrom/Bege) */
+.theme-classic {
+    --theme-color: #78350f;
+    --theme-secondary: #fef3c7;
+    --theme-glow: rgba(120, 53, 15, 0.5);
+    --theme-bg: linear-gradient(135deg, #92400e 0%, #b45309 100%);
+}
+
+/* FREE - Romance (Rosa/Vermelho) */
+.theme-romance {
+    --theme-color: #db2777;
+    --theme-secondary: #fecdd3;
+    --theme-glow: rgba(219, 39, 119, 0.6);
+    --theme-bg: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+}
+
+/* PREMIUM - Ficção Científica (Azul Neon/Prateado) */
+.theme-scifi {
+    --theme-color: #0ea5e9;
+    --theme-secondary: #e0f2fe;
+    --theme-glow: rgba(14, 165, 233, 0.7);
+    --theme-bg: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+}
+
+.theme-scifi .avatar-frame {
+    box-shadow: 0 0 30px #0ea5e9, 0 0 60px rgba(14, 165, 233, 0.5);
+}
+
+/* PREMIUM - Terror (Vermelho Escuro/Preto) */
+.theme-horror {
+    --theme-color: #dc2626;
+    --theme-secondary: #450a0a;
+    --theme-glow: rgba(220, 38, 38, 0.8);
+    --theme-bg: linear-gradient(135deg, #991b1b 0%, #450a0a 100%);
+}
+
+.theme-horror .avatar-frame {
+    animation: horror-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes horror-pulse {
+    0%, 100% { box-shadow: 0 0 20px #dc2626; }
+    50% { box-shadow: 0 0 50px #dc2626, 0 0 80px rgba(220, 38, 38, 0.6); }
+}
+
+/* PREMIUM - Mistério (Verde Escuro/Cinza) */
+.theme-mystery {
+    --theme-color: #065f46;
+    --theme-secondary: #6b7280;
+    --theme-glow: rgba(6, 95, 70, 0.6);
+    --theme-bg: linear-gradient(135deg, #047857 0%, #374151 100%);
+}
+
+/* PREMIUM - Biografia (Azul Royal/Dourado) */
+.theme-biography {
+    --theme-color: #1e40af;
+    --theme-secondary: #fbbf24;
+    --theme-glow: rgba(30, 64, 175, 0.6);
+    --theme-bg: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+}
+
+/* PREMIUM - Poesia (Lilás/Rosa Claro) */
+.theme-poetry {
+    --theme-color: #a855f7;
+    --theme-secondary: #fbcfe8;
+    --theme-glow: rgba(168, 85, 247, 0.5);
+    --theme-bg: linear-gradient(135deg, #c084fc 0%, #f0abfc 100%);
+}
+
+/* PREMIUM - Aventura (Laranja/Marrom) */
+.theme-adventure {
+    --theme-color: #ea580c;
+    --theme-secondary: #78350f;
+    --theme-glow: rgba(234, 88, 12, 0.6);
+    --theme-bg: linear-gradient(135deg, #f97316 0%, #c2410c 100%);
+}
+
+/* PREMIUM - Thriller (Vermelho/Preto) */
+.theme-thriller {
+    --theme-color: #e11d48;
+    --theme-secondary: #1f2937;
+    --theme-glow: rgba(225, 29, 72, 0.7);
+    --theme-bg: linear-gradient(135deg, #be123c 0%, #1f2937 100%);
+}
+
+/* PREMIUM - Histórico (Dourado/Marrom) */
+.theme-historical {
+    --theme-color: #ca8a04;
+    --theme-secondary: #78350f;
+    --theme-glow: rgba(202, 138, 4, 0.5);
+    --theme-bg: linear-gradient(135deg, #eab308 0%, #92400e 100%);
+}
+
+/* PREMIUM - Autoajuda (Amarelo/Laranja) */
+.theme-selfhelp {
+    --theme-color: #f59e0b;
+    --theme-secondary: #fef3c7;
+    --theme-glow: rgba(245, 158, 11, 0.6);
+    --theme-bg: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+}
+
+/* PREMIUM - Filosofia (Azul Escuro/Cinza) */
+.theme-philosophy {
+    --theme-color: #1e3a8a;
+    --theme-secondary: #6b7280;
+    --theme-glow: rgba(30, 58, 138, 0.5);
+    --theme-bg: linear-gradient(135deg, #1e40af 0%, #475569 100%);
+}
+
+/* PREMIUM - Distopia (Cinza/Vermelho) */
+.theme-dystopian {
+    --theme-color: #6b7280;
+    --theme-secondary: #991b1b;
+    --theme-glow: rgba(107, 114, 128, 0.5);
+    --theme-bg: linear-gradient(135deg, #4b5563 0%, #7f1d1d 100%);
+}
+
+/* PREMIUM - Contemporâneo (Multicolor) */
+.theme-contemporary {
+    --theme-color: #8b5cf6;
+    --theme-secondary: #ec4899;
+    --theme-glow: rgba(139, 92, 246, 0.6);
+    --theme-bg: linear-gradient(135deg, #8b5cf6 0%, #ec4899 50%, #f59e0b 100%);
+}
+
+.theme-contemporary .avatar-frame {
+    animation: rainbow-glow 3s ease-in-out infinite;
+}
+
+@keyframes rainbow-glow {
+    0% { box-shadow: 0 0 30px #8b5cf6; }
+    33% { box-shadow: 0 0 30px #ec4899; }
+    66% { box-shadow: 0 0 30px #f59e0b; }
+    100% { box-shadow: 0 0 30px #8b5cf6; }
+}
+
+
+/* ========== BADGE PREMIUM NO AVATAR ========== */
+
+.avatar-frame.premium::after {
+    content: '👑';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.5);
+    animation: premium-pulse 2s ease-in-out infinite;
+}
+
+@keyframes premium-pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(251, 191, 36, 0.5);
+    }
+    50% {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(251, 191, 36, 0.8);
+    }
+}
+
+
+/* ========== RESPONSIVIDADE ========== */
+
+@media (max-width: 992px) {
+    .profile-header {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 1.5rem;
+    }
+
+    .avatar-section {
+        margin: 0 auto;
+    }
+
+    .profile-actions {
+        flex-direction: row;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .banner-container {
+        height: 200px;
+    }
+
+    .avatar-frame {
+        width: 120px;
+        height: 120px;
+    }
+
+    .profile-header {
+        padding: 1.5rem;
+        margin-top: -40px;
+    }
+
+    .profile-info h2 {
+        font-size: 1.5rem;
+    }
+
+    .profile-actions {
+        flex-direction: column;
+    }
+
+    .profile-actions .btn {
+        width: 100%;
+    }
+}

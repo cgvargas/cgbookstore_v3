@@ -1,155 +1,359 @@
 """
-Model: UserProfile
-Perfil estendido do usuário com informações adicionais e gamificação.
+Model de Perfil de Usuário expandido com gamificação e personalização.
 """
 
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+from django.core.validators import MinValueValidator, MaxValueValidator
+from core.models import Category
+from core.storage_backends import SupabaseMediaStorage
+import math
+
+
+# Opções de temas disponíveis
+THEME_CHOICES = [
+    # FREE (3 temas)
+    ('fantasy', '✨ Fantasia (Roxo/Dourado)'),
+    ('classic', '📚 Clássicos (Marrom/Bege)'),
+    ('romance', '💕 Romance (Rosa/Vermelho)'),
+
+    # PREMIUM (12 temas)
+    ('scifi', '🚀 Ficção Científica (Azul Neon/Prateado) - PREMIUM'),
+    ('horror', '👻 Terror (Vermelho Escuro/Preto) - PREMIUM'),
+    ('mystery', '🔍 Mistério (Verde Escuro/Cinza) - PREMIUM'),
+    ('biography', '🎓 Biografia (Azul Royal/Dourado) - PREMIUM'),
+    ('poetry', '🌸 Poesia (Lilás/Rosa Claro) - PREMIUM'),
+    ('adventure', '⛰️ Aventura (Laranja/Marrom) - PREMIUM'),
+    ('thriller', '⚡ Thriller (Vermelho/Preto) - PREMIUM'),
+    ('historical', '🏛️ Histórico (Dourado/Marrom) - PREMIUM'),
+    ('selfhelp', '🌟 Autoajuda (Amarelo/Laranja) - PREMIUM'),
+    ('philosophy', '🧠 Filosofia (Azul Escuro/Cinza) - PREMIUM'),
+    ('dystopian', '🌆 Distopia (Cinza/Vermelho) - PREMIUM'),
+    ('contemporary', '🎨 Contemporâneo (Multicolor) - PREMIUM'),
+]
 
 
 class UserProfile(models.Model):
     """
-    Perfil estendido do usuário.
-
-    Campos:
-    - user: Relacionamento 1:1 com User
-    - avatar: Foto de perfil
-    - bio: Biografia/descrição
-    - reading_goal: Meta anual de livros
-    - points: Pontos de gamificação
-    - level: Nível do usuário (calculado por pontos)
+    Perfil estendido do usuário com gamificação, personalização e biblioteca.
     """
 
+    # ========== RELACIONAMENTO ==========
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
         related_name='profile',
-        verbose_name='Usuário'
+        verbose_name="Usuário"
     )
 
+    # ========== PERSONALIZAÇÃO VISUAL ==========
     avatar = models.ImageField(
         upload_to='users/avatars/',
+        storage=SupabaseMediaStorage(),
+        blank=True,
+        null=True,
+        verbose_name="Avatar",
+        help_text="Foto de perfil (máx. 2MB, 500x500px)"
+    )
+
+    banner = models.ImageField(
+        upload_to='users/banners/',
+        storage=SupabaseMediaStorage(),
+        blank=True,
+        null=True,
+        verbose_name="Banner",
+        help_text="Banner personalizado (máx. 5MB, 1200x300px)"
+    )
+
+    bio = models.CharField(
+        max_length=150,
+        blank=True,
+        verbose_name="Bio Literária",
+        help_text="Descreva seu perfil de leitor em até 150 caracteres"
+    )
+
+    theme_preference = models.CharField(
+        max_length=20,
+        choices=THEME_CHOICES,
+        default='fantasy',
+        verbose_name="Tema Visual",
+        help_text="Tema de personalização da biblioteca"
+    )
+
+    favorite_genre = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name='Avatar'
+        related_name='favorite_of_users',
+        verbose_name="Gênero Favorito"
     )
 
-    bio = models.TextField(
-        max_length=500,
-        blank=True,
-        verbose_name='Biografia'
-    )
-
-    reading_goal = models.PositiveIntegerField(
-        default=12,
-        verbose_name='Meta Anual de Leitura',
-        help_text='Quantos livros você pretende ler este ano?'
-    )
-
-    points = models.PositiveIntegerField(
+    # ========== GAMIFICAÇÃO ==========
+    total_xp = models.IntegerField(
         default=0,
-        verbose_name='Pontos',
-        help_text='Pontos acumulados através de atividades'
+        validators=[MinValueValidator(0)],
+        verbose_name="XP Total",
+        help_text="Pontos de experiência acumulados"
     )
 
-    # Preferências
-    favorite_genre = models.CharField(
-        max_length=100,
+    level = models.IntegerField(
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(30)],
+        verbose_name="Nível",
+        help_text="Nível atual (1-30)"
+    )
+
+    badges = models.JSONField(
+        default=list,
         blank=True,
-        verbose_name='Gênero Favorito'
+        verbose_name="Badges Conquistados",
+        help_text="Lista de IDs de badges conquistados"
     )
 
-    # Configurações de privacidade
-    library_is_public = models.BooleanField(
+    streak_days = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name="Dias de Streak",
+        help_text="Dias consecutivos com atividade"
+    )
+
+    last_activity_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Última Atividade"
+    )
+
+    # ========== METAS E ESTATÍSTICAS ==========
+    reading_goal_year = models.IntegerField(
+        default=12,
+        validators=[MinValueValidator(1), MaxValueValidator(365)],
+        verbose_name="Meta Anual de Leitura",
+        help_text="Quantos livros deseja ler este ano?"
+    )
+
+    books_read_count = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name="Livros Lidos",
+        help_text="Total de livros concluídos"
+    )
+
+    total_pages_read = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name="Páginas Lidas",
+        help_text="Total de páginas lidas"
+    )
+
+    # ========== PLANO E ASSINATURA ==========
+    is_premium = models.BooleanField(
         default=False,
-        verbose_name='Biblioteca Pública',
-        help_text='Permitir que outros usuários vejam sua biblioteca'
+        verbose_name="Usuário Premium"
     )
 
-    show_reading_progress = models.BooleanField(
+    premium_expires_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Premium Expira Em"
+    )
+
+    # ========== SOCIAL ==========
+    is_profile_public = models.BooleanField(
         default=True,
-        verbose_name='Mostrar Progresso de Leitura',
-        help_text='Exibir progresso de leitura na biblioteca'
+        verbose_name="Perfil Público",
+        help_text="Permitir que outros usuários vejam seu perfil"
     )
 
-    # Datas
+    allow_followers = models.BooleanField(
+        default=True,
+        verbose_name="Permitir Seguidores"
+    )
+
+    # ========== METADADOS ==========
     created_at = models.DateTimeField(
         auto_now_add=True,
-        verbose_name='Criado em'
+        verbose_name="Criado Em"
     )
 
     updated_at = models.DateTimeField(
         auto_now=True,
-        verbose_name='Atualizado em'
+        verbose_name="Atualizado Em"
     )
 
     class Meta:
-        verbose_name = 'Perfil de Usuário'
-        verbose_name_plural = 'Perfis de Usuários'
-        ordering = ['-created_at']
+        verbose_name = "Perfil de Usuário"
+        verbose_name_plural = "Perfis de Usuários"
+        ordering = ['-total_xp']
 
     def __str__(self):
-        return f'Perfil de {self.user.username}'
+        return f"Perfil de {self.user.username}"
 
-    @property
-    def level(self):
-        """Calcula o nível baseado nos pontos."""
-        if self.points < 100:
+    # ========== MÉTODOS DE GAMIFICAÇÃO ==========
+
+    def calculate_level(self):
+        """
+        Calcula o nível baseado no XP total.
+        Fórmula: Nível = √(XP / 100)
+        """
+        if self.total_xp == 0:
             return 1
-        elif self.points < 500:
-            return 2
-        elif self.points < 1000:
-            return 3
-        elif self.points < 2000:
-            return 4
-        else:
-            return 5
+
+        calculated_level = int((self.total_xp / 100) ** 0.5) + 1
+        return min(calculated_level, 30)  # Máximo nível 30
+
+    def xp_for_next_level(self):
+        """Retorna quanto XP falta para o próximo nível."""
+        current_level = self.level
+        next_level_xp = ((current_level) ** 2) * 100
+        return max(0, next_level_xp - self.total_xp)
+
+    def xp_percentage_to_next_level(self):
+        """Retorna a porcentagem de progresso até o próximo nível."""
+        current_level_xp = ((self.level - 1) ** 2) * 100
+        next_level_xp = ((self.level) ** 2) * 100
+        xp_in_current_level = self.total_xp - current_level_xp
+        xp_needed_for_level = next_level_xp - current_level_xp
+
+        if xp_needed_for_level == 0:
+            return 100
+
+        percentage = (xp_in_current_level / xp_needed_for_level) * 100
+        return min(100, max(0, percentage))
 
     @property
     def level_name(self):
-        """Retorna o nome do nível."""
-        levels = {
-            1: 'Leitor Iniciante',
-            2: 'Leitor Entusiasta',
-            3: 'Leitor Dedicado',
-            4: 'Leitor Expert',
-            5: 'Mestre Leitor'
+        """Retorna o nome do nível baseado no número."""
+        level_names = {
+            1: "📖 Aprendiz",
+            3: "📚 Leitor",
+            5: "📗 Leitor Ávido",
+            7: "📘 Conhecedor",
+            10: "📙 Bibliófilo",
+            12: "📕 Literato",
+            15: "🎓 Erudito",
+            18: "🏆 Expert Literário",
+            20: "⭐ Mestre das Letras",
+            23: "👑 Grande Autor",
+            25: "🔮 Sábio Literário",
+            27: "💎 Guardião dos Livros",
+            30: "🌟 Lenda Literária"
         }
-        return levels.get(self.level, 'Leitor')
 
-    def add_points(self, amount):
-        """Adiciona pontos ao perfil."""
-        self.points += amount
+        # Encontra o nome mais próximo sem ultrapassar
+        for level_threshold in sorted(level_names.keys(), reverse=True):
+            if self.level >= level_threshold:
+                return level_names[level_threshold]
+
+        return "📖 Aprendiz"
+
+    def add_xp(self, amount):
+        """
+        Adiciona XP e verifica se subiu de nível.
+        Retorna: (novo_level, subiu_de_nivel)
+        """
+        old_level = self.level
+        self.total_xp += amount
+
+        # Recalcula nível
+        new_level = self.calculate_level()
+        leveled_up = new_level > old_level
+
+        if leveled_up:
+            self.level = new_level
+
         self.save()
 
+        return (new_level, leveled_up)
+
+    def has_badge(self, badge_id):
+        """Verifica se o usuário possui um badge específico."""
+        return badge_id in self.badges
+
+    def award_badge(self, badge_id):
+        """Concede um badge ao usuário."""
+        if not self.has_badge(badge_id):
+            self.badges.append(badge_id)
+            self.save()
+            return True
+        return False
+
+    def update_streak(self):
+        """
+        Atualiza o streak de leitura.
+        Deve ser chamado quando o usuário tem atividade.
+        """
+        from datetime import date
+        today = date.today()
+
+        if self.last_activity_date is None:
+            # Primeira atividade
+            self.streak_days = 1
+            self.last_activity_date = today
+        elif self.last_activity_date == today:
+            # Já registrou atividade hoje
+            pass
+        elif (today - self.last_activity_date).days == 1:
+            # Atividade consecutiva (ontem → hoje)
+            self.streak_days += 1
+            self.last_activity_date = today
+        else:
+            # Quebrou o streak
+            self.streak_days = 1
+            self.last_activity_date = today
+
+        self.save()
+        return self.streak_days
+
+    def reset_streak(self):
+        """Reseta o streak para 0."""
+        self.streak_days = 0
+        self.save()
+
+    # ========== MÉTODOS DE PLANO ==========
+
+    def is_premium_active(self):
+        """Verifica se o plano premium está ativo."""
+        if not self.is_premium:
+            return False
+
+        if self.premium_expires_at is None:
+            return True  # Premium vitalício
+
+        from django.utils import timezone
+        return timezone.now() < self.premium_expires_at
+
+    def can_use_premium_feature(self):
+        """Verifica se pode usar funcionalidades premium."""
+        return self.is_premium_active()
+
+    # ========== MÉTODOS DE ESTATÍSTICAS ==========
+
     def books_read_this_year(self):
-        """Retorna quantidade de livros lidos este ano."""
-        from datetime import datetime
-        current_year = datetime.now().year
-        return self.user.bookshelves.filter(
+        """Retorna quantos livros leu este ano."""
+        from datetime import date
+        from accounts.models import BookShelf # O import está correto aqui
+
+        current_year = date.today().year
+
+        # CORREÇÃO: Usar 'finished_reading__year' ao invés de 'created_at__year'
+        return BookShelf.objects.filter(
+            user=self.user,
             shelf_type='read',
-            date_added__year=current_year
+            finished_reading__year=current_year # LINHA CORRIGIDA
         ).count()
 
-    def reading_goal_percentage(self):
-        """Retorna percentual da meta alcançada."""
+    def goal_percentage(self):
+        """Retorna a porcentagem da meta anual alcançada."""
         books_read = self.books_read_this_year()
-        if self.reading_goal > 0:
-            return round((books_read / self.reading_goal) * 100, 1)
-        return 0
+        if self.reading_goal_year == 0:
+            return 0
 
+        percentage = (books_read / self.reading_goal_year) * 100
+        return min(100, percentage)
 
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    """Cria automaticamente um perfil quando um usuário é criado."""
-    if created:
-        UserProfile.objects.create(user=instance)
-
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    """Salva o perfil quando o usuário é salvo."""
-    if hasattr(instance, 'profile'):
-        instance.profile.save()
+    def average_pages_per_book(self):
+        """Retorna a média de páginas por livro lido."""
+        if self.books_read_count == 0:
+            return 0
+        return self.total_pages_read // self.books_read_count

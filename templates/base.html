@@ -253,7 +253,9 @@
     <script src="{% static 'js/theme-switcher.js' %}"></script>
 
     <!-- JavaScript Extra (para páginas específicas) -->
-    {% block extra_js %}{% endblock %}
+    {% block extra_js %}
+        <script src="{% static 'js/profile-manager.js' %}"></script>
+    {% endblock %}
 
     <script src="{% static 'js/library-manager.js' %}"></script>
 </body>

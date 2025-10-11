@@ -1,4 +1,4 @@
-"""
+﻿"""
 View para a Biblioteca pessoal do usuário.
 Integrada com os models de BookShelf, ReadingProgress, etc.
 """
@@ -23,10 +23,8 @@ class LibraryView(LoginRequiredMixin, TemplateView):
         user = self.request.user
 
         # Perfil do usuário
-        if hasattr(user, 'profile'):
-            context['user_profile'] = user.profile
-        else:
-            context['user_profile'] = None
+        profile = getattr(user, 'profile', None)
+        context['profile'] = profile
 
         # Contadores de prateleiras
         context['favorites_count'] = BookShelf.objects.filter(
@@ -95,14 +93,18 @@ class LibraryView(LoginRequiredMixin, TemplateView):
         ).select_related('book', 'book__author').order_by('-last_updated')[:5]
 
         # Estatísticas de gamificação
-        if hasattr(user, 'profile'):
-            profile = user.profile
-            context['total_points'] = profile.points
+        if profile:  # Usar a variável 'profile' que acabamos de definir
+            context['total_points'] = profile.total_xp
             context['user_level'] = profile.level
             context['level_name'] = profile.level_name
             context['books_read_this_year'] = profile.books_read_this_year()
-            context['reading_goal'] = profile.reading_goal
-            context['goal_percentage'] = profile.reading_goal_percentage()
+            context['reading_goal'] = profile.reading_goal_year
+            context['goal_percentage'] = profile.goal_percentage()
+
+            # Novos campos de gamificação
+            context['streak_days'] = profile.streak_days
+            context['total_badges'] = len(profile.badges) if profile.badges else 0
+            context['is_premium'] = profile.is_premium
         else:
             context['total_points'] = 0
             context['user_level'] = 1
@@ -110,6 +112,9 @@ class LibraryView(LoginRequiredMixin, TemplateView):
             context['books_read_this_year'] = 0
             context['reading_goal'] = 12
             context['goal_percentage'] = 0
+            context['streak_days'] = 0
+            context['total_badges'] = 0
+            context['is_premium'] = False
 
         # Avaliações recentes
         context['recent_reviews'] = BookReview.objects.filter(

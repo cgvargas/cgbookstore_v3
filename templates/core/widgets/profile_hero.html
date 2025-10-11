@@ -1,10 +1,209 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% load static %}
+
+<!-- CARD HERO DE PERFIL - Biblioteca Pessoal 2.0 -->
+<div class="profile-hero {{ profile.theme_preference }}">
+    <!-- Banner customizável -->
+    <div class="banner-container">
+        {% if profile.banner %}
+            <img src="{{ profile.banner.url }}" alt="Banner de {{ user.get_full_name }}" class="profile-banner">
+        {% else %}
+            <!-- Banner padrão com gradiente do tema -->
+            <div class="profile-banner" style="background: var(--theme-bg);"></div>
+        {% endif %}
+
+        <button class="edit-banner-btn" onclick="openBannerUpload()">
+            📸 Trocar Banner
+        </button>
+    </div>
+
+    <!-- Header do perfil -->
+    <div class="profile-header">
+        <!-- Avatar com moldura temática -->
+        <div class="avatar-section">
+            <div class="avatar-frame {% if profile.is_premium_active %}premium{% endif %}">
+                {% if profile.avatar %}
+                    <img src="{{ profile.avatar.url }}" alt="Avatar de {{ user.get_full_name }}">
+                {% else %}
+                    <!-- Avatar padrão (iniciais) -->
+                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--theme-bg); color: white; font-size: 3rem; font-weight: bold; border-radius: 50%;">
+                        {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Informações do usuário -->
+        <div class="profile-info">
+            <h2>{{ user.get_full_name|default:user.username }}</h2>
+            <p class="user-level">{{ profile.level_name }} • Nível {{ profile.level }}</p>
+
+            <p class="user-stats">
+                <span>🏆 {{ profile.badges|length }} Badges</span> |
+                <span>⚡ {{ profile.streak_days }} dias streak</span> |
+                <span>📚 {{ profile.books_read_count }} livros lidos</span>
+            </p>
+
+            {% if profile.bio %}
+                <p class="user-bio">"{{ profile.bio }}"</p>
+            {% else %}
+                <p class="user-bio text-muted" style="font-style: normal;">
+                    <em>Adicione uma bio para contar sobre você!</em>
+                </p>
+            {% endif %}
+
+            <!-- Gênero favorito -->
+            {% if profile.favorite_genre %}
+                <p class="text-muted mt-2">
+                    ❤️ Gênero favorito: <strong>{{ profile.favorite_genre.name }}</strong>
+                </p>
+            {% endif %}
+        </div>
+
+        <!-- Ações do perfil -->
+        <div class="profile-actions">
+            <a href="{% url 'accounts:edit_profile' %}" class="btn btn-primary">
+                <i class="fas fa-cog"></i> Editar Perfil
+            </a>
+
+            <button class="btn btn-outline-primary" onclick="shareProfile()">
+                <i class="fas fa-share-alt"></i> Compartilhar
+            </button>
+
+            {% if not profile.is_premium_active %}
+                <a href="#premium-modal" class="btn btn-warning" data-bs-toggle="modal">
+                    <i class="fas fa-crown"></i> Assinar Premium
+                </a>
+            {% else %}
+                <span class="badge bg-warning text-dark p-2">
+                    <i class="fas fa-crown"></i> Membro Premium
+                </span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Upload de Banner (oculto por padrão) -->
+<div class="modal fade" id="bannerUploadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Trocar Banner</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="bannerUploadForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="bannerFile" class="form-label">
+                            Selecione uma imagem (máx. 5MB, 1200x300px recomendado)
+                        </label>
+                        <input type="file" class="form-control" id="bannerFile"
+                               name="banner" accept="image/*" required>
+                    </div>
+
+                    <!-- Preview -->
+                    <div id="bannerPreview" class="mb-3" style="display: none;">
+                        <img id="bannerPreviewImg" src="" alt="Preview"
+                             style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px;">
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Fazer Upload
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Upload de Avatar (similar ao banner) -->
+<div class="modal fade" id="avatarUploadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Trocar Avatar</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="avatarUploadForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="avatarFile" class="form-label">
+                            Selecione uma imagem (máx. 2MB, 500x500px recomendado)
+                        </label>
+                        <input type="file" class="form-control" id="avatarFile"
+                               name="avatar" accept="image/*" required>
+                    </div>
+
+                    <!-- Preview circular -->
+                    <div id="avatarPreview" class="mb-3 text-center" style="display: none;">
+                        <img id="avatarPreviewImg" src="" alt="Preview"
+                             style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%; border: 3px solid var(--theme-color);">
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Fazer Upload
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Funções auxiliares para os modals
+function openBannerUpload() {
+    const modal = new bootstrap.Modal(document.getElementById('bannerUploadModal'));
+    modal.show();
+}
+
+function openAvatarUpload() {
+    const modal = new bootstrap.Modal(document.getElementById('avatarUploadModal'));
+    modal.show();
+}
+
+function shareProfile() {
+    const profileUrl = window.location.href;
+
+    if (navigator.share) {
+        navigator.share({
+            title: 'Meu Perfil Literário',
+            text: 'Confira minha biblioteca pessoal!',
+            url: profileUrl
+        });
+    } else {
+        // Fallback: copiar para clipboard
+        navigator.clipboard.writeText(profileUrl);
+        alert('Link do perfil copiado para a área de transferência!');
+    }
+}
+
+// Preview de imagens antes do upload
+document.getElementById('bannerFile')?.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            document.getElementById('bannerPreviewImg').src = event.target.result;
+            document.getElementById('bannerPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+document.getElementById('avatarFile')?.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            document.getElementById('avatarPreviewImg').src = event.target.result;
+            document.getElementById('avatarPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>

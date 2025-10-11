@@ -5,12 +5,14 @@ from . import views
 app_name = 'accounts'
 
 urlpatterns = [
-    # /contas/login/ -> Usa a view pronta do Django
+    # URLs de Autenticação
     path('login/', auth_views.LoginView.as_view(template_name='accounts/login.html'), name='login'),
-
-    # /contas/logout/ -> Usa a view pronta do Django
     path('logout/', auth_views.LogoutView.as_view(template_name='accounts/logout.html'), name='logout'),
-
-    # /contas/registrar/ -> Usa a nossa view customizada
     path('registrar/', views.register_view, name='register'),
+
+    # URLs DO PERFIL
+    path('profile/edit/', views.edit_profile, name='edit_profile'),
+    path('profile/upload-avatar/', views.upload_avatar, name='upload_avatar'),
+    path('profile/upload-banner/', views.upload_banner, name='upload_banner'), # <-- VERIFIQUE ESTA LINHA
+    path('profile/update-theme/', views.update_theme, name='update_theme'),
 ]
