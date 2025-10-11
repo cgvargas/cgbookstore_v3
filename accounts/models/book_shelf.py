@@ -113,7 +113,7 @@ class BookShelf(models.Model):
         return dict(self.SHELF_TYPES).get(self.shelf_type, self.shelf_type)
 
     def save(self, *args, **kwargs):
-        """Override save para adicionar lógica de datas."""
+        """Override save para adicionar lógica de datas e gamificação."""
         # Se mudou para "reading" e ainda não tem data de início
         if self.shelf_type == 'reading' and not self.started_reading:
             self.started_reading = timezone.now()
@@ -121,8 +121,19 @@ class BookShelf(models.Model):
         # Se mudou para "read" e ainda não tem data de término
         if self.shelf_type == 'read' and not self.finished_reading:
             self.finished_reading = timezone.now()
-            # Adiciona pontos ao usuário
+
+            # Adiciona XP ao usuário (gamificação)
             if hasattr(self.user, 'profile'):
-                self.user.profile.add_points(10)  # 10 pontos por livro lido
+                new_level, leveled_up = self.user.profile.add_xp(10)  # 10 XP por livro lido
+
+                # Atualizar contadores
+                self.user.profile.books_read_count += 1
+                if self.book.page_count:
+                    self.user.profile.total_pages_read += self.book.page_count
+
+                # Atualizar streak
+                self.user.profile.update_streak()
+
+                self.user.profile.save()
 
         super().save(*args, **kwargs)
