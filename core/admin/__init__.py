@@ -7,7 +7,7 @@ from .category_admin import CategoryAdmin
 from .author_admin import AuthorAdmin
 from .book_admin import BookAdmin
 from .video_admin import VideoAdmin
-from .section_admin import SectionAdmin, SectionItemAdmin
+from .section_admin import SectionAdmin
 from .event_admin import EventAdmin
 
 __all__ = [
@@ -16,7 +16,6 @@ __all__ = [
     'BookAdmin',
     'VideoAdmin',
     'SectionAdmin',
-    'SectionItemAdmin',
     'EventAdmin',
 ]
 
