@@ -35,3 +35,5 @@ db.sqlite3
 # Arquivos do sistema operacional
 .DS_Store
 Thumbs.db
+# Arquivos de backup
+*.backup
