@@ -111,6 +111,13 @@ class UserProfile(models.Model):
         help_text="Lista de IDs de badges conquistados"
     )
 
+    custom_shelves_list = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="Prateleiras Personalizadas",
+        help_text="Lista de nomes de prateleiras personalizadas criadas pelo usuário"
+    )
+
     streak_days = models.IntegerField(
         default=0,
         validators=[MinValueValidator(0)],
@@ -357,3 +364,64 @@ class UserProfile(models.Model):
         if self.books_read_count == 0:
             return 0
         return self.total_pages_read // self.books_read_count
+
+    def add_custom_shelf(self, shelf_name):
+        """
+        Adiciona uma prateleira personalizada à lista do usuário.
+
+        Args:
+            shelf_name (str): Nome da prateleira
+
+        Returns:
+            bool: True se adicionou, False se já existia
+        """
+        shelf_name = shelf_name.strip()
+
+        if not shelf_name:
+            return False
+
+        # Verificar se já existe
+        if shelf_name in self.custom_shelves_list:
+            return False
+
+        # Adicionar à lista
+        self.custom_shelves_list.append(shelf_name)
+        self.save()
+        return True
+
+    def remove_custom_shelf(self, shelf_name):
+        """
+        Remove uma prateleira personalizada da lista.
+
+        Args:
+            shelf_name (str): Nome da prateleira
+
+        Returns:
+            bool: True se removeu, False se não existia
+        """
+        if shelf_name in self.custom_shelves_list:
+            self.custom_shelves_list.remove(shelf_name)
+            self.save()
+            return True
+        return False
+
+    def has_custom_shelf(self, shelf_name):
+        """
+        Verifica se uma prateleira personalizada existe.
+
+        Args:
+            shelf_name (str): Nome da prateleira
+
+        Returns:
+            bool: True se existe, False caso contrário
+        """
+        return shelf_name in self.custom_shelves_list
+
+    def get_custom_shelves(self):
+        """
+        Retorna lista de prateleiras personalizadas ordenada alfabeticamente.
+
+        Returns:
+            list: Lista de nomes de prateleiras
+        """
+        return sorted(self.custom_shelves_list)

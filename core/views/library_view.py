@@ -60,28 +60,26 @@ class LibraryView(LoginRequiredMixin, TemplateView):
             user=user, shelf_type='read'
         ).select_related('book', 'book__author', 'book__category')[:50]
 
-        # Prateleiras personalizadas com contagem e livros
+        # ========== PRATELEIRAS PERSONALIZADAS (ATUALIZADO) ==========
         custom_shelves_list = []
 
-        custom_shelves_data = BookShelf.objects.filter(
-            user=user, shelf_type='custom'
-        ).values('custom_shelf_name').annotate(
-            count=Count('id')
-        ).order_by('custom_shelf_name')
+        if profile:
+            # Pegar lista de prateleiras do profile (inclui vazias)
+            shelf_names = profile.get_custom_shelves()
 
-        for shelf in custom_shelves_data:
-            shelf_name = shelf['custom_shelf_name']
-            books = BookShelf.objects.filter(
-                user=user,
-                shelf_type='custom',
-                custom_shelf_name=shelf_name
-            ).select_related('book', 'book__author', 'book__category')[:50]
+            for shelf_name in shelf_names:
+                # Buscar livros da prateleira (pode estar vazio)
+                books = BookShelf.objects.filter(
+                    user=user,
+                    shelf_type='custom',
+                    custom_shelf_name=shelf_name
+                ).select_related('book', 'book__author', 'book__category')[:50]
 
-            custom_shelves_list.append({
-                'name': shelf_name,
-                'count': shelf['count'],
-                'books': books
-            })
+                custom_shelves_list.append({
+                    'name': shelf_name,
+                    'count': books.count(),
+                    'books': books
+                })
 
         context['custom_shelves'] = custom_shelves_list
 
@@ -93,7 +91,7 @@ class LibraryView(LoginRequiredMixin, TemplateView):
         ).select_related('book', 'book__author').order_by('-last_updated')[:5]
 
         # Estatísticas de gamificação
-        if profile:  # Usar a variável 'profile' que acabamos de definir
+        if profile:
             context['total_points'] = profile.total_xp
             context['user_level'] = profile.level
             context['level_name'] = profile.level_name

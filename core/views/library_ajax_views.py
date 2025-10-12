@@ -235,8 +235,7 @@ def get_book_shelves(request, book_id):
 @require_http_methods(["POST"])
 def create_custom_shelf(request):
     """
-    Cria uma nova prateleira personalizada (sem adicionar livros ainda).
-    Apenas valida o nome e retorna sucesso.
+    Cria uma nova prateleira personalizada e adiciona à lista do perfil.
 
     Parâmetros POST:
     - custom_shelf_name (str): Nome da prateleira personalizada
@@ -263,22 +262,27 @@ def create_custom_shelf(request):
                 'message': 'Nome muito longo (máx: 100 caracteres).'
             }, status=400)
 
-        # Verificar se já existe uma prateleira com esse nome
-        existing = BookShelf.objects.filter(
-            user=request.user,
-            shelf_type='custom',
-            custom_shelf_name=custom_shelf_name
-        ).exists()
+        # Verificar se já existe no profile
+        profile = request.user.profile
 
-        if existing:
+        if profile.has_custom_shelf(custom_shelf_name):
             return JsonResponse({
                 'success': False,
                 'message': f'Você já tem uma prateleira chamada "{custom_shelf_name}".'
             }, status=400)
 
+        # Adicionar à lista do profile
+        added = profile.add_custom_shelf(custom_shelf_name)
+
+        if not added:
+            return JsonResponse({
+                'success': False,
+                'message': 'Erro ao criar prateleira. Tente novamente.'
+            }, status=500)
+
         return JsonResponse({
             'success': True,
-            'message': f'Prateleira "{custom_shelf_name}" validada! Adicione livros a ela.',
+            'message': f'Prateleira "{custom_shelf_name}" criada com sucesso!',
             'shelf_name': custom_shelf_name
         })
 
