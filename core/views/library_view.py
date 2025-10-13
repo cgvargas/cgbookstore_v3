@@ -26,6 +26,9 @@ class LibraryView(LoginRequiredMixin, TemplateView):
         profile = getattr(user, 'profile', None)
         context['profile'] = profile
 
+        # Tema visual selecionado pelo usuário
+        context['selected_theme'] = profile.theme_preference if profile else 'fantasy'
+
         # Contadores de prateleiras
         context['favorites_count'] = BookShelf.objects.filter(
             user=user, shelf_type='favorites'
