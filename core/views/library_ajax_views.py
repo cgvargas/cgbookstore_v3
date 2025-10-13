@@ -394,3 +394,221 @@ def move_to_shelf(request):
             'success': False,
             'message': f'Erro ao mover livro: {str(e)}'
         }, status=500)
+
+
+
+@login_required
+@require_http_methods(["POST"])
+def delete_custom_shelf(request):
+    """
+    Deleta uma prateleira personalizada e todos os seus livros.
+
+    Parâmetros POST:
+    - shelf_name (str): Nome da prateleira a ser deletada
+
+    Retorna JSON:
+    - success (bool): Se a operação foi bem-sucedida
+    - message (str): Mensagem de feedback
+    - deleted_books_count (int): Quantidade de livros removidos
+    """
+    try:
+        data = json.loads(request.body)
+        shelf_name = data.get('shelf_name', '').strip()
+
+        # Validações
+        if not shelf_name:
+            return JsonResponse({
+                'success': False,
+                'message': 'Nome da prateleira não fornecido.'
+            }, status=400)
+
+        # Verificar se existe no profile
+        profile = request.user.profile
+
+        if not profile.has_custom_shelf(shelf_name):
+            return JsonResponse({
+                'success': False,
+                'message': f'Prateleira "{shelf_name}" não encontrada.'
+            }, status=404)
+
+        # Contar livros que serão removidos
+        books_in_shelf = BookShelf.objects.filter(
+            user=request.user,
+            shelf_type='custom',
+            custom_shelf_name=shelf_name
+        )
+        deleted_count = books_in_shelf.count()
+
+        # Deletar todos os livros da prateleira
+        books_in_shelf.delete()
+
+        # Remover da lista do profile
+        removed = profile.remove_custom_shelf(shelf_name)
+
+        if not removed:
+            return JsonResponse({
+                'success': False,
+                'message': 'Erro ao remover prateleira do perfil.'
+            }, status=500)
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Prateleira "{shelf_name}" deletada com sucesso!',
+            'deleted_books_count': deleted_count
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Dados JSON inválidos.'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao deletar prateleira: {str(e)}'
+        }, status=500)
+
+
+
+@login_required
+@require_http_methods(["POST"])
+def rename_custom_shelf(request):
+    """
+    Renomeia uma prateleira personalizada.
+
+    Parâmetros POST:
+    - old_name (str): Nome atual da prateleira
+    - new_name (str): Novo nome da prateleira
+
+    Retorna JSON:
+    - success (bool): Se a operação foi bem-sucedida
+    - message (str): Mensagem de feedback
+    - old_name (str): Nome antigo
+    - new_name (str): Nome novo
+    """
+    try:
+        data = json.loads(request.body)
+        old_name = data.get('old_name', '').strip()
+        new_name = data.get('new_name', '').strip()
+
+        # Validações
+        if not old_name or not new_name:
+            return JsonResponse({
+                'success': False,
+                'message': 'Nomes da prateleira não fornecidos.'
+            }, status=400)
+
+        if len(new_name) > 100:
+            return JsonResponse({
+                'success': False,
+                'message': 'Nome muito longo (máx: 100 caracteres).'
+            }, status=400)
+
+        if old_name == new_name:
+            return JsonResponse({
+                'success': False,
+                'message': 'O novo nome deve ser diferente do atual.'
+            }, status=400)
+
+        # Verificar se prateleira antiga existe
+        profile = request.user.profile
+
+        if not profile.has_custom_shelf(old_name):
+            return JsonResponse({
+                'success': False,
+                'message': f'Prateleira "{old_name}" não encontrada.'
+            }, status=404)
+
+        # Verificar se novo nome já existe
+        if profile.has_custom_shelf(new_name):
+            return JsonResponse({
+                'success': False,
+                'message': f'Já existe uma prateleira chamada "{new_name}".'
+            }, status=400)
+
+        # Atualizar todos os BookShelf com o novo nome
+        updated_count = BookShelf.objects.filter(
+            user=request.user,
+            shelf_type='custom',
+            custom_shelf_name=old_name
+        ).update(custom_shelf_name=new_name)
+
+        # Atualizar lista no profile
+        profile.remove_custom_shelf(old_name)
+        profile.add_custom_shelf(new_name)
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Prateleira renomeada de "{old_name}" para "{new_name}"!',
+            'old_name': old_name,
+            'new_name': new_name,
+            'books_updated': updated_count
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Dados JSON inválidos.'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao renomear prateleira: {str(e)}'
+        }, status=500)
+
+
+
+@login_required
+@require_http_methods(["POST"])
+def update_book_notes(request):
+    """
+    Atualiza as notas pessoais de um livro na biblioteca.
+
+    Parâmetros POST:
+    - bookshelf_id (int): ID do BookShelf
+    - notes (str): Novas notas (pode ser vazio)
+
+    Retorna JSON:
+    - success (bool): Se a operação foi bem-sucedida
+    - message (str): Mensagem de feedback
+    - notes (str): Notas atualizadas
+    """
+    try:
+        data = json.loads(request.body)
+        bookshelf_id = data.get('bookshelf_id')
+        notes = data.get('notes', '').strip()
+
+        # Validações
+        if not bookshelf_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'ID do BookShelf não fornecido.'
+            }, status=400)
+
+        # Buscar bookshelf e verificar ownership
+        bookshelf = get_object_or_404(BookShelf, id=bookshelf_id, user=request.user)
+
+        # Atualizar notas
+        bookshelf.notes = notes
+        bookshelf.save()
+
+        book_title = bookshelf.book.title
+        shelf_display = bookshelf.get_shelf_display()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Notas atualizadas para "{book_title}" em "{shelf_display}"!',
+            'notes': notes,
+            'book_title': book_title
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Dados JSON inválidos.'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao atualizar notas: {str(e)}'
+        }, status=500)

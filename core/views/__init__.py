@@ -17,6 +17,9 @@ from .library_ajax_views import (
     get_book_shelves,
     create_custom_shelf,
     move_to_shelf,
+    delete_custom_shelf,
+    rename_custom_shelf,
+    update_book_notes,
 )
 
 __all__ = [

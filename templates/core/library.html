@@ -339,10 +339,16 @@
             <button class="btn btn-sm btn-outline-primary w-100 mb-3" onclick="showLibraryCustomShelfModal()">
                 <i class="fas fa-plus me-2"></i>Nova Prateleira
             </button>
+            <button class="btn btn-sm btn-outline-success w-100 mb-3" data-bs-toggle="modal" data-bs-target="#manageShelvesModal">
+                <i class="fas fa-cog me-2"></i>Gerenciar Minhas Prateleiras
+            </button>
 
             {% if custom_shelves %}
             {% for shelf in custom_shelves %}
-            <div class="library-nav-item" data-shelf="custom-{{ shelf.name }}"
+            <div class="library-nav-item"
+                 data-shelf="custom-{{ shelf.name }}"
+                 data-shelf-type="custom"
+                 data-custom-name="{{ shelf.name }}"
                  onclick="showShelf('custom', '{{ shelf.name }}')">
                 <i class="fas fa-folder"></i>
                 <span>{{ shelf.name }}</span>
@@ -368,14 +374,19 @@
             <div class="books-grid" id="shelf-favorites" style="display: grid;">
                 {% if favorites %}
                     {% for item in favorites %}
-                    <div class="book-card" data-bookshelf-id="{{ item.id }}">
+                    <div class="book-card"
+                         data-bookshelf-id="{{ item.id }}"
+                         data-notes="{{ item.notes|default:'' }}">
                         <a href="{% url 'core:book_detail' item.book.slug %}">
                             <div class="book-cover-container">
                                 {% if item.book.cover_image %}
-                                <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}">
+                                <img src="{{ item.book.cover_image.url }}"
+                                     alt="{{ item.book.title }}"
+                                     class="book-cover">
                                 {% else %}
-                                <img src="https://via.placeholder.com/140x200/6c757d/ffffff?text=Sem+Capa"
-                                     alt="{{ item.book.title }}">
+                                <img src="https://via.placeholder.com/160x240/6c757d/ffffff?text=Sem+Capa"
+                                     alt="{{ item.book.title }}"
+                                     class="book-cover">
                                 {% endif %}
                             </div>
                         </a>
@@ -406,14 +417,19 @@
             <div class="books-grid" id="shelf-to_read" style="display: none;">
                 {% if to_read %}
                     {% for item in to_read %}
-                    <div class="book-card" data-bookshelf-id="{{ item.id }}">
+                    <div class="book-card"
+                         data-bookshelf-id="{{ item.id }}"
+                         data-notes="{{ item.notes|default:'' }}">
                         <a href="{% url 'core:book_detail' item.book.slug %}">
                             <div class="book-cover-container">
                                 {% if item.book.cover_image %}
-                                <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}">
+                                <img src="{{ item.book.cover_image.url }}"
+                                     alt="{{ item.book.title }}"
+                                     class="book-cover">
                                 {% else %}
-                                <img src="https://via.placeholder.com/140x200/6c757d/ffffff?text=Sem+Capa"
-                                     alt="{{ item.book.title }}">
+                                <img src="https://via.placeholder.com/160x240/6c757d/ffffff?text=Sem+Capa"
+                                     alt="{{ item.book.title }}"
+                                     class="book-cover">
                                 {% endif %}
                             </div>
                         </a>
@@ -444,14 +460,19 @@
             <div class="books-grid" id="shelf-reading" style="display: none;">
                 {% if reading %}
                     {% for item in reading %}
-                    <div class="book-card" data-bookshelf-id="{{ item.id }}">
+                    <div class="book-card"
+                         data-bookshelf-id="{{ item.id }}"
+                         data-notes="{{ item.notes|default:'' }}">
                         <a href="{% url 'core:book_detail' item.book.slug %}">
                             <div class="book-cover-container">
                                 {% if item.book.cover_image %}
-                                <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}">
+                                <img src="{{ item.book.cover_image.url }}"
+                                     alt="{{ item.book.title }}"
+                                     class="book-cover">
                                 {% else %}
-                                <img src="https://via.placeholder.com/140x200/6c757d/ffffff?text=Sem+Capa"
-                                     alt="{{ item.book.title }}">
+                                <img src="https://via.placeholder.com/160x240/6c757d/ffffff?text=Sem+Capa"
+                                     alt="{{ item.book.title }}"
+                                     class="book-cover">
                                 {% endif %}
                             </div>
                         </a>
@@ -482,14 +503,19 @@
             <div class="books-grid" id="shelf-read" style="display: none;">
                 {% if read %}
                     {% for item in read %}
-                    <div class="book-card" data-bookshelf-id="{{ item.id }}">
+                    <div class="book-card"
+                         data-bookshelf-id="{{ item.id }}"
+                         data-notes="{{ item.notes|default:'' }}">
                         <a href="{% url 'core:book_detail' item.book.slug %}">
                             <div class="book-cover-container">
                                 {% if item.book.cover_image %}
-                                <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}">
+                                <img src="{{ item.book.cover_image.url }}"
+                                     alt="{{ item.book.title }}"
+                                     class="book-cover">
                                 {% else %}
-                                <img src="https://via.placeholder.com/140x200/6c757d/ffffff?text=Sem+Capa"
-                                     alt="{{ item.book.title }}">
+                                <img src="https://via.placeholder.com/160x240/6c757d/ffffff?text=Sem+Capa"
+                                     alt="{{ item.book.title }}"
+                                     class="book-cover">
                                 {% endif %}
                             </div>
                         </a>
@@ -518,17 +544,25 @@
 
             <!-- Grids de Prateleiras Personalizadas (dinâmico) -->
             {% for shelf in custom_shelves %}
-            <div class="books-grid" id="shelf-custom-{{ shelf.name }}" style="display: none;">
+            <div class="books-grid"
+                 id="shelf-custom-{{ shelf.name }}"
+                 data-custom-shelf="{{ shelf.name }}"
+                 style="display: none;">
                 {% if shelf.books %}
                     {% for item in shelf.books %}
-                    <div class="book-card" data-bookshelf-id="{{ item.id }}">
+                    <div class="book-card"
+                         data-bookshelf-id="{{ item.id }}"
+                         data-notes="{{ item.notes|default:'' }}">
                         <a href="{% url 'core:book_detail' item.book.slug %}">
                             <div class="book-cover-container">
                                 {% if item.book.cover_image %}
-                                <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}">
+                                <img src="{{ item.book.cover_image.url }}"
+                                     alt="{{ item.book.title }}"
+                                     class="book-cover">
                                 {% else %}
                                 <img src="https://via.placeholder.com/160x240/6c757d/ffffff?text=Sem+Capa"
-                                     alt="{{ item.book.title }}">
+                                     alt="{{ item.book.title }}"
+                                     class="book-cover">
                                 {% endif %}
                             </div>
                         </a>
@@ -595,6 +629,257 @@
         </main>
     </div>
 </div>
+
+<!-- Modal: Gerenciar Prateleiras -->
+<div class="modal fade" id="manageShelvesModal" tabindex="-1" aria-labelledby="manageShelvesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manageShelvesModalLabel">
+                    <i class="fas fa-cog me-2"></i>Gerenciar Minhas Prateleiras
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Tabs -->
+                <ul class="nav nav-tabs mb-3" id="manageTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="shelves-tab" data-bs-toggle="tab"
+                                data-bs-target="#shelves-panel" type="button" role="tab">
+                            <i class="fas fa-folder me-2"></i>Minhas Prateleiras
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="books-tab" data-bs-toggle="tab"
+                                data-bs-target="#books-panel" type="button" role="tab">
+                            <i class="fas fa-book me-2"></i>Gerenciar Livros
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content" id="manageTabsContent">
+                    <!-- Aba 1: Minhas Prateleiras -->
+                    <div class="tab-pane fade show active" id="shelves-panel" role="tabpanel">
+                        <div class="alert alert-info mb-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Gerencie suas prateleiras personalizadas.</strong>
+                            Renomeie ou delete prateleiras. Ao deletar, todos os livros da prateleira serão removidos.
+                        </div>
+
+                        <div id="shelves-list">
+                            <!-- Lista será preenchida via JavaScript -->
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Carregando...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aba 2: Gerenciar Livros -->
+                    <div class="tab-pane fade" id="books-panel" role="tabpanel">
+                        <div class="alert alert-info mb-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Gerencie os livros em suas prateleiras.</strong>
+                            Selecione uma prateleira para ver e editar seus livros.
+                        </div>
+
+                        <!-- Seletor de Prateleira -->
+                        <div class="mb-3">
+                            <label for="select-shelf" class="form-label fw-bold">
+                                <i class="fas fa-folder-open me-2"></i>Selecione uma Prateleira:
+                            </label>
+                            <select class="form-select" id="select-shelf" onchange="loadShelfBooks(this.value)">
+                                <option value="">-- Escolha uma prateleira --</option>
+                                <optgroup label="Prateleiras Padrão">
+                                    <option value="favorites">⭐ Favoritos ({{ favorites_count }})</option>
+                                    <option value="to_read">📚 Quero Ler ({{ to_read_count }})</option>
+                                    <option value="reading">📖 Lendo ({{ reading_count }})</option>
+                                    <option value="read">✅ Lidos ({{ read_count }})</option>
+                                </optgroup>
+                                {% if custom_shelves %}
+                                <optgroup label="Prateleiras Personalizadas">
+                                    {% for shelf in custom_shelves %}
+                                    <option value="custom:{{ shelf.name }}">
+                                        📁 {{ shelf.name }} ({{ shelf.count }})
+                                    </option>
+                                    {% endfor %}
+                                </optgroup>
+                                {% endif %}
+                            </select>
+                        </div>
+
+                        <!-- Lista de Livros -->
+                        <div id="books-list">
+                            <div class="text-muted text-center py-4">
+                                <i class="fas fa-arrow-up fa-2x mb-2"></i>
+                                <p>Selecione uma prateleira acima para gerenciar seus livros.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos do Modal de Gerenciamento */
+    #manageShelvesModal .modal-body {
+        min-height: 400px;
+        max-height: 70vh;
+    }
+
+    .shelf-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 10px;
+        background-color: var(--card-bg);
+        transition: all 0.2s;
+    }
+
+    .shelf-item:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .shelf-item-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex: 1;
+    }
+
+    .shelf-item-info i {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+    }
+
+    .shelf-item-details h6 {
+        margin: 0;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .shelf-item-details small {
+        color: var(--text-secondary);
+    }
+
+    .shelf-item-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .book-manage-item {
+        display: flex;
+        gap: 15px;
+        padding: 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 10px;
+        background-color: var(--card-bg);
+        transition: all 0.2s;
+    }
+
+
+    .book-manage-item:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .book-manage-cover {
+        flex-shrink: 0;
+        width: 60px;
+        height: 90px;
+        border-radius: 4px;
+        object-fit: cover;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .book-manage-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .book-manage-info h6 {
+        margin: 0 0 5px 0;
+        font-weight: 600;
+        color: var(--text-primary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .book-manage-info small {
+        color: var(--text-secondary);
+        display: block;
+        margin-bottom: 3px;
+    }
+
+    .book-manage-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        justify-content: center;
+    }
+
+    .btn-xs {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+    }
+
+    * Fix para select no tema escuro */
+    #select-shelf {
+        background-color: var(--card-bg);
+        color: var(--text-primary);
+        border-color: var(--border-color);
+    }
+
+    #select-shelf option {
+        background-color: var(--card-bg);
+        color: var(--text-primary);
+    }
+
+    /* Modal no tema escuro */
+    #manageShelvesModal .modal-content {
+        background-color: var(--card-bg);
+        color: var(--text-primary);
+        border-color: var(--border-color);
+    }
+
+    #manageShelvesModal .modal-header {
+        border-bottom-color: var(--border-color);
+    }
+
+    #manageShelvesModal .modal-footer {
+        border-top-color: var(--border-color);
+    }
+
+    #manageShelvesModal .nav-tabs {
+        border-bottom-color: var(--border-color);
+    }
+
+    #manageShelvesModal .nav-tabs .nav-link {
+        color: var(--text-secondary);
+        border-color: transparent;
+    }
+
+    #manageShelvesModal .nav-tabs .nav-link.active {
+        color: var(--text-primary);
+        background-color: var(--card-bg);
+        border-color: var(--border-color) var(--border-color) var(--card-bg);
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}

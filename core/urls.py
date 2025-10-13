@@ -14,6 +14,9 @@ from core.views import (
     get_book_shelves,
     create_custom_shelf,
     move_to_shelf,
+    delete_custom_shelf,
+    rename_custom_shelf,
+    update_book_notes,
 )
 
 app_name = 'core'
@@ -34,4 +37,7 @@ urlpatterns = [
     path('api/library/get-book-shelves/<int:book_id>/', get_book_shelves, name='get_book_shelves'),
     path('api/library/create-custom-shelf/', create_custom_shelf, name='create_custom_shelf'),
     path('api/library/move-to-shelf/', move_to_shelf, name='move_to_shelf'),
+    path('api/library/delete-custom-shelf/', delete_custom_shelf, name='delete_custom_shelf'),
+    path('api/library/rename-custom-shelf/', rename_custom_shelf, name='rename_custom_shelf'),
+    path('api/library/update-book-notes/', update_book_notes, name='update_book_notes'),
 ]

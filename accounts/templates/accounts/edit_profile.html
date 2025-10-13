@@ -88,6 +88,75 @@
         font-size: 0.7rem;
         font-weight: bold;
     }
+
+    /* Fix para compatibilidade com temas claro/escuro */
+    .edit-profile-container {
+        background: var(--card-bg) !important;
+        color: var(--text-primary);
+    }
+
+    .edit-profile-container h1,
+    .edit-profile-container h3,
+    .edit-profile-container label {
+        color: var(--text-primary) !important;
+    }
+
+    .edit-profile-container .text-muted,
+    .edit-profile-container small.text-muted {
+        color: var(--text-secondary) !important;
+    }
+
+    .form-control,
+    .form-select {
+        background-color: var(--body-bg);
+        color: var(--text-primary);
+        border-color: var(--border-color);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background-color: var(--body-bg);
+        color: var(--text-primary);
+        border-color: var(--primary-color);
+    }
+
+    .form-check-input {
+        background-color: var(--body-bg);
+        border-color: var(--border-color);
+    }
+
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .input-group-text {
+        background-color: var(--body-bg);
+        color: var(--text-primary);
+        border-color: var(--border-color);
+    }
+
+    .alert-secondary {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .alert-info {
+        background-color: rgba(13, 110, 253, 0.1);
+        border-color: rgba(13, 110, 253, 0.3);
+        color: var(--text-primary);
+    }
+
+    .theme-option {
+        background-color: var(--body-bg);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .theme-option:hover {
+        border-color: var(--primary-color);
+    }
 </style>
 {% endblock %}
 

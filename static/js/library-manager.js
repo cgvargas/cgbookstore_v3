@@ -158,6 +158,37 @@ const LibraryManager = (function() {
         });
     }
 
+    /**
+     * Atualiza o contador de uma prateleira personalizada na sidebar.
+     * @param {HTMLElement} gridElement - Elemento da grid da prateleira
+     */
+    function updateCustomShelfCount(gridElement) {
+        if (!gridElement) return;
+
+        // Verificar se é uma prateleira personalizada
+        const customShelfName = gridElement.dataset.customShelf;
+        if (!customShelfName) return;
+
+        // Contar livros restantes
+        const remainingBooks = gridElement.querySelectorAll('.book-card').length;
+
+        // Atualizar contador na sidebar
+        const sidebarItem = document.querySelector(`[data-custom-name="${customShelfName}"]`);
+        if (sidebarItem) {
+            const countElement = sidebarItem.querySelector('.count');
+            if (countElement) {
+                countElement.textContent = remainingBooks;
+            }
+        }
+
+        // Atualizar header da página se estiver visualizando esta prateleira
+        const shelfCountHeader = document.getElementById('shelf-count');
+        const currentShelfName = document.getElementById('shelf-title')?.textContent;
+        if (shelfCountHeader && currentShelfName === customShelfName) {
+            shelfCountHeader.textContent = remainingBooks;
+        }
+    }
+
     // ========================================
     // API CALLS
     // ========================================
@@ -224,13 +255,13 @@ const LibraryManager = (function() {
             const data = await response.json();
 
             if (data.success) {
-                // Atualizar contadores
+                // Atualizar contadores de prateleiras padrão
                 updateShelfCounts(data.shelf_counts);
 
-                // Localizar o card do livro
-                const bookCard = document.querySelector(`[data-bookshelf-id="${bookshelfId}"]`);
+                // Localizar TODOS os cards do livro (pode estar em múltiplos lugares)
+                const bookCards = document.querySelectorAll(`[data-bookshelf-id="${bookshelfId}"]`);
 
-                if (bookCard) {
+                bookCards.forEach(bookCard => {
                     // Aplicar animação fade-out
                     bookCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
                     bookCard.style.opacity = '0';
@@ -239,22 +270,36 @@ const LibraryManager = (function() {
                     // Remover do DOM após animação
                     setTimeout(() => {
                         const parentGrid = bookCard.closest('.books-grid');
+                        const parentManageList = bookCard.closest('#books-list');
+
                         bookCard.remove();
 
-                        // Verificar se a prateleira ficou vazia
-                        const remainingBooks = parentGrid.querySelectorAll('.book-card');
+                        // Se for na grid principal, verificar se ficou vazia
+                        if (parentGrid && !parentManageList) {
+                            const remainingBooks = parentGrid.querySelectorAll('.book-card');
 
-                        if (remainingBooks.length === 0) {
-                            // Obter informações da prateleira atual
-                            const shelfTitle = document.getElementById('shelf-title').textContent;
-                            const shelfType = getCurrentShelfType();
-
-                            // Criar mensagem de prateleira vazia
-                            const emptyMessage = createEmptyShelfMessage(shelfTitle, shelfType);
-                            parentGrid.innerHTML = emptyMessage;
+                            if (remainingBooks.length === 0) {
+                                const shelfTitle = document.getElementById('shelf-title')?.textContent || 'Prateleira';
+                                const shelfType = getCurrentShelfType();
+                                const emptyMessage = createEmptyShelfMessage(shelfTitle, shelfType);
+                                parentGrid.innerHTML = emptyMessage;
+                            }
                         }
+
+                        // Se for no modal de gerenciamento, recarregar a lista
+                        if (parentManageList) {
+                            const selectShelf = document.getElementById('select-shelf');
+                            if (selectShelf && selectShelf.value) {
+                                setTimeout(() => {
+                                    loadShelfBooks(selectShelf.value);
+                                }, 300);
+                            }
+                        }
+
+                        // Atualizar contador de prateleira personalizada (se aplicável)
+                        updateCustomShelfCount(parentGrid);
                     }, 300);
-                }
+                });
 
                 showToast(data.message, 'success');
             } else {
@@ -548,6 +593,382 @@ const LibraryManager = (function() {
     }
 
     // ========================================
+    // GERENCIAMENTO AVANÇADO DE PRATELEIRAS
+    // ========================================
+
+    /**
+     * Carrega a lista de prateleiras personalizadas no modal.
+     */
+    async function loadCustomShelvesList() {
+        const container = document.getElementById('shelves-list');
+        if (!container) return;
+
+        try {
+            // Pegar prateleiras do DOM (já carregadas no template)
+            const customShelvesNav = document.querySelectorAll('[data-shelf-type="custom"]');
+
+            if (customShelvesNav.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-folder-open fa-3x mb-3"></i>
+                        <p>Você ainda não tem prateleiras personalizadas.</p>
+                        <p class="small">Clique em "Nova Prateleira" para criar uma.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            customShelvesNav.forEach(nav => {
+                const shelfName = nav.dataset.customName;
+                const count = nav.querySelector('.count')?.textContent || '0';
+
+                html += `
+                    <div class="shelf-item">
+                        <div class="shelf-item-info">
+                            <i class="fas fa-folder"></i>
+                            <div class="shelf-item-details">
+                                <h6>${shelfName}</h6>
+                                <small>${count} livro(s)</small>
+                            </div>
+                        </div>
+                        <div class="shelf-item-actions">
+                            <button class="btn btn-sm btn-outline-primary btn-xs"
+                                    onclick="LibraryManager.renameCustomShelf('${shelfName.replace(/'/g, "\\'")}')">
+                                <i class="fas fa-edit"></i> Renomear
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger btn-xs"
+                                    onclick="LibraryManager.deleteCustomShelf('${shelfName.replace(/'/g, "\\'")}')">
+                                <i class="fas fa-trash"></i> Deletar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+        } catch (error) {
+            console.error('Erro ao carregar prateleiras:', error);
+            container.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Erro ao carregar prateleiras. Tente novamente.
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Deleta uma prateleira personalizada.
+     * @param {string} shelfName - Nome da prateleira a deletar
+     */
+    async function deleteCustomShelf(shelfName) {
+        // Confirmação com SweetAlert2 (se disponível) ou confirm nativo
+        const confirmed = typeof Swal !== 'undefined'
+            ? await Swal.fire({
+                title: 'Deletar Prateleira?',
+                html: `
+                    <p>Tem certeza que deseja deletar a prateleira <strong>"${shelfName}"</strong>?</p>
+                    <p class="text-danger small">⚠️ Todos os livros desta prateleira serão removidos!</p>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sim, deletar!',
+                cancelButtonText: 'Cancelar'
+            }).then(result => result.isConfirmed)
+            : confirm(`Tem certeza que deseja deletar a prateleira "${shelfName}"?\n\nTodos os livros serão removidos!`);
+
+        if (!confirmed) return;
+
+        try {
+            const response = await fetch('/api/library/delete-custom-shelf/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ shelf_name: shelfName })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast(`${data.message} (${data.deleted_books_count} livro(s) removidos)`, 'success');
+
+                // Recarregar página após 1.5s
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showToast(data.message || 'Erro ao deletar prateleira.', 'error');
+            }
+
+        } catch (error) {
+            console.error('Erro ao deletar prateleira:', error);
+            showToast('Erro de conexão. Tente novamente.', 'error');
+        }
+    }
+
+    /**
+     * Renomeia uma prateleira personalizada.
+     * @param {string} oldName - Nome atual da prateleira
+     */
+    async function renameCustomShelf(oldName) {
+        // Prompt com SweetAlert2 (se disponível) ou prompt nativo
+        let newName;
+
+        if (typeof Swal !== 'undefined') {
+            const result = await Swal.fire({
+                title: 'Renomear Prateleira',
+                html: `
+                    <p class="mb-2">Nome atual: <strong>${oldName}</strong></p>
+                    <input type="text" id="new-shelf-name" class="swal2-input"
+                           placeholder="Novo nome" value="${oldName}" maxlength="100">
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Renomear',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    const input = document.getElementById('new-shelf-name');
+                    const value = input.value.trim();
+                    if (!value) {
+                        Swal.showValidationMessage('O nome não pode ser vazio');
+                        return false;
+                    }
+                    if (value.length > 100) {
+                        Swal.showValidationMessage('Nome muito longo (máx: 100 caracteres)');
+                        return false;
+                    }
+                    return value;
+                }
+            });
+
+            if (!result.isConfirmed) return;
+            newName = result.value;
+        } else {
+            newName = prompt(`Renomear prateleira "${oldName}".\n\nNovo nome:`, oldName);
+            if (!newName || newName.trim() === '') return;
+            newName = newName.trim();
+        }
+
+        try {
+            const response = await fetch('/api/library/rename-custom-shelf/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ old_name: oldName, new_name: newName })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast(data.message, 'success');
+
+                // Recarregar página após 1.5s
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showToast(data.message || 'Erro ao renomear prateleira.', 'error');
+            }
+
+        } catch (error) {
+            console.error('Erro ao renomear prateleira:', error);
+            showToast('Erro de conexão. Tente novamente.', 'error');
+        }
+    }
+
+    /**
+     * Carrega os livros de uma prateleira no modal de gerenciamento.
+     * @param {string} shelfValue - Valor do select (ex: "favorites", "custom:Nome")
+     */
+    async function loadShelfBooks(shelfValue) {
+        const container = document.getElementById('books-list');
+        if (!container || !shelfValue) {
+            container.innerHTML = `
+                <div class="text-muted text-center py-4">
+                    <i class="fas fa-arrow-up fa-2x mb-2"></i>
+                    <p>Selecione uma prateleira acima para gerenciar seus livros.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+            </div>
+        `;
+
+        try {
+            // Parse shelf type e name
+            let shelfType, customName;
+            if (shelfValue.startsWith('custom:')) {
+                shelfType = 'custom';
+                customName = shelfValue.substring(7); // Remove "custom:"
+            } else {
+                shelfType = shelfValue;
+                customName = '';
+            }
+
+            // Buscar livros da prateleira (via DOM - mais simples)
+            const shelfGrid = shelfType === 'custom'
+                ? document.querySelector(`[data-custom-shelf="${customName}"]`)
+                : document.getElementById(`shelf-${shelfType}`);
+
+            if (!shelfGrid) {
+                container.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Prateleira não encontrada.
+                    </div>
+                `;
+                return;
+            }
+
+            const bookCards = shelfGrid.querySelectorAll('.book-card');
+
+            if (bookCards.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-book-open fa-3x mb-3"></i>
+                        <p>Esta prateleira está vazia.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            bookCards.forEach(card => {
+                const bookshelfId = card.dataset.bookshelfId;
+                const bookTitle = card.querySelector('.book-title')?.textContent || 'Sem título';
+                const bookAuthor = card.querySelector('.book-author')?.textContent || 'Autor desconhecido';
+                const bookCover = card.querySelector('.book-cover')?.src || '/static/images/no-cover.jpg';
+                const bookNotes = card.dataset.notes || '';
+
+                html += `
+                    <div class="book-manage-item" data-bookshelf-id="${bookshelfId}">
+                        <img src="${bookCover}" alt="${bookTitle}" class="book-manage-cover">
+                        <div class="book-manage-info">
+                            <h6>${bookTitle}</h6>
+                            <small><i class="fas fa-user me-1"></i>${bookAuthor}</small>
+                            ${bookNotes ? `<small class="text-muted"><i class="fas fa-sticky-note me-1"></i>${bookNotes}</small>` : ''}
+                        </div>
+                        <div class="book-manage-actions">
+                            <button class="btn btn-sm btn-outline-primary btn-xs"
+                                    onclick="LibraryManager.updateBookNotes(${bookshelfId})"
+                                    title="Editar notas">
+                                <i class="fas fa-edit"></i> Notas
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger btn-xs"
+                                    onclick="LibraryManager.removeFromShelf(${bookshelfId})"
+                                    title="Remover da prateleira">
+                                <i class="fas fa-trash"></i> Remover
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+        } catch (error) {
+            console.error('Erro ao carregar livros:', error);
+            container.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Erro ao carregar livros. Tente novamente.
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Atualiza as notas de um livro.
+     * @param {number} bookshelfId - ID do BookShelf
+     */
+    async function updateBookNotes(bookshelfId) {
+        // Buscar notas atuais do card
+        const bookItem = document.querySelector(`[data-bookshelf-id="${bookshelfId}"]`);
+        const currentNotes = bookItem?.dataset.notes || '';
+        const bookTitle = bookItem?.querySelector('h6')?.textContent || 'Livro';
+
+        // Prompt com SweetAlert2 ou prompt nativo
+        let newNotes;
+
+        if (typeof Swal !== 'undefined') {
+            const result = await Swal.fire({
+                title: 'Editar Notas',
+                html: `
+                    <p class="mb-2"><strong>${bookTitle}</strong></p>
+                    <textarea id="book-notes" class="swal2-textarea"
+                              placeholder="Suas anotações sobre este livro..."
+                              style="height: 150px;">${currentNotes}</textarea>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Salvar',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    return document.getElementById('book-notes').value.trim();
+                }
+            });
+
+            if (!result.isConfirmed) return;
+            newNotes = result.value;
+        } else {
+            newNotes = prompt(`Editar notas para "${bookTitle}":`, currentNotes);
+            if (newNotes === null) return; // Cancelou
+            newNotes = newNotes.trim();
+        }
+
+        try {
+            const response = await fetch('/api/library/update-book-notes/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    bookshelf_id: bookshelfId,
+                    notes: newNotes
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast(data.message, 'success');
+
+                // Recarregar lista de livros da prateleira atual
+                const selectShelf = document.getElementById('select-shelf');
+                if (selectShelf && selectShelf.value) {
+                    // Aguardar toast antes de recarregar
+                    setTimeout(() => {
+                        loadShelfBooks(selectShelf.value);
+                    }, 800);
+                }
+
+                // Também atualizar no book-card principal se existir
+                const mainBookCard = document.querySelector(`.books-grid .book-card[data-bookshelf-id="${bookshelfId}"]`);
+                if (mainBookCard) {
+                    mainBookCard.dataset.notes = newNotes;
+                }
+            } else {
+                showToast(data.message || 'Erro ao atualizar notas.', 'error');
+            }
+
+        } catch (error) {
+            console.error('Erro ao atualizar notas:', error);
+            showToast('Erro de conexão. Tente novamente.', 'error');
+        }
+    }
+
+    // ========================================
     // API PÚBLICA
     // ========================================
 
@@ -559,7 +980,13 @@ const LibraryManager = (function() {
         getBookShelves: getBookShelves,
         createCustomShelf: createCustomShelf,
         showToast: showToast,
-        addLibraryButton: addLibraryButton
+        addLibraryButton: addLibraryButton,
+        // Gerenciamento avançado
+        loadCustomShelvesList: loadCustomShelvesList,
+        deleteCustomShelf: deleteCustomShelf,
+        renameCustomShelf: renameCustomShelf,
+        loadShelfBooks: loadShelfBooks,
+        updateBookNotes: updateBookNotes
     };
 
 })();
@@ -569,4 +996,19 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', LibraryManager.init);
 } else {
     LibraryManager.init();
+}
+
+// Inicializar modal de gerenciamento quando abrir
+document.addEventListener('DOMContentLoaded', function() {
+    const manageModal = document.getElementById('manageShelvesModal');
+    if (manageModal) {
+        manageModal.addEventListener('show.bs.modal', function() {
+            LibraryManager.loadCustomShelvesList();
+        });
+    }
+});
+
+// Função global para loadShelfBooks (chamada pelo select no template)
+function loadShelfBooks(shelfValue) {
+    LibraryManager.loadShelfBooks(shelfValue);
 }
