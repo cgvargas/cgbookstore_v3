@@ -10,7 +10,7 @@
 {% block content %}
 <div class="theme-{{ selected_theme }}" style="width: 100%;">
     <div class="container-fluid px-md-4">
-        {# Garante que a p�gina n�o quebre se o perfil ainda n�o existir. #}
+        {# Garante que a página não quebre se o perfil ainda não existir. #}
         {% if profile %}
             {% include 'core/widgets/profile_hero.html' %}
         {% endif %}
@@ -20,7 +20,7 @@
             <aside class="library-sidebar">
                 <h5>Minha Biblioteca</h5>
 
-                <!-- Navega��o Principal -->
+                <!-- Navegação Principal -->
                 <div class="library-nav-item active" data-shelf="favorites" onclick="showShelf('favorites')">
                     <i class="fas fa-heart text-danger"></i>
                     <span>Favoritos</span>
@@ -47,8 +47,8 @@
 
                 <hr class="my-3">
 
-                <!-- Estat�sticas -->
-                {# ? ATUALIZADO: Vari�veis padronizadas para usar o objeto 'profile' #}
+                <!-- Estatísticas -->
+                {# ✅ ATUALIZADO: Variáveis padronizadas para usar o objeto 'profile' #}
                 {% if profile %}
                     <div class="stats-card">
                         <div class="value">{{ profile.total_xp }}</div>
@@ -95,23 +95,14 @@
                 {% endif %}
             </aside>
 
-            <!-- Conte�do Principal -->
+            <!-- Conteúdo Principal -->
             <main class="library-content">
                 <!-- Header -->
                 <div class="library-header">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <div>
-                            <h2 id="shelf-title">Favoritos</h2>
-                            <p class="subtitle" id="shelf-subtitle">
-                                <span id="shelf-count">{{ favorites_count }}</span> livro(s)
-                            </p>
-                        </div>
-                        <div>
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookModal">
-                                <i class="fas fa-plus-circle"></i> Adicionar Livro
-                            </button>
-                        </div>
-                    </div>
+                    <h2 id="shelf-title">Favoritos</h2>
+                    <p class="subtitle" id="shelf-subtitle">
+                        <span id="shelf-count">{{ favorites_count }}</span> livro(s)
+                    </p>
                 </div>
 
                 <!-- Grid de Livros - Favoritos -->
@@ -149,7 +140,7 @@
                         <div class="empty-shelf" style="grid-column: 1 / -1;">
                             <i class="fas fa-heart"></i>
                             <h4>Nenhum favorito ainda</h4>
-                            <p>Adicione livros aos seus favoritos para v�-los aqui!</p>
+                            <p>Adicione livros aos seus favoritos para vê-los aqui!</p>
                             <a href="{% url 'core:book_list' %}" class="btn btn-primary mt-3">
                                 Explorar Livros
                             </a>
@@ -192,7 +183,7 @@
                         <div class="empty-shelf" style="grid-column: 1 / -1;">
                             <i class="fas fa-bookmark"></i>
                             <h4>Nenhum livro para ler</h4>
-                            <p>Adicione livros � sua lista "Quero Ler"!</p>
+                            <p>Adicione livros à sua lista "Quero Ler"!</p>
                             <a href="{% url 'core:book_list' %}" class="btn btn-primary mt-3">
                                 Explorar Livros
                             </a>
@@ -286,7 +277,7 @@
                     {% endif %}
                 </div>
 
-                <!-- Grids de Prateleiras Personalizadas (din�mico) -->
+                <!-- Grids de Prateleiras Personalizadas (dinâmico) -->
                 {% for shelf in custom_shelves %}
                 <div class="books-grid"
                      id="shelf-custom-{{ shelf.name }}"
@@ -351,10 +342,10 @@
                                         <input type="text"
                                                class="form-control"
                                                id="libraryCustomShelfName"
-                                               placeholder="Ex: Fic��o Cient�fica Favorita"
+                                               placeholder="Ex: Ficção Científica Favorita"
                                                maxlength="100"
                                                required>
-                                        <div class="form-text">M�ximo 100 caracteres</div>
+                                        <div class="form-text">Máximo 100 caracteres</div>
                                         <div id="libraryCustomShelfError" class="text-danger mt-2" style="display: none;"></div>
                                     </div>
                                 </form>
@@ -408,11 +399,11 @@
                             <div class="alert alert-info mb-3">
                                 <i class="fas fa-info-circle me-2"></i>
                                 <strong>Gerencie suas prateleiras personalizadas.</strong>
-                                Renomeie ou delete prateleiras. Ao deletar, todos os livros da prateleira ser�o removidos.
+                                Renomeie ou delete prateleiras. Ao deletar, todos os livros da prateleira serão removidos.
                             </div>
 
                             <div id="shelves-list">
-                                <!-- Lista ser� preenchida via JavaScript -->
+                                <!-- Lista será preenchida via JavaScript -->
                                 <div class="text-center py-4">
                                     <div class="spinner-border text-primary" role="status">
                                         <span class="visually-hidden">Carregando...</span>
@@ -436,17 +427,17 @@
                                 </label>
                                 <select class="form-select" id="select-shelf" onchange="loadShelfBooks(this.value)">
                                     <option value="">-- Escolha uma prateleira --</option>
-                                    <optgroup label="Prateleiras Padr�o">
-                                        <option value="favorites">? Favoritos ({{ favorites_count }})</option>
-                                        <option value="to_read">?? Quero Ler ({{ to_read_count }})</option>
-                                        <option value="reading">?? Lendo ({{ reading_count }})</option>
-                                        <option value="read">? Lidos ({{ read_count }})</option>
+                                    <optgroup label="Prateleiras Padrão">
+                                        <option value="favorites">⭐ Favoritos ({{ favorites_count }})</option>
+                                        <option value="to_read">📚 Quero Ler ({{ to_read_count }})</option>
+                                        <option value="reading">📖 Lendo ({{ reading_count }})</option>
+                                        <option value="read">✅ Lidos ({{ read_count }})</option>
                                     </optgroup>
                                     {% if custom_shelves %}
                                     <optgroup label="Prateleiras Personalizadas">
                                         {% for shelf in custom_shelves %}
                                         <option value="custom:{{ shelf.name }}">
-                                            ?? {{ shelf.name }} ({{ shelf.count }})
+                                            📁 {{ shelf.name }} ({{ shelf.count }})
                                         </option>
                                         {% endfor %}
                                     </optgroup>
@@ -620,39 +611,6 @@
     // Inicializar
     document.addEventListener('DOMContentLoaded', function() {
         console.log('📚 Biblioteca carregada');
-    });
-</script>
-
-{# ✅ CORREÇÃO: Modal ANTES do JavaScript que o utiliza #}
-{% include 'core/modals/add_book_modal.html' %}
-
-{# Scripts JavaScript #}
-<script src="{% static 'js/library-manager.js' %}"></script>
-<script src="{% static 'js/book-search.js' %}"></script>
-
-<script>
-    document.addEventListener('libraryUpdated', function(e) {
-        console.log('Evento "libraryUpdated" recebido! A biblioteca será atualizada.');
-
-        // 1. Mostrar um feedback visual de sucesso
-        if (window.LibraryManager && typeof window.LibraryManager.showToast === 'function') {
-            window.LibraryManager.showToast('Biblioteca atualizada!', 'success', 1500);
-        }
-
-        // 2. Fechar o modal de busca se estiver aberto
-        const addBookModalEl = document.getElementById('addBookModal');
-        if (addBookModalEl) {
-            const modalInstance = bootstrap.Modal.getInstance(addBookModalEl);
-            if (modalInstance) {
-                modalInstance.hide();
-            }
-        }
-
-        // 3. Recarregar a página para refletir todas as mudanças (contadores, grids, etc.)
-        // Esta é a forma mais robusta e simples de garantir 100% de consistência.
-        setTimeout(() => {
-            window.location.reload();
-        }, 1500); // Delay para o usuário ver o toast
     });
 </script>
 {% endblock %}

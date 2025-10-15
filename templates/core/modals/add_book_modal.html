@@ -1,0 +1,368 @@
+<!-- Modal: Adicionar Livro à Biblioteca -->
+<div class="modal fade" id="addBookModal" tabindex="-1" aria-labelledby="addBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="addBookModalLabel">
+                    <i class="fas fa-plus-circle text-primary"></i>
+                    Adicionar Livro à Biblioteca
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <!-- Campo de Busca -->
+                <div class="search-section mb-4">
+                    <div class="row g-2">
+                        <div class="col-md-10">
+                            <input
+                                type="text"
+                                id="bookSearchInput"
+                                class="form-control form-control-lg"
+                                placeholder="Digite o título, autor ou ISBN do livro..."
+                                autocomplete="off"
+                            >
+                        </div>
+                        <div class="col-md-2">
+                            <button id="btnSearchBooks" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-2">
+                        <i class="fas fa-info-circle"></i>
+                        Buscaremos no nosso catálogo e no Google Books simultaneamente
+                    </small>
+                </div>
+
+                <!-- Abas de Navegação -->
+                <ul class="nav nav-tabs mb-3" id="searchResultsTabs" role="tablist" style="display: none;">
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link active"
+                            id="local-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#local-results"
+                            type="button"
+                            role="tab"
+                        >
+                            <i class="fas fa-store"></i> Nossa Loja
+                            <span class="badge bg-primary ms-2" id="localResultsCount">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link"
+                            id="google-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#google-results"
+                            type="button"
+                            role="tab"
+                        >
+                            <i class="fas fa-globe"></i> Google Books
+                            <span class="badge bg-info ms-2" id="googleResultsCount">0</span>
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Conteúdo das Abas -->
+                <div class="tab-content" id="searchResultsContent">
+                    <!-- Estado Inicial (antes de buscar) -->
+                    <div id="initialState" class="text-center py-5">
+                        <i class="fas fa-book-open fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">Digite algo para começar a buscar livros</h5>
+                        <p class="text-muted">Você pode buscar por título, autor ou ISBN</p>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="loadingState" class="text-center py-5" style="display: none;">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <h5 class="text-muted">Buscando livros...</h5>
+                        <p class="text-muted">Isso pode levar alguns segundos</p>
+                    </div>
+
+                    <!-- Resultados do Catálogo Local -->
+                    <div class="tab-pane fade show active" id="local-results" role="tabpanel">
+                        <div id="localResultsContainer" class="results-container">
+                            <!-- Cards serão inseridos aqui via JavaScript -->
+                        </div>
+                        <div id="localNoResults" class="text-center py-4" style="display: none;">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Nenhum livro encontrado no nosso catálogo</p>
+                        </div>
+                    </div>
+
+                    <!-- Resultados do Google Books -->
+                    <div class="tab-pane fade" id="google-results" role="tabpanel">
+                        <div id="googleResultsContainer" class="results-container">
+                            <!-- Cards serão inseridos aqui via JavaScript -->
+                        </div>
+                        <div id="googleNoResults" class="text-center py-4" style="display: none;">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Nenhum livro encontrado no Google Books</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensagem de Feedback -->
+                <div id="feedbackMessage" class="alert alert-dismissible fade" role="alert" style="display: none;">
+                    <span id="feedbackText"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template: Card de Resultado (Catálogo Local) -->
+<template id="localBookCardTemplate">
+    <div class="book-result-card">
+        <div class="row g-3">
+            <div class="col-md-2">
+                <img src="" alt="Capa" class="book-cover-img">
+            </div>
+            <div class="col-md-7">
+                <h5 class="book-title mb-2"></h5>
+                <p class="book-author text-muted mb-1">
+                    <i class="fas fa-user"></i> <span></span>
+                </p>
+                <p class="book-category text-muted mb-1">
+                    <i class="fas fa-tag"></i> <span></span>
+                </p>
+                <p class="book-publisher text-muted mb-1">
+                    <i class="fas fa-building"></i> <span></span>
+                </p>
+                <span class="badge bg-success">
+                    <i class="fas fa-check"></i> Disponível na Loja
+                </span>
+            </div>
+            <div class="col-md-3 d-flex align-items-center justify-content-end">
+                <div class="book-actions">
+                    <button class="btn btn-primary btn-add-to-shelf" data-book-id="">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                    <!-- Dropdown de prateleiras (aparece após clicar em Adicionar) -->
+                    <div class="shelf-selector" style="display: none;">
+                        <label class="form-label small mb-1">Adicionar a:</label>
+                        <select class="form-select form-select-sm mb-2">
+                            <optgroup label="Prateleiras Padrão">
+                                <option value="favorites">❤️ Favoritos</option>
+                                <option value="to_read" selected>📖 Quero Ler</option>
+                                <option value="reading">📚 Lendo</option>
+                                <option value="read">✅ Lidos</option>
+                            </optgroup>
+
+                            {% if custom_shelves_for_modal %}
+                            <optgroup label="Minhas Prateleiras">
+                                {% for shelf_name in custom_shelves_for_modal %}
+                                    <option value="custom:{{ shelf_name }}">📁 {{ shelf_name }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endif %}
+                        </select>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success btn-sm btn-confirm-add">
+                                <i class="fas fa-check"></i> Confirmar
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm btn-cancel-add">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- Template: Card de Resultado (Google Books) -->
+<template id="googleBookCardTemplate">
+    <div class="book-result-card google-book">
+        <div class="row g-3">
+            <div class="col-md-2">
+                <img src="" alt="Capa" class="book-cover-img">
+            </div>
+            <div class="col-md-7">
+                <h5 class="book-title mb-2"></h5>
+                <p class="book-author text-muted mb-1">
+                    <i class="fas fa-user"></i> <span></span>
+                </p>
+                <p class="book-publisher text-muted mb-1">
+                    <i class="fas fa-building"></i> <span></span>
+                </p>
+                <p class="book-description text-muted small mb-2" style="max-height: 60px; overflow: hidden;"></p>
+                <span class="badge bg-info">
+                    <i class="fas fa-globe"></i> Google Books
+                </span>
+                <span class="badge bg-warning text-dark already-in-catalog" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i> Já no Catálogo
+                </span>
+            </div>
+            <div class="col-md-3 d-flex align-items-center justify-content-end">
+                <div class="book-actions">
+                    <button class="btn btn-primary btn-import-and-add" data-google-id="">
+                        <i class="fas fa-download"></i> Importar e Adicionar
+                    </button>
+                    <button class="btn btn-secondary btn-add-existing" data-book-id="" style="display: none;">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                    <!-- Dropdown de prateleiras -->
+                    <div class="shelf-selector" style="display: none;">
+                        <label class="form-label small mb-1">Adicionar a:</label>
+                        <select class="form-select form-select-sm mb-2">
+                            <optgroup label="Prateleiras Padrão">
+                                <option value="favorites">❤️ Favoritos</option>
+                                <option value="to_read" selected>📖 Quero Ler</option>
+                                <option value="reading">📚 Lendo</option>
+                                <option value="read">✅ Lidos</option>
+                            </optgroup>
+
+                            {% if custom_shelves_for_modal %}
+                            <optgroup label="Minhas Prateleiras">
+                                {% for shelf_name in custom_shelves_for_modal %}
+                                    {# O valor precisa ser formatado como "custom:Nome da Prateleira" #}
+                                    <option value="custom:{{ shelf_name }}">📁 {{ shelf_name }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endif %}
+                        </select>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success btn-sm btn-confirm-add">
+                                <i class="fas fa-check"></i> Confirmar
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm btn-cancel-add">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<style>
+/* ==========================================
+   ESTILOS PARA O MODAL DE BUSCA DE LIVROS
+========================================== */
+
+#addBookModal .modal-dialog {
+    max-width: 1200px;
+}
+
+/* ==========================================
+   CARDS DE RESULTADOS
+========================================== */
+
+.book-result-card {
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--card-bg);
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.book-result-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.book-cover-img {
+    width: 100%;
+    height: auto;
+    max-height: 180px;
+    object-fit: cover;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.book-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.book-author,
+.book-category,
+.book-publisher {
+    font-size: 0.9rem;
+}
+
+.book-actions {
+    text-align: center;
+}
+
+.shelf-selector {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--sidebar-bg);
+}
+
+/* ==========================================
+   CONTAINER DE RESULTADOS
+========================================== */
+
+.results-container {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.results-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.results-container::-webkit-scrollbar-track {
+    background: var(--sidebar-bg);
+    border-radius: 4px;
+}
+
+.results-container::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.results-container::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* ==========================================
+   LOADING STATES
+========================================== */
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* ==========================================
+   BADGES
+========================================== */
+
+.badge {
+    font-weight: 500;
+    padding: 0.4em 0.8em;
+}
+
+/* ==========================================
+   BOTÕES - TAMANHO BASE
+========================================== */
+
+.btn-add-to-shelf,
+.btn-import-and-add {
+    min-width: 180px;
+}
+</style>

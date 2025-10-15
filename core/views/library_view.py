@@ -65,10 +65,11 @@ class LibraryView(LoginRequiredMixin, TemplateView):
 
         # ========== PRATELEIRAS PERSONALIZADAS (ATUALIZADO) ==========
         custom_shelves_list = []
+        custom_shelf_names = []  # <-- Crie esta lista vazia
 
         if profile:
-            # Pegar lista de prateleiras do profile (inclui vazias)
             shelf_names = profile.get_custom_shelves()
+            custom_shelf_names = shelf_names  # <-- Preencha a lista
 
             for shelf_name in shelf_names:
                 # Buscar livros da prateleira (pode estar vazio)
@@ -85,6 +86,8 @@ class LibraryView(LoginRequiredMixin, TemplateView):
                 })
 
         context['custom_shelves'] = custom_shelves_list
+        # NOVO: Adicione a lista de nomes ao contexto para o modal
+        context['custom_shelves_for_modal'] = custom_shelf_names
 
         # Progressos de leitura ativos (incompletos)
         context['reading_progress'] = ReadingProgress.objects.filter(

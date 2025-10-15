@@ -12,65 +12,72 @@ from core.models import Book
 from accounts.models import BookShelf
 import json
 
-
 @login_required
 @require_http_methods(["POST"])
 def add_to_shelf(request):
     """
     Adiciona um livro a uma prateleira do usuário.
-
-    Parâmetros POST:
-    - book_id (int): ID do livro
-    - shelf_type (str): Tipo de prateleira (favorites, to_read, reading, read, abandoned, custom)
-    - custom_shelf_name (str, opcional): Nome da prateleira personalizada
-    - notes (str, opcional): Notas pessoais sobre o livro
-
-    Retorna JSON:
-    - success (bool): Se a operação foi bem-sucedida
-    - message (str): Mensagem de feedback
-    - shelf_counts (dict): Contadores atualizados de cada prateleira
+    Se a prateleira personalizada não existir no perfil do usuário, ela é criada.
     """
-    try:
-        # Parse JSON do body
-        data = json.loads(request.body)
 
+    # ==========================================================
+    #             INÍCIO DO BLOCO DE DEPURAÇÃO
+    # ==========================================================
+    print("--- [DEBUG] INICIANDO add_to_shelf ---")
+    try:
+        body_unicode = request.body.decode('utf-8')
+        print(f"--- [DEBUG] Corpo da requisição (raw): {body_unicode}")
+        data = json.loads(request.body)
+        print(f"--- [DEBUG] Dados JSON parseados: {data}")
+    except Exception as e:
+        print(f"--- [DEBUG] ERRO AO PARSEAR JSON: {e}")
+        return JsonResponse({'success': False, 'message': 'Erro de formato JSON.'}, status=400)
+
+    book_id = data.get('book_id')
+    shelf_type = data.get('shelf_type')
+    custom_shelf_name = data.get('custom_shelf_name', '').strip()
+
+    print(f"--- [DEBUG] Book ID recebido: {book_id} (Tipo: {type(book_id)})")
+    print(f"--- [DEBUG] Shelf Type recebido: {shelf_type} (Tipo: {type(shelf_type)})")
+    print(f"--- [DEBUG] Custom Shelf Name recebido: '{custom_shelf_name}' (Tipo: {type(custom_shelf_name)})")
+    # ==========================================================
+    #              FIM DO BLOCO DE DEPURAÇÃO
+    # ==========================================================
+
+    try:
+        data = json.loads(request.body)
         book_id = data.get('book_id')
         shelf_type = data.get('shelf_type', 'to_read')
         custom_shelf_name = data.get('custom_shelf_name', '').strip()
         notes = data.get('notes', '').strip()
 
-        # Validações
         if not book_id:
-            return JsonResponse({
-                'success': False,
-                'message': 'ID do livro não fornecido.'
-            }, status=400)
+            print("--- [DEBUG] ERRO: Book ID não fornecido.")  # Adicione print de erro
+            return JsonResponse({'success': False, 'message': 'ID do livro não fornecido.'}, status=400)
 
-        # Buscar livro
         book = get_object_or_404(Book, id=book_id)
 
-        # Validar shelf_type
         valid_shelf_types = ['favorites', 'to_read', 'reading', 'read', 'abandoned', 'custom']
         if shelf_type not in valid_shelf_types:
-            return JsonResponse({
-                'success': False,
-                'message': f'Tipo de prateleira inválido: {shelf_type}'
-            }, status=400)
+            return JsonResponse({'success': False, 'message': f'Tipo de prateleira inválido: {shelf_type}'}, status=400)
 
-        # Se for custom, validar nome
         if shelf_type == 'custom':
             if not custom_shelf_name:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Nome da prateleira personalizada é obrigatório.'
-                }, status=400)
+                return JsonResponse({'success': False, 'message': 'Nome da prateleira personalizada é obrigatório.'},
+                                    status=400)
             if len(custom_shelf_name) > 100:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Nome da prateleira muito longo (máx: 100 caracteres).'
-                }, status=400)
+                return JsonResponse(
+                    {'success': False, 'message': 'Nome da prateleira muito longo (máx: 100 caracteres).'}, status=400)
 
-        # Verificar se já existe na mesma prateleira
+            # =======================================================================
+            #  NOVA LÓGICA CRUCIAL: GARANTIR QUE A PRATELEIRA EXISTA NO PERFIL
+            # =======================================================================
+            profile = request.user.profile
+            if not profile.has_custom_shelf(custom_shelf_name):
+                profile.add_custom_shelf(custom_shelf_name)
+            # =======================================================================
+
+        # A lógica para verificar se o livro já está na prateleira continua a mesma
         existing = BookShelf.objects.filter(
             user=request.user,
             book=book,
@@ -80,12 +87,10 @@ def add_to_shelf(request):
 
         if existing:
             shelf_display = existing.get_shelf_display()
-            return JsonResponse({
-                'success': False,
-                'message': f'"{book.title}" já está em "{shelf_display}".'
-            }, status=400)
+            return JsonResponse({'success': False, 'message': f'"{book.title}" já está em "{shelf_display}".'},
+                                status=400)
 
-        # Criar entrada na prateleira
+        # Criar a entrada na tabela BookShelf
         bookshelf = BookShelf.objects.create(
             user=request.user,
             book=book,
