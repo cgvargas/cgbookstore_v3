@@ -2714,3 +2714,949 @@
     border-color: var(--theme-secondary);
 }
 
+/* ========================================
+   TEMAS PREMIUM - PARTE 2 (6 TEMAS ÚNICOS)
+   ======================================== */
+
+/* ============================================================
+   TEMA THRILLER - SUSPENSE/TENSÃO
+   Características: Bordas finas, fonte menor, atmosfera tensa
+   ============================================================ */
+
+/* MODO ESCURO */
+[data-theme="dark"] .theme-thriller {
+    --theme-color: #dc143c;
+    --theme-secondary: #1a1a1a;
+    --theme-accent: #8b0000;
+    --theme-glow: rgba(220, 20, 60, 0.9);
+    --theme-bg-primary: #0d0000;
+    --theme-bg-secondary: #1a0505;
+    --theme-bg-card: #200505;
+    --theme-bg-sidebar: #150000;
+}
+
+/* MODO CLARO */
+[data-theme="light"] .theme-thriller {
+    --theme-color: #c41e3a;
+    --theme-secondary: #424242;
+    --theme-accent: #b71c1c;
+    --theme-glow: rgba(196, 30, 58, 0.5);
+    --theme-bg-primary: #fff5f5;
+    --theme-bg-secondary: #ffebee;
+    --theme-bg-card: #ffffff;
+    --theme-bg-sidebar: #ffd0d0;
+}
+
+/* Container */
+[data-theme="dark"] .theme-thriller .library-container,
+[data-theme="light"] .theme-thriller .library-container {
+    border-color: var(--theme-color);
+    box-shadow: 0 0 60px var(--theme-glow);
+}
+
+/* Avatar - Bordas FINAS para efeito de tensão */
+[data-theme="dark"] .theme-thriller .avatar-frame,
+[data-theme="light"] .theme-thriller .avatar-frame {
+    border-color: var(--theme-color);
+    border-width: 1px;
+    box-shadow: 0 0 50px var(--theme-glow), inset 0 0 30px var(--theme-glow);
+    animation: glow 0.8s ease-in-out infinite;
+}
+
+/* Sidebar - Borda FINA */
+[data-theme="dark"] .theme-thriller .library-sidebar,
+[data-theme="light"] .theme-thriller .library-sidebar {
+    background-color: var(--theme-bg-sidebar);
+    border-right: 1px solid var(--theme-color);
+    box-shadow: 3px 0 30px var(--theme-glow);
+}
+
+/* Headers - Fonte MENOR para tensão */
+[data-theme="dark"] .theme-thriller .library-sidebar h5,
+[data-theme="light"] .theme-thriller .library-sidebar h5 {
+    color: var(--theme-color);
+    font-family: 'Georgia', serif;
+    text-shadow: 0 0 20px var(--theme-glow);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+/* Navigation Items - Border FINO */
+[data-theme="dark"] .theme-thriller .library-nav-item,
+[data-theme="light"] .theme-thriller .library-nav-item {
+    border-left: 2px solid transparent;
+}
+
+[data-theme="dark"] .theme-thriller .library-nav-item:hover,
+[data-theme="light"] .theme-thriller .library-nav-item:hover {
+    background-color: var(--theme-bg-secondary);
+    border-left-color: var(--theme-color);
+    transform: translateX(8px);
+    box-shadow: 0 0 25px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-thriller .library-nav-item.active,
+[data-theme="light"] .theme-thriller .library-nav-item.active {
+    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
+    border-left-color: var(--theme-color);
+    box-shadow: 0 0 35px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-thriller .library-nav-item i,
+[data-theme="light"] .theme-thriller .library-nav-item i {
+    filter: drop-shadow(0 0 10px var(--theme-glow));
+}
+
+/* Headers - Fonte MENOR */
+[data-theme="dark"] .theme-thriller .library-header h2,
+[data-theme="light"] .theme-thriller .library-header h2 {
+    color: var(--theme-color);
+    font-family: 'Georgia', serif;
+    text-shadow: 3px 3px 10px var(--theme-glow);
+    font-size: 1.8rem;
+}
+
+/* Stats Cards - Bordas FINAS */
+[data-theme="dark"] .theme-thriller .stats-card,
+[data-theme="light"] .theme-thriller .stats-card {
+    background: var(--theme-bg-card);
+    border: 1px solid var(--theme-color);
+    box-shadow: 0 4px 35px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-thriller .stats-card:hover,
+[data-theme="light"] .theme-thriller .stats-card:hover {
+    transform: translateY(-12px) scale(1.05);
+    box-shadow: 0 12px 55px var(--theme-glow);
+    border-color: var(--theme-color);
+}
+
+[data-theme="dark"] .theme-thriller .stats-card .value,
+[data-theme="light"] .theme-thriller .stats-card .value {
+    color: var(--theme-color);
+    text-shadow: 0 0 20px var(--theme-glow);
+}
+
+/* Book Cards - Bordas FINAS */
+[data-theme="dark"] .theme-thriller .book-cover-container,
+[data-theme="light"] .theme-thriller .book-cover-container {
+    border: 1px solid var(--theme-color);
+    box-shadow: 0 4px 30px var(--theme-glow);
+    background-color: var(--theme-bg-card);
+}
+
+[data-theme="dark"] .theme-thriller .book-card:hover,
+[data-theme="light"] .theme-thriller .book-card:hover {
+    transform: translateY(-16px) scale(1.03);
+}
+
+[data-theme="dark"] .theme-thriller .book-card:hover .book-cover-container,
+[data-theme="light"] .theme-thriller .book-card:hover .book-cover-container {
+    box-shadow: 0 20px 70px var(--theme-glow), 0 0 50px var(--theme-glow);
+    border-color: var(--theme-color);
+}
+
+
+/* ============================================================
+   TEMA HISTORICAL - HISTÓRICO/CLÁSSICO
+   Características: Bordas GROSSAS, fonte MAIOR, ícones flutuantes
+   ============================================================ */
+
+/* MODO ESCURO */
+[data-theme="dark"] .theme-historical {
+    --theme-color: #daa520;
+    --theme-secondary: #8b4513;
+    --theme-accent: #cd853f;
+    --theme-glow: rgba(218, 165, 32, 0.7);
+    --theme-bg-primary: #1a1008;
+    --theme-bg-secondary: #2a1a0f;
+    --theme-bg-card: #332415;
+    --theme-bg-sidebar: #1f180c;
+}
+
+/* MODO CLARO */
+[data-theme="light"] .theme-historical {
+    --theme-color: #b8860b;
+    --theme-secondary: #654321;
+    --theme-accent: #daa520;
+    --theme-glow: rgba(184, 134, 11, 0.4);
+    --theme-bg-primary: #fffaf0;
+    --theme-bg-secondary: #faebd7;
+    --theme-bg-card: #ffffff;
+    --theme-bg-sidebar: #f5deb3;
+}
+
+/* Container */
+[data-theme="dark"] .theme-historical .library-container,
+[data-theme="light"] .theme-historical .library-container {
+    border-color: var(--theme-color);
+    box-shadow: 0 0 40px var(--theme-glow);
+}
+
+/* Avatar - Bordas GROSSAS (5px) para grandiosidade */
+[data-theme="dark"] .theme-historical .avatar-frame,
+[data-theme="light"] .theme-historical .avatar-frame {
+    border-color: var(--theme-color);
+    border-width: 5px;
+    box-shadow: 0 0 40px var(--theme-glow), inset 0 0 25px var(--theme-glow);
+    animation: glow 3s ease-in-out infinite;
+}
+
+/* Sidebar - Borda GROSSA */
+[data-theme="dark"] .theme-historical .library-sidebar,
+[data-theme="light"] .theme-historical .library-sidebar {
+    background-color: var(--theme-bg-sidebar);
+    border-right: 4px solid var(--theme-color);
+    box-shadow: 4px 0 25px var(--theme-glow);
+}
+
+/* Headers - Fonte MAIOR para grandiosidade */
+[data-theme="dark"] .theme-historical .library-sidebar h5,
+[data-theme="light"] .theme-historical .library-sidebar h5 {
+    color: var(--theme-color);
+    font-family: 'Georgia', serif;
+    text-shadow: 0 0 18px var(--theme-glow);
+    font-size: 1.3rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+/* Navigation Items - Border GROSSO */
+[data-theme="dark"] .theme-historical .library-nav-item,
+[data-theme="light"] .theme-historical .library-nav-item {
+    border-left: 5px solid transparent;
+}
+
+[data-theme="dark"] .theme-historical .library-nav-item:hover,
+[data-theme="light"] .theme-historical .library-nav-item:hover {
+    background-color: var(--theme-bg-secondary);
+    border-left-color: var(--theme-secondary);
+    transform: translateX(12px);
+    box-shadow: 0 0 22px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-historical .library-nav-item.active,
+[data-theme="light"] .theme-historical .library-nav-item.active {
+    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
+    border-left-color: var(--theme-secondary);
+    box-shadow: 0 0 28px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-historical .library-nav-item i,
+[data-theme="light"] .theme-historical .library-nav-item i {
+    filter: drop-shadow(0 0 10px var(--theme-glow));
+}
+
+/* Headers - Fonte MAIOR e BOLD */
+[data-theme="dark"] .theme-historical .library-header h2,
+[data-theme="light"] .theme-historical .library-header h2 {
+    color: var(--theme-color);
+    font-family: 'Georgia', serif;
+    text-shadow: 0 0 20px var(--theme-glow);
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+/* Stats Cards - Bordas GROSSAS */
+[data-theme="dark"] .theme-historical .stats-card,
+[data-theme="light"] .theme-historical .stats-card {
+    background: var(--theme-bg-card);
+    border: 4px solid var(--theme-color);
+    box-shadow: 0 4px 28px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-historical .stats-card:hover,
+[data-theme="light"] .theme-historical .stats-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 10px 45px var(--theme-glow);
+    border-color: var(--theme-secondary);
+}
+
+[data-theme="dark"] .theme-historical .stats-card .value,
+[data-theme="light"] .theme-historical .stats-card .value {
+    color: var(--theme-secondary);
+    text-shadow: 0 0 18px rgba(139, 69, 19, 0.6);
+}
+
+/* Book Cards - Bordas GROSSAS */
+[data-theme="dark"] .theme-historical .book-cover-container,
+[data-theme="light"] .theme-historical .book-cover-container {
+    border: 4px solid var(--theme-color);
+    box-shadow: 0 4px 25px var(--theme-glow);
+    background-color: var(--theme-bg-card);
+}
+
+[data-theme="dark"] .theme-historical .book-card:hover,
+[data-theme="light"] .theme-historical .book-card:hover {
+    transform: translateY(-14px) scale(1.03);
+}
+
+[data-theme="dark"] .theme-historical .book-card:hover .book-cover-container,
+[data-theme="light"] .theme-historical .book-card:hover .book-cover-container {
+    box-shadow: 0 18px 55px var(--theme-glow), 0 0 40px rgba(139, 69, 19, 0.5);
+    border-color: var(--theme-secondary);
+}
+
+/* Ícones flutuantes: Pergaminhos e Colunas */
+[data-theme="dark"] .theme-historical .library-container::before,
+[data-theme="dark"] .theme-historical .library-container::after,
+[data-theme="light"] .theme-historical .library-container::before,
+[data-theme="light"] .theme-historical .library-container::after {
+    content: '📜';
+    position: fixed;
+    font-size: 32px;
+    opacity: 0.15;
+    z-index: 0;
+    animation: float 8s ease-in-out infinite;
+}
+
+[data-theme="dark"] .theme-historical .library-container::before,
+[data-theme="light"] .theme-historical .library-container::before {
+    top: 15%;
+    left: 8%;
+}
+
+[data-theme="dark"] .theme-historical .library-container::after,
+[data-theme="light"] .theme-historical .library-container::after {
+    content: '🏛️';
+    bottom: 20%;
+    right: 10%;
+    animation-delay: 2s;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+
+/* ============================================================
+   TEMA SELFHELP - AUTOAJUDA/MOTIVAÇÃO
+   Características: Bordas médias, cores vibrantes, ícones motivacionais
+   ============================================================ */
+
+/* MODO ESCURO */
+[data-theme="dark"] .theme-selfhelp {
+    --theme-color: #fbbf24;
+    --theme-secondary: #fb923c;
+    --theme-accent: #fcd34d;
+    --theme-glow: rgba(251, 191, 36, 0.7);
+    --theme-bg-primary: #1a1408;
+    --theme-bg-secondary: #2a1f0f;
+    --theme-bg-card: #332818;
+    --theme-bg-sidebar: #1f180c;
+}
+
+/* MODO CLARO */
+[data-theme="light"] .theme-selfhelp {
+    --theme-color: #f59e0b;
+    --theme-secondary: #ea580c;
+    --theme-accent: #fbbf24;
+    --theme-glow: rgba(245, 158, 11, 0.4);
+    --theme-bg-primary: #fffbeb;
+    --theme-bg-secondary: #fef3c7;
+    --theme-bg-card: #ffffff;
+    --theme-bg-sidebar: #fde68a;
+}
+
+/* Container */
+[data-theme="dark"] .theme-selfhelp .library-container,
+[data-theme="light"] .theme-selfhelp .library-container {
+    border-color: var(--theme-color);
+    box-shadow: 0 0 40px var(--theme-glow);
+}
+
+/* Avatar - Bordas MÉDIAS */
+[data-theme="dark"] .theme-selfhelp .avatar-frame,
+[data-theme="light"] .theme-selfhelp .avatar-frame {
+    border-color: var(--theme-color);
+    border-width: 3px;
+    box-shadow: 0 0 38px var(--theme-glow), inset 0 0 20px var(--theme-glow);
+    animation: glow 2s ease-in-out infinite;
+}
+
+/* Sidebar */
+[data-theme="dark"] .theme-selfhelp .library-sidebar,
+[data-theme="light"] .theme-selfhelp .library-sidebar {
+    background-color: var(--theme-bg-sidebar);
+    border-right: 3px solid var(--theme-color);
+    box-shadow: 3px 0 22px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-selfhelp .library-sidebar h5,
+[data-theme="light"] .theme-selfhelp .library-sidebar h5 {
+    color: var(--theme-color);
+    font-family: 'Segoe UI', sans-serif;
+    text-shadow: 0 0 18px var(--theme-glow);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Navigation Items */
+[data-theme="dark"] .theme-selfhelp .library-nav-item,
+[data-theme="light"] .theme-selfhelp .library-nav-item {
+    border-left: 4px solid transparent;
+}
+
+[data-theme="dark"] .theme-selfhelp .library-nav-item:hover,
+[data-theme="light"] .theme-selfhelp .library-nav-item:hover {
+    background-color: var(--theme-bg-secondary);
+    border-left-color: var(--theme-secondary);
+    transform: translateX(10px);
+    box-shadow: 0 0 20px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-selfhelp .library-nav-item.active,
+[data-theme="light"] .theme-selfhelp .library-nav-item.active {
+    background: linear-gradient(135deg, var(--theme-color), var(--theme-secondary));
+    border-left-color: var(--theme-accent);
+    box-shadow: 0 0 25px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-selfhelp .library-nav-item i,
+[data-theme="light"] .theme-selfhelp .library-nav-item i {
+    filter: drop-shadow(0 0 8px var(--theme-glow));
+}
+
+/* Headers */
+[data-theme="dark"] .theme-selfhelp .library-header h2,
+[data-theme="light"] .theme-selfhelp .library-header h2 {
+    color: var(--theme-color);
+    font-family: 'Segoe UI', sans-serif;
+    text-shadow: 0 0 20px var(--theme-glow);
+    font-size: 2.2rem;
+    font-weight: 600;
+}
+
+/* Stats Cards */
+[data-theme="dark"] .theme-selfhelp .stats-card,
+[data-theme="light"] .theme-selfhelp .stats-card {
+    background: var(--theme-bg-card);
+    border: 3px solid var(--theme-color);
+    box-shadow: 0 4px 26px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-selfhelp .stats-card:hover,
+[data-theme="light"] .theme-selfhelp .stats-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 10px 42px var(--theme-glow);
+    border-color: var(--theme-secondary);
+}
+
+[data-theme="dark"] .theme-selfhelp .stats-card .value,
+[data-theme="light"] .theme-selfhelp .stats-card .value {
+    color: var(--theme-secondary);
+    text-shadow: 0 0 18px rgba(251, 146, 60, 0.6);
+}
+
+/* Book Cards */
+[data-theme="dark"] .theme-selfhelp .book-cover-container,
+[data-theme="light"] .theme-selfhelp .book-cover-container {
+    border: 3px solid var(--theme-color);
+    box-shadow: 0 4px 24px var(--theme-glow);
+    background-color: var(--theme-bg-card);
+}
+
+[data-theme="dark"] .theme-selfhelp .book-card:hover,
+[data-theme="light"] .theme-selfhelp .book-card:hover {
+    transform: translateY(-14px) scale(1.03);
+}
+
+[data-theme="dark"] .theme-selfhelp .book-card:hover .book-cover-container,
+[data-theme="light"] .theme-selfhelp .book-card:hover .book-cover-container {
+    box-shadow: 0 18px 50px var(--theme-glow), 0 0 38px rgba(251, 146, 60, 0.4);
+    border-color: var(--theme-secondary);
+}
+
+/* Ícones flutuantes: Sol e Estrelas */
+[data-theme="dark"] .theme-selfhelp .library-container::before,
+[data-theme="dark"] .theme-selfhelp .library-container::after,
+[data-theme="light"] .theme-selfhelp .library-container::before,
+[data-theme="light"] .theme-selfhelp .library-container::after {
+    content: '☀️';
+    position: fixed;
+    font-size: 36px;
+    opacity: 0.12;
+    z-index: 0;
+    animation: float 7s ease-in-out infinite;
+}
+
+[data-theme="dark"] .theme-selfhelp .library-container::before,
+[data-theme="light"] .theme-selfhelp .library-container::before {
+    top: 18%;
+    right: 12%;
+}
+
+[data-theme="dark"] .theme-selfhelp .library-container::after,
+[data-theme="light"] .theme-selfhelp .library-container::after {
+    content: '⭐';
+    bottom: 25%;
+    left: 10%;
+    animation-delay: 1.5s;
+}
+
+
+/* ============================================================
+   TEMA PHILOSOPHY - FILOSOFIA/ACADÊMICO
+   Características: Bordas FINAS, fonte serif elegante, SEM ícones
+   ============================================================ */
+
+/* MODO ESCURO */
+[data-theme="dark"] .theme-philosophy {
+    --theme-color: #3b82f6;
+    --theme-secondary: #6b7280;
+    --theme-accent: #60a5fa;
+    --theme-glow: rgba(59, 130, 246, 0.6);
+    --theme-bg-primary: #0a0e1a;
+    --theme-bg-secondary: #111827;
+    --theme-bg-card: #1f2937;
+    --theme-bg-sidebar: #0f1520;
+}
+
+/* MODO CLARO */
+[data-theme="light"] .theme-philosophy {
+    --theme-color: #1e3a8a;
+    --theme-secondary: #4b5563;
+    --theme-accent: #2563eb;
+    --theme-glow: rgba(30, 58, 138, 0.3);
+    --theme-bg-primary: #f0f4f8;
+    --theme-bg-secondary: #e0e7ef;
+    --theme-bg-card: #ffffff;
+    --theme-bg-sidebar: #dbeafe;
+}
+
+/* Container */
+[data-theme="dark"] .theme-philosophy .library-container,
+[data-theme="light"] .theme-philosophy .library-container {
+    border-color: var(--theme-color);
+    box-shadow: 0 0 30px var(--theme-glow);
+}
+
+/* Avatar - Bordas FINAS para elegância */
+[data-theme="dark"] .theme-philosophy .avatar-frame,
+[data-theme="light"] .theme-philosophy .avatar-frame {
+    border-color: var(--theme-color);
+    border-width: 1px;
+    box-shadow: 0 0 28px var(--theme-glow), inset 0 0 15px var(--theme-glow);
+    animation: glow 3s ease-in-out infinite;
+}
+
+/* Sidebar - Borda FINA */
+[data-theme="dark"] .theme-philosophy .library-sidebar,
+[data-theme="light"] .theme-philosophy .library-sidebar {
+    background-color: var(--theme-bg-sidebar);
+    border-right: 1px solid var(--theme-color);
+    box-shadow: 2px 0 15px var(--theme-glow);
+}
+
+/* Headers - Fonte Serif Elegante */
+[data-theme="dark"] .theme-philosophy .library-sidebar h5,
+[data-theme="light"] .theme-philosophy .library-sidebar h5 {
+    color: var(--theme-color);
+    font-family: 'Georgia', serif;
+    text-shadow: 0 0 12px var(--theme-glow);
+    font-size: 1rem;
+    font-weight: normal;
+}
+
+/* Navigation Items - Border FINO */
+[data-theme="dark"] .theme-philosophy .library-nav-item,
+[data-theme="light"] .theme-philosophy .library-nav-item {
+    border-left: 2px solid transparent;
+}
+
+[data-theme="dark"] .theme-philosophy .library-nav-item:hover,
+[data-theme="light"] .theme-philosophy .library-nav-item:hover {
+    background-color: var(--theme-bg-secondary);
+    border-left-color: var(--theme-secondary);
+    transform: translateX(8px);
+    box-shadow: 0 0 15px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-philosophy .library-nav-item.active,
+[data-theme="light"] .theme-philosophy .library-nav-item.active {
+    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
+    border-left-color: var(--theme-secondary);
+    box-shadow: 0 0 20px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-philosophy .library-nav-item i,
+[data-theme="light"] .theme-philosophy .library-nav-item i {
+    filter: drop-shadow(0 0 6px var(--theme-glow));
+}
+
+/* Headers - Fonte Serif */
+[data-theme="dark"] .theme-philosophy .library-header h2,
+[data-theme="light"] .theme-philosophy .library-header h2 {
+    color: var(--theme-color);
+    font-family: 'Georgia', serif;
+    text-shadow: 0 0 15px var(--theme-glow);
+    font-size: 2rem;
+    font-weight: normal;
+}
+
+/* Stats Cards - Bordas FINAS */
+[data-theme="dark"] .theme-philosophy .stats-card,
+[data-theme="light"] .theme-philosophy .stats-card {
+    background: var(--theme-bg-card);
+    border: 1px solid var(--theme-color);
+    box-shadow: 0 4px 20px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-philosophy .stats-card:hover,
+[data-theme="light"] .theme-philosophy .stats-card:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 8px 35px var(--theme-glow);
+    border-color: var(--theme-accent);
+}
+
+[data-theme="dark"] .theme-philosophy .stats-card .value,
+[data-theme="light"] .theme-philosophy .stats-card .value {
+    color: var(--theme-accent);
+    text-shadow: 0 0 12px rgba(96, 165, 250, 0.5);
+}
+
+/* Book Cards - Bordas FINAS */
+[data-theme="dark"] .theme-philosophy .book-cover-container,
+[data-theme="light"] .theme-philosophy .book-cover-container {
+    border: 1px solid var(--theme-color);
+    box-shadow: 0 4px 18px var(--theme-glow);
+    background-color: var(--theme-bg-card);
+}
+
+[data-theme="dark"] .theme-philosophy .book-card:hover,
+[data-theme="light"] .theme-philosophy .book-card:hover {
+    transform: translateY(-12px) scale(1.02);
+}
+
+[data-theme="dark"] .theme-philosophy .book-card:hover .book-cover-container,
+[data-theme="light"] .theme-philosophy .book-card:hover .book-cover-container {
+    box-shadow: 0 14px 40px var(--theme-glow), 0 0 28px rgba(96, 165, 250, 0.3);
+    border-color: var(--theme-accent);
+}
+
+
+/* ============================================================
+   TEMA DYSTOPIAN - DISTOPIA/CYBERPUNK
+   Características: Bordas médias, fonte futurista, efeito glitch
+   ============================================================ */
+
+/* MODO ESCURO */
+[data-theme="dark"] .theme-dystopian {
+    --theme-color: #9ca3af;
+    --theme-secondary: #b91c1c;
+    --theme-accent: #6b7280;
+    --theme-glow: rgba(156, 163, 175, 0.6);
+    --theme-bg-primary: #0f0f0f;
+    --theme-bg-secondary: #1a1a1a;
+    --theme-bg-card: #262626;
+    --theme-bg-sidebar: #141414;
+}
+
+/* MODO CLARO */
+[data-theme="light"] .theme-dystopian {
+    --theme-color: #6b7280;
+    --theme-secondary: #991b1b;
+    --theme-accent: #9ca3af;
+    --theme-glow: rgba(107, 114, 128, 0.4);
+    --theme-bg-primary: #f5f5f5;
+    --theme-bg-secondary: #e5e5e5;
+    --theme-bg-card: #ffffff;
+    --theme-bg-sidebar: #d4d4d4;
+}
+
+/* Container */
+[data-theme="dark"] .theme-dystopian .library-container,
+[data-theme="light"] .theme-dystopian .library-container {
+    border-color: var(--theme-color);
+    box-shadow: 0 0 35px var(--theme-glow);
+}
+
+/* Avatar - Bordas MÉDIAS */
+[data-theme="dark"] .theme-dystopian .avatar-frame,
+[data-theme="light"] .theme-dystopian .avatar-frame {
+    border-color: var(--theme-color);
+    border-width: 2px;
+    box-shadow: 0 0 35px var(--theme-glow), inset 0 0 18px var(--theme-glow);
+    animation: glitch 2s linear infinite;
+}
+
+/* Animação Glitch */
+@keyframes glitch {
+    0%, 100% { transform: translate(0); filter: hue-rotate(0deg); }
+    25% { transform: translate(-2px, 2px); filter: hue-rotate(90deg); }
+    50% { transform: translate(2px, -2px); filter: hue-rotate(180deg); }
+    75% { transform: translate(-2px, -2px); filter: hue-rotate(270deg); }
+}
+
+/* Sidebar */
+[data-theme="dark"] .theme-dystopian .library-sidebar,
+[data-theme="light"] .theme-dystopian .library-sidebar {
+    background-color: var(--theme-bg-sidebar);
+    border-right: 2px solid var(--theme-color);
+    box-shadow: 2px 0 20px var(--theme-glow);
+}
+
+/* Headers - Fonte Futurista */
+[data-theme="dark"] .theme-dystopian .library-sidebar h5,
+[data-theme="light"] .theme-dystopian .library-sidebar h5 {
+    color: var(--theme-color);
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 15px var(--theme-glow);
+    font-size: 1rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+/* Navigation Items */
+[data-theme="dark"] .theme-dystopian .library-nav-item,
+[data-theme="light"] .theme-dystopian .library-nav-item {
+    border-left: 3px solid transparent;
+}
+
+[data-theme="dark"] .theme-dystopian .library-nav-item:hover,
+[data-theme="light"] .theme-dystopian .library-nav-item:hover {
+    background-color: var(--theme-bg-secondary);
+    border-left-color: var(--theme-secondary);
+    transform: translateX(10px);
+    box-shadow: 0 0 18px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-dystopian .library-nav-item.active,
+[data-theme="light"] .theme-dystopian .library-nav-item.active {
+    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
+    border-left-color: var(--theme-secondary);
+    box-shadow: 0 0 22px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-dystopian .library-nav-item i,
+[data-theme="light"] .theme-dystopian .library-nav-item i {
+    filter: drop-shadow(0 0 8px var(--theme-glow));
+}
+
+/* Headers */
+[data-theme="dark"] .theme-dystopian .library-header h2,
+[data-theme="light"] .theme-dystopian .library-header h2 {
+    color: var(--theme-color);
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 18px var(--theme-glow);
+    font-size: 2rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+}
+
+/* Stats Cards */
+[data-theme="dark"] .theme-dystopian .stats-card,
+[data-theme="light"] .theme-dystopian .stats-card {
+    background: var(--theme-bg-card);
+    border: 2px solid var(--theme-color);
+    box-shadow: 0 4px 22px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-dystopian .stats-card:hover,
+[data-theme="light"] .theme-dystopian .stats-card:hover {
+    transform: translateY(-10px) scale(1.04);
+    box-shadow: 0 10px 38px var(--theme-glow);
+    border-color: var(--theme-secondary);
+}
+
+[data-theme="dark"] .theme-dystopian .stats-card .value,
+[data-theme="light"] .theme-dystopian .stats-card .value {
+    color: var(--theme-secondary);
+    text-shadow: 0 0 15px rgba(185, 28, 28, 0.6);
+}
+
+/* Book Cards */
+[data-theme="dark"] .theme-dystopian .book-cover-container,
+[data-theme="light"] .theme-dystopian .book-cover-container {
+    border: 2px solid var(--theme-color);
+    box-shadow: 0 4px 20px var(--theme-glow);
+    background-color: var(--theme-bg-card);
+}
+
+[data-theme="dark"] .theme-dystopian .book-card:hover,
+[data-theme="light"] .theme-dystopian .book-card:hover {
+    transform: translateY(-14px) scale(1.02);
+}
+
+[data-theme="dark"] .theme-dystopian .book-card:hover .book-cover-container,
+[data-theme="light"] .theme-dystopian .book-card:hover .book-cover-container {
+    box-shadow: 0 16px 45px var(--theme-glow), 0 0 30px rgba(185, 28, 28, 0.4);
+    border-color: var(--theme-secondary);
+}
+
+
+/* ============================================================
+   TEMA CONTEMPORARY - CONTEMPORÂNEO/ARTÍSTICO
+   Características: Bordas variadas, gradiente multicolor, ícones artísticos
+   ============================================================ */
+
+/* MODO ESCURO */
+[data-theme="dark"] .theme-contemporary {
+    --theme-color: #ec4899;
+    --theme-secondary: #3b82f6;
+    --theme-accent: #10b981;
+    --theme-glow: rgba(236, 72, 153, 0.7);
+    --theme-bg-primary: #1a1a1a;
+    --theme-bg-secondary: #262626;
+    --theme-bg-card: #2d2d2d;
+    --theme-bg-sidebar: #1f1f1f;
+}
+
+/* MODO CLARO */
+[data-theme="light"] .theme-contemporary {
+    --theme-color: #db2777;
+    --theme-secondary: #2563eb;
+    --theme-accent: #059669;
+    --theme-glow: rgba(219, 39, 119, 0.5);
+    --theme-bg-primary: #ffffff;
+    --theme-bg-secondary: #fafafa;
+    --theme-bg-card: #ffffff;
+    --theme-bg-sidebar: #f5f5f5;
+}
+
+/* Container - Gradiente Multicolor */
+[data-theme="dark"] .theme-contemporary .library-container,
+[data-theme="light"] .theme-contemporary .library-container {
+    border: 3px solid;
+    border-image: linear-gradient(135deg, #ec4899, #3b82f6, #10b981, #f59e0b) 1;
+    box-shadow: 0 0 40px rgba(236, 72, 153, 0.5), 0 0 40px rgba(59, 130, 246, 0.3);
+}
+
+/* Avatar - Borda Multicolor */
+[data-theme="dark"] .theme-contemporary .avatar-frame,
+[data-theme="light"] .theme-contemporary .avatar-frame {
+    border-width: 3px;
+    border-style: solid;
+    border-image: linear-gradient(135deg, #ec4899, #3b82f6, #10b981) 1;
+    box-shadow: 0 0 38px var(--theme-glow), inset 0 0 20px var(--theme-glow);
+    animation: glow 2s ease-in-out infinite;
+}
+
+/* Sidebar - Borda Variada */
+[data-theme="dark"] .theme-contemporary .library-sidebar,
+[data-theme="light"] .theme-contemporary .library-sidebar {
+    background-color: var(--theme-bg-sidebar);
+    border-right: 2px solid var(--theme-color);
+    box-shadow: 2px 0 20px var(--theme-glow);
+}
+
+/* Headers - Fonte Moderna */
+[data-theme="dark"] .theme-contemporary .library-sidebar h5,
+[data-theme="light"] .theme-contemporary .library-sidebar h5 {
+    background: linear-gradient(135deg, #ec4899, #3b82f6, #10b981);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+/* Navigation Items - Bordas Variadas */
+[data-theme="dark"] .theme-contemporary .library-nav-item,
+[data-theme="light"] .theme-contemporary .library-nav-item {
+    border-left: 3px solid transparent;
+}
+
+[data-theme="dark"] .theme-contemporary .library-nav-item:hover,
+[data-theme="light"] .theme-contemporary .library-nav-item:hover {
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(59, 130, 246, 0.2));
+    border-left-color: var(--theme-secondary);
+    transform: translateX(10px);
+    box-shadow: 0 0 20px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-contemporary .library-nav-item.active,
+[data-theme="light"] .theme-contemporary .library-nav-item.active {
+    background: linear-gradient(135deg, #ec4899, #3b82f6, #10b981);
+    border-left-color: var(--theme-accent);
+    box-shadow: 0 0 25px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-contemporary .library-nav-item i,
+[data-theme="light"] .theme-contemporary .library-nav-item i {
+    filter: drop-shadow(0 0 8px var(--theme-glow));
+}
+
+/* Headers - Gradiente no Texto */
+[data-theme="dark"] .theme-contemporary .library-header h2,
+[data-theme="light"] .theme-contemporary .library-header h2 {
+    background: linear-gradient(135deg, #ec4899, #3b82f6, #10b981, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 2.3rem;
+    font-weight: bold;
+}
+
+/* Stats Cards - Bordas Multicolor */
+[data-theme="dark"] .theme-contemporary .stats-card,
+[data-theme="light"] .theme-contemporary .stats-card {
+    background: var(--theme-bg-card);
+    border: 2px solid;
+    border-image: linear-gradient(135deg, #ec4899, #3b82f6) 1;
+    box-shadow: 0 4px 24px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-contemporary .stats-card:hover,
+[data-theme="light"] .theme-contemporary .stats-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 10px 40px var(--theme-glow);
+}
+
+[data-theme="dark"] .theme-contemporary .stats-card .value,
+[data-theme="light"] .theme-contemporary .stats-card .value {
+    background: linear-gradient(135deg, #ec4899, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Book Cards - Bordas Variadas */
+[data-theme="dark"] .theme-contemporary .book-cover-container,
+[data-theme="light"] .theme-contemporary .book-cover-container {
+    border: 3px solid;
+    border-image: linear-gradient(135deg, #ec4899, #10b981) 1;
+    box-shadow: 0 4px 22px var(--theme-glow);
+    background-color: var(--theme-bg-card);
+}
+
+[data-theme="dark"] .theme-contemporary .book-card:hover,
+[data-theme="light"] .theme-contemporary .book-card:hover {
+    transform: translateY(-14px) scale(1.03) rotate(-1deg);
+}
+
+[data-theme="dark"] .theme-contemporary .book-card:hover .book-cover-container,
+[data-theme="light"] .theme-contemporary .book-card:hover .book-cover-container {
+    box-shadow: 0 18px 50px var(--theme-glow), 0 0 35px rgba(59, 130, 246, 0.4);
+}
+
+/* Ícones flutuantes: Arte e Criatividade */
+[data-theme="dark"] .theme-contemporary .library-container::before,
+[data-theme="dark"] .theme-contemporary .library-container::after,
+[data-theme="light"] .theme-contemporary .library-container::before,
+[data-theme="light"] .theme-contemporary .library-container::after {
+    content: '🎨';
+    position: fixed;
+    font-size: 34px;
+    opacity: 0.1;
+    z-index: 0;
+    animation: float 6s ease-in-out infinite;
+}
+
+[data-theme="dark"] .theme-contemporary .library-container::before,
+[data-theme="light"] .theme-contemporary .library-container::before {
+    top: 20%;
+    left: 15%;
+}
+
+[data-theme="dark"] .theme-contemporary .library-container::after,
+[data-theme="light"] .theme-contemporary .library-container::after {
+    content: '✨';
+    bottom: 18%;
+    right: 12%;
+    animation-delay: 2s;
+}
+
