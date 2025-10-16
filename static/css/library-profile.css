@@ -1814,3 +1814,85 @@
 .library-content .book-card .book-actions .btn i {
     font-size: 0.9rem; /* Ajusta o tamanho do ícone, se necessário */
 }
+
+/* ========================================
+   TEMA NONE - SEM PERSONALIZAÇÃO
+   ======================================== */
+
+/* MODO ESCURO */
+[data-theme="dark"] .theme-none {
+    --theme-color: #6c757d;
+    --theme-secondary: #adb5bd;
+    --theme-accent: #495057;
+    --theme-glow: rgba(108, 117, 125, 0.3);
+    --theme-bg-primary: #1a1d23;
+    --theme-bg-secondary: #212529;
+    --theme-bg-card: #343a40;
+    --theme-bg-sidebar: #2c3034;
+}
+
+/* MODO CLARO */
+[data-theme="light"] .theme-none {
+    --theme-color: #6c757d;
+    --theme-secondary: #495057;
+    --theme-accent: #adb5bd;
+    --theme-glow: rgba(108, 117, 125, 0.2);
+    --theme-bg-primary: #ffffff;
+    --theme-bg-secondary: #f8f9fa;
+    --theme-bg-card: #ffffff;
+    --theme-bg-sidebar: #f1f3f5;
+}
+
+/* Avatar - Sem efeitos especiais */
+[data-theme="dark"] .theme-none .avatar-frame,
+[data-theme="light"] .theme-none .avatar-frame {
+    border-color: var(--theme-color);
+    box-shadow: 0 4px 12px var(--theme-glow);
+    animation: none; /* Remove animação de glow */
+}
+
+/* Sidebar */
+[data-theme="dark"] .theme-none .library-sidebar,
+[data-theme="light"] .theme-none .library-sidebar {
+    background-color: var(--theme-bg-sidebar);
+    border-right: 1px solid var(--theme-color);
+}
+
+/* Stats Cards */
+[data-theme="dark"] .theme-none .stats-card,
+[data-theme="light"] .theme-none .stats-card {
+    background: var(--theme-bg-card);
+    border: 1px solid var(--theme-color);
+}
+
+/* Book Cards */
+[data-theme="dark"] .theme-none .book-card:hover,
+[data-theme="light"] .theme-none .book-card:hover {
+    border-color: var(--theme-color);
+    box-shadow: 0 4px 12px var(--theme-glow);
+    transform: translateY(-4px);
+}
+
+/* Content Area */
+[data-theme="dark"] .theme-none .library-content,
+[data-theme="light"] .theme-none .library-content {
+    background: var(--theme-bg-primary);
+}
+
+/* Headers */
+[data-theme="dark"] .theme-none .library-header h2,
+[data-theme="light"] .theme-none .library-header h2 {
+    color: var(--theme-color);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Navigation Items */
+[data-theme="dark"] .theme-none .library-nav-item:hover,
+[data-theme="light"] .theme-none .library-nav-item:hover {
+    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
+}
+
+[data-theme="dark"] .theme-none .library-nav-item.active,
+[data-theme="light"] .theme-none .library-nav-item.active {
+    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
+}

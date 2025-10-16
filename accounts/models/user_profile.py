@@ -12,6 +12,9 @@ import math
 
 # Opções de temas disponíveis
 THEME_CHOICES = [
+    # SEM TEMA (Padrão)
+    ('none', '⚪ Sem Tema (Padrão Sistema)'),
+
     # FREE (3 temas)
     ('fantasy', '✨ Fantasia (Roxo/Dourado)'),
     ('classic', '📚 Clássicos (Marrom/Bege)'),
@@ -19,14 +22,14 @@ THEME_CHOICES = [
 
     # PREMIUM (12 temas)
     ('scifi', '🚀 Ficção Científica (Azul Neon/Prateado) - PREMIUM'),
-    ('horror', '👻 Terror (Vermelho Escuro/Preto) - PREMIUM'),
+    ('horror', '🎃 Terror (Vermelho Escuro/Preto) - PREMIUM'),
     ('mystery', '🔍 Mistério (Verde Escuro/Cinza) - PREMIUM'),
-    ('biography', '🎓 Biografia (Azul Royal/Dourado) - PREMIUM'),
+    ('biography', '📖 Biografia (Azul Royal/Dourado) - PREMIUM'),
     ('poetry', '🌸 Poesia (Lilás/Rosa Claro) - PREMIUM'),
-    ('adventure', '⛰️ Aventura (Laranja/Marrom) - PREMIUM'),
-    ('thriller', '⚡ Thriller (Vermelho/Preto) - PREMIUM'),
+    ('adventure', '🗺️ Aventura (Laranja/Marrom) - PREMIUM'),
+    ('thriller', '🔪 Thriller (Vermelho/Preto) - PREMIUM'),
     ('historical', '🏛️ Histórico (Dourado/Marrom) - PREMIUM'),
-    ('selfhelp', '🌟 Autoajuda (Amarelo/Laranja) - PREMIUM'),
+    ('selfhelp', '💡 Autoajuda (Amarelo/Laranja) - PREMIUM'),
     ('philosophy', '🧠 Filosofia (Azul Escuro/Cinza) - PREMIUM'),
     ('dystopian', '🌆 Distopia (Cinza/Vermelho) - PREMIUM'),
     ('contemporary', '🎨 Contemporâneo (Multicolor) - PREMIUM'),
@@ -75,7 +78,7 @@ class UserProfile(models.Model):
     theme_preference = models.CharField(
         max_length=20,
         choices=THEME_CHOICES,
-        default='fantasy',
+        default='none',
         verbose_name="Tema Visual",
         help_text="Tema de personalização da biblioteca"
     )
