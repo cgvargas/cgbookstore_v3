@@ -22,6 +22,7 @@ from core.views import (
 from core.views.book_search_views import (
     google_books_search_user,
     import_google_book_user,
+    local_books_search_api,
 )
 
 app_name = 'core'
@@ -46,7 +47,10 @@ urlpatterns = [
     path('api/library/rename-custom-shelf/', rename_custom_shelf, name='rename_custom_shelf'),
     path('api/library/update-book-notes/', update_book_notes, name='update_book_notes'),
 
-    # NOVO: APIs - Busca e Importação Google Books
+    # APIs - Busca e Importação Google Books
     path('api/books/search-google/', google_books_search_user, name='search_google_books_user'),
     path('api/books/import-google/<str:google_book_id>/', import_google_book_user, name='import_google_book_user'),
+
+    # ROTA DE API PARA BUSCA LOCAL
+    path('api/books/search-local/', local_books_search_api, name='search_local_books_api'),
 ]

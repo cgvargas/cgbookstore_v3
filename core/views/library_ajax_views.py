@@ -20,30 +20,6 @@ def add_to_shelf(request):
     Se a prateleira personalizada não existir no perfil do usuário, ela é criada.
     """
 
-    # ==========================================================
-    #             INÍCIO DO BLOCO DE DEPURAÇÃO
-    # ==========================================================
-    print("--- [DEBUG] INICIANDO add_to_shelf ---")
-    try:
-        body_unicode = request.body.decode('utf-8')
-        print(f"--- [DEBUG] Corpo da requisição (raw): {body_unicode}")
-        data = json.loads(request.body)
-        print(f"--- [DEBUG] Dados JSON parseados: {data}")
-    except Exception as e:
-        print(f"--- [DEBUG] ERRO AO PARSEAR JSON: {e}")
-        return JsonResponse({'success': False, 'message': 'Erro de formato JSON.'}, status=400)
-
-    book_id = data.get('book_id')
-    shelf_type = data.get('shelf_type')
-    custom_shelf_name = data.get('custom_shelf_name', '').strip()
-
-    print(f"--- [DEBUG] Book ID recebido: {book_id} (Tipo: {type(book_id)})")
-    print(f"--- [DEBUG] Shelf Type recebido: {shelf_type} (Tipo: {type(shelf_type)})")
-    print(f"--- [DEBUG] Custom Shelf Name recebido: '{custom_shelf_name}' (Tipo: {type(custom_shelf_name)})")
-    # ==========================================================
-    #              FIM DO BLOCO DE DEPURAÇÃO
-    # ==========================================================
-
     try:
         data = json.loads(request.body)
         book_id = data.get('book_id')
@@ -52,7 +28,7 @@ def add_to_shelf(request):
         notes = data.get('notes', '').strip()
 
         if not book_id:
-            print("--- [DEBUG] ERRO: Book ID não fornecido.")  # Adicione print de erro
+            print("--- [DEBUG] ERRO: Book ID não fornecido.")
             return JsonResponse({'success': False, 'message': 'ID do livro não fornecido.'}, status=400)
 
         book = get_object_or_404(Book, id=book_id)

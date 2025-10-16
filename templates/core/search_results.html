@@ -22,7 +22,7 @@
                     <p class="price">R$ {{ book.price }}</p>
                 </div>
                  <div class="card-footer bg-transparent border-0 text-center pb-3">
-                    <a href="#" class="btn btn-primary">Ver Detalhes</a>
+                    <a href="{% url 'core:book_detail' book.slug %}" class="btn btn-primary">Ver Detalhes</a>
                 </div>
             </div>
         </div>

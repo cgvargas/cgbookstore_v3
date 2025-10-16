@@ -10,7 +10,7 @@
 {% block content %}
 <div class="theme-{{ selected_theme }}" style="width: 100%;">
     <div class="container-fluid px-md-4">
-        {# Garante que a p�gina n�o quebre se o perfil ainda n�o existir. #}
+        {# Garante que a pagina nao quebre se o perfil ainda nao existir. #}
         {% if profile %}
             {% include 'core/widgets/profile_hero.html' %}
         {% endif %}
@@ -47,7 +47,7 @@
 
                 <hr class="my-3">
 
-                <!-- Estat�sticas -->
+                <!-- Estatasticas -->
                 {# ? ATUALIZADO: Vari�veis padronizadas para usar o objeto 'profile' #}
                 {% if profile %}
                     <div class="stats-card">
@@ -95,7 +95,7 @@
                 {% endif %}
             </aside>
 
-            <!-- Conte�do Principal -->
+            <!-- Conteudo Principal -->
             <main class="library-content">
                 <!-- Header -->
                 <div class="library-header">
@@ -149,7 +149,7 @@
                         <div class="empty-shelf" style="grid-column: 1 / -1;">
                             <i class="fas fa-heart"></i>
                             <h4>Nenhum favorito ainda</h4>
-                            <p>Adicione livros aos seus favoritos para v�-los aqui!</p>
+                            <p>Adicione livros aos seus favoritos para ve-los aqui!</p>
                             <a href="{% url 'core:book_list' %}" class="btn btn-primary mt-3">
                                 Explorar Livros
                             </a>

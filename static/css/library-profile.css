@@ -291,7 +291,7 @@
 .book-cover-container img {
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain;
+    object-fit: contain; /* ESSENCIAL para a moldura interna */
     border-radius: 6px;
 }
 
@@ -379,6 +379,41 @@
 
 .library-sidebar::-webkit-scrollbar-thumb:hover {
     background: var(--text-secondary);
+}
+
+/* ========================================
+   BORDA TEMÁTICA DA BIBLIOTECA
+   ======================================== */
+
+.library-container {
+    border-radius: 12px; /* Bordas arredondadas para o container */
+    overflow: hidden;    /* Garante que o conteúdo interno não "vaze" das bordas arredondadas */
+    margin-top: 2rem;    /* Adiciona um espaço acima do container */
+
+    /* A borda será definida pelos temas abaixo */
+    border: 3px solid transparent;
+    box-shadow: none;
+    transition: all 0.4s ease-in-out;
+}
+
+/* --- ESTILOS ESPECÍFICOS POR TEMA --- */
+
+/* TEMA FANTASY */
+.theme-fantasy .library-container {
+    border-color: var(--theme-color, #9333ea);
+    box-shadow: 0 0 35px var(--theme-glow, rgba(147, 51, 234, 0.6));
+}
+
+/* TEMA CLASSIC */
+.theme-classic .library-container {
+    border-color: var(--theme-color, #8b6f47);
+    box-shadow: 0 0 35px var(--theme-glow, rgba(139, 111, 71, 0.6));
+}
+
+/* TEMA ROMANCE */
+.theme-romance .library-container {
+    border-color: var(--theme-color, #ec4899);
+    box-shadow: 0 0 35px var(--theme-glow, rgba(236, 72, 153, 0.6));
 }
 
 /* ========================================
@@ -1710,4 +1745,72 @@
     display: block !important;
     width: 100%;
     text-align: center;
+}
+
+/* ========================================
+   EFEITO DE BORDA TEMÁTICA NOS CARDS DE LIVRO
+   ======================================== */
+
+/* Alvo: Apenas os cards dentro da área de conteúdo da biblioteca */
+.library-content .book-card {
+    border: 3px solid transparent;
+    border-radius: 12px;
+    padding: 8px; /* Espaçamento interno para a borda não colar na imagem */
+    background-color: transparent; /* Fundo transparente para não interferir */
+    transition: all 0.3s ease-in-out;
+}
+
+/* O container da imagem em si */
+.library-content .book-card .book-cover-container {
+    border-radius: 8px; /* Arredondamento interno */
+}
+
+/* Efeito ao passar o mouse */
+.library-content .book-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--primary-color); /* Fallback */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Fallback */
+}
+
+/* --- Personalização por Tema --- */
+
+/* TEMA FANTASY */
+.theme-fantasy .library-content .book-card {
+    border-color: var(--theme-color, #9333ea);
+    box-shadow: 0 0 20px -5px var(--theme-glow, rgba(147, 51, 234, 0.6));
+}
+.theme-fantasy .library-content .book-card:hover {
+    box-shadow: 0 0 35px var(--theme-glow, rgba(147, 51, 234, 0.6));
+}
+
+/* TEMA CLASSIC */
+.theme-classic .library-content .book-card {
+    border-color: var(--theme-color, #8b6f47);
+    box-shadow: 0 0 20px -5px var(--theme-glow, rgba(139, 111, 71, 0.6));
+}
+.theme-classic .library-content .book-card:hover {
+    box-shadow: 0 0 35px var(--theme-glow, rgba(139, 111, 71, 0.6));
+}
+
+/* TEMA ROMANCE */
+.theme-romance .library-content .book-card {
+    border-color: var(--theme-color, #ec4899);
+    box-shadow: 0 0 20px -5px var(--theme-glow, rgba(236, 72, 153, 0.6));
+}
+.theme-romance .library-content .book-card:hover {
+    box-shadow: 0 0 35px var(--theme-glow, rgba(236, 72, 153, 0.6));
+}
+
+/* ========================================
+   FIX: Botão de remover no card da biblioteca
+   ======================================== */
+
+.library-content .book-card .book-actions .btn {
+    min-width: auto; /* Remove a largura mínima herdada */
+    padding: 0.25rem 0.75rem; /* Define um preenchimento menor, adequado para um ícone */
+    font-size: 0.8rem; /* Garante um tamanho de fonte consistente e pequeno */
+}
+
+.library-content .book-card .book-actions .btn i {
+    font-size: 0.9rem; /* Ajusta o tamanho do ícone, se necessário */
 }

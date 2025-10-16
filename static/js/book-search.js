@@ -113,59 +113,29 @@
 
     async function searchLocalCatalog(query) {
         try {
-            const url = new URL(CONFIG.API_ENDPOINTS.SEARCH_LOCAL, window.location.origin);
+            // MUDA O ENDPOINT PARA A NOSSA NOVA API
+            const url = new URL('/api/books/search-local/', window.location.origin);
             url.searchParams.append('q', query);
 
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
+            const response = await fetch(url); // Não precisa de headers especiais
 
             if (!response.ok) {
-                throw new Error('Erro ao buscar no catálogo local');
+                throw new Error('Erro na API de busca local');
             }
 
-            const html = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
+            const data = await response.json();
 
-            // Extrair livros da página de resultados
-            const bookCards = doc.querySelectorAll('.book-card, .card');
-            const books = [];
-
-            bookCards.forEach(card => {
-                const titleEl = card.querySelector('h5, .card-title');
-                const authorEl = card.querySelector('.author, .text-muted');
-                const linkEl = card.querySelector('a');
-                const imgEl = card.querySelector('img');
-
-                if (titleEl && linkEl) {
-                    const bookId = extractBookIdFromUrl(linkEl.href);
-
-                    books.push({
-                        id: bookId,
-                        title: titleEl.textContent.trim(),
-                        author: authorEl ? authorEl.textContent.trim() : 'Autor desconhecido',
-                        cover: imgEl ? imgEl.src : CONFIG.DEFAULT_COVER,
-                        category: 'Diversos',
-                        publisher: ''
-                    });
-                }
-            });
-
-            return books;
+            if (data.success) {
+                return data.books || []; // Retorna o array de livros com o ID correto!
+            } else {
+                console.warn('Busca local falhou (API):', data.message);
+                return [];
+            }
 
         } catch (error) {
-            console.error('Erro na busca local:', error);
+            console.error('Erro na chamada da API de busca local:', error);
             return [];
         }
-    }
-
-    function extractBookIdFromUrl(url) {
-        const match = url.match(/\/livros\/(\d+)/);
-        return match ? match[1] : null;
     }
 
     // ============================================
@@ -282,7 +252,7 @@
         btnAdd.dataset.bookId = book.id;
 
         // Event listeners
-        setupAddToShelfButton(btnAdd, book.id);
+        setupAddToShelfButton(btnAdd);
 
         return card;
     }
@@ -331,7 +301,7 @@
             btnAddExisting.dataset.bookId = book.local_book_id;
             badgeAlready.style.display = 'inline-block';
 
-            setupAddToShelfButton(btnAddExisting, book.local_book_id);
+            setupAddToShelfButton(btnAddExisting);
         } else {
             // Livro NÃO EXISTE: Mostra "Importar", esconde "Adicionar"
             btnImport.style.display = 'inline-block';
@@ -349,8 +319,18 @@
     // ADICIONAR À PRATELEIRA
     // ============================================
 
-    function setupAddToShelfButton(button, bookId) {
+    function setupAddToShelfButton(button) {
         button.addEventListener('click', function() {
+            // LER O ID DIRETAMENTE DO ATRIBUTO DATA DO BOTÃO CLICADO
+            const bookId = this.dataset.bookId; // 'this' se refere ao botão
+
+            // Verificação para depuração
+            if (!bookId) {
+                console.error("ERRO CRÍTICO: bookId não encontrado no data-attribute do botão!");
+                showFeedback("Erro interno: ID do livro não encontrado.", "danger");
+                return;
+            }
+
             const card = this.closest('.book-result-card');
             const selector = card.querySelector('.shelf-selector');
 
@@ -358,11 +338,11 @@
             this.style.display = 'none';
             selector.style.display = 'block';
 
-            // Setup botões do dropdown
             const btnConfirm = selector.querySelector('.btn-confirm-add');
             const btnCancel = selector.querySelector('.btn-cancel-add');
             const selectShelf = selector.querySelector('select');
 
+            // Garante que o evento de clique seja único
             btnConfirm.onclick = async () => {
                 await addBookToShelf(bookId, selectShelf.value, card);
             };

@@ -3,6 +3,7 @@ Views para busca e importação de livros do Google Books (user-facing).
 Permite que usuários comuns busquem e adicionem livros à sua biblioteca.
 """
 
+from django.db.models import Q
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
@@ -231,3 +232,28 @@ def import_google_book_user(request, google_book_id):
             'success': False,
             'message': f'Erro ao importar livro: {str(e)}'
         }, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def local_books_search_api(request):
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return JsonResponse({'success': False, 'message': 'Termo de busca não fornecido.'}, status=400)
+
+    books = Book.objects.filter(
+        Q(title__icontains=query) |
+        Q(author__name__icontains=query) |
+        Q(isbn__icontains=query)
+    ).distinct()[:10]
+
+    results = [{
+        'id': book.id,  # <-- É AQUI QUE O ID CORRETO É PEGO
+        'title': book.title,
+        'author': book.author.name if book.author else 'N/A',
+        'cover': book.cover_image.url if book.cover_image else None,
+        'category': book.category.name if book.category else 'N/A',
+        'publisher': book.publisher or 'N/A',
+    } for book in books]
+
+    return JsonResponse({'success': True, 'books': results})
