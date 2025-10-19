@@ -1,10 +1,107 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+<!-- ====================================================
+     MODAL: BACKGROUND CUSTOMIZADO (PREMIUM)
+     ==================================================== -->
+<div class="modal fade" id="backgroundModal" tabindex="-1" aria-labelledby="backgroundModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="backgroundModalLabel">
+                    <i class="fas fa-crown me-2"></i>Background Personalizado (PREMIUM)
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <!-- Mensagem de Feedback -->
+                <div id="backgroundFeedbackMessage" class="alert alert-dismissible fade show" role="alert" style="display: none;">
+                    <span id="backgroundFeedbackText"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                </div>
+
+                <!-- Upload Section -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-upload me-2"></i>Carregar Imagem de Fundo
+                    </label>
+                    <input type="file"
+                           id="backgroundUploadInput"
+                           accept="image/jpeg,image/jpg,image/png,image/webp"
+                           style="display: none;">
+                    <button type="button" class="btn btn-outline-primary w-100" id="btnUploadBackground">
+                        <i class="fas fa-cloud-upload-alt me-2"></i>Selecionar Imagem (Máx. 10MB)
+                    </button>
+                    <small class="text-muted d-block mt-2">
+                        Formatos suportados: JPG, PNG, WebP | Tamanho máximo: 10MB
+                    </small>
+                </div>
+
+                <!-- Preview Section -->
+                <div id="backgroundPreview" class="mb-4" style="display: none;">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-eye me-2"></i>Pré-visualização
+                    </label>
+                    <div class="position-relative" style="height: 300px; border: 2px dashed var(--border-color); border-radius: 8px; overflow: hidden; background: var(--card-bg);">
+                        <img id="backgroundPreviewImage"
+                             style="width: 100%; height: 100%; object-fit: cover;"
+                             alt="Preview do background">
+                        <div class="preview-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.2); pointer-events: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Controles de Estilo -->
+                <div class="row mb-4">
+                    <!-- Estilo do Background -->
+                    <div class="col-md-6 mb-3">
+                        <label for="backgroundStyle" class="form-label fw-bold">
+                            <i class="fas fa-expand-arrows-alt me-2"></i>Estilo de Exibição
+                        </label>
+                        <select id="backgroundStyle" class="form-select">
+                            <option value="cover">Cobrir (Cover)</option>
+                            <option value="contain">Conter (Contain)</option>
+                            <option value="repeat">Repetir (Repeat)</option>
+                        </select>
+                        <small class="text-muted">Como a imagem deve preencher o fundo</small>
+                    </div>
+
+                    <!-- Opacidade do Overlay -->
+                    <div class="col-md-6 mb-3">
+                        <label for="backgroundOpacity" class="form-label fw-bold">
+                            <i class="fas fa-adjust me-2"></i>Opacidade do Overlay: <span id="opacityValue">20</span>%
+                        </label>
+                        <input type="range"
+                               class="form-range"
+                               id="backgroundOpacity"
+                               min="0"
+                               max="100"
+                               value="20">
+                        <small class="text-muted">Camada escura sobre o fundo (0=transparente, 100=opaco)</small>
+                    </div>
+                </div>
+
+                <!-- Informações -->
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Dica:</strong> Use imagens com boa resolução (1920x1080 ou superior) para melhor qualidade.
+                    O background será aplicado apenas na sua biblioteca pessoal.
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-danger"
+                        id="btnRemoveBackground">
+                    <i class="fas fa-trash me-2"></i>Remover Background
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnCancelBackground" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-success" id="btnSaveBackground">
+                    <i class="fas fa-save me-2"></i>Salvar Configurações
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

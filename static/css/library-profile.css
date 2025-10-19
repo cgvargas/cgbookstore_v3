@@ -1,10 +1,19 @@
 ﻿/**
- * BIBLIOTECA PESSOAL 2.0 - SISTEMA COMPLETO
- * Organização: Base → Biblioteca → Temas → Modais → Responsivo
+ * CGBOOKSTORE LIBRARY & PROFILE STYLES
+ * VERSION: 5.1 (ORGANIZADO E CORRIGIDO)
+ *
+ * ÍNDICE:
+ * 1. Profile Hero - Base
+ * 2. Library - Base Layout
+ * 3. Theme Variable Definitions
+ * 4. Global Theme Styles
+ * 5. Avatar Shape Customization
+ * 6. Custom Background & Glassmorphism
+ * 7. Responsive Styles
  */
 
 /* ========================================
-   PROFILE HERO - BASE
+   1. PROFILE HERO - BASE
    ======================================== */
 
 .profile-hero {
@@ -64,6 +73,7 @@
     position: relative;
 }
 
+/* Avatar Section */
 .avatar-section {
     position: relative;
 }
@@ -97,12 +107,7 @@
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(
-        45deg,
-        transparent 30%,
-        rgba(255, 255, 255, 0.1) 50%,
-        transparent 70%
-    );
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
     transform: rotate(0deg);
     animation: shimmer 3s linear infinite;
     z-index: 1;
@@ -118,10 +123,15 @@
 }
 
 @keyframes shimmer {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
+/* Profile Info */
 .profile-info h2 {
     font-size: 2rem;
     margin-bottom: 0.5rem;
@@ -148,6 +158,7 @@
     line-height: 1.6;
 }
 
+/* Profile Actions */
 .profile-actions {
     display: flex;
     flex-direction: column;
@@ -160,32 +171,70 @@
 }
 
 /* ========================================
-   BIBLIOTECA - LAYOUT BASE
+   2. LIBRARY - BASE LAYOUT
    ======================================== */
 
 .library-container {
     display: flex;
     min-height: calc(100vh - 100px);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 2rem;
+    border: 3px solid transparent;
+    box-shadow: none;
+    transition: all 0.4s ease-in-out;
+    position: relative;
 }
 
-/* Sidebar */
+/* Sidebar - CORRIGIDO */
 .library-sidebar {
     width: 250px;
     background-color: var(--sidebar-bg, var(--card-bg));
     border-right: 1px solid var(--border-color);
     padding: 20px 10px;
     position: sticky;
-    top: 70px;
-    height: calc(100vh - 70px);
+    top: 0; /* CORRIGIDO: antes era 70px */
+    height: 100%; /* CORRIGIDO: altura total do container */
+    max-height: calc(100vh - 100px); /* Previne overflow */
     overflow-y: auto;
+    z-index: 10; /* CORRIGIDO: z-index explícito */
 }
 
+.library-content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    background-color: var(--body-bg);
+    position: relative;
+    z-index: 5; /* CORRIGIDO: z-index explícito */
+}
+
+/* Library Header */
+.library-header {
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.library-header h2 {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.library-header .subtitle {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+/* Sidebar Navigation */
 .library-sidebar h5 {
     font-size: 0.9rem;
     text-transform: uppercase;
     color: var(--text-secondary);
-    margin-bottom: 15px;
-    padding: 0 10px;
+    margin-bottom: 30px;
+    padding: 6px;
     font-weight: 600;
 }
 
@@ -230,43 +279,22 @@
     font-weight: 600;
 }
 
-/* Content Area */
-.library-content {
-    flex: 1;
-    padding: 30px;
-    overflow-y: auto;
-    background-color: var(--body-bg);
-}
-
-.library-header {
-    margin-bottom: 30px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid var(--border-color);
-}
-
-.library-header h2 {
-    font-size: 1.8rem;
-    margin-bottom: 5px;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-
-.library-header .subtitle {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-}
-
-/* Book Grid */
+/* Books Grid */
 .books-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 30px;
 }
 
+/* Book Card */
 .book-card {
     text-align: center;
     transition: transform 0.2s;
     cursor: pointer;
+    border: 3px solid transparent;
+    border-radius: 12px;
+    padding: 8px;
+    background-color: transparent;
 }
 
 .book-card:hover {
@@ -275,28 +303,25 @@
 
 .book-cover-container {
     width: 100%;
-    height: 240px;
     background-color: var(--sidebar-stats-bg, var(--card-bg));
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     overflow: hidden;
     transition: box-shadow 0.2s;
     border: 1px solid var(--border-color);
+    line-height: 0;
 }
 
 .book-cover-container img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain; /* ESSENCIAL para a moldura interna */
+    width: 100%;
+    height: auto;
+    display: block;
     border-radius: 6px;
 }
 
 .book-card:hover .book-cover-container {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .book-title {
@@ -326,19 +351,17 @@
     opacity: 1;
 }
 
-.empty-shelf {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-secondary);
+.book-card .book-actions .btn {
+    min-width: auto;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8rem;
 }
 
-.empty-shelf i {
-    font-size: 4rem;
-    margin-bottom: 20px;
-    opacity: 0.3;
+.book-card .book-actions .btn i {
+    font-size: 0.9rem;
 }
 
-/* Stats Cards */
+/* Stats Card */
 .stats-card {
     background-color: var(--sidebar-stats-bg, var(--card-bg));
     border-radius: 10px;
@@ -363,896 +386,477 @@
     margin-top: 5px;
 }
 
-/* Scrollbar */
-.library-sidebar::-webkit-scrollbar {
-    width: 6px;
-}
-
-.library-sidebar::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.library-sidebar::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 3px;
-}
-
-.library-sidebar::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
-}
-
-/* ========================================
-   BORDA TEMÁTICA DA BIBLIOTECA
-   ======================================== */
-
-.library-container {
-    border-radius: 12px; /* Bordas arredondadas para o container */
-    overflow: hidden;    /* Garante que o conteúdo interno não "vaze" das bordas arredondadas */
-    margin-top: 2rem;    /* Adiciona um espaço acima do container */
-
-    /* A borda será definida pelos temas abaixo */
-    border: 3px solid transparent;
-    box-shadow: none;
-    transition: all 0.4s ease-in-out;
-}
-
-/* --- ESTILOS ESPECÍFICOS POR TEMA --- */
-
-/* TEMA FANTASY */
-.theme-fantasy .library-container {
-    border-color: var(--theme-color, #9333ea);
-    box-shadow: 0 0 35px var(--theme-glow, rgba(147, 51, 234, 0.6));
-}
-
-/* TEMA CLASSIC */
-.theme-classic .library-container {
-    border-color: var(--theme-color, #8b6f47);
-    box-shadow: 0 0 35px var(--theme-glow, rgba(139, 111, 71, 0.6));
-}
-
-/* TEMA ROMANCE */
-.theme-romance .library-container {
-    border-color: var(--theme-color, #ec4899);
-    box-shadow: 0 0 35px var(--theme-glow, rgba(236, 72, 153, 0.6));
-}
-
-/* ========================================
-   MODAIS - GERENCIAMENTO
-   ======================================== */
-
-#manageShelvesModal .modal-body {
-    min-height: 400px;
-    max-height: 70vh;
-}
-
-.shelf-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 15px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    margin-bottom: 10px;
-    background-color: var(--card-bg);
-    transition: all 0.2s;
-}
-
-.shelf-item:hover {
-    border-color: var(--primary-color);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.shelf-item-info {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex: 1;
-}
-
-.shelf-item-info i {
-    font-size: 1.5rem;
-    color: var(--primary-color);
-}
-
-.shelf-item-details h6 {
-    margin: 0;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.shelf-item-details small {
+/* Empty State */
+.empty-shelf {
+    text-align: center;
+    padding: 60px 20px;
     color: var(--text-secondary);
 }
 
-.shelf-item-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.book-manage-item {
-    display: flex;
-    gap: 15px;
-    padding: 15px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    margin-bottom: 10px;
-    background-color: var(--card-bg);
-    transition: all 0.2s;
-}
-
-.book-manage-item:hover {
-    border-color: var(--primary-color);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.book-manage-cover {
-    flex-shrink: 0;
-    width: 60px;
-    height: 90px;
-    border-radius: 4px;
-    object-fit: cover;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.book-manage-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.book-manage-info h6 {
-    margin: 0 0 5px 0;
-    font-weight: 600;
-    color: var(--text-primary);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.book-manage-info small {
-    color: var(--text-secondary);
-    display: block;
-    margin-bottom: 3px;
-}
-
-.book-manage-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    justify-content: center;
-}
-
-.btn-xs {
-    padding: 4px 8px;
-    font-size: 0.75rem;
-}
-
-#select-shelf {
-    background-color: var(--card-bg);
-    color: var(--text-primary);
-    border-color: var(--border-color);
-}
-
-#select-shelf option {
-    background-color: var(--card-bg);
-    color: var(--text-primary);
-}
-
-#manageShelvesModal .modal-content {
-    background-color: var(--card-bg);
-    color: var(--text-primary);
-    border-color: var(--border-color);
-}
-
-#manageShelvesModal .modal-header {
-    border-bottom-color: var(--border-color);
-}
-
-#manageShelvesModal .modal-footer {
-    border-top-color: var(--border-color);
-}
-
-#manageShelvesModal .nav-tabs {
-    border-bottom-color: var(--border-color);
-}
-
-#manageShelvesModal .nav-tabs .nav-link {
-    color: var(--text-secondary);
-    border-color: transparent;
-}
-
-#manageShelvesModal .nav-tabs .nav-link.active {
-    color: var(--text-primary);
-    background-color: var(--card-bg);
-    border-color: var(--border-color) var(--border-color) var(--card-bg);
+.empty-shelf i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.3;
 }
 
 /* ========================================
-   TEMA FANTASY - MODO ESCURO
+   3. THEME VARIABLE DEFINITIONS
    ======================================== */
 
+/* Fantasy Theme */
 [data-theme="dark"] .theme-fantasy {
     --theme-color: #9333ea;
     --theme-secondary: #fbbf24;
-    --theme-accent: #c084fc;
     --theme-glow: rgba(147, 51, 234, 0.6);
-    --theme-bg-primary: #1a0b2e;
-    --theme-bg-secondary: #2d1b4e;
-    --theme-bg-card: #251447;
-    --theme-bg-sidebar: #1f0f3a;
 }
-
-[data-theme="dark"] .theme-fantasy .avatar-frame {
-    border-color: var(--theme-color);
-    box-shadow: 0 0 30px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-fantasy .avatar-frame::before {
-    background: linear-gradient(
-        45deg,
-        transparent 30%,
-        rgba(251, 191, 36, 0.3) 50%,
-        transparent 70%
-    );
-}
-
-[data-theme="dark"] .theme-fantasy .user-level {
-    color: var(--theme-color);
-    font-family: Georgia, 'Times New Roman', serif;
-    text-shadow: 0 0 10px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-fantasy .profile-hero {
-    background: linear-gradient(145deg, #2d1b4e 0%, #1a0b2e 100%);
-    border: 1px solid var(--theme-color);
-}
-
-[data-theme="dark"] .theme-fantasy .banner-container {
-    background: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%);
-}
-
-[data-theme="dark"] .theme-fantasy .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 2px solid var(--theme-color);
-}
-
-[data-theme="dark"] .theme-fantasy .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: Georgia, 'Times New Roman', serif;
-    text-shadow: 0 0 8px var(--theme-glow);
-    border-bottom: 2px solid var(--theme-secondary);
-    padding-bottom: 8px;
-    letter-spacing: 1.5px;
-    font-weight: 700;
-}
-
-[data-theme="dark"] .theme-fantasy .library-nav-item {
-    border-left: 4px solid transparent;
-}
-
-[data-theme="dark"] .theme-fantasy .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-secondary);
-    transform: translateX(8px);
-    box-shadow: inset 0 0 15px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-fantasy .library-nav-item.active {
-    background: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%);
-    border-left-color: var(--theme-secondary);
-    box-shadow: 0 0 20px var(--theme-glow);
-    color: white;
-}
-
-[data-theme="dark"] .theme-fantasy .library-nav-item.active span {
-    color: white;
-}
-
-[data-theme="dark"] .theme-fantasy .library-nav-item i {
-    filter: drop-shadow(0 0 5px var(--theme-glow));
-}
-
-[data-theme="dark"] .theme-fantasy .library-content {
-    background-color: var(--theme-bg-primary);
-}
-
-[data-theme="dark"] .theme-fantasy .library-header h2 {
-    color: var(--theme-color);
-    font-family: Georgia, 'Times New Roman', serif;
-    text-shadow: 0 0 15px var(--theme-glow);
-    font-size: 2.5rem;
-    letter-spacing: 2px;
-}
-
-[data-theme="dark"] .theme-fantasy .library-header .subtitle {
-    color: var(--theme-accent);
-}
-
-[data-theme="dark"] .theme-fantasy .stats-card {
-    background-color: var(--theme-bg-card);
-    border: 2px solid var(--theme-color);
-    box-shadow: 0 4px 20px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-fantasy .stats-card:hover {
-    transform: translateY(-8px) scale(1.05);
-    box-shadow: 0 8px 32px var(--theme-glow);
-    border-color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-fantasy .stats-card .value {
-    color: var(--theme-secondary);
-    text-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
-}
-
-[data-theme="dark"] .theme-fantasy .book-cover-container {
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 15px var(--theme-glow);
-    background-color: var(--theme-bg-card);
-}
-
-[data-theme="dark"] .theme-fantasy .book-card:hover {
-    transform: translateY(-12px) scale(1.02);
-}
-
-[data-theme="dark"] .theme-fantasy .book-card:hover .book-cover-container {
-    box-shadow: 0 12px 40px var(--theme-glow), 0 0 30px rgba(251, 191, 36, 0.3);
-    border-color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-fantasy .btn-outline-primary {
-    border-color: var(--theme-color);
-    color: var(--theme-color);
-}
-
-[data-theme="dark"] .theme-fantasy .btn-outline-primary:hover {
-    background: var(--theme-color);
-    color: white;
-    box-shadow: 0 0 20px var(--theme-glow);
-    transform: translateY(-2px);
-}
-
-[data-theme="dark"] .theme-fantasy .btn-outline-success {
-    border-color: var(--theme-secondary);
-    color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-fantasy .btn-outline-success:hover {
-    background: var(--theme-secondary);
-    color: var(--theme-bg-primary);
-    box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
-}
-
-/* Partículas */
-[data-theme="dark"] .theme-fantasy .library-container::before,
-[data-theme="dark"] .theme-fantasy .library-container::after {
-    content: '✨';
-    position: fixed;
-    font-size: 28px;
-    color: var(--theme-secondary);
-    opacity: 0;
-    animation: float-sparkle 6s ease-in-out infinite;
-    pointer-events: none;
-    z-index: 1;
-}
-
-[data-theme="dark"] .theme-fantasy .library-container::before {
-    top: 20%;
-    left: 10%;
-}
-
-[data-theme="dark"] .theme-fantasy .library-container::after {
-    top: 60%;
-    right: 15%;
-    animation-delay: 3s;
-}
-
-@keyframes float-sparkle {
-    0%, 100% {
-        opacity: 0;
-        transform: translateY(0) rotate(0deg) scale(0.8);
-    }
-    10%, 90% {
-        opacity: 0.7;
-    }
-    50% {
-        opacity: 1;
-        transform: translateY(-40px) rotate(180deg) scale(1.2);
-    }
-}
-
-/* ========================================
-   TEMA FANTASY - MODO CLARO
-   ======================================== */
 
 [data-theme="light"] .theme-fantasy {
     --theme-color: #7c3aed;
     --theme-secondary: #f59e0b;
-    --theme-accent: #a855f7;
     --theme-glow: rgba(124, 58, 237, 0.4);
-    --theme-bg-primary: #faf5ff;
-    --theme-bg-secondary: #f3e8ff;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #ede9fe;
 }
 
-[data-theme="light"] .theme-fantasy .avatar-frame {
-    border-color: var(--theme-color);
-}
-
-[data-theme="light"] .theme-fantasy .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 2px solid var(--theme-color);
-}
-
-[data-theme="light"] .theme-fantasy .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: Georgia, 'Times New Roman', serif;
-    border-bottom: 2px solid var(--theme-secondary);
-    padding-bottom: 8px;
-}
-
-[data-theme="light"] .theme-fantasy .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-secondary);
-}
-
-[data-theme="light"] .theme-fantasy .library-nav-item.active {
-    background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-    color: white;
-    border-left-color: var(--theme-secondary);
-}
-
-[data-theme="light"] .theme-fantasy .library-content {
-    background-color: var(--theme-bg-primary);
-}
-
-[data-theme="light"] .theme-fantasy .library-header h2 {
-    color: var(--theme-color);
-    font-family: Georgia, 'Times New Roman', serif;
-}
-
-[data-theme="light"] .theme-fantasy .stats-card {
-    background-color: var(--theme-bg-card);
-    border: 2px solid var(--theme-accent);
-}
-
-[data-theme="light"] .theme-fantasy .stats-card .value {
-    color: var(--theme-secondary);
-}
-
-[data-theme="light"] .theme-fantasy .book-cover-container {
-    border: 3px solid var(--theme-accent);
-    background-color: var(--theme-bg-card);
-}
-
-/* ========================================
-   TEMA CLASSIC - MODO ESCURO
-   ======================================== */
-
+/* Classic Theme */
 [data-theme="dark"] .theme-classic {
     --theme-color: #8b6f47;
     --theme-secondary: #d4af37;
-    --theme-accent: #a0826d;
     --theme-glow: rgba(139, 111, 71, 0.6);
-    --theme-bg-primary: #1a1612;
-    --theme-bg-secondary: #2d2419;
-    --theme-bg-card: #24201a;
-    --theme-bg-sidebar: #1f1a14;
 }
-
-[data-theme="dark"] .theme-classic .avatar-frame {
-    border-color: var(--theme-color);
-    box-shadow: 0 0 30px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-classic .user-level {
-    color: var(--theme-color);
-    font-family: Georgia, 'Times New Roman', serif;
-    text-shadow: 0 0 10px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-classic .profile-hero {
-    background: linear-gradient(145deg, #2d2419 0%, #1a1612 100%);
-    border: 1px solid var(--theme-color);
-}
-
-[data-theme="dark"] .theme-classic .banner-container {
-    background: linear-gradient(135deg, #8b6f47 0%, #a0826d 100%);
-}
-
-[data-theme="dark"] .theme-classic .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 2px solid var(--theme-color);
-}
-
-[data-theme="dark"] .theme-classic .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: Georgia, 'Times New Roman', serif;
-    text-shadow: 0 0 8px var(--theme-glow);
-    border-bottom: 2px solid var(--theme-secondary);
-    padding-bottom: 8px;
-    letter-spacing: 1.5px;
-    font-weight: 700;
-}
-
-[data-theme="dark"] .theme-classic .library-nav-item {
-    border-left: 4px solid transparent;
-}
-
-[data-theme="dark"] .theme-classic .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-secondary);
-    transform: translateX(8px);
-    box-shadow: inset 0 0 15px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-classic .library-nav-item.active {
-    background: linear-gradient(135deg, #8b6f47 0%, #a0826d 100%);
-    border-left-color: var(--theme-secondary);
-    box-shadow: 0 0 20px var(--theme-glow);
-    color: white;
-}
-
-[data-theme="dark"] .theme-classic .library-nav-item.active span {
-    color: white;
-}
-
-[data-theme="dark"] .theme-classic .library-nav-item i {
-    filter: drop-shadow(0 0 5px var(--theme-glow));
-}
-
-[data-theme="dark"] .theme-classic .library-content {
-    background-color: var(--theme-bg-primary);
-}
-
-[data-theme="dark"] .theme-classic .library-header h2 {
-    color: var(--theme-color);
-    font-family: Georgia, 'Times New Roman', serif;
-    text-shadow: 0 0 15px var(--theme-glow);
-    font-size: 2.5rem;
-    letter-spacing: 2px;
-}
-
-[data-theme="dark"] .theme-classic .library-header .subtitle {
-    color: var(--theme-accent);
-}
-
-[data-theme="dark"] .theme-classic .stats-card {
-    background-color: var(--theme-bg-card);
-    border: 2px solid var(--theme-color);
-    box-shadow: 0 4px 20px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-classic .stats-card:hover {
-    transform: translateY(-8px) scale(1.05);
-    box-shadow: 0 8px 32px var(--theme-glow);
-    border-color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-classic .stats-card .value {
-    color: var(--theme-secondary);
-    text-shadow: 0 0 10px rgba(212, 175, 55, 0.6);
-}
-
-[data-theme="dark"] .theme-classic .book-cover-container {
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 15px var(--theme-glow);
-    background-color: var(--theme-bg-card);
-}
-
-[data-theme="dark"] .theme-classic .book-card:hover {
-    transform: translateY(-12px) scale(1.02);
-}
-
-[data-theme="dark"] .theme-classic .book-card:hover .book-cover-container {
-    box-shadow: 0 12px 40px var(--theme-glow), 0 0 30px rgba(212, 175, 55, 0.3);
-    border-color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-classic .btn-outline-primary {
-    border-color: var(--theme-color);
-    color: var(--theme-color);
-}
-
-[data-theme="dark"] .theme-classic .btn-outline-primary:hover {
-    background: var(--theme-color);
-    color: white;
-    box-shadow: 0 0 20px var(--theme-glow);
-    transform: translateY(-2px);
-}
-
-[data-theme="dark"] .theme-classic .btn-outline-success {
-    border-color: var(--theme-secondary);
-    color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-classic .btn-outline-success:hover {
-    background: var(--theme-secondary);
-    color: var(--theme-bg-primary);
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
-}
-
-/* ========================================
-   TEMA CLASSIC - MODO CLARO
-   ======================================== */
 
 [data-theme="light"] .theme-classic {
     --theme-color: #6b5644;
     --theme-secondary: #b8860b;
-    --theme-accent: #8b6f47;
     --theme-glow: rgba(107, 86, 68, 0.4);
-    --theme-bg-primary: #faf8f5;
-    --theme-bg-secondary: #f5f1eb;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #f0ebe3;
 }
 
-[data-theme="light"] .theme-classic .avatar-frame {
-    border-color: var(--theme-color);
-}
-
-[data-theme="light"] .theme-classic .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 2px solid var(--theme-color);
-}
-
-[data-theme="light"] .theme-classic .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: Georgia, 'Times New Roman', serif;
-    border-bottom: 2px solid var(--theme-secondary);
-    padding-bottom: 8px;
-}
-
-[data-theme="light"] .theme-classic .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-secondary);
-}
-
-[data-theme="light"] .theme-classic .library-nav-item.active {
-    background: linear-gradient(135deg, #8b6f47 0%, #a0826d 100%);
-    color: white;
-    border-left-color: var(--theme-secondary);
-}
-
-[data-theme="light"] .theme-classic .library-content {
-    background-color: var(--theme-bg-primary);
-}
-
-[data-theme="light"] .theme-classic .library-header h2 {
-    color: var(--theme-color);
-    font-family: Georgia, 'Times New Roman', serif;
-}
-
-[data-theme="light"] .theme-classic .stats-card {
-    background-color: var(--theme-bg-card);
-    border: 2px solid var(--theme-accent);
-}
-
-[data-theme="light"] .theme-classic .stats-card .value {
-    color: var(--theme-secondary);
-}
-
-[data-theme="light"] .theme-classic .book-cover-container {
-    border: 3px solid var(--theme-accent);
-    background-color: var(--theme-bg-card);
-}
-
-/* ========================================
-   TEMA ROMANCE - MODO ESCURO
-   ======================================== */
-
+/* Romance Theme */
 [data-theme="dark"] .theme-romance {
     --theme-color: #ec4899;
     --theme-secondary: #ef4444;
-    --theme-accent: #f472b6;
     --theme-glow: rgba(236, 72, 153, 0.6);
-    --theme-bg-primary: #1f0a14;
-    --theme-bg-secondary: #2d1420;
-    --theme-bg-card: #270f1d;
-    --theme-bg-sidebar: #1f0a14;
 }
-
-[data-theme="dark"] .theme-romance .avatar-frame {
-    border-color: var(--theme-color);
-    box-shadow: 0 0 30px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-romance .user-level {
-    color: var(--theme-color);
-    font-family: Georgia, 'Times New Roman', serif;
-    text-shadow: 0 0 10px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-romance .profile-hero {
-    background: linear-gradient(145deg, #2d1420 0%, #1f0a14 100%);
-    border: 1px solid var(--theme-color);
-}
-
-[data-theme="dark"] .theme-romance .banner-container {
-    background: linear-gradient(135deg, #ec4899 0%, #ef4444 100%);
-}
-
-[data-theme="dark"] .theme-romance .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 2px solid var(--theme-color);
-}
-
-[data-theme="dark"] .theme-romance .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: Georgia, 'Times New Roman', serif;
-    text-shadow: 0 0 8px var(--theme-glow);
-    border-bottom: 2px solid var(--theme-secondary);
-    padding-bottom: 8px;
-    letter-spacing: 1.5px;
-    font-weight: 700;
-}
-
-[data-theme="dark"] .theme-romance .library-nav-item {
-    border-left: 4px solid transparent;
-}
-
-[data-theme="dark"] .theme-romance .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-secondary);
-    transform: translateX(8px);
-    box-shadow: inset 0 0 15px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-romance .library-nav-item.active {
-    background: linear-gradient(135deg, #ec4899 0%, #ef4444 100%);
-    border-left-color: var(--theme-secondary);
-    box-shadow: 0 0 20px var(--theme-glow);
-    color: white;
-}
-
-[data-theme="dark"] .theme-romance .library-nav-item.active span {
-    color: white;
-}
-
-[data-theme="dark"] .theme-romance .library-nav-item i {
-    filter: drop-shadow(0 0 5px var(--theme-glow));
-}
-
-[data-theme="dark"] .theme-romance .library-content {
-    background-color: var(--theme-bg-primary);
-}
-
-[data-theme="dark"] .theme-romance .library-header h2 {
-    color: var(--theme-color);
-    font-family: Georgia, 'Times New Roman', serif;
-    text-shadow: 0 0 15px var(--theme-glow);
-    font-size: 2.5rem;
-    letter-spacing: 2px;
-}
-
-[data-theme="dark"] .theme-romance .library-header .subtitle {
-    color: var(--theme-accent);
-}
-
-[data-theme="dark"] .theme-romance .stats-card {
-    background-color: var(--theme-bg-card);
-    border: 2px solid var(--theme-color);
-    box-shadow: 0 4px 20px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-romance .stats-card:hover {
-    transform: translateY(-8px) scale(1.05);
-    box-shadow: 0 8px 32px var(--theme-glow);
-    border-color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-romance .stats-card .value {
-    color: var(--theme-secondary);
-    text-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
-}
-
-[data-theme="dark"] .theme-romance .book-cover-container {
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 15px var(--theme-glow);
-    background-color: var(--theme-bg-card);
-}
-
-[data-theme="dark"] .theme-romance .book-card:hover {
-    transform: translateY(-12px) scale(1.02);
-}
-
-[data-theme="dark"] .theme-romance .book-card:hover .book-cover-container {
-    box-shadow: 0 12px 40px var(--theme-glow), 0 0 30px rgba(239, 68, 68, 0.3);
-    border-color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-romance .btn-outline-primary {
-    border-color: var(--theme-color);
-    color: var(--theme-color);
-}
-
-[data-theme="dark"] .theme-romance .btn-outline-primary:hover {
-    background: var(--theme-color);
-    color: white;
-    box-shadow: 0 0 20px var(--theme-glow);
-    transform: translateY(-2px);
-}
-
-[data-theme="dark"] .theme-romance .btn-outline-success {
-    border-color: var(--theme-secondary);
-    color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-romance .btn-outline-success:hover {
-    background: var(--theme-secondary);
-    color: var(--theme-bg-primary);
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
-}
-
-/* ========================================
-   TEMA ROMANCE - MODO CLARO
-   ======================================== */
 
 [data-theme="light"] .theme-romance {
     --theme-color: #db2777;
     --theme-secondary: #dc2626;
-    --theme-accent: #f472b6;
     --theme-glow: rgba(219, 39, 119, 0.4);
-    --theme-bg-primary: #fef1f7;
-    --theme-bg-secondary: #fce7f3;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #fce7f3;
 }
 
-[data-theme="light"] .theme-romance .avatar-frame {
-    border-color: var(--theme-color);
+/* None Theme */
+[data-theme="dark"] .theme-none {
+    --theme-color: #6c757d;
+    --theme-secondary: #adb5bd;
+    --theme-glow: rgba(108, 117, 125, 0.3);
 }
 
-[data-theme="light"] .theme-romance .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 2px solid var(--theme-color);
+[data-theme="light"] .theme-none {
+    --theme-color: #6c757d;
+    --theme-secondary: #495057;
+    --theme-glow: rgba(108, 117, 125, 0.2);
 }
 
-[data-theme="light"] .theme-romance .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: Georgia, 'Times New Roman', serif;
-    border-bottom: 2px solid var(--theme-secondary);
-    padding-bottom: 8px;
+/* Sci-Fi Theme */
+[data-theme="dark"] .theme-scifi {
+    --theme-color: #00d4ff;
+    --theme-secondary: #00ff88;
+    --theme-glow: rgba(0, 212, 255, 0.8);
 }
 
-[data-theme="light"] .theme-romance .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-secondary);
+[data-theme="light"] .theme-scifi {
+    --theme-color: #0099cc;
+    --theme-secondary: #00cc77;
+    --theme-glow: rgba(0, 153, 204, 0.5);
 }
 
-[data-theme="light"] .theme-romance .library-nav-item.active {
-    background: linear-gradient(135deg, #ec4899 0%, #ef4444 100%);
-    color: white;
-    border-left-color: var(--theme-secondary);
+/* Horror Theme */
+[data-theme="dark"] .theme-horror {
+    --theme-color: #dc143c;
+    --theme-secondary: #8b0000;
+    --theme-glow: rgba(220, 20, 60, 0.9);
 }
 
-[data-theme="light"] .theme-romance .library-content {
-    background-color: var(--theme-bg-primary);
+[data-theme="light"] .theme-horror {
+    --theme-color: #b71c1c;
+    --theme-secondary: #6d0000;
+    --theme-glow: rgba(183, 28, 28, 0.5);
 }
 
-[data-theme="light"] .theme-romance .library-header h2 {
-    color: var(--theme-color);
-    font-family: Georgia, 'Times New Roman', serif;
+/* Mystery Theme */
+[data-theme="dark"] .theme-mystery {
+    --theme-color: #4a7c2f;
+    --theme-secondary: #708090;
+    --theme-glow: rgba(74, 124, 47, 0.7);
 }
 
-[data-theme="light"] .theme-romance .stats-card {
-    background-color: var(--theme-bg-card);
-    border: 2px solid var(--theme-accent);
+[data-theme="light"] .theme-mystery {
+    --theme-color: #2e7d32;
+    --theme-secondary: #546e7a;
+    --theme-glow: rgba(46, 125, 50, 0.4);
 }
 
-[data-theme="light"] .theme-romance .stats-card .value {
-    color: var(--theme-secondary);
+/* Biography Theme */
+[data-theme="dark"] .theme-biography {
+    --theme-color: #4169e1;
+    --theme-secondary: #ffd700;
+    --theme-glow: rgba(65, 105, 225, 0.7);
 }
 
-[data-theme="light"] .theme-romance .book-cover-container {
-    border: 3px solid var(--theme-accent);
-    background-color: var(--theme-bg-card);
+[data-theme="light"] .theme-biography {
+    --theme-color: #1565c0;
+    --theme-secondary: #f57f17;
+    --theme-glow: rgba(21, 101, 192, 0.4);
+}
+
+/* Poetry Theme */
+[data-theme="dark"] .theme-poetry {
+    --theme-color: #d946ef;
+    --theme-secondary: #f9a8d4;
+    --theme-glow: rgba(217, 70, 239, 0.7);
+}
+
+[data-theme="light"] .theme-poetry {
+    --theme-color: #9c27b0;
+    --theme-secondary: #f06292;
+    --theme-glow: rgba(156, 39, 176, 0.4);
+}
+
+/* Adventure Theme */
+[data-theme="dark"] .theme-adventure {
+    --theme-color: #ff8c00;
+    --theme-secondary: #cd853f;
+    --theme-glow: rgba(255, 140, 0, 0.7);
+}
+
+[data-theme="light"] .theme-adventure {
+    --theme-color: #e65100;
+    --theme-secondary: #8d6e63;
+    --theme-glow: rgba(230, 81, 0, 0.4);
+}
+
+/* Thriller Theme */
+[data-theme="dark"] .theme-thriller {
+    --theme-color: #dc143c;
+    --theme-secondary: #1a1a1a;
+    --theme-glow: rgba(220, 20, 60, 0.9);
+}
+
+[data-theme="light"] .theme-thriller {
+    --theme-color: #c41e3a;
+    --theme-secondary: #424242;
+    --theme-glow: rgba(196, 30, 58, 0.5);
+}
+
+/* Historical Theme */
+[data-theme="dark"] .theme-historical {
+    --theme-color: #daa520;
+    --theme-secondary: #8b4513;
+    --theme-glow: rgba(218, 165, 32, 0.7);
+}
+
+[data-theme="light"] .theme-historical {
+    --theme-color: #b8860b;
+    --theme-secondary: #654321;
+    --theme-glow: rgba(184, 134, 11, 0.4);
+}
+
+/* Self-Help Theme */
+[data-theme="dark"] .theme-selfhelp {
+    --theme-color: #fbbf24;
+    --theme-secondary: #fb923c;
+    --theme-glow: rgba(251, 191, 36, 0.7);
+}
+
+[data-theme="light"] .theme-selfhelp {
+    --theme-color: #f59e0b;
+    --theme-secondary: #ea580c;
+    --theme-glow: rgba(245, 158, 11, 0.4);
+}
+
+/* Philosophy Theme */
+[data-theme="dark"] .theme-philosophy {
+    --theme-color: #3b82f6;
+    --theme-secondary: #6b7280;
+    --theme-glow: rgba(59, 130, 246, 0.6);
+}
+
+[data-theme="light"] .theme-philosophy {
+    --theme-color: #1e3a8a;
+    --theme-secondary: #4b5563;
+    --theme-glow: rgba(30, 58, 138, 0.3);
+}
+
+/* Dystopian Theme */
+[data-theme="dark"] .theme-dystopian {
+    --theme-color: #9ca3af;
+    --theme-secondary: #b91c1c;
+    --theme-glow: rgba(156, 163, 175, 0.6);
+}
+
+[data-theme="light"] .theme-dystopian {
+    --theme-color: #6b7280;
+    --theme-secondary: #991b1b;
+    --theme-glow: rgba(107, 114, 128, 0.4);
+}
+
+/* Contemporary Theme */
+[data-theme="dark"] .theme-contemporary {
+    --theme-color: #ec4899;
+    --theme-secondary: #3b82f6;
+    --theme-glow: rgba(236, 72, 153, 0.7);
+}
+
+[data-theme="light"] .theme-contemporary {
+    --theme-color: #db2777;
+    --theme-secondary: #2563eb;
+    --theme-glow: rgba(219, 39, 119, 0.5);
 }
 
 /* ========================================
-   RESPONSIVO
+   4. GLOBAL THEME STYLES
    ======================================== */
 
+/* Theme Border & Shadow */
+[class*="theme-"] .library-container,
+[class*="theme-"] .profile-hero {
+    border-color: var(--theme-color);
+    box-shadow: 0 0 35px var(--theme-glow);
+}
+
+/* Contemporary Special Border */
+.theme-contemporary .library-container,
+.theme-contemporary .profile-hero {
+    border: 3px solid;
+    border-image: linear-gradient(135deg, #ec4899, #3b82f6, #10b981) 1;
+}
+
+/* Profile Titles */
+[class*="theme-"] .profile-info h2 {
+    color: var(--theme-color) !important;
+    text-shadow: 0 0 15px var(--theme-glow);
+}
+
+.theme-contemporary .profile-info h2 {
+    background: linear-gradient(135deg, #ec4899, #3b82f6, #10b981, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none !important;
+}
+
+/* Library Headers */
+[class*="theme-"] .library-header h2 {
+    color: var(--theme-color);
+    text-shadow: 0 0 15px var(--theme-glow);
+}
+
+.theme-contemporary .library-header h2 {
+    background: linear-gradient(135deg, #ec4899, #3b82f6, #10b981, #f59e0f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Sidebar Headers */
+[class*="theme-"] .library-sidebar h5 {
+    color: var(--theme-color);
+    text-shadow: 0 0 8px var(--theme-glow);
+    border-bottom: 1px solid var(--theme-secondary);
+}
+
+.theme-contemporary .library-sidebar h5 {
+    background: linear-gradient(135deg, #ec4899, #3b82f6, #10b981);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    border-bottom: none;
+}
+
+.recuo {
+    padding-left: 45px !important;
+}
+
+.recuo-personalizado {
+    padding-left: 45px !important;
+}
+
+/* Stats Cards */
+[class*="theme-"] .stats-card .value {
+    color: var(--theme-secondary);
+}
+
+/* Book Cards */
+[class*="theme-"] .library-content .book-card {
+    border-color: var(--theme-color);
+    box-shadow: 0 0 20px -5px var(--theme-glow);
+}
+
+[class*="theme-"] .library-content .book-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 0 35px var(--theme-glow);
+}
+
+/* ========================================
+   5. AVATAR SHAPE CUSTOMIZATION
+   ======================================== */
+
+/* Hexagon Avatars (Sci-Fi & Dystopian) */
+.theme-scifi .avatar-frame,
+.avatar-frame.theme-scifi,
+.theme-dystopian .avatar-frame,
+.avatar-frame.theme-dystopian {
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    border-radius: 0 !important;
+    background: var(--theme-color) !important;
+    border: none !important;
+    box-shadow: none !important;
+    filter: drop-shadow(0 0 15px var(--theme-glow));
+    padding: 5px !important;
+}
+
+.theme-scifi .avatar-frame img,
+.avatar-frame.theme-scifi img,
+.theme-dystopian .avatar-frame img,
+.avatar-frame.theme-dystopian img {
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    border-radius: 0 !important;
+}
+
+/* Square Avatars (Classic, Historical, Biography, Philosophy, Contemporary) */
+.theme-classic .avatar-frame,
+.avatar-frame.theme-classic,
+.theme-historical .avatar-frame,
+.avatar-frame.theme-historical,
+.theme-biography .avatar-frame,
+.avatar-frame.theme-biography,
+.theme-philosophy .avatar-frame,
+.avatar-frame.theme-philosophy,
+.theme-contemporary .avatar-frame,
+.avatar-frame.theme-contemporary {
+    border-radius: 12px !important;
+}
+
+.theme-classic .avatar-frame img,
+.avatar-frame.theme-classic img,
+.theme-historical .avatar-frame img,
+.avatar-frame.theme-historical img,
+.theme-biography .avatar-frame img,
+.avatar-frame.theme-biography img,
+.theme-philosophy .avatar-frame img,
+.avatar-frame.theme-philosophy img,
+.theme-contemporary .avatar-frame img,
+.avatar-frame.theme-contemporary img {
+    border-radius: 12px !important;
+}
+
+/* ========================================
+   6. CUSTOM BACKGROUND & GLASSMORPHISM
+   ======================================== */
+
+/* Background Overlay */
+.library-bg-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Custom Background Setup */
+.library-container[data-custom-background] {
+    background-size: cover !important;
+    background-position: center !important;
+    background-attachment: fixed !important;
+}
+
+/* Layer Positioning */
+.library-sidebar,
+.library-content {
+    position: relative;
+}
+
+/* Theme RGB Variables */
+[data-theme="dark"] {
+    --sidebar-bg-rgb: 30, 30, 30;
+    --body-bg-rgb: 20, 20, 20;
+    --card-bg-rgb: 40, 40, 40;
+    --primary-rgb: 13, 110, 253;
+}
+
+[data-theme="light"] {
+    --sidebar-bg-rgb: 255, 255, 255;
+    --body-bg-rgb: 248, 249, 250;
+    --card-bg-rgb: 255, 255, 255;
+    --primary-rgb: 13, 110, 253;
+}
+
+/* Glassmorphism Effects */
+[data-custom-background] .library-sidebar {
+    background: rgba(var(--sidebar-bg-rgb), 0.7) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+[data-custom-background] .library-content {
+    background: transparent !important;
+}
+
+[data-custom-background] .library-header {
+    background: transparent !important;
+    border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-custom-background] .stats-card {
+    background: rgba(var(--card-bg-rgb), 0.35) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-custom-background] .book-card {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+[data-custom-background] .book-cover-container {
+    background: transparent !important;
+    border: 3px solid var(--theme-color);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+[data-custom-background] .book-title,
+[data-custom-background] .book-author {
+    color: #ffffff !important;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8), 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+[data-custom-background] .library-sidebar h5,
+[data-custom-background] .library-nav-item,
+[data-custom-background] .stats-card .label,
+[data-custom-background] .stats-card .value,
+[data-custom-background] .library-header h2,
+[data-custom-background] .library-header .subtitle,
+[data-custom-background] .empty-shelf h4,
+[data-custom-background] .empty-shelf p {
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Contemporary Theme Exception */
+[data-custom-background].theme-contemporary .library-sidebar h5,
+[data-custom-background].theme-contemporary .library-header h2,
+[data-custom-background].theme-contemporary .profile-info h2 {
+    text-shadow: none !important;
+}
+
+/* ========================================
+   7. RESPONSIVE STYLES
+   ======================================== */
+
+/* Tablets (992px and below) */
 @media (max-width: 992px) {
     .profile-header {
         grid-template-columns: 1fr;
@@ -1270,7 +874,9 @@
     }
 }
 
+/* Mobile (768px and below) */
 @media (max-width: 768px) {
+    /* Library Layout */
     .library-container {
         flex-direction: column;
     }
@@ -1279,6 +885,7 @@
         width: 100%;
         position: relative;
         height: auto;
+        max-height: none; /* Remove max-height restriction */
         border-right: none;
         border-bottom: 1px solid var(--border-color);
     }
@@ -1288,15 +895,13 @@
         margin-right: 10px;
     }
 
+    /* Books Grid */
     .books-grid {
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
         gap: 20px;
     }
 
-    .book-cover-container {
-        height: 200px;
-    }
-
+    /* Profile Adjustments */
     .banner-container {
         height: 200px;
     }
@@ -1322,2341 +927,9 @@
     .profile-actions .btn {
         width: 100%;
     }
-}
 
-/* ========================================
-   MODAL DE BUSCA DE LIVROS
-   ======================================== */
-
-/* Botão Adicionar Livro no Header */
-.library-header .btn-primary {
-    padding: 0.75rem 1.5rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.library-header .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-}
-
-/* Modal - Ajustes Gerais */
-#addBookModal .modal-content {
-    border-radius: 12px;
-    border: none;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-}
-
-#addBookModal .modal-header {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
-    color: white;
-    border-radius: 12px 12px 0 0;
-    padding: 1.5rem;
-}
-
-#addBookModal .modal-title {
-    font-weight: 600;
-    font-size: 1.5rem;
-}
-
-#addBookModal .btn-close {
-    filter: brightness(0) invert(1);
-}
-
-/* Campo de Busca */
-.search-section {
-    background: var(--sidebar-bg);
-    padding: 1.5rem;
-    border-radius: var(--border-radius);
-    margin-bottom: 1.5rem;
-}
-
-#bookSearchInput {
-    border: 2px solid var(--border-color);
-    transition: all 0.3s ease;
-}
-
-#bookSearchInput:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
-}
-
-#btnSearchBooks {
-    font-weight: 600;
-}
-
-/* Abas de Navegação */
-#searchResultsTabs {
-    border-bottom: 2px solid var(--border-color);
-}
-
-#searchResultsTabs .nav-link {
-    color: var(--text-secondary);
-    font-weight: 600;
-    padding: 1rem 1.5rem;
-    border: none;
-    border-bottom: 3px solid transparent;
-    transition: all 0.3s ease;
-}
-
-#searchResultsTabs .nav-link:hover {
-    color: var(--primary-color);
-    background-color: var(--sidebar-bg);
-}
-
-#searchResultsTabs .nav-link.active {
-    color: var(--primary-color);
-    background-color: transparent;
-    border-bottom-color: var(--primary-color);
-}
-
-#searchResultsTabs .badge {
-    font-weight: 600;
-    padding: 0.35em 0.65em;
-}
-
-/* Cards de Resultado */
-.book-result-card {
-    padding: 1.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    background: var(--card-bg);
-    margin-bottom: 1rem;
-    transition: all 0.3s ease;
-}
-
-.book-result-card:hover {
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-    transform: translateY(-3px);
-    border-color: var(--primary-color);
-}
-
-.book-result-card .book-cover-img {
-    width: 100%;
-    height: auto;
-    max-height: 200px;
-    object-fit: cover;
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s ease;
-}
-
-.book-result-card:hover .book-cover-img {
-    transform: scale(1.05);
-}
-
-.book-result-card .book-title {
-    color: var(--text-primary);
-    font-weight: 700;
-    font-size: 1.2rem;
-    line-height: 1.4;
-    margin-bottom: 0.75rem;
-}
-
-.book-result-card .book-author,
-.book-result-card .book-category,
-.book-result-card .book-publisher {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.5rem;
-}
-
-.book-result-card .book-author i,
-.book-result-card .book-category i,
-.book-result-card .book-publisher i {
-    width: 20px;
-    text-align: center;
-    color: var(--text-muted);
-}
-
-.book-result-card .book-description {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    line-height: 1.5;
-}
-
-/* Badges */
-.book-result-card .badge {
-    font-weight: 600;
-    padding: 0.5em 0.9em;
-    font-size: 0.85rem;
-    margin-right: 0.5rem;
-}
-
-.book-result-card .badge.bg-success {
-    background-color: #28a745 !important;
-}
-
-.book-result-card .badge.bg-info {
-    background-color: #17a2b8 !important;
-}
-
-.book-result-card .badge.bg-warning {
-    background-color: #ffc107 !important;
-}
-
-/* Ações do Card */
-.book-actions {
-    text-align: center;
-    width: 100%;
-}
-
-.book-actions .btn {
-    min-width: 200px;
-    font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    transition: all 0.3s ease;
-}
-
-.book-actions .btn-primary {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
-    border: none;
-}
-
-.book-actions .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
-}
-
-.book-actions .btn-secondary {
-    background-color: var(--text-secondary);
-    border: none;
-}
-
-/* Seletor de Prateleira */
-.shelf-selector {
-    margin-top: 1rem;
-    padding: 1.5rem;
-    border: 2px solid var(--border-color);
-    border-radius: var(--border-radius);
-    background: var(--sidebar-bg);
-    animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    /* Glassmorphism Mobile Adjustment */
+    [data-custom-background] .library-sidebar {
+        background: rgba(var(--sidebar-bg-rgb), 0.85) !important;
     }
 }
-
-.shelf-selector label {
-    font-weight: 600;
-    color: var(--text-primary);
-    font-size: 0.9rem;
-}
-
-.shelf-selector select {
-    border: 1px solid var(--border-color);
-    font-size: 1rem;
-}
-
-.shelf-selector select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
-}
-
-.shelf-selector .btn-confirm-add {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    border: none;
-    font-weight: 600;
-}
-
-.shelf-selector .btn-confirm-add:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
-}
-
-/* Container de Resultados */
-.results-container {
-    max-height: 550px;
-    overflow-y: auto;
-    padding-right: 0.5rem;
-}
-
-.results-container::-webkit-scrollbar {
-    width: 10px;
-}
-
-.results-container::-webkit-scrollbar-track {
-    background: var(--sidebar-bg);
-    border-radius: 5px;
-}
-
-.results-container::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 5px;
-    transition: background 0.3s ease;
-}
-
-.results-container::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
-}
-
-/* Estados Vazios */
-#initialState,
-#localNoResults,
-#googleNoResults {
-    padding: 3rem 2rem;
-}
-
-#initialState i,
-#localNoResults i,
-#googleNoResults i {
-    opacity: 0.3;
-}
-
-#initialState h5,
-#localNoResults p,
-#googleNoResults p {
-    color: var(--text-muted);
-}
-
-/* Loading State */
-#loadingState {
-    padding: 3rem 2rem;
-}
-
-#loadingState .spinner-border {
-    width: 4rem;
-    height: 4rem;
-    border-width: 0.4rem;
-}
-
-/* Mensagem de Feedback */
-#feedbackMessage {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    margin-bottom: 1rem;
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Responsive - Modal de Busca */
-@media (max-width: 1200px) {
-    #addBookModal .modal-dialog {
-        max-width: 95%;
-        margin: 1rem auto;
-    }
-}
-
-@media (max-width: 768px) {
-    #addBookModal .modal-dialog {
-        margin: 0.5rem;
-    }
-
-    .book-result-card {
-        padding: 1rem;
-    }
-
-    .book-result-card .row {
-        text-align: center;
-    }
-
-    .book-result-card .col-md-2,
-    .book-result-card .col-md-7,
-    .book-result-card .col-md-3 {
-        margin-bottom: 1rem;
-    }
-
-    .book-actions {
-        margin-top: 1rem;
-    }
-
-    .book-actions .btn {
-        width: 100%;
-        min-width: auto;
-    }
-
-    .results-container {
-        max-height: 400px;
-    }
-
-    .library-header .d-flex {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .library-header .btn-primary {
-        width: 100%;
-    }
-}
-
-@media (max-width: 576px) {
-    #addBookModal .modal-header {
-        padding: 1rem;
-    }
-
-    #addBookModal .modal-title {
-        font-size: 1.2rem;
-    }
-
-    .search-section {
-        padding: 1rem;
-    }
-
-    #bookSearchInput {
-        margin-bottom: 0.5rem;
-    }
-
-    #searchResultsTabs .nav-link {
-        padding: 0.75rem 1rem;
-        font-size: 0.9rem;
-    }
-
-    .book-result-card .book-title {
-        font-size: 1rem;
-    }
-
-    .book-result-card .book-cover-img {
-        max-height: 150px;
-    }
-}
-
-/* ========================================
-   FIX: Botões do Modal de Busca
-   ======================================== */
-
-/* Garantir que botões estejam visíveis */
-.book-result-card .btn-add-to-shelf,
-.book-result-card .btn-import-and-add,
-.book-result-card .btn-add-existing {
-    display: inline-block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    position: relative !important;
-    z-index: 1 !important;
-}
-
-/* Estilo dos botões */
-.book-result-card .book-actions .btn {
-    display: inline-block !important;
-    min-width: 200px;
-    font-weight: 600;
-    padding: 0.75rem 1.5rem;
-}
-
-.book-result-card .book-actions {
-    display: block !important;
-    width: 100%;
-    text-align: center;
-}
-
-/* ========================================
-   EFEITO DE BORDA TEMÁTICA NOS CARDS DE LIVRO
-   ======================================== */
-
-/* Alvo: Apenas os cards dentro da área de conteúdo da biblioteca */
-.library-content .book-card {
-    border: 3px solid transparent;
-    border-radius: 12px;
-    padding: 8px; /* Espaçamento interno para a borda não colar na imagem */
-    background-color: transparent; /* Fundo transparente para não interferir */
-    transition: all 0.3s ease-in-out;
-}
-
-/* O container da imagem em si */
-.library-content .book-card .book-cover-container {
-    border-radius: 8px; /* Arredondamento interno */
-}
-
-/* Efeito ao passar o mouse */
-.library-content .book-card:hover {
-    transform: translateY(-8px);
-    border-color: var(--primary-color); /* Fallback */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Fallback */
-}
-
-/* --- Personalização por Tema --- */
-
-/* TEMA FANTASY */
-.theme-fantasy .library-content .book-card {
-    border-color: var(--theme-color, #9333ea);
-    box-shadow: 0 0 20px -5px var(--theme-glow, rgba(147, 51, 234, 0.6));
-}
-.theme-fantasy .library-content .book-card:hover {
-    box-shadow: 0 0 35px var(--theme-glow, rgba(147, 51, 234, 0.6));
-}
-
-/* TEMA CLASSIC */
-.theme-classic .library-content .book-card {
-    border-color: var(--theme-color, #8b6f47);
-    box-shadow: 0 0 20px -5px var(--theme-glow, rgba(139, 111, 71, 0.6));
-}
-.theme-classic .library-content .book-card:hover {
-    box-shadow: 0 0 35px var(--theme-glow, rgba(139, 111, 71, 0.6));
-}
-
-/* TEMA ROMANCE */
-.theme-romance .library-content .book-card {
-    border-color: var(--theme-color, #ec4899);
-    box-shadow: 0 0 20px -5px var(--theme-glow, rgba(236, 72, 153, 0.6));
-}
-.theme-romance .library-content .book-card:hover {
-    box-shadow: 0 0 35px var(--theme-glow, rgba(236, 72, 153, 0.6));
-}
-
-/* ========================================
-   FIX: Botão de remover no card da biblioteca
-   ======================================== */
-
-.library-content .book-card .book-actions .btn {
-    min-width: auto; /* Remove a largura mínima herdada */
-    padding: 0.25rem 0.75rem; /* Define um preenchimento menor, adequado para um ícone */
-    font-size: 0.8rem; /* Garante um tamanho de fonte consistente e pequeno */
-}
-
-.library-content .book-card .book-actions .btn i {
-    font-size: 0.9rem; /* Ajusta o tamanho do ícone, se necessário */
-}
-
-/* ========================================
-   TEMA NONE - SEM PERSONALIZAÇÃO
-   ======================================== */
-
-/* MODO ESCURO */
-[data-theme="dark"] .theme-none {
-    --theme-color: #6c757d;
-    --theme-secondary: #adb5bd;
-    --theme-accent: #495057;
-    --theme-glow: rgba(108, 117, 125, 0.3);
-    --theme-bg-primary: #1a1d23;
-    --theme-bg-secondary: #212529;
-    --theme-bg-card: #343a40;
-    --theme-bg-sidebar: #2c3034;
-}
-
-/* MODO CLARO */
-[data-theme="light"] .theme-none {
-    --theme-color: #6c757d;
-    --theme-secondary: #495057;
-    --theme-accent: #adb5bd;
-    --theme-glow: rgba(108, 117, 125, 0.2);
-    --theme-bg-primary: #ffffff;
-    --theme-bg-secondary: #f8f9fa;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #f1f3f5;
-}
-
-/* Avatar - Sem efeitos especiais */
-[data-theme="dark"] .theme-none .avatar-frame,
-[data-theme="light"] .theme-none .avatar-frame {
-    border-color: var(--theme-color);
-    box-shadow: 0 4px 12px var(--theme-glow);
-    animation: none; /* Remove animação de glow */
-}
-
-/* Sidebar */
-[data-theme="dark"] .theme-none .library-sidebar,
-[data-theme="light"] .theme-none .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 1px solid var(--theme-color);
-}
-
-/* Stats Cards */
-[data-theme="dark"] .theme-none .stats-card,
-[data-theme="light"] .theme-none .stats-card {
-    background: var(--theme-bg-card);
-    border: 1px solid var(--theme-color);
-}
-
-/* Book Cards */
-[data-theme="dark"] .theme-none .book-card:hover,
-[data-theme="light"] .theme-none .book-card:hover {
-    border-color: var(--theme-color);
-    box-shadow: 0 4px 12px var(--theme-glow);
-    transform: translateY(-4px);
-}
-
-/* Content Area */
-[data-theme="dark"] .theme-none .library-content,
-[data-theme="light"] .theme-none .library-content {
-    background: var(--theme-bg-primary);
-}
-
-/* Headers */
-[data-theme="dark"] .theme-none .library-header h2,
-[data-theme="light"] .theme-none .library-header h2 {
-    color: var(--theme-color);
-    font-family: 'Segoe UI', system-ui, sans-serif;
-}
-
-/* Navigation Items */
-[data-theme="dark"] .theme-none .library-nav-item:hover,
-[data-theme="light"] .theme-none .library-nav-item:hover {
-    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
-}
-
-[data-theme="dark"] .theme-none .library-nav-item.active,
-[data-theme="light"] .theme-none .library-nav-item.active {
-    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
-}
-
-/* ========================================
-   TEMAS PREMIUM - PARTE 1 (VERSÃO APRIMORADA)
-   ======================================== */
-
-/* ============================================================
-   TEMA SCIFI - FICÇÃO CIENTÍFICA
-   ============================================================ */
-
-/* MODO ESCURO */
-[data-theme="dark"] .theme-scifi {
-    --theme-color: #00d4ff;
-    --theme-secondary: #00ff88;
-    --theme-accent: #00a8cc;
-    --theme-glow: rgba(0, 212, 255, 0.8);
-    --theme-bg-primary: #0a0e1a;
-    --theme-bg-secondary: #0f1623;
-    --theme-bg-card: #151d2e;
-    --theme-bg-sidebar: #0d1520;
-}
-
-/* MODO CLARO */
-[data-theme="light"] .theme-scifi {
-    --theme-color: #0099cc;
-    --theme-secondary: #00cc77;
-    --theme-accent: #00b8d4;
-    --theme-glow: rgba(0, 153, 204, 0.5);
-    --theme-bg-primary: #e8f8ff;
-    --theme-bg-secondary: #d6f0ff;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #d1ecff;
-}
-
-/* Container */
-[data-theme="dark"] .theme-scifi .library-container,
-[data-theme="light"] .theme-scifi .library-container {
-    border-color: var(--theme-color);
-    box-shadow: 0 0 40px var(--theme-glow);
-}
-
-/* Avatar */
-[data-theme="dark"] .theme-scifi .avatar-frame,
-[data-theme="light"] .theme-scifi .avatar-frame {
-    border-color: var(--theme-color);
-    border-width: 4px;
-    box-shadow: 0 0 40px var(--theme-glow), inset 0 0 20px var(--theme-glow);
-    animation: glow 1.5s ease-in-out infinite;
-}
-
-/* Sidebar */
-[data-theme="dark"] .theme-scifi .library-sidebar,
-[data-theme="light"] .theme-scifi .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 3px solid var(--theme-color);
-    box-shadow: 2px 0 20px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-scifi .library-sidebar h5,
-[data-theme="light"] .theme-scifi .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: 'Courier New', monospace;
-    text-shadow: 0 0 15px var(--theme-glow);
-    letter-spacing: 2px;
-}
-
-/* Navigation Items */
-[data-theme="dark"] .theme-scifi .library-nav-item,
-[data-theme="light"] .theme-scifi .library-nav-item {
-    border-left: 4px solid transparent;
-}
-
-[data-theme="dark"] .theme-scifi .library-nav-item:hover,
-[data-theme="light"] .theme-scifi .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-secondary);
-    transform: translateX(10px);
-    box-shadow: 0 0 20px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-scifi .library-nav-item.active,
-[data-theme="light"] .theme-scifi .library-nav-item.active {
-    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
-    border-left-color: var(--theme-secondary);
-    box-shadow: 0 0 25px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-scifi .library-nav-item i,
-[data-theme="light"] .theme-scifi .library-nav-item i {
-    filter: drop-shadow(0 0 8px var(--theme-glow));
-}
-
-/* Headers */
-[data-theme="dark"] .theme-scifi .library-header h2,
-[data-theme="light"] .theme-scifi .library-header h2 {
-    color: var(--theme-color);
-    font-family: 'Courier New', monospace;
-    text-shadow: 0 0 20px var(--theme-glow);
-    letter-spacing: 3px;
-}
-
-/* Stats Cards */
-[data-theme="dark"] .theme-scifi .stats-card,
-[data-theme="light"] .theme-scifi .stats-card {
-    background: var(--theme-bg-card);
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 25px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-scifi .stats-card:hover,
-[data-theme="light"] .theme-scifi .stats-card:hover {
-    transform: translateY(-10px) scale(1.05);
-    box-shadow: 0 10px 40px var(--theme-glow);
-    border-color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-scifi .stats-card .value,
-[data-theme="light"] .theme-scifi .stats-card .value {
-    color: var(--theme-secondary);
-    text-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
-}
-
-/* Book Cards */
-[data-theme="dark"] .theme-scifi .book-cover-container,
-[data-theme="light"] .theme-scifi .book-cover-container {
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 20px var(--theme-glow);
-    background-color: var(--theme-bg-card);
-}
-
-[data-theme="dark"] .theme-scifi .book-card:hover,
-[data-theme="light"] .theme-scifi .book-card:hover {
-    transform: translateY(-15px) scale(1.03);
-}
-
-[data-theme="dark"] .theme-scifi .book-card:hover .book-cover-container,
-[data-theme="light"] .theme-scifi .book-card:hover .book-cover-container {
-    box-shadow: 0 15px 50px var(--theme-glow), 0 0 35px rgba(0, 255, 136, 0.4);
-    border-color: var(--theme-secondary);
-}
-
-
-/* ============================================================
-   TEMA HORROR - TERROR
-   ============================================================ */
-
-/* MODO ESCURO */
-[data-theme="dark"] .theme-horror {
-    --theme-color: #dc143c;
-    --theme-secondary: #8b0000;
-    --theme-accent: #ff0000;
-    --theme-glow: rgba(220, 20, 60, 0.9);
-    --theme-bg-primary: #120000;
-    --theme-bg-secondary: #1c0000;
-    --theme-bg-card: #250000;
-    --theme-bg-sidebar: #180000;
-}
-
-/* MODO CLARO */
-[data-theme="light"] .theme-horror {
-    --theme-color: #b71c1c;
-    --theme-secondary: #6d0000;
-    --theme-accent: #d32f2f;
-    --theme-glow: rgba(183, 28, 28, 0.5);
-    --theme-bg-primary: #ffebee;
-    --theme-bg-secondary: #ffcdd2;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #ffb3b3;
-}
-
-/* Container */
-[data-theme="dark"] .theme-horror .library-container,
-[data-theme="light"] .theme-horror .library-container {
-    border-color: var(--theme-color);
-    box-shadow: 0 0 50px var(--theme-glow);
-}
-
-/* Avatar */
-[data-theme="dark"] .theme-horror .avatar-frame,
-[data-theme="light"] .theme-horror .avatar-frame {
-    border-color: var(--theme-color);
-    border-width: 4px;
-    box-shadow: 0 0 50px var(--theme-glow), inset 0 0 25px var(--theme-glow);
-    animation: glow 1s ease-in-out infinite;
-}
-
-/* Sidebar */
-[data-theme="dark"] .theme-horror .library-sidebar,
-[data-theme="light"] .theme-horror .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 3px solid var(--theme-color);
-    box-shadow: 3px 0 25px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-horror .library-sidebar h5,
-[data-theme="light"] .theme-horror .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 0 0 20px var(--theme-glow);
-    font-weight: bold;
-}
-
-/* Navigation Items */
-[data-theme="dark"] .theme-horror .library-nav-item,
-[data-theme="light"] .theme-horror .library-nav-item {
-    border-left: 4px solid transparent;
-}
-
-[data-theme="dark"] .theme-horror .library-nav-item:hover,
-[data-theme="light"] .theme-horror .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-accent);
-    transform: translateX(10px);
-    box-shadow: 0 0 25px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-horror .library-nav-item.active,
-[data-theme="light"] .theme-horror .library-nav-item.active {
-    background: linear-gradient(135deg, var(--theme-color), var(--theme-secondary));
-    border-left-color: var(--theme-accent);
-    box-shadow: 0 0 30px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-horror .library-nav-item i,
-[data-theme="light"] .theme-horror .library-nav-item i {
-    filter: drop-shadow(0 0 10px var(--theme-glow));
-}
-
-/* Headers */
-[data-theme="dark"] .theme-horror .library-header h2,
-[data-theme="light"] .theme-horror .library-header h2 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 3px 3px 8px var(--theme-glow);
-    font-weight: bold;
-}
-
-/* Stats Cards */
-[data-theme="dark"] .theme-horror .stats-card,
-[data-theme="light"] .theme-horror .stats-card {
-    background: var(--theme-bg-card);
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 30px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-horror .stats-card:hover,
-[data-theme="light"] .theme-horror .stats-card:hover {
-    transform: translateY(-12px) scale(1.05);
-    box-shadow: 0 12px 50px var(--theme-glow);
-    border-color: var(--theme-accent);
-}
-
-[data-theme="dark"] .theme-horror .stats-card .value,
-[data-theme="light"] .theme-horror .stats-card .value {
-    color: var(--theme-accent);
-    text-shadow: 0 0 20px var(--theme-glow);
-}
-
-/* Book Cards */
-[data-theme="dark"] .theme-horror .book-cover-container,
-[data-theme="light"] .theme-horror .book-cover-container {
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 25px var(--theme-glow);
-    background-color: var(--theme-bg-card);
-}
-
-[data-theme="dark"] .theme-horror .book-card:hover,
-[data-theme="light"] .theme-horror .book-card:hover {
-    transform: translateY(-15px) scale(1.03);
-}
-
-[data-theme="dark"] .theme-horror .book-card:hover .book-cover-container,
-[data-theme="light"] .theme-horror .book-card:hover .book-cover-container {
-    box-shadow: 0 18px 60px var(--theme-glow), 0 0 40px var(--theme-glow);
-    border-color: var(--theme-accent);
-}
-
-
-/* ============================================================
-   TEMA MYSTERY - MISTÉRIO
-   ============================================================ */
-
-/* MODO ESCURO */
-[data-theme="dark"] .theme-mystery {
-    --theme-color: #4a7c2f;
-    --theme-secondary: #708090;
-    --theme-accent: #66bb6a;
-    --theme-glow: rgba(74, 124, 47, 0.7);
-    --theme-bg-primary: #0f1410;
-    --theme-bg-secondary: #1a2618;
-    --theme-bg-card: #1f2e1c;
-    --theme-bg-sidebar: #151f14;
-}
-
-/* MODO CLARO */
-[data-theme="light"] .theme-mystery {
-    --theme-color: #2e7d32;
-    --theme-secondary: #546e7a;
-    --theme-accent: #4caf50;
-    --theme-glow: rgba(46, 125, 50, 0.4);
-    --theme-bg-primary: #f1f8f4;
-    --theme-bg-secondary: #e8f5e9;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #c8e6c9;
-}
-
-/* Container */
-[data-theme="dark"] .theme-mystery .library-container,
-[data-theme="light"] .theme-mystery .library-container {
-    border-color: var(--theme-color);
-    box-shadow: 0 0 35px var(--theme-glow);
-}
-
-/* Avatar */
-[data-theme="dark"] .theme-mystery .avatar-frame,
-[data-theme="light"] .theme-mystery .avatar-frame {
-    border-color: var(--theme-color);
-    border-width: 4px;
-    box-shadow: 0 0 35px var(--theme-glow), inset 0 0 18px var(--theme-glow);
-    animation: glow 2.5s ease-in-out infinite;
-}
-
-/* Sidebar */
-[data-theme="dark"] .theme-mystery .library-sidebar,
-[data-theme="light"] .theme-mystery .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 3px solid var(--theme-color);
-    box-shadow: 2px 0 18px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-mystery .library-sidebar h5,
-[data-theme="light"] .theme-mystery .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 0 0 12px var(--theme-glow);
-}
-
-/* Navigation Items */
-[data-theme="dark"] .theme-mystery .library-nav-item,
-[data-theme="light"] .theme-mystery .library-nav-item {
-    border-left: 4px solid transparent;
-}
-
-[data-theme="dark"] .theme-mystery .library-nav-item:hover,
-[data-theme="light"] .theme-mystery .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-accent);
-    transform: translateX(10px);
-    box-shadow: 0 0 18px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-mystery .library-nav-item.active,
-[data-theme="light"] .theme-mystery .library-nav-item.active {
-    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
-    border-left-color: var(--theme-secondary);
-    box-shadow: 0 0 22px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-mystery .library-nav-item i,
-[data-theme="light"] .theme-mystery .library-nav-item i {
-    filter: drop-shadow(0 0 8px var(--theme-glow));
-}
-
-/* Headers */
-[data-theme="dark"] .theme-mystery .library-header h2,
-[data-theme="light"] .theme-mystery .library-header h2 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 0 0 18px var(--theme-glow);
-}
-
-/* Stats Cards */
-[data-theme="dark"] .theme-mystery .stats-card,
-[data-theme="light"] .theme-mystery .stats-card {
-    background: var(--theme-bg-card);
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 22px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-mystery .stats-card:hover,
-[data-theme="light"] .theme-mystery .stats-card:hover {
-    transform: translateY(-10px) scale(1.05);
-    box-shadow: 0 10px 38px var(--theme-glow);
-    border-color: var(--theme-accent);
-}
-
-[data-theme="dark"] .theme-mystery .stats-card .value,
-[data-theme="light"] .theme-mystery .stats-card .value {
-    color: var(--theme-accent);
-    text-shadow: 0 0 15px rgba(102, 187, 106, 0.6);
-}
-
-/* Book Cards */
-[data-theme="dark"] .theme-mystery .book-cover-container,
-[data-theme="light"] .theme-mystery .book-cover-container {
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 20px var(--theme-glow);
-    background-color: var(--theme-bg-card);
-}
-
-[data-theme="dark"] .theme-mystery .book-card:hover,
-[data-theme="light"] .theme-mystery .book-card:hover {
-    transform: translateY(-14px) scale(1.02);
-}
-
-[data-theme="dark"] .theme-mystery .book-card:hover .book-cover-container,
-[data-theme="light"] .theme-mystery .book-card:hover .book-cover-container {
-    box-shadow: 0 16px 45px var(--theme-glow), 0 0 30px rgba(102, 187, 106, 0.4);
-    border-color: var(--theme-accent);
-}
-
-
-/* ============================================================
-   TEMA BIOGRAPHY - BIOGRAFIA
-   ============================================================ */
-
-/* MODO ESCURO */
-[data-theme="dark"] .theme-biography {
-    --theme-color: #4169e1;
-    --theme-secondary: #ffd700;
-    --theme-accent: #5a7fdb;
-    --theme-glow: rgba(65, 105, 225, 0.7);
-    --theme-bg-primary: #0a0f1e;
-    --theme-bg-secondary: #121a2e;
-    --theme-bg-card: #1a2540;
-    --theme-bg-sidebar: #0f1428;
-}
-
-/* MODO CLARO */
-[data-theme="light"] .theme-biography {
-    --theme-color: #1565c0;
-    --theme-secondary: #f57f17;
-    --theme-accent: #1976d2;
-    --theme-glow: rgba(21, 101, 192, 0.4);
-    --theme-bg-primary: #e3f2fd;
-    --theme-bg-secondary: #bbdefb;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #90caf9;
-}
-
-/* Container */
-[data-theme="dark"] .theme-biography .library-container,
-[data-theme="light"] .theme-biography .library-container {
-    border-color: var(--theme-color);
-    box-shadow: 0 0 38px var(--theme-glow);
-}
-
-/* Avatar */
-[data-theme="dark"] .theme-biography .avatar-frame,
-[data-theme="light"] .theme-biography .avatar-frame {
-    border-color: var(--theme-color);
-    border-width: 4px;
-    box-shadow: 0 0 38px var(--theme-glow), inset 0 0 20px var(--theme-glow);
-    animation: glow 2s ease-in-out infinite;
-}
-
-/* Sidebar */
-[data-theme="dark"] .theme-biography .library-sidebar,
-[data-theme="light"] .theme-biography .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 3px solid var(--theme-color);
-    box-shadow: 2px 0 20px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-biography .library-sidebar h5,
-[data-theme="light"] .theme-biography .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 0 0 15px var(--theme-glow);
-    font-weight: bold;
-}
-
-/* Navigation Items */
-[data-theme="dark"] .theme-biography .library-nav-item,
-[data-theme="light"] .theme-biography .library-nav-item {
-    border-left: 4px solid transparent;
-}
-
-[data-theme="dark"] .theme-biography .library-nav-item:hover,
-[data-theme="light"] .theme-biography .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-secondary);
-    transform: translateX(10px);
-    box-shadow: 0 0 20px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-biography .library-nav-item.active,
-[data-theme="light"] .theme-biography .library-nav-item.active {
-    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
-    border-left-color: var(--theme-secondary);
-    box-shadow: 0 0 25px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-biography .library-nav-item i,
-[data-theme="light"] .theme-biography .library-nav-item i {
-    filter: drop-shadow(0 0 8px var(--theme-glow));
-}
-
-/* Headers */
-[data-theme="dark"] .theme-biography .library-header h2,
-[data-theme="light"] .theme-biography .library-header h2 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 0 0 18px var(--theme-glow);
-    font-weight: bold;
-}
-
-/* Stats Cards */
-[data-theme="dark"] .theme-biography .stats-card,
-[data-theme="light"] .theme-biography .stats-card {
-    background: var(--theme-bg-card);
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 24px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-biography .stats-card:hover,
-[data-theme="light"] .theme-biography .stats-card:hover {
-    transform: translateY(-10px) scale(1.05);
-    box-shadow: 0 10px 40px var(--theme-glow);
-    border-color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-biography .stats-card .value,
-[data-theme="light"] .theme-biography .stats-card .value {
-    color: var(--theme-secondary);
-    text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
-}
-
-/* Book Cards */
-[data-theme="dark"] .theme-biography .book-cover-container,
-[data-theme="light"] .theme-biography .book-cover-container {
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 22px var(--theme-glow);
-    background-color: var(--theme-bg-card);
-}
-
-[data-theme="dark"] .theme-biography .book-card:hover,
-[data-theme="light"] .theme-biography .book-card:hover {
-    transform: translateY(-14px) scale(1.03);
-}
-
-[data-theme="dark"] .theme-biography .book-card:hover .book-cover-container,
-[data-theme="light"] .theme-biography .book-card:hover .book-cover-container {
-    box-shadow: 0 16px 48px var(--theme-glow), 0 0 35px rgba(255, 215, 0, 0.4);
-    border-color: var(--theme-secondary);
-}
-
-
-/* ============================================================
-   TEMA POETRY - POESIA
-   ============================================================ */
-
-/* MODO ESCURO */
-[data-theme="dark"] .theme-poetry {
-    --theme-color: #d946ef;
-    --theme-secondary: #f9a8d4;
-    --theme-accent: #e879f9;
-    --theme-glow: rgba(217, 70, 239, 0.7);
-    --theme-bg-primary: #1a0f1e;
-    --theme-bg-secondary: #2a1a2e;
-    --theme-bg-card: #331f38;
-    --theme-bg-sidebar: #1f1428;
-}
-
-/* MODO CLARO */
-[data-theme="light"] .theme-poetry {
-    --theme-color: #9c27b0;
-    --theme-secondary: #f06292;
-    --theme-accent: #ba68c8;
-    --theme-glow: rgba(156, 39, 176, 0.4);
-    --theme-bg-primary: #fce4ec;
-    --theme-bg-secondary: #f8bbd0;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #f48fb1;
-}
-
-/* Container */
-[data-theme="dark"] .theme-poetry .library-container,
-[data-theme="light"] .theme-poetry .library-container {
-    border-color: var(--theme-color);
-    box-shadow: 0 0 35px var(--theme-glow);
-}
-
-/* Avatar */
-[data-theme="dark"] .theme-poetry .avatar-frame,
-[data-theme="light"] .theme-poetry .avatar-frame {
-    border-color: var(--theme-color);
-    border-width: 4px;
-    box-shadow: 0 0 35px var(--theme-glow), inset 0 0 18px var(--theme-glow);
-    animation: glow 2.5s ease-in-out infinite;
-}
-
-/* Sidebar */
-[data-theme="dark"] .theme-poetry .library-sidebar,
-[data-theme="light"] .theme-poetry .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 3px solid var(--theme-color);
-    box-shadow: 2px 0 18px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-poetry .library-sidebar h5,
-[data-theme="light"] .theme-poetry .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 0 0 15px var(--theme-glow);
-    font-style: italic;
-}
-
-/* Navigation Items */
-[data-theme="dark"] .theme-poetry .library-nav-item,
-[data-theme="light"] .theme-poetry .library-nav-item {
-    border-left: 4px solid transparent;
-}
-
-[data-theme="dark"] .theme-poetry .library-nav-item:hover,
-[data-theme="light"] .theme-poetry .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-secondary);
-    transform: translateX(10px);
-    box-shadow: 0 0 18px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-poetry .library-nav-item.active,
-[data-theme="light"] .theme-poetry .library-nav-item.active {
-    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
-    border-left-color: var(--theme-secondary);
-    box-shadow: 0 0 22px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-poetry .library-nav-item i,
-[data-theme="light"] .theme-poetry .library-nav-item i {
-    filter: drop-shadow(0 0 8px var(--theme-glow));
-}
-
-/* Headers */
-[data-theme="dark"] .theme-poetry .library-header h2,
-[data-theme="light"] .theme-poetry .library-header h2 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 0 0 18px var(--theme-glow);
-    font-style: italic;
-}
-
-/* Stats Cards */
-[data-theme="dark"] .theme-poetry .stats-card,
-[data-theme="light"] .theme-poetry .stats-card {
-    background: var(--theme-bg-card);
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 22px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-poetry .stats-card:hover,
-[data-theme="light"] .theme-poetry .stats-card:hover {
-    transform: translateY(-10px) scale(1.05);
-    box-shadow: 0 10px 38px var(--theme-glow);
-    border-color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-poetry .stats-card .value,
-[data-theme="light"] .theme-poetry .stats-card .value {
-    color: var(--theme-secondary);
-    text-shadow: 0 0 15px rgba(249, 168, 212, 0.6);
-}
-
-/* Book Cards */
-[data-theme="dark"] .theme-poetry .book-cover-container,
-[data-theme="light"] .theme-poetry .book-cover-container {
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 20px var(--theme-glow);
-    background-color: var(--theme-bg-card);
-}
-
-[data-theme="dark"] .theme-poetry .book-card:hover,
-[data-theme="light"] .theme-poetry .book-card:hover {
-    transform: translateY(-14px) scale(1.02);
-}
-
-[data-theme="dark"] .theme-poetry .book-card:hover .book-cover-container,
-[data-theme="light"] .theme-poetry .book-card:hover .book-cover-container {
-    box-shadow: 0 16px 45px var(--theme-glow), 0 0 30px rgba(249, 168, 212, 0.4);
-    border-color: var(--theme-secondary);
-}
-
-
-/* ============================================================
-   TEMA ADVENTURE - AVENTURA
-   ============================================================ */
-
-/* MODO ESCURO */
-[data-theme="dark"] .theme-adventure {
-    --theme-color: #ff8c00;
-    --theme-secondary: #cd853f;
-    --theme-accent: #ffa500;
-    --theme-glow: rgba(255, 140, 0, 0.7);
-    --theme-bg-primary: #1a0f05;
-    --theme-bg-secondary: #2a1a0f;
-    --theme-bg-card: #332010;
-    --theme-bg-sidebar: #1f140a;
-}
-
-/* MODO CLARO */
-[data-theme="light"] .theme-adventure {
-    --theme-color: #e65100;
-    --theme-secondary: #8d6e63;
-    --theme-accent: #ff6f00;
-    --theme-glow: rgba(230, 81, 0, 0.4);
-    --theme-bg-primary: #fff3e0;
-    --theme-bg-secondary: #ffe0b2;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #ffcc80;
-}
-
-/* Container */
-[data-theme="dark"] .theme-adventure .library-container,
-[data-theme="light"] .theme-adventure .library-container {
-    border-color: var(--theme-color);
-    box-shadow: 0 0 38px var(--theme-glow);
-}
-
-/* Avatar */
-[data-theme="dark"] .theme-adventure .avatar-frame,
-[data-theme="light"] .theme-adventure .avatar-frame {
-    border-color: var(--theme-color);
-    border-width: 4px;
-    box-shadow: 0 0 38px var(--theme-glow), inset 0 0 20px var(--theme-glow);
-    animation: glow 2s ease-in-out infinite;
-}
-
-/* Sidebar */
-[data-theme="dark"] .theme-adventure .library-sidebar,
-[data-theme="light"] .theme-adventure .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 3px solid var(--theme-color);
-    box-shadow: 2px 0 20px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-adventure .library-sidebar h5,
-[data-theme="light"] .theme-adventure .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 0 0 15px var(--theme-glow);
-    font-weight: bold;
-}
-
-/* Navigation Items */
-[data-theme="dark"] .theme-adventure .library-nav-item,
-[data-theme="light"] .theme-adventure .library-nav-item {
-    border-left: 4px solid transparent;
-}
-
-[data-theme="dark"] .theme-adventure .library-nav-item:hover,
-[data-theme="light"] .theme-adventure .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-secondary);
-    transform: translateX(10px);
-    box-shadow: 0 0 20px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-adventure .library-nav-item.active,
-[data-theme="light"] .theme-adventure .library-nav-item.active {
-    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
-    border-left-color: var(--theme-secondary);
-    box-shadow: 0 0 25px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-adventure .library-nav-item i,
-[data-theme="light"] .theme-adventure .library-nav-item i {
-    filter: drop-shadow(0 0 8px var(--theme-glow));
-}
-
-/* Headers */
-[data-theme="dark"] .theme-adventure .library-header h2,
-[data-theme="light"] .theme-adventure .library-header h2 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 0 0 18px var(--theme-glow);
-    font-weight: bold;
-}
-
-/* Stats Cards */
-[data-theme="dark"] .theme-adventure .stats-card,
-[data-theme="light"] .theme-adventure .stats-card {
-    background: var(--theme-bg-card);
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 24px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-adventure .stats-card:hover,
-[data-theme="light"] .theme-adventure .stats-card:hover {
-    transform: translateY(-10px) scale(1.05) rotate(1deg);
-    box-shadow: 0 10px 40px var(--theme-glow);
-    border-color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-adventure .stats-card .value,
-[data-theme="light"] .theme-adventure .stats-card .value {
-    color: var(--theme-accent);
-    text-shadow: 0 0 15px rgba(255, 165, 0, 0.6);
-}
-
-/* Book Cards */
-[data-theme="dark"] .theme-adventure .book-cover-container,
-[data-theme="light"] .theme-adventure .book-cover-container {
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 22px var(--theme-glow);
-    background-color: var(--theme-bg-card);
-}
-
-[data-theme="dark"] .theme-adventure .book-card:hover,
-[data-theme="light"] .theme-adventure .book-card:hover {
-    transform: translateY(-14px) scale(1.03) rotate(2deg);
-}
-
-[data-theme="dark"] .theme-adventure .book-card:hover .book-cover-container,
-[data-theme="light"] .theme-adventure .book-card:hover .book-cover-container {
-    box-shadow: 0 16px 48px var(--theme-glow), 0 0 35px rgba(205, 133, 63, 0.4);
-    border-color: var(--theme-secondary);
-}
-
-/* ========================================
-   TEMAS PREMIUM - PARTE 2 (6 TEMAS ÚNICOS)
-   ======================================== */
-
-/* ============================================================
-   TEMA THRILLER - SUSPENSE/TENSÃO
-   Características: Bordas finas, fonte menor, atmosfera tensa
-   ============================================================ */
-
-/* MODO ESCURO */
-[data-theme="dark"] .theme-thriller {
-    --theme-color: #dc143c;
-    --theme-secondary: #1a1a1a;
-    --theme-accent: #8b0000;
-    --theme-glow: rgba(220, 20, 60, 0.9);
-    --theme-bg-primary: #0d0000;
-    --theme-bg-secondary: #1a0505;
-    --theme-bg-card: #200505;
-    --theme-bg-sidebar: #150000;
-}
-
-/* MODO CLARO */
-[data-theme="light"] .theme-thriller {
-    --theme-color: #c41e3a;
-    --theme-secondary: #424242;
-    --theme-accent: #b71c1c;
-    --theme-glow: rgba(196, 30, 58, 0.5);
-    --theme-bg-primary: #fff5f5;
-    --theme-bg-secondary: #ffebee;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #ffd0d0;
-}
-
-/* Container */
-[data-theme="dark"] .theme-thriller .library-container,
-[data-theme="light"] .theme-thriller .library-container {
-    border-color: var(--theme-color);
-    box-shadow: 0 0 60px var(--theme-glow);
-}
-
-/* Avatar - Bordas FINAS para efeito de tensão */
-[data-theme="dark"] .theme-thriller .avatar-frame,
-[data-theme="light"] .theme-thriller .avatar-frame {
-    border-color: var(--theme-color);
-    border-width: 1px;
-    box-shadow: 0 0 50px var(--theme-glow), inset 0 0 30px var(--theme-glow);
-    animation: glow 0.8s ease-in-out infinite;
-}
-
-/* Sidebar - Borda FINA */
-[data-theme="dark"] .theme-thriller .library-sidebar,
-[data-theme="light"] .theme-thriller .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 1px solid var(--theme-color);
-    box-shadow: 3px 0 30px var(--theme-glow);
-}
-
-/* Headers - Fonte MENOR para tensão */
-[data-theme="dark"] .theme-thriller .library-sidebar h5,
-[data-theme="light"] .theme-thriller .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 0 0 20px var(--theme-glow);
-    font-size: 0.9rem;
-    letter-spacing: 1px;
-}
-
-/* Navigation Items - Border FINO */
-[data-theme="dark"] .theme-thriller .library-nav-item,
-[data-theme="light"] .theme-thriller .library-nav-item {
-    border-left: 2px solid transparent;
-}
-
-[data-theme="dark"] .theme-thriller .library-nav-item:hover,
-[data-theme="light"] .theme-thriller .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-color);
-    transform: translateX(8px);
-    box-shadow: 0 0 25px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-thriller .library-nav-item.active,
-[data-theme="light"] .theme-thriller .library-nav-item.active {
-    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
-    border-left-color: var(--theme-color);
-    box-shadow: 0 0 35px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-thriller .library-nav-item i,
-[data-theme="light"] .theme-thriller .library-nav-item i {
-    filter: drop-shadow(0 0 10px var(--theme-glow));
-}
-
-/* Headers - Fonte MENOR */
-[data-theme="dark"] .theme-thriller .library-header h2,
-[data-theme="light"] .theme-thriller .library-header h2 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 3px 3px 10px var(--theme-glow);
-    font-size: 1.8rem;
-}
-
-/* Stats Cards - Bordas FINAS */
-[data-theme="dark"] .theme-thriller .stats-card,
-[data-theme="light"] .theme-thriller .stats-card {
-    background: var(--theme-bg-card);
-    border: 1px solid var(--theme-color);
-    box-shadow: 0 4px 35px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-thriller .stats-card:hover,
-[data-theme="light"] .theme-thriller .stats-card:hover {
-    transform: translateY(-12px) scale(1.05);
-    box-shadow: 0 12px 55px var(--theme-glow);
-    border-color: var(--theme-color);
-}
-
-[data-theme="dark"] .theme-thriller .stats-card .value,
-[data-theme="light"] .theme-thriller .stats-card .value {
-    color: var(--theme-color);
-    text-shadow: 0 0 20px var(--theme-glow);
-}
-
-/* Book Cards - Bordas FINAS */
-[data-theme="dark"] .theme-thriller .book-cover-container,
-[data-theme="light"] .theme-thriller .book-cover-container {
-    border: 1px solid var(--theme-color);
-    box-shadow: 0 4px 30px var(--theme-glow);
-    background-color: var(--theme-bg-card);
-}
-
-[data-theme="dark"] .theme-thriller .book-card:hover,
-[data-theme="light"] .theme-thriller .book-card:hover {
-    transform: translateY(-16px) scale(1.03);
-}
-
-[data-theme="dark"] .theme-thriller .book-card:hover .book-cover-container,
-[data-theme="light"] .theme-thriller .book-card:hover .book-cover-container {
-    box-shadow: 0 20px 70px var(--theme-glow), 0 0 50px var(--theme-glow);
-    border-color: var(--theme-color);
-}
-
-
-/* ============================================================
-   TEMA HISTORICAL - HISTÓRICO/CLÁSSICO
-   Características: Bordas GROSSAS, fonte MAIOR, ícones flutuantes
-   ============================================================ */
-
-/* MODO ESCURO */
-[data-theme="dark"] .theme-historical {
-    --theme-color: #daa520;
-    --theme-secondary: #8b4513;
-    --theme-accent: #cd853f;
-    --theme-glow: rgba(218, 165, 32, 0.7);
-    --theme-bg-primary: #1a1008;
-    --theme-bg-secondary: #2a1a0f;
-    --theme-bg-card: #332415;
-    --theme-bg-sidebar: #1f180c;
-}
-
-/* MODO CLARO */
-[data-theme="light"] .theme-historical {
-    --theme-color: #b8860b;
-    --theme-secondary: #654321;
-    --theme-accent: #daa520;
-    --theme-glow: rgba(184, 134, 11, 0.4);
-    --theme-bg-primary: #fffaf0;
-    --theme-bg-secondary: #faebd7;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #f5deb3;
-}
-
-/* Container */
-[data-theme="dark"] .theme-historical .library-container,
-[data-theme="light"] .theme-historical .library-container {
-    border-color: var(--theme-color);
-    box-shadow: 0 0 40px var(--theme-glow);
-}
-
-/* Avatar - Bordas GROSSAS (5px) para grandiosidade */
-[data-theme="dark"] .theme-historical .avatar-frame,
-[data-theme="light"] .theme-historical .avatar-frame {
-    border-color: var(--theme-color);
-    border-width: 5px;
-    box-shadow: 0 0 40px var(--theme-glow), inset 0 0 25px var(--theme-glow);
-    animation: glow 3s ease-in-out infinite;
-}
-
-/* Sidebar - Borda GROSSA */
-[data-theme="dark"] .theme-historical .library-sidebar,
-[data-theme="light"] .theme-historical .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 4px solid var(--theme-color);
-    box-shadow: 4px 0 25px var(--theme-glow);
-}
-
-/* Headers - Fonte MAIOR para grandiosidade */
-[data-theme="dark"] .theme-historical .library-sidebar h5,
-[data-theme="light"] .theme-historical .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 0 0 18px var(--theme-glow);
-    font-size: 1.3rem;
-    font-weight: bold;
-    letter-spacing: 2px;
-}
-
-/* Navigation Items - Border GROSSO */
-[data-theme="dark"] .theme-historical .library-nav-item,
-[data-theme="light"] .theme-historical .library-nav-item {
-    border-left: 5px solid transparent;
-}
-
-[data-theme="dark"] .theme-historical .library-nav-item:hover,
-[data-theme="light"] .theme-historical .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-secondary);
-    transform: translateX(12px);
-    box-shadow: 0 0 22px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-historical .library-nav-item.active,
-[data-theme="light"] .theme-historical .library-nav-item.active {
-    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
-    border-left-color: var(--theme-secondary);
-    box-shadow: 0 0 28px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-historical .library-nav-item i,
-[data-theme="light"] .theme-historical .library-nav-item i {
-    filter: drop-shadow(0 0 10px var(--theme-glow));
-}
-
-/* Headers - Fonte MAIOR e BOLD */
-[data-theme="dark"] .theme-historical .library-header h2,
-[data-theme="light"] .theme-historical .library-header h2 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 0 0 20px var(--theme-glow);
-    font-size: 2.5rem;
-    font-weight: bold;
-}
-
-/* Stats Cards - Bordas GROSSAS */
-[data-theme="dark"] .theme-historical .stats-card,
-[data-theme="light"] .theme-historical .stats-card {
-    background: var(--theme-bg-card);
-    border: 4px solid var(--theme-color);
-    box-shadow: 0 4px 28px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-historical .stats-card:hover,
-[data-theme="light"] .theme-historical .stats-card:hover {
-    transform: translateY(-10px) scale(1.05);
-    box-shadow: 0 10px 45px var(--theme-glow);
-    border-color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-historical .stats-card .value,
-[data-theme="light"] .theme-historical .stats-card .value {
-    color: var(--theme-secondary);
-    text-shadow: 0 0 18px rgba(139, 69, 19, 0.6);
-}
-
-/* Book Cards - Bordas GROSSAS */
-[data-theme="dark"] .theme-historical .book-cover-container,
-[data-theme="light"] .theme-historical .book-cover-container {
-    border: 4px solid var(--theme-color);
-    box-shadow: 0 4px 25px var(--theme-glow);
-    background-color: var(--theme-bg-card);
-}
-
-[data-theme="dark"] .theme-historical .book-card:hover,
-[data-theme="light"] .theme-historical .book-card:hover {
-    transform: translateY(-14px) scale(1.03);
-}
-
-[data-theme="dark"] .theme-historical .book-card:hover .book-cover-container,
-[data-theme="light"] .theme-historical .book-card:hover .book-cover-container {
-    box-shadow: 0 18px 55px var(--theme-glow), 0 0 40px rgba(139, 69, 19, 0.5);
-    border-color: var(--theme-secondary);
-}
-
-/* Ícones flutuantes: Pergaminhos e Colunas */
-[data-theme="dark"] .theme-historical .library-container::before,
-[data-theme="dark"] .theme-historical .library-container::after,
-[data-theme="light"] .theme-historical .library-container::before,
-[data-theme="light"] .theme-historical .library-container::after {
-    content: '📜';
-    position: fixed;
-    font-size: 32px;
-    opacity: 0.15;
-    z-index: 0;
-    animation: float 8s ease-in-out infinite;
-}
-
-[data-theme="dark"] .theme-historical .library-container::before,
-[data-theme="light"] .theme-historical .library-container::before {
-    top: 15%;
-    left: 8%;
-}
-
-[data-theme="dark"] .theme-historical .library-container::after,
-[data-theme="light"] .theme-historical .library-container::after {
-    content: '🏛️';
-    bottom: 20%;
-    right: 10%;
-    animation-delay: 2s;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(5deg); }
-}
-
-
-/* ============================================================
-   TEMA SELFHELP - AUTOAJUDA/MOTIVAÇÃO
-   Características: Bordas médias, cores vibrantes, ícones motivacionais
-   ============================================================ */
-
-/* MODO ESCURO */
-[data-theme="dark"] .theme-selfhelp {
-    --theme-color: #fbbf24;
-    --theme-secondary: #fb923c;
-    --theme-accent: #fcd34d;
-    --theme-glow: rgba(251, 191, 36, 0.7);
-    --theme-bg-primary: #1a1408;
-    --theme-bg-secondary: #2a1f0f;
-    --theme-bg-card: #332818;
-    --theme-bg-sidebar: #1f180c;
-}
-
-/* MODO CLARO */
-[data-theme="light"] .theme-selfhelp {
-    --theme-color: #f59e0b;
-    --theme-secondary: #ea580c;
-    --theme-accent: #fbbf24;
-    --theme-glow: rgba(245, 158, 11, 0.4);
-    --theme-bg-primary: #fffbeb;
-    --theme-bg-secondary: #fef3c7;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #fde68a;
-}
-
-/* Container */
-[data-theme="dark"] .theme-selfhelp .library-container,
-[data-theme="light"] .theme-selfhelp .library-container {
-    border-color: var(--theme-color);
-    box-shadow: 0 0 40px var(--theme-glow);
-}
-
-/* Avatar - Bordas MÉDIAS */
-[data-theme="dark"] .theme-selfhelp .avatar-frame,
-[data-theme="light"] .theme-selfhelp .avatar-frame {
-    border-color: var(--theme-color);
-    border-width: 3px;
-    box-shadow: 0 0 38px var(--theme-glow), inset 0 0 20px var(--theme-glow);
-    animation: glow 2s ease-in-out infinite;
-}
-
-/* Sidebar */
-[data-theme="dark"] .theme-selfhelp .library-sidebar,
-[data-theme="light"] .theme-selfhelp .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 3px solid var(--theme-color);
-    box-shadow: 3px 0 22px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-selfhelp .library-sidebar h5,
-[data-theme="light"] .theme-selfhelp .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: 'Segoe UI', sans-serif;
-    text-shadow: 0 0 18px var(--theme-glow);
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
-/* Navigation Items */
-[data-theme="dark"] .theme-selfhelp .library-nav-item,
-[data-theme="light"] .theme-selfhelp .library-nav-item {
-    border-left: 4px solid transparent;
-}
-
-[data-theme="dark"] .theme-selfhelp .library-nav-item:hover,
-[data-theme="light"] .theme-selfhelp .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-secondary);
-    transform: translateX(10px);
-    box-shadow: 0 0 20px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-selfhelp .library-nav-item.active,
-[data-theme="light"] .theme-selfhelp .library-nav-item.active {
-    background: linear-gradient(135deg, var(--theme-color), var(--theme-secondary));
-    border-left-color: var(--theme-accent);
-    box-shadow: 0 0 25px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-selfhelp .library-nav-item i,
-[data-theme="light"] .theme-selfhelp .library-nav-item i {
-    filter: drop-shadow(0 0 8px var(--theme-glow));
-}
-
-/* Headers */
-[data-theme="dark"] .theme-selfhelp .library-header h2,
-[data-theme="light"] .theme-selfhelp .library-header h2 {
-    color: var(--theme-color);
-    font-family: 'Segoe UI', sans-serif;
-    text-shadow: 0 0 20px var(--theme-glow);
-    font-size: 2.2rem;
-    font-weight: 600;
-}
-
-/* Stats Cards */
-[data-theme="dark"] .theme-selfhelp .stats-card,
-[data-theme="light"] .theme-selfhelp .stats-card {
-    background: var(--theme-bg-card);
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 26px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-selfhelp .stats-card:hover,
-[data-theme="light"] .theme-selfhelp .stats-card:hover {
-    transform: translateY(-10px) scale(1.05);
-    box-shadow: 0 10px 42px var(--theme-glow);
-    border-color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-selfhelp .stats-card .value,
-[data-theme="light"] .theme-selfhelp .stats-card .value {
-    color: var(--theme-secondary);
-    text-shadow: 0 0 18px rgba(251, 146, 60, 0.6);
-}
-
-/* Book Cards */
-[data-theme="dark"] .theme-selfhelp .book-cover-container,
-[data-theme="light"] .theme-selfhelp .book-cover-container {
-    border: 3px solid var(--theme-color);
-    box-shadow: 0 4px 24px var(--theme-glow);
-    background-color: var(--theme-bg-card);
-}
-
-[data-theme="dark"] .theme-selfhelp .book-card:hover,
-[data-theme="light"] .theme-selfhelp .book-card:hover {
-    transform: translateY(-14px) scale(1.03);
-}
-
-[data-theme="dark"] .theme-selfhelp .book-card:hover .book-cover-container,
-[data-theme="light"] .theme-selfhelp .book-card:hover .book-cover-container {
-    box-shadow: 0 18px 50px var(--theme-glow), 0 0 38px rgba(251, 146, 60, 0.4);
-    border-color: var(--theme-secondary);
-}
-
-/* Ícones flutuantes: Sol e Estrelas */
-[data-theme="dark"] .theme-selfhelp .library-container::before,
-[data-theme="dark"] .theme-selfhelp .library-container::after,
-[data-theme="light"] .theme-selfhelp .library-container::before,
-[data-theme="light"] .theme-selfhelp .library-container::after {
-    content: '☀️';
-    position: fixed;
-    font-size: 36px;
-    opacity: 0.12;
-    z-index: 0;
-    animation: float 7s ease-in-out infinite;
-}
-
-[data-theme="dark"] .theme-selfhelp .library-container::before,
-[data-theme="light"] .theme-selfhelp .library-container::before {
-    top: 18%;
-    right: 12%;
-}
-
-[data-theme="dark"] .theme-selfhelp .library-container::after,
-[data-theme="light"] .theme-selfhelp .library-container::after {
-    content: '⭐';
-    bottom: 25%;
-    left: 10%;
-    animation-delay: 1.5s;
-}
-
-
-/* ============================================================
-   TEMA PHILOSOPHY - FILOSOFIA/ACADÊMICO
-   Características: Bordas FINAS, fonte serif elegante, SEM ícones
-   ============================================================ */
-
-/* MODO ESCURO */
-[data-theme="dark"] .theme-philosophy {
-    --theme-color: #3b82f6;
-    --theme-secondary: #6b7280;
-    --theme-accent: #60a5fa;
-    --theme-glow: rgba(59, 130, 246, 0.6);
-    --theme-bg-primary: #0a0e1a;
-    --theme-bg-secondary: #111827;
-    --theme-bg-card: #1f2937;
-    --theme-bg-sidebar: #0f1520;
-}
-
-/* MODO CLARO */
-[data-theme="light"] .theme-philosophy {
-    --theme-color: #1e3a8a;
-    --theme-secondary: #4b5563;
-    --theme-accent: #2563eb;
-    --theme-glow: rgba(30, 58, 138, 0.3);
-    --theme-bg-primary: #f0f4f8;
-    --theme-bg-secondary: #e0e7ef;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #dbeafe;
-}
-
-/* Container */
-[data-theme="dark"] .theme-philosophy .library-container,
-[data-theme="light"] .theme-philosophy .library-container {
-    border-color: var(--theme-color);
-    box-shadow: 0 0 30px var(--theme-glow);
-}
-
-/* Avatar - Bordas FINAS para elegância */
-[data-theme="dark"] .theme-philosophy .avatar-frame,
-[data-theme="light"] .theme-philosophy .avatar-frame {
-    border-color: var(--theme-color);
-    border-width: 1px;
-    box-shadow: 0 0 28px var(--theme-glow), inset 0 0 15px var(--theme-glow);
-    animation: glow 3s ease-in-out infinite;
-}
-
-/* Sidebar - Borda FINA */
-[data-theme="dark"] .theme-philosophy .library-sidebar,
-[data-theme="light"] .theme-philosophy .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 1px solid var(--theme-color);
-    box-shadow: 2px 0 15px var(--theme-glow);
-}
-
-/* Headers - Fonte Serif Elegante */
-[data-theme="dark"] .theme-philosophy .library-sidebar h5,
-[data-theme="light"] .theme-philosophy .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 0 0 12px var(--theme-glow);
-    font-size: 1rem;
-    font-weight: normal;
-}
-
-/* Navigation Items - Border FINO */
-[data-theme="dark"] .theme-philosophy .library-nav-item,
-[data-theme="light"] .theme-philosophy .library-nav-item {
-    border-left: 2px solid transparent;
-}
-
-[data-theme="dark"] .theme-philosophy .library-nav-item:hover,
-[data-theme="light"] .theme-philosophy .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-secondary);
-    transform: translateX(8px);
-    box-shadow: 0 0 15px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-philosophy .library-nav-item.active,
-[data-theme="light"] .theme-philosophy .library-nav-item.active {
-    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
-    border-left-color: var(--theme-secondary);
-    box-shadow: 0 0 20px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-philosophy .library-nav-item i,
-[data-theme="light"] .theme-philosophy .library-nav-item i {
-    filter: drop-shadow(0 0 6px var(--theme-glow));
-}
-
-/* Headers - Fonte Serif */
-[data-theme="dark"] .theme-philosophy .library-header h2,
-[data-theme="light"] .theme-philosophy .library-header h2 {
-    color: var(--theme-color);
-    font-family: 'Georgia', serif;
-    text-shadow: 0 0 15px var(--theme-glow);
-    font-size: 2rem;
-    font-weight: normal;
-}
-
-/* Stats Cards - Bordas FINAS */
-[data-theme="dark"] .theme-philosophy .stats-card,
-[data-theme="light"] .theme-philosophy .stats-card {
-    background: var(--theme-bg-card);
-    border: 1px solid var(--theme-color);
-    box-shadow: 0 4px 20px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-philosophy .stats-card:hover,
-[data-theme="light"] .theme-philosophy .stats-card:hover {
-    transform: translateY(-8px) scale(1.03);
-    box-shadow: 0 8px 35px var(--theme-glow);
-    border-color: var(--theme-accent);
-}
-
-[data-theme="dark"] .theme-philosophy .stats-card .value,
-[data-theme="light"] .theme-philosophy .stats-card .value {
-    color: var(--theme-accent);
-    text-shadow: 0 0 12px rgba(96, 165, 250, 0.5);
-}
-
-/* Book Cards - Bordas FINAS */
-[data-theme="dark"] .theme-philosophy .book-cover-container,
-[data-theme="light"] .theme-philosophy .book-cover-container {
-    border: 1px solid var(--theme-color);
-    box-shadow: 0 4px 18px var(--theme-glow);
-    background-color: var(--theme-bg-card);
-}
-
-[data-theme="dark"] .theme-philosophy .book-card:hover,
-[data-theme="light"] .theme-philosophy .book-card:hover {
-    transform: translateY(-12px) scale(1.02);
-}
-
-[data-theme="dark"] .theme-philosophy .book-card:hover .book-cover-container,
-[data-theme="light"] .theme-philosophy .book-card:hover .book-cover-container {
-    box-shadow: 0 14px 40px var(--theme-glow), 0 0 28px rgba(96, 165, 250, 0.3);
-    border-color: var(--theme-accent);
-}
-
-
-/* ============================================================
-   TEMA DYSTOPIAN - DISTOPIA/CYBERPUNK
-   Características: Bordas médias, fonte futurista, efeito glitch
-   ============================================================ */
-
-/* MODO ESCURO */
-[data-theme="dark"] .theme-dystopian {
-    --theme-color: #9ca3af;
-    --theme-secondary: #b91c1c;
-    --theme-accent: #6b7280;
-    --theme-glow: rgba(156, 163, 175, 0.6);
-    --theme-bg-primary: #0f0f0f;
-    --theme-bg-secondary: #1a1a1a;
-    --theme-bg-card: #262626;
-    --theme-bg-sidebar: #141414;
-}
-
-/* MODO CLARO */
-[data-theme="light"] .theme-dystopian {
-    --theme-color: #6b7280;
-    --theme-secondary: #991b1b;
-    --theme-accent: #9ca3af;
-    --theme-glow: rgba(107, 114, 128, 0.4);
-    --theme-bg-primary: #f5f5f5;
-    --theme-bg-secondary: #e5e5e5;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #d4d4d4;
-}
-
-/* Container */
-[data-theme="dark"] .theme-dystopian .library-container,
-[data-theme="light"] .theme-dystopian .library-container {
-    border-color: var(--theme-color);
-    box-shadow: 0 0 35px var(--theme-glow);
-}
-
-/* Avatar - Bordas MÉDIAS */
-[data-theme="dark"] .theme-dystopian .avatar-frame,
-[data-theme="light"] .theme-dystopian .avatar-frame {
-    border-color: var(--theme-color);
-    border-width: 2px;
-    box-shadow: 0 0 35px var(--theme-glow), inset 0 0 18px var(--theme-glow);
-    animation: glitch 2s linear infinite;
-}
-
-/* Animação Glitch */
-@keyframes glitch {
-    0%, 100% { transform: translate(0); filter: hue-rotate(0deg); }
-    25% { transform: translate(-2px, 2px); filter: hue-rotate(90deg); }
-    50% { transform: translate(2px, -2px); filter: hue-rotate(180deg); }
-    75% { transform: translate(-2px, -2px); filter: hue-rotate(270deg); }
-}
-
-/* Sidebar */
-[data-theme="dark"] .theme-dystopian .library-sidebar,
-[data-theme="light"] .theme-dystopian .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 2px solid var(--theme-color);
-    box-shadow: 2px 0 20px var(--theme-glow);
-}
-
-/* Headers - Fonte Futurista */
-[data-theme="dark"] .theme-dystopian .library-sidebar h5,
-[data-theme="light"] .theme-dystopian .library-sidebar h5 {
-    color: var(--theme-color);
-    font-family: 'Courier New', monospace;
-    text-shadow: 0 0 15px var(--theme-glow);
-    font-size: 1rem;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-}
-
-/* Navigation Items */
-[data-theme="dark"] .theme-dystopian .library-nav-item,
-[data-theme="light"] .theme-dystopian .library-nav-item {
-    border-left: 3px solid transparent;
-}
-
-[data-theme="dark"] .theme-dystopian .library-nav-item:hover,
-[data-theme="light"] .theme-dystopian .library-nav-item:hover {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-secondary);
-    transform: translateX(10px);
-    box-shadow: 0 0 18px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-dystopian .library-nav-item.active,
-[data-theme="light"] .theme-dystopian .library-nav-item.active {
-    background: linear-gradient(135deg, var(--theme-color), var(--theme-accent));
-    border-left-color: var(--theme-secondary);
-    box-shadow: 0 0 22px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-dystopian .library-nav-item i,
-[data-theme="light"] .theme-dystopian .library-nav-item i {
-    filter: drop-shadow(0 0 8px var(--theme-glow));
-}
-
-/* Headers */
-[data-theme="dark"] .theme-dystopian .library-header h2,
-[data-theme="light"] .theme-dystopian .library-header h2 {
-    color: var(--theme-color);
-    font-family: 'Courier New', monospace;
-    text-shadow: 0 0 18px var(--theme-glow);
-    font-size: 2rem;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-}
-
-/* Stats Cards */
-[data-theme="dark"] .theme-dystopian .stats-card,
-[data-theme="light"] .theme-dystopian .stats-card {
-    background: var(--theme-bg-card);
-    border: 2px solid var(--theme-color);
-    box-shadow: 0 4px 22px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-dystopian .stats-card:hover,
-[data-theme="light"] .theme-dystopian .stats-card:hover {
-    transform: translateY(-10px) scale(1.04);
-    box-shadow: 0 10px 38px var(--theme-glow);
-    border-color: var(--theme-secondary);
-}
-
-[data-theme="dark"] .theme-dystopian .stats-card .value,
-[data-theme="light"] .theme-dystopian .stats-card .value {
-    color: var(--theme-secondary);
-    text-shadow: 0 0 15px rgba(185, 28, 28, 0.6);
-}
-
-/* Book Cards */
-[data-theme="dark"] .theme-dystopian .book-cover-container,
-[data-theme="light"] .theme-dystopian .book-cover-container {
-    border: 2px solid var(--theme-color);
-    box-shadow: 0 4px 20px var(--theme-glow);
-    background-color: var(--theme-bg-card);
-}
-
-[data-theme="dark"] .theme-dystopian .book-card:hover,
-[data-theme="light"] .theme-dystopian .book-card:hover {
-    transform: translateY(-14px) scale(1.02);
-}
-
-[data-theme="dark"] .theme-dystopian .book-card:hover .book-cover-container,
-[data-theme="light"] .theme-dystopian .book-card:hover .book-cover-container {
-    box-shadow: 0 16px 45px var(--theme-glow), 0 0 30px rgba(185, 28, 28, 0.4);
-    border-color: var(--theme-secondary);
-}
-
-
-/* ============================================================
-   TEMA CONTEMPORARY - CONTEMPORÂNEO/ARTÍSTICO
-   Características: Bordas variadas, gradiente multicolor, ícones artísticos
-   ============================================================ */
-
-/* MODO ESCURO */
-[data-theme="dark"] .theme-contemporary {
-    --theme-color: #ec4899;
-    --theme-secondary: #3b82f6;
-    --theme-accent: #10b981;
-    --theme-glow: rgba(236, 72, 153, 0.7);
-    --theme-bg-primary: #1a1a1a;
-    --theme-bg-secondary: #262626;
-    --theme-bg-card: #2d2d2d;
-    --theme-bg-sidebar: #1f1f1f;
-}
-
-/* MODO CLARO */
-[data-theme="light"] .theme-contemporary {
-    --theme-color: #db2777;
-    --theme-secondary: #2563eb;
-    --theme-accent: #059669;
-    --theme-glow: rgba(219, 39, 119, 0.5);
-    --theme-bg-primary: #ffffff;
-    --theme-bg-secondary: #fafafa;
-    --theme-bg-card: #ffffff;
-    --theme-bg-sidebar: #f5f5f5;
-}
-
-/* Container - Gradiente Multicolor */
-[data-theme="dark"] .theme-contemporary .library-container,
-[data-theme="light"] .theme-contemporary .library-container {
-    border: 3px solid;
-    border-image: linear-gradient(135deg, #ec4899, #3b82f6, #10b981, #f59e0b) 1;
-    box-shadow: 0 0 40px rgba(236, 72, 153, 0.5), 0 0 40px rgba(59, 130, 246, 0.3);
-}
-
-/* Avatar - Borda Multicolor */
-[data-theme="dark"] .theme-contemporary .avatar-frame,
-[data-theme="light"] .theme-contemporary .avatar-frame {
-    border-width: 3px;
-    border-style: solid;
-    border-image: linear-gradient(135deg, #ec4899, #3b82f6, #10b981) 1;
-    box-shadow: 0 0 38px var(--theme-glow), inset 0 0 20px var(--theme-glow);
-    animation: glow 2s ease-in-out infinite;
-}
-
-/* Sidebar - Borda Variada */
-[data-theme="dark"] .theme-contemporary .library-sidebar,
-[data-theme="light"] .theme-contemporary .library-sidebar {
-    background-color: var(--theme-bg-sidebar);
-    border-right: 2px solid var(--theme-color);
-    box-shadow: 2px 0 20px var(--theme-glow);
-}
-
-/* Headers - Fonte Moderna */
-[data-theme="dark"] .theme-contemporary .library-sidebar h5,
-[data-theme="light"] .theme-contemporary .library-sidebar h5 {
-    background: linear-gradient(135deg, #ec4899, #3b82f6, #10b981);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-family: 'Segoe UI', sans-serif;
-    font-size: 1.1rem;
-    font-weight: bold;
-}
-
-/* Navigation Items - Bordas Variadas */
-[data-theme="dark"] .theme-contemporary .library-nav-item,
-[data-theme="light"] .theme-contemporary .library-nav-item {
-    border-left: 3px solid transparent;
-}
-
-[data-theme="dark"] .theme-contemporary .library-nav-item:hover,
-[data-theme="light"] .theme-contemporary .library-nav-item:hover {
-    background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(59, 130, 246, 0.2));
-    border-left-color: var(--theme-secondary);
-    transform: translateX(10px);
-    box-shadow: 0 0 20px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-contemporary .library-nav-item.active,
-[data-theme="light"] .theme-contemporary .library-nav-item.active {
-    background: linear-gradient(135deg, #ec4899, #3b82f6, #10b981);
-    border-left-color: var(--theme-accent);
-    box-shadow: 0 0 25px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-contemporary .library-nav-item i,
-[data-theme="light"] .theme-contemporary .library-nav-item i {
-    filter: drop-shadow(0 0 8px var(--theme-glow));
-}
-
-/* Headers - Gradiente no Texto */
-[data-theme="dark"] .theme-contemporary .library-header h2,
-[data-theme="light"] .theme-contemporary .library-header h2 {
-    background: linear-gradient(135deg, #ec4899, #3b82f6, #10b981, #f59e0b);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-family: 'Segoe UI', sans-serif;
-    font-size: 2.3rem;
-    font-weight: bold;
-}
-
-/* Stats Cards - Bordas Multicolor */
-[data-theme="dark"] .theme-contemporary .stats-card,
-[data-theme="light"] .theme-contemporary .stats-card {
-    background: var(--theme-bg-card);
-    border: 2px solid;
-    border-image: linear-gradient(135deg, #ec4899, #3b82f6) 1;
-    box-shadow: 0 4px 24px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-contemporary .stats-card:hover,
-[data-theme="light"] .theme-contemporary .stats-card:hover {
-    transform: translateY(-10px) scale(1.05);
-    box-shadow: 0 10px 40px var(--theme-glow);
-}
-
-[data-theme="dark"] .theme-contemporary .stats-card .value,
-[data-theme="light"] .theme-contemporary .stats-card .value {
-    background: linear-gradient(135deg, #ec4899, #3b82f6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* Book Cards - Bordas Variadas */
-[data-theme="dark"] .theme-contemporary .book-cover-container,
-[data-theme="light"] .theme-contemporary .book-cover-container {
-    border: 3px solid;
-    border-image: linear-gradient(135deg, #ec4899, #10b981) 1;
-    box-shadow: 0 4px 22px var(--theme-glow);
-    background-color: var(--theme-bg-card);
-}
-
-[data-theme="dark"] .theme-contemporary .book-card:hover,
-[data-theme="light"] .theme-contemporary .book-card:hover {
-    transform: translateY(-14px) scale(1.03) rotate(-1deg);
-}
-
-[data-theme="dark"] .theme-contemporary .book-card:hover .book-cover-container,
-[data-theme="light"] .theme-contemporary .book-card:hover .book-cover-container {
-    box-shadow: 0 18px 50px var(--theme-glow), 0 0 35px rgba(59, 130, 246, 0.4);
-}
-
-/* Ícones flutuantes: Arte e Criatividade */
-[data-theme="dark"] .theme-contemporary .library-container::before,
-[data-theme="dark"] .theme-contemporary .library-container::after,
-[data-theme="light"] .theme-contemporary .library-container::before,
-[data-theme="light"] .theme-contemporary .library-container::after {
-    content: '🎨';
-    position: fixed;
-    font-size: 34px;
-    opacity: 0.1;
-    z-index: 0;
-    animation: float 6s ease-in-out infinite;
-}
-
-[data-theme="dark"] .theme-contemporary .library-container::before,
-[data-theme="light"] .theme-contemporary .library-container::before {
-    top: 20%;
-    left: 15%;
-}
-
-[data-theme="dark"] .theme-contemporary .library-container::after,
-[data-theme="light"] .theme-contemporary .library-container::after {
-    content: '✨';
-    bottom: 18%;
-    right: 12%;
-    animation-delay: 2s;
-}
-

@@ -68,6 +68,35 @@ class UserProfile(models.Model):
         help_text="Banner personalizado (máx. 5MB, 1200x300px)"
     )
 
+    # ========== BACKGROUND CUSTOMIZADO (PREMIUM) ==========
+    custom_background = models.ImageField(
+        upload_to='users/backgrounds/',
+        storage=SupabaseMediaStorage(),
+        blank=True,
+        null=True,
+        verbose_name="Background Personalizado",
+        help_text="Imagem de fundo personalizada para a biblioteca (máx. 10MB, apenas PREMIUM)"
+    )
+
+    background_style = models.CharField(
+        max_length=10,
+        choices=[
+            ('cover', 'Cobrir (Cover)'),
+            ('contain', 'Conter (Contain)'),
+            ('repeat', 'Repetir (Repeat)'),
+        ],
+        default='cover',
+        verbose_name="Estilo do Background",
+        help_text="Como a imagem de fundo deve ser exibida"
+    )
+
+    background_opacity = models.IntegerField(
+        default=20,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name="Opacidade do Overlay",
+        help_text="Opacidade da camada escura sobre o background (0=transparente, 100=opaco)"
+    )
+
     bio = models.CharField(
         max_length=150,
         blank=True,
