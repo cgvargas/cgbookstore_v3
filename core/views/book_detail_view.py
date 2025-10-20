@@ -35,4 +35,25 @@ class BookDetailView(DetailView):
             profile = self.request.user.profile
             context['custom_shelves'] = profile.get_custom_shelves()
 
+            # ⚡ NOVO: Adicionar progresso de leitura se estiver lendo este livro
+            from accounts.models import ReadingProgress, BookShelf
+
+            # Verificar se livro está na prateleira "Lendo"
+            is_reading = BookShelf.objects.filter(
+                user=self.request.user,
+                book=book,
+                shelf_type='reading'
+            ).exists()
+
+            # Se está lendo, buscar o progresso
+            if is_reading:
+                reading_progress = ReadingProgress.objects.filter(
+                    user=self.request.user,
+                    book=book,
+                    is_abandoned=False,
+                    finished_at__isnull=True
+                ).select_related('book').first()
+
+                context['reading_progress'] = reading_progress
+
         return context

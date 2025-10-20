@@ -3,6 +3,35 @@
 
 {% block title %}{{ book.title }} - CGBookStore{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Estilo do slider de progresso */
+    .progress-slider-detail {
+        cursor: pointer;
+    }
+
+    .progress-slider-detail::-webkit-slider-thumb {
+        background: #198754;
+        cursor: pointer;
+    }
+
+    .progress-slider-detail::-moz-range-thumb {
+        background: #198754;
+        cursor: pointer;
+    }
+
+    /* Alert compacto */
+    .alert-sm {
+        font-size: 0.875rem;
+    }
+
+    /* Animação da barra de progresso */
+    .progress-bar-striped {
+        animation: progress-bar-stripes 1s linear infinite;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <!-- Breadcrumb -->
@@ -22,11 +51,11 @@
                 {% if book.cover_image %}
                     <img src="{{ book.cover_image.url }}" class="card-img-top" alt="{{ book.title }}">
                 {% else %}
-                    <img src="https://via.placeholder.com/400x600/6c757d/ffffff?text=Sem+Capa" 
+                    <img src="https://via.placeholder.com/400x600/6c757d/ffffff?text=Sem+Capa"
                          class="card-img-top" alt="Sem capa">
                 {% endif %}
             </div>
-            
+
             <!-- Botões de Ação -->
             <div class="d-grid gap-2 mt-3">
 
@@ -167,6 +196,85 @@
                                 </small>
                             </div>
                         </div>
+
+                        <!-- ⚡ NOVO: Widget de Progresso (apenas se estiver lendo) -->
+                        {% if reading_progress %}
+                        <div class="card mt-3 border-success shadow-sm">
+                            <div class="card-body p-3">
+                                <h6 class="card-subtitle mb-3 text-success">
+                                    <i class="fas fa-book-open me-2"></i>Seu Progresso de Leitura
+                                </h6>
+
+                                <!-- Barra de Progresso Visual -->
+                                <div class="progress mb-3" style="height: 10px;">
+                                    <div class="progress-bar bg-success progress-bar-striped"
+                                         role="progressbar"
+                                         style="width: {{ reading_progress.percentage }}%"
+                                         aria-valuenow="{{ reading_progress.percentage }}"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+
+                                <!-- Slider de Páginas -->
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">
+                                        <i class="fas fa-bookmark me-1"></i>Atualizar página atual:
+                                    </label>
+                                    <input type="range"
+                                           class="form-range progress-slider-detail"
+                                           min="0"
+                                           max="{{ reading_progress.total_pages }}"
+                                           value="{{ reading_progress.current_page }}"
+                                           data-book-id="{{ book.id }}"
+                                           id="progress-slider-{{ book.id }}">
+                                    <div class="d-flex justify-content-between align-items-center mt-1">
+                                        <small class="text-muted">
+                                            <span id="progress-text-{{ book.id }}">{{ reading_progress.current_page }}</span>
+                                            / {{ reading_progress.total_pages }} páginas
+                                        </small>
+                                        <span class="badge bg-success" id="progress-percentage-{{ book.id }}">
+                                            {{ reading_progress.percentage }}%
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Status do Prazo -->
+                                {% if reading_progress.deadline %}
+                                <div class="alert alert-sm py-2 px-3 mb-2
+                                            {% if reading_progress.deadline_status == 'overdue' %}alert-danger
+                                            {% elif reading_progress.deadline_status == 'approaching' %}alert-warning
+                                            {% else %}alert-info{% endif %}">
+                                    <small>
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        <strong>Prazo:</strong> {{ reading_progress.deadline|date:"d/m/Y" }}
+                                        {% if reading_progress.days_until_deadline > 0 %}
+                                            <span class="text-muted">({{ reading_progress.days_until_deadline }} dias restantes)</span>
+                                        {% elif reading_progress.days_until_deadline == 0 %}
+                                            <span class="text-danger fw-bold">(Vence hoje!)</span>
+                                        {% else %}
+                                            <span class="text-danger fw-bold">({{ reading_progress.days_overdue }} dias de atraso)</span>
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                {% endif %}
+
+                                <!-- Botões de Ação -->
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-sm btn-outline-success btn-set-deadline-detail"
+                                            data-book-id="{{ book.id }}">
+                                        <i class="fas fa-calendar-{% if reading_progress.deadline %}check{% else %}plus{% endif %} me-1"></i>
+                                        {% if reading_progress.deadline %}Alterar Prazo{% else %}Definir Prazo{% endif %}
+                                    </button>
+
+                                    <a href="{% url 'core:library' %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-book-reader me-1"></i>
+                                        Ver na Minha Biblioteca
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 {% else %}
                     <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary btn-lg">
@@ -542,6 +650,48 @@
     {% if user.is_authenticated %}
     document.addEventListener('DOMContentLoaded', function() {
         loadBookShelves();
+    });
+    {% endif %}
+
+    {% if reading_progress %}
+    // ⚡ Conectar slider de progresso na página de detalhes
+    document.addEventListener('DOMContentLoaded', function() {
+        const slider = document.getElementById('progress-slider-{{ book.id }}');
+        if (slider) {
+            slider.addEventListener('input', function() {
+                const currentPage = parseInt(this.value);
+                const totalPages = parseInt(this.max);
+                const percentage = Math.round((currentPage / totalPages) * 100);
+
+                // Atualizar UI local
+                document.getElementById('progress-text-{{ book.id }}').textContent = currentPage;
+                document.getElementById('progress-percentage-{{ book.id }}').textContent = percentage + '%';
+
+                // Atualizar barra
+                const progressBar = document.querySelector('.progress-bar');
+                if (progressBar) {
+                    progressBar.style.width = percentage + '%';
+                    progressBar.setAttribute('aria-valuenow', percentage);
+                }
+            });
+
+            slider.addEventListener('change', function() {
+                const currentPage = parseInt(this.value);
+
+                // Usar o ReadingProgressManager para salvar
+                if (window.readingProgressManager) {
+                    window.readingProgressManager.updateProgress({{ book.id }}, currentPage);
+                }
+            });
+        }
+
+        // Conectar botão de definir prazo
+        const deadlineBtn = document.querySelector('.btn-set-deadline-detail');
+        if (deadlineBtn && window.readingProgressManager) {
+            deadlineBtn.addEventListener('click', function() {
+                window.readingProgressManager.showDeadlineModal({{ book.id }});
+            });
+        }
     });
     {% endif %}
 </script>

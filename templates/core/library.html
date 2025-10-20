@@ -4,7 +4,9 @@
 {% block title %}Minha Biblioteca - CGBookStore{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/library-profile.css' %}">
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/library-profile.css' %}">
+    <link rel="stylesheet" href="{% static 'css/reading-progress.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -43,7 +45,7 @@
             <aside class="library-sidebar">
                 <h5 class="recuo">Minha Biblioteca</h5>
 
-                <!-- Navega��o Principal -->
+                <!-- Navegação Principal -->
                 <div class="library-nav-item active" data-shelf="favorites" onclick="showShelf('favorites')">
                     <i class="fas fa-heart text-danger"></i>
                     <span>Favoritos</span>
@@ -68,10 +70,16 @@
                     <span class="count" id="read-count">{{ read_count }}</span>
                 </div>
 
+                <div class="library-nav-item" data-shelf="abandoned" onclick="showShelf('abandoned')">
+                    <i class="fas fa-trash-alt text-warning"></i>
+                    <span>Abandonados</span>
+                    <span class="count" id="abandoned-count">{{ abandoned_count }}</span>
+                </div>
+
                 <hr class="my-3">
 
                 <!-- Estatasticas -->
-                {# ? ATUALIZADO: Vari�veis padronizadas para usar o objeto 'profile' #}
+                {# ? ATUALIZADO: Variáveis padronizadas para usar o objeto 'profile' #}
                 {% if profile %}
                     <div class="stats-card">
                         <div class="value">{{ profile.total_xp }}</div>
@@ -215,7 +223,7 @@
                         <div class="empty-shelf" style="grid-column: 1 / -1;">
                             <i class="fas fa-bookmark"></i>
                             <h4>Nenhum livro para ler</h4>
-                            <p>Adicione livros � sua lista "Quero Ler"!</p>
+                            <p>Adicione livros à sua lista "Quero Ler"!</p>
                             <a href="{% url 'core:book_list' %}" class="btn btn-primary mt-3">
                                 Explorar Livros
                             </a>
@@ -245,6 +253,33 @@
                             </a>
                             <div class="book-title">{{ item.book.title|truncatewords:4 }}</div>
                             <div class="book-author">{{ item.book.author.name }}</div>
+
+                            <!-- Barra de Progresso -->
+                            {% if item.book.reading_progress.first %}
+                            {% with progress=item.book.reading_progress.first %}
+                            <div class="mt-2">
+                                <!-- Barra de progresso visual simples -->
+                                <div class="progress" style="height: 6px; border-radius: 3px;">
+                                    <div class="progress-bar bg-success"
+                                         role="progressbar"
+                                         style="width: {{ progress.percentage }}%"
+                                         aria-valuenow="{{ progress.percentage }}"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+
+                                <!-- Info básica -->
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <small class="text-muted">
+                                        {{ progress.current_page }}/{{ progress.total_pages }} páginas
+                                    </small>
+                                    <span class="badge bg-success">{{ progress.percentage }}%</span>
+                                </div>
+                            </div>
+                            {% endwith %}
+                            {% endif %}
+
                             <div class="book-actions">
                                 <button class="btn btn-sm btn-outline-danger btn-remove-from-library"
                                         data-bookshelf-id="{{ item.id }}"
@@ -309,7 +344,60 @@
                     {% endif %}
                 </div>
 
-                <!-- Grids de Prateleiras Personalizadas (din�mico) -->
+                <!-- Grid de Livros - Abandonados -->
+                <div class="books-grid" id="shelf-abandoned" style="display: none;">
+                    {% if abandoned %}
+                        {% for item in abandoned %}
+                        <div class="book-card"
+                             data-bookshelf-id="{{ item.id }}"
+                             data-notes="{{ item.notes|default:'' }}">
+                            <a href="{% url 'core:book_detail' item.book.slug %}">
+                                <div class="book-cover-container">
+                                    {% if item.book.cover_image %}
+                                    <img src="{{ item.book.cover_image.url }}"
+                                         alt="{{ item.book.title }}"
+                                         class="book-cover">
+                                    {% else %}
+                                    <img src="https://via.placeholder.com/160x240/6c757d/ffffff?text=Sem+Capa"
+                                         alt="{{ item.book.title }}"
+                                         class="book-cover">
+                                    {% endif %}
+                                </div>
+                            </a>
+                            <div class="book-title">{{ item.book.title|truncatewords:4 }}</div>
+                            <div class="book-author">{{ item.book.author.name }}</div>
+
+                            {% if item.book.reading_progress.first %}
+                            <small class="text-muted d-block mt-1 mb-2">
+                                Progresso: {{ item.book.reading_progress.first.percentage }}%
+                            </small>
+                            {% endif %}
+
+                            <div class="book-actions">
+                                <button
+                                    class="btn btn-sm btn-success btn-restore-book"
+                                    data-book-id="{{ item.book.id }}"
+                                >
+                                    <i class="fas fa-undo"></i> Restaurar
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger btn-remove-from-library"
+                                        data-bookshelf-id="{{ item.id }}"
+                                        title="Remover">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-shelf" style="grid-column: 1 / -1;">
+                            <i class="fas fa-trash-alt"></i>
+                            <h4>Nenhum livro abandonado</h4>
+                            <p>Continue suas leituras para não precisar usar esta prateleira!</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Grids de Prateleiras Personalizadas (dinâmico) -->
                 {% for shelf in custom_shelves %}
                 <div class="books-grid"
                      id="shelf-custom-{{ shelf.name }}"
@@ -374,10 +462,10 @@
                                         <input type="text"
                                                class="form-control"
                                                id="libraryCustomShelfName"
-                                               placeholder="Ex: Fic��o Cient�fica Favorita"
+                                               placeholder="Ex: Ficção Científica Favorita"
                                                maxlength="100"
                                                required>
-                                        <div class="form-text">M�ximo 100 caracteres</div>
+                                        <div class="form-text">Máximo 100 caracteres</div>
                                         <div id="libraryCustomShelfError" class="text-danger mt-2" style="display: none;"></div>
                                     </div>
                                 </form>
@@ -431,11 +519,11 @@
                             <div class="alert alert-info mb-3">
                                 <i class="fas fa-info-circle me-2"></i>
                                 <strong>Gerencie suas prateleiras personalizadas.</strong>
-                                Renomeie ou delete prateleiras. Ao deletar, todos os livros da prateleira ser�o removidos.
+                                Renomeie ou delete prateleiras. Ao deletar, todos os livros da prateleira serão removidos.
                             </div>
 
                             <div id="shelves-list">
-                                <!-- Lista ser� preenchida via JavaScript -->
+                                <!-- Lista será preenchida via JavaScript -->
                                 <div class="text-center py-4">
                                     <div class="spinner-border text-primary" role="status">
                                         <span class="visually-hidden">Carregando...</span>
@@ -459,11 +547,12 @@
                                 </label>
                                 <select class="form-select" id="select-shelf" onchange="loadShelfBooks(this.value)">
                                     <option value="">-- Escolha uma prateleira --</option>
-                                    <optgroup label="Prateleiras Padr�o">
+                                    <optgroup label="Prateleiras Padrão">
                                         <option value="favorites">? Favoritos ({{ favorites_count }})</option>
                                         <option value="to_read">?? Quero Ler ({{ to_read_count }})</option>
                                         <option value="reading">?? Lendo ({{ reading_count }})</option>
                                         <option value="read">? Lidos ({{ read_count }})</option>
+                                        <option value="abandoned">?? Abandonados ({{ abandoned_count }})</option>
                                     </optgroup>
                                     {% if custom_shelves %}
                                     <optgroup label="Prateleiras Personalizadas">
@@ -592,7 +681,8 @@
     /**
      * Alterna entre prateleiras
      */
-    function showShelf(shelfType, customName = '') {
+    // ⚡ CORREÇÃO: Expor função no escopo global
+    window.showShelf = function(shelfType, customName = '') {
         // Atualizar navegação ativa
         document.querySelectorAll('.library-nav-item').forEach(item => {
             item.classList.remove('active');
@@ -620,14 +710,16 @@
             'favorites': 'Favoritos',
             'to_read': 'Quero Ler',
             'reading': 'Lendo',
-            'read': 'Lidos'
+            'read': 'Lidos',
+            'abandoned': 'Abandonados'
         };
 
         const counts = {
-            'favorites': {{ favorites_count }},
-            'to_read': {{ to_read_count }},
-            'reading': {{ reading_count }},
-            'read': {{ read_count }}
+            'favorites': {{ favorites_count|default:0 }},
+            'to_read': {{ to_read_count|default:0 }},
+            'reading': {{ reading_count|default:0 }},
+            'read': {{ read_count|default:0 }},
+            'abandoned': {{ abandoned_count|default:0 }}
         };
 
         let shelfTitle = titles[shelfType] || customName;
@@ -646,6 +738,9 @@
     // Inicializar
     document.addEventListener('DOMContentLoaded', function() {
         console.log('📚 Biblioteca carregada');
+
+        // Adicionar log para debug
+        console.log('✅ showShelf disponível:', typeof window.showShelf);
     });
 </script>
 
@@ -660,22 +755,18 @@
     }
 </script>
 
-{# ✅ CORREÇÃO: Modal ANTES do JavaScript que o utiliza #}
 {% include 'core/modals/add_book_modal.html' %}
 
-{# Scripts JavaScript #}
 <script src="{% static 'js/book-search.js' %}?v=1.0"></script>
 
 <script>
     document.addEventListener('libraryUpdated', function(e) {
         console.log('Evento "libraryUpdated" recebido! A biblioteca será atualizada.');
 
-        // 1. Mostrar um feedback visual de sucesso
         if (window.LibraryManager && typeof window.LibraryManager.showToast === 'function') {
             window.LibraryManager.showToast('Biblioteca atualizada!', 'success', 1500);
         }
 
-        // 2. Fechar o modal de busca se estiver aberto
         const addBookModalEl = document.getElementById('addBookModal');
         if (addBookModalEl) {
             const modalInstance = bootstrap.Modal.getInstance(addBookModalEl);
@@ -684,7 +775,6 @@
             }
         }
 
-        // 3. Recarregar a página para refletir todas as mudanças (contadores, grids, etc.)
         setTimeout(() => {
             window.location.reload();
         }, 1500);

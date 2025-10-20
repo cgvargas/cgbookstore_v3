@@ -18,6 +18,8 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/themes.css' %}">
 
+    <link rel="stylesheet" href="{% static 'css/reading-progress.css' %}">
+
     <!-- CSS Extra (para páginas específicas) -->
     {% block extra_css %}{% endblock %}
 
@@ -159,22 +161,28 @@
                         <i class="fas fa-circle-half-stroke"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeSwitcherBtn">
-                        <li>
-                            <a class="dropdown-item theme-option" href="#" data-theme="light">
-                                <i class="fas fa-sun"></i>Claro
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item theme-option" href="#" data-theme="dark">
-                                <i class="fas fa-moon"></i>Escuro
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item theme-option" href="#" data-theme="auto">
-                                <i class="fas fa-circle-half-stroke"></i>Sistema
-                            </a>
-                        </li>
+                        <li><a class="dropdown-item theme-option" href="#" data-theme="light"><i class="fas fa-sun"></i>Claro</a></li>
+                        <li><a class="dropdown-item theme-option" href="#" data-theme="dark"><i class="fas fa-moon"></i>Escuro</a></li>
+                        <li><a class="dropdown-item theme-option" href="#" data-theme="auto"><i class="fas fa-circle-half-stroke"></i>Sistema</a></li>
                     </ul>
+                </div>
+
+                <!-- Centro de Notificações -->
+                <div class="notifications-container me-3">
+                    <button class="notifications-toggle" aria-label="Notificações">
+                        <i class="fas fa-bell"></i>
+                        <span class="notifications-badge">0</span>
+                    </button>
+
+                    <div class="notifications-dropdown">
+                        <div class="notifications-header">
+                            <h4>Notificações</h4>
+                            <button class="btn-mark-all-read">Marcar todas como lidas</button>
+                        </div>
+                        <div class="notifications-list">
+                            <!-- Preenchido dinamicamente -->
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Menu do Usuário -->
@@ -256,6 +264,7 @@
 <!-- JavaScript Extra (para páginas específicas) -->
 {% block extra_js %}
     <script src="{% static 'js/profile-manager.js' %}?v=1.0"></script>
+    <script src="{% static 'js/reading-progress.js' %}"></script>
 {% endblock %}
 
 <script src="{% static 'js/library-manager.js' %}?v=1.0"></script>
