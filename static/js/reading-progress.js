@@ -1,6 +1,11 @@
 /**
  * Sistema de Gerenciamento de Progresso de Leitura e Notificações
  * CGBookStore v3
+ *
+ * CORREÇÕES APLICADAS:
+ * ✓ Método updateProgress(bookId, currentPage) - público
+ * ✓ Método showDeadlineModal(bookId) - público
+ * ✓ Método updateProgressFromEvent(event) - interno
  */
 
 // ========== UTILITÁRIOS ==========
@@ -52,7 +57,7 @@ class ReadingProgressManager {
     init() {
         // Atualizar progresso
         document.querySelectorAll('.progress-slider').forEach(slider => {
-            slider.addEventListener('change', (e) => this.updateProgress(e));
+            slider.addEventListener('change', (e) => this.updateProgressFromEvent(e));
         });
 
         // Botões de prazo
@@ -71,13 +76,12 @@ class ReadingProgressManager {
         });
     }
 
-    async updateProgress(event) {
-        const slider = event.target;
-        const bookId = slider.dataset.bookId;
-        const currentPage = parseInt(slider.value);
-        const progressText = slider.parentElement.querySelector('.progress-text');
-        const progressBar = slider.parentElement.querySelector('.progress-bar');
-
+    /**
+     * ✨ NOVO: Método público para atualizar progresso (chamado do book_detail.html)
+     * @param {number} bookId - ID do livro
+     * @param {number} currentPage - Página atual
+     */
+    async updateProgress(bookId, currentPage) {
         try {
             const response = await fetch('/api/reading/update-progress/', {
                 method: 'POST',
@@ -94,29 +98,57 @@ class ReadingProgressManager {
             const data = await response.json();
 
             if (data.success) {
-                // Atualizar UI
-                if (progressText) {
-                    progressText.textContent = `${currentPage}/${data.progress.total_pages} páginas (${data.progress.percentage}%)`;
-                }
-
-                if (progressBar) {
-                    progressBar.style.width = `${data.progress.percentage}%`;
-                }
-
-                // Mostrar mensagem
                 showToast(data.message, 'success');
 
                 // Se completou, recarregar página
                 if (data.progress.is_finished) {
                     setTimeout(() => location.reload(), 2000);
                 }
+
+                return data;
             } else {
                 showToast(data.message, 'error');
+                return null;
             }
         } catch (error) {
             console.error('Erro ao atualizar progresso:', error);
             showToast('Erro ao atualizar progresso', 'error');
+            return null;
         }
+    }
+
+    /**
+     * 🔄 MODIFICADO: Método interno para atualizar progresso via evento (biblioteca)
+     */
+    async updateProgressFromEvent(event) {
+        const slider = event.target;
+        const bookId = slider.dataset.bookId;
+        const currentPage = parseInt(slider.value);
+        const progressText = slider.parentElement.querySelector('.progress-text');
+        const progressBar = slider.parentElement.querySelector('.progress-bar');
+
+        const data = await this.updateProgress(bookId, currentPage);
+
+        if (data && data.success) {
+            // Atualizar UI da biblioteca
+            if (progressText) {
+                progressText.textContent = `${currentPage}/${data.progress.total_pages} páginas (${data.progress.percentage}%)`;
+            }
+
+            if (progressBar) {
+                progressBar.style.width = `${data.progress.percentage}%`;
+            }
+        }
+    }
+
+    /**
+     * ✨ NOVO: Método público para mostrar modal de prazo (chamado do book_detail.html)
+     * @param {number} bookId - ID do livro
+     */
+    showDeadlineModal(bookId) {
+        const modal = this.createDeadlineModal(bookId, 'este livro');
+        document.body.appendChild(modal);
+        setTimeout(() => modal.classList.add('show'), 10);
     }
 
     openDeadlineModal(event) {
