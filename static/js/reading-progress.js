@@ -1,475 +1,221 @@
 /**
- * Sistema de Gerenciamento de Progresso de Leitura e Notificações
- * CGBookStore v3
+ * Reading Progress Manager - CGBookStore v3
  *
- * CORREÇÕES APLICADAS:
- * ✓ Método updateProgress(bookId, currentPage) - público
- * ✓ Método showDeadlineModal(bookId) - público
- * ✓ Método updateProgressFromEvent(event) - interno
+ * Gerencia a atualização de progresso de leitura, prazos e
+ * interações na página de detalhes do livro.
  */
+const ReadingProgressManager = (function() {
+    'use strict';
 
-// ========== UTILITÁRIOS ==========
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+    // Função auxiliar para obter o CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
-    }
-    return cookieValue;
-}
-
-function showToast(message, type = 'success') {
-    // Criar toast
-    const toast = document.createElement('div');
-    toast.className = `toast-notification toast-${type}`;
-    toast.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-        <span>${message}</span>
-    `;
-
-    document.body.appendChild(toast);
-
-    // Animar entrada
-    setTimeout(() => toast.classList.add('show'), 100);
-
-    // Remover após 3 segundos
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// ========== PROGRESSO DE LEITURA ==========
-
-class ReadingProgressManager {
-    constructor() {
-        this.csrfToken = getCookie('csrftoken');
-        this.init();
+        return cookieValue;
     }
 
-    init() {
-        // Atualizar progresso
-        document.querySelectorAll('.progress-slider').forEach(slider => {
-            slider.addEventListener('change', (e) => this.updateProgressFromEvent(e));
-        });
-
-        // Botões de prazo
-        document.querySelectorAll('.btn-set-deadline').forEach(btn => {
-            btn.addEventListener('click', (e) => this.openDeadlineModal(e));
-        });
-
-        // Botões de abandono
-        document.querySelectorAll('.btn-abandon-book').forEach(btn => {
-            btn.addEventListener('click', (e) => this.abandonBook(e));
-        });
-
-        // Botões de restauração
-        document.querySelectorAll('.btn-restore-book').forEach(btn => {
-            btn.addEventListener('click', (e) => this.restoreBook(e));
-        });
+    // Função para mostrar notificações (usa o Toast do LibraryManager, se disponível)
+    function showToast(message, type = 'info') {
+        if (window.LibraryManager && typeof window.LibraryManager.showToast === 'function') {
+            window.LibraryManager.showToast(message, type);
+        } else {
+            // Fallback simples se o LibraryManager não estiver disponível
+            console.log(`[Toast][${type}]: ${message}`);
+            alert(message);
+        }
     }
 
     /**
-     * ✨ NOVO: Método público para atualizar progresso (chamado do book_detail.html)
-     * @param {number} bookId - ID do livro
-     * @param {number} currentPage - Página atual
+     * Salva o progresso de leitura atual.
      */
-    async updateProgress(bookId, currentPage) {
+    async function updateProgress() {
+        const container = document.getElementById('readingProgressWidget');
+        if (!container) return; // Se o widget não está na página, não faz nada
+
+        const bookId = container.dataset.bookId;
+        const currentPageInput = document.getElementById('currentPage');
+        const totalPages = parseInt(document.getElementById('totalPages').textContent, 10);
+        const updateBtn = document.getElementById('updateProgressBtn');
+
+        const currentPage = parseInt(currentPageInput.value, 10);
+
+        // Validação
+        if (isNaN(currentPage) || currentPage < 0) {
+            showToast('Por favor, insira um número de página válido.', 'error');
+            return;
+        }
+        if (currentPage > totalPages) {
+            showToast(`A página atual não pode ser maior que o total (${totalPages}).`, 'warning');
+            currentPageInput.value = totalPages; // Corrige o valor para o máximo
+            return;
+        }
+
+        // Estado de loading do botão
+        updateBtn.disabled = true;
+        updateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Salvando...';
+
         try {
             const response = await fetch('/api/reading/update-progress/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': this.csrfToken
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({
-                    book_id: bookId,
-                    current_page: currentPage
-                })
+                body: JSON.stringify({ book_id: bookId, current_page: currentPage })
             });
 
             const data = await response.json();
 
             if (data.success) {
                 showToast(data.message, 'success');
-
-                // Se completou, recarregar página
-                if (data.progress.is_finished) {
-                    setTimeout(() => location.reload(), 2000);
-                }
-
-                return data;
+                // Atualizar a UI com os novos dados retornados pela API
+                const newPercentage = data.progress.percentage;
+                document.getElementById('progress-bar-inner').style.width = newPercentage + '%';
+                document.getElementById('progress-bar-inner').setAttribute('aria-valuenow', newPercentage);
+                document.getElementById('progress-percentage').textContent = newPercentage + '%';
             } else {
-                showToast(data.message, 'error');
-                return null;
+                showToast(data.message || 'Erro ao salvar o progresso.', 'error');
             }
+
         } catch (error) {
-            console.error('Erro ao atualizar progresso:', error);
-            showToast('Erro ao atualizar progresso', 'error');
-            return null;
+            console.error('Erro de rede ao salvar progresso:', error);
+            showToast('Erro de conexão. Tente novamente.', 'error');
+        } finally {
+            updateBtn.disabled = false;
+            updateBtn.innerHTML = '<i class="fas fa-save me-2"></i>Salvar Progresso';
         }
     }
 
     /**
-     * 🔄 MODIFICADO: Método interno para atualizar progresso via evento (biblioteca)
+     * Mostra o modal para definir o prazo de leitura.
      */
-    async updateProgressFromEvent(event) {
-        const slider = event.target;
-        const bookId = slider.dataset.bookId;
-        const currentPage = parseInt(slider.value);
-        const progressText = slider.parentElement.querySelector('.progress-text');
-        const progressBar = slider.parentElement.querySelector('.progress-bar');
+    async function showDeadlineModal() {
+        const container = document.getElementById('readingProgressWidget');
+        if (!container) return;
 
-        const data = await this.updateProgress(bookId, currentPage);
+        const bookId = container.dataset.bookId;
+        const currentDeadline = container.dataset.deadline || new Date().toISOString().split('T')[0];
 
-        if (data && data.success) {
-            // Atualizar UI da biblioteca
-            if (progressText) {
-                progressText.textContent = `${currentPage}/${data.progress.total_pages} páginas (${data.progress.percentage}%)`;
-            }
-
-            if (progressBar) {
-                progressBar.style.width = `${data.progress.percentage}%`;
-            }
-        }
-    }
-
-    /**
-     * ✨ NOVO: Método público para mostrar modal de prazo (chamado do book_detail.html)
-     * @param {number} bookId - ID do livro
-     */
-    showDeadlineModal(bookId) {
-        const modal = this.createDeadlineModal(bookId, 'este livro');
-        document.body.appendChild(modal);
-        setTimeout(() => modal.classList.add('show'), 10);
-    }
-
-    openDeadlineModal(event) {
-        const button = event.target.closest('.btn-set-deadline');
-        const bookId = button.dataset.bookId;
-        const bookTitle = button.dataset.bookTitle;
-
-        // Criar modal
-        const modal = this.createDeadlineModal(bookId, bookTitle);
-        document.body.appendChild(modal);
-
-        // Mostrar modal
-        setTimeout(() => modal.classList.add('show'), 10);
-    }
-
-    createDeadlineModal(bookId, bookTitle) {
-        const modal = document.createElement('div');
-        modal.className = 'deadline-modal';
-        modal.innerHTML = `
-            <div class="deadline-modal-content">
-                <div class="deadline-modal-header">
-                    <h3>Definir Prazo de Leitura</h3>
-                    <button class="btn-close-modal">&times;</button>
-                </div>
-                <div class="deadline-modal-body">
-                    <p><strong>${bookTitle}</strong></p>
-                    <label for="deadline-date">Data limite:</label>
-                    <input type="date" id="deadline-date" class="form-control"
-                           min="${new Date().toISOString().split('T')[0]}">
-                </div>
-                <div class="deadline-modal-footer">
-                    <button class="btn btn-secondary btn-cancel-deadline">Cancelar</button>
-                    <button class="btn btn-primary btn-save-deadline" data-book-id="${bookId}">Salvar</button>
-                </div>
-            </div>
-        `;
-
-        // Event listeners
-        modal.querySelector('.btn-close-modal').addEventListener('click', () => this.closeModal(modal));
-        modal.querySelector('.btn-cancel-deadline').addEventListener('click', () => this.closeModal(modal));
-        modal.querySelector('.btn-save-deadline').addEventListener('click', (e) => this.saveDeadline(e, modal));
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) this.closeModal(modal);
-        });
-
-        return modal;
-    }
-
-    closeModal(modal) {
-        modal.classList.remove('show');
-        setTimeout(() => modal.remove(), 300);
-    }
-
-    async saveDeadline(event, modal) {
-        const button = event.target;
-        const bookId = button.dataset.bookId;
-        const deadlineInput = modal.querySelector('#deadline-date');
-        const deadline = deadlineInput.value;
-
-        if (!deadline) {
-            showToast('Por favor, selecione uma data', 'error');
+        // Usa SweetAlert2, que é uma dependência esperada no projeto
+        if (typeof Swal === 'undefined') {
+            showToast('Componente de modal (SweetAlert2) não carregado.', 'error');
             return;
         }
 
+        const { value: newDeadline } = await Swal.fire({
+            title: 'Definir Prazo de Leitura',
+            html: `<p class="mb-2">Escolha uma data para terminar este livro.</p>
+                   <input type="date" id="deadline-input" class="swal2-input" value="${currentDeadline}">`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-check me-2"></i>Definir Prazo',
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                const dateValue = document.getElementById('deadline-input').value;
+                if (!dateValue) {
+                    Swal.showValidationMessage('Por favor, selecione uma data.');
+                    return false;
+                }
+                if (new Date(dateValue) < new Date().setHours(0,0,0,0)) {
+                    Swal.showValidationMessage('O prazo não pode ser uma data passada.');
+                    return false;
+                }
+                return dateValue;
+            }
+        });
+
+        if (newDeadline) {
+            setDeadline(bookId, newDeadline);
+        }
+    }
+
+    /**
+     * Envia o novo prazo para a API.
+     */
+    async function setDeadline(bookId, deadline) {
         try {
             const response = await fetch('/api/reading/set-deadline/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': this.csrfToken
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({
-                    book_id: bookId,
-                    deadline: deadline
-                })
+                body: JSON.stringify({ book_id: bookId, deadline: deadline })
             });
 
             const data = await response.json();
 
             if (data.success) {
                 showToast(data.message, 'success');
-                this.closeModal(modal);
-                setTimeout(() => location.reload(), 1000);
+                // Atualizar a UI
+                const deadlineDisplay = document.getElementById('deadline-display');
+                const deadlineBtn = document.getElementById('setDeadlineBtn');
+                const formattedDate = new Date(deadline + 'T00:00:00').toLocaleDateString('pt-BR');
+
+                if (deadlineDisplay) {
+                    deadlineDisplay.innerHTML = `<strong>Prazo:</strong> ${formattedDate}`;
+                }
+                if(deadlineBtn) {
+                    deadlineBtn.innerHTML = '<i class="fas fa-calendar-alt me-2"></i>Alterar Prazo';
+                }
+                // Atualizar o data-attribute para a próxima vez que o modal for aberto
+                document.getElementById('readingProgressWidget').dataset.deadline = deadline;
+
             } else {
-                showToast(data.message, 'error');
+                showToast(data.message || 'Erro ao definir o prazo.', 'error');
             }
         } catch (error) {
-            console.error('Erro ao definir prazo:', error);
-            showToast('Erro ao definir prazo', 'error');
+            console.error('Erro de rede ao definir prazo:', error);
+            showToast('Erro de conexão. Tente novamente.', 'error');
         }
     }
 
-    async abandonBook(event) {
-        const button = event.target.closest('.btn-abandon-book');
-        const bookId = button.dataset.bookId;
-        const bookTitle = button.dataset.bookTitle;
-
-        if (!confirm(`Tem certeza que deseja abandonar "${bookTitle}"?`)) {
+    /**
+     * Inicializa os event listeners do widget.
+     */
+    function init() {
+        const widget = document.getElementById('readingProgressWidget');
+        // Só inicializa se o widget estiver presente na página
+        if (!widget) {
             return;
         }
 
-        try {
-            const response = await fetch('/api/reading/abandon-book/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': this.csrfToken
-                },
-                body: JSON.stringify({
-                    book_id: bookId
-                })
-            });
+        console.log('📚 Reading Progress Manager inicializado para a página de detalhes.');
 
-            const data = await response.json();
+        const updateBtn = document.getElementById('updateProgressBtn');
+        const deadlineBtn = document.getElementById('setDeadlineBtn');
+        const currentPageInput = document.getElementById('currentPage');
 
-            if (data.success) {
-                showToast(data.message, 'success');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                showToast(data.message, 'error');
-            }
-        } catch (error) {
-            console.error('Erro ao abandonar livro:', error);
-            showToast('Erro ao abandonar livro', 'error');
-        }
-    }
-
-    async restoreBook(event) {
-        const button = event.target.closest('.btn-restore-book');
-        const bookId = button.dataset.bookId;
-
-        try {
-            const response = await fetch('/api/reading/restore-book/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': this.csrfToken
-                },
-                body: JSON.stringify({
-                    book_id: bookId
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                showToast(data.message, 'success');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                showToast(data.message, 'error');
-            }
-        } catch (error) {
-            console.error('Erro ao restaurar livro:', error);
-            showToast('Erro ao restaurar livro', 'error');
-        }
-    }
-}
-
-// ========== NOTIFICAÇÕES ==========
-
-class NotificationManager {
-    constructor() {
-        this.csrfToken = getCookie('csrftoken');
-        this.init();
-    }
-
-    init() {
-        this.loadNotifications();
-
-        // Dropdown toggle
-        const notifToggle = document.querySelector('.notifications-toggle');
-        if (notifToggle) {
-            notifToggle.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.toggleDropdown();
-            });
+        if (updateBtn) {
+            updateBtn.addEventListener('click', updateProgress);
         }
 
-        // Marcar todas como lidas
-        const markAllBtn = document.querySelector('.btn-mark-all-read');
-        if (markAllBtn) {
-            markAllBtn.addEventListener('click', () => this.markAllAsRead());
+        if (deadlineBtn) {
+            deadlineBtn.addEventListener('click', showDeadlineModal);
         }
 
-        // Fechar dropdown ao clicar fora
-        document.addEventListener('click', (e) => {
-            const dropdown = document.querySelector('.notifications-dropdown');
-            const toggle = document.querySelector('.notifications-toggle');
-            if (dropdown && !dropdown.contains(e.target) && !toggle.contains(e.target)) {
-                dropdown.classList.remove('show');
-            }
-        });
-    }
-
-    toggleDropdown() {
-        const dropdown = document.querySelector('.notifications-dropdown');
-        if (dropdown) {
-            dropdown.classList.toggle('show');
-        }
-    }
-
-    async loadNotifications() {
-        try {
-            const response = await fetch('/api/notifications/list/?limit=10');
-            const data = await response.json();
-
-            if (data.success) {
-                this.updateBadge(data.unread_count);
-                this.renderNotifications(data.notifications);
-            }
-        } catch (error) {
-            console.error('Erro ao carregar notificações:', error);
-        }
-    }
-
-    updateBadge(count) {
-        const badge = document.querySelector('.notifications-badge');
-        if (badge) {
-            if (count > 0) {
-                badge.textContent = count > 9 ? '9+' : count;
-                badge.style.display = 'flex';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-    }
-
-    renderNotifications(notifications) {
-        const container = document.querySelector('.notifications-list');
-        if (!container) return;
-
-        if (notifications.length === 0) {
-            container.innerHTML = '<div class="notification-empty">Nenhuma notificação</div>';
-            return;
-        }
-
-        container.innerHTML = notifications.map(notif => `
-            <div class="notification-item ${notif.is_read ? 'read' : 'unread'}"
-                 data-notification-id="${notif.id}">
-                <div class="notification-icon">
-                    <i class="${notif.icon_class}"></i>
-                </div>
-                <div class="notification-content">
-                    <div class="notification-title">${notif.type_display}</div>
-                    <div class="notification-book">${notif.book_title}</div>
-                    <div class="notification-message">${notif.message}</div>
-                    <div class="notification-time">${notif.formatted_time}</div>
-                </div>
-                ${!notif.is_read ? `
-                    <button class="btn-mark-read" data-notification-id="${notif.id}">
-                        <i class="fas fa-check"></i>
-                    </button>
-                ` : ''}
-            </div>
-        `).join('');
-
-        // Event listeners para marcar como lida
-        container.querySelectorAll('.btn-mark-read').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.markAsRead(btn.dataset.notificationId);
-            });
-        });
-    }
-
-    async markAsRead(notificationId) {
-        try {
-            const response = await fetch('/api/notifications/mark-read/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': this.csrfToken
-                },
-                body: JSON.stringify({
-                    notification_id: notificationId
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                this.loadNotifications();
-            }
-        } catch (error) {
-            console.error('Erro ao marcar notificação:', error);
-        }
-    }
-
-    async markAllAsRead() {
-        try {
-            const response = await fetch('/api/notifications/mark-all-read/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': this.csrfToken
+        // Permite salvar pressionando Enter no campo da página
+        if (currentPageInput) {
+            currentPageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Impede o envio de formulário
+                    updateBtn.click(); // Simula o clique no botão de salvar
                 }
             });
-
-            const data = await response.json();
-
-            if (data.success) {
-                showToast(data.message, 'success');
-                this.loadNotifications();
-            }
-        } catch (error) {
-            console.error('Erro ao marcar todas:', error);
         }
     }
-}
 
-// ========== INICIALIZAÇÃO ==========
+    return { init: init };
+})();
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Inicializar gerenciadores
-    window.readingProgressManager = new ReadingProgressManager();
-    window.notificationManager = new NotificationManager();
-
-    // Atualizar notificações a cada 5 minutos
-    setInterval(() => {
-        if (window.notificationManager) {
-            window.notificationManager.loadNotifications();
-        }
-    }, 300000); // 5 minutos
-});
+// Auto-inicializar quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', ReadingProgressManager.init);

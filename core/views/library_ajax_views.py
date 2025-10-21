@@ -9,7 +9,7 @@ from django.views.decorators.http import require_http_methods
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from core.models import Book
-from accounts.models import BookShelf
+from accounts.models import BookShelf, ReadingProgress
 import json
 
 @login_required
@@ -19,7 +19,6 @@ def add_to_shelf(request):
     Adiciona um livro a uma prateleira do usuário.
     Se a prateleira personalizada não existir no perfil do usuário, ela é criada.
     """
-
     try:
         data = json.loads(request.body)
         book_id = data.get('book_id')
@@ -28,7 +27,6 @@ def add_to_shelf(request):
         notes = data.get('notes', '').strip()
 
         if not book_id:
-            print("--- [DEBUG] ERRO: Book ID não fornecido.")
             return JsonResponse({'success': False, 'message': 'ID do livro não fornecido.'}, status=400)
 
         book = get_object_or_404(Book, id=book_id)
@@ -39,51 +37,47 @@ def add_to_shelf(request):
 
         if shelf_type == 'custom':
             if not custom_shelf_name:
-                return JsonResponse({'success': False, 'message': 'Nome da prateleira personalizada é obrigatório.'},
-                                    status=400)
-            if len(custom_shelf_name) > 100:
-                return JsonResponse(
-                    {'success': False, 'message': 'Nome da prateleira muito longo (máx: 100 caracteres).'}, status=400)
-
-            # =======================================================================
-            #  NOVA LÓGICA CRUCIAL: GARANTIR QUE A PRATELEIRA EXISTA NO PERFIL
-            # =======================================================================
+                return JsonResponse({'success': False, 'message': 'Nome da prateleira personalizada é obrigatório.'}, status=400)
             profile = request.user.profile
             if not profile.has_custom_shelf(custom_shelf_name):
                 profile.add_custom_shelf(custom_shelf_name)
-            # =======================================================================
 
-        # A lógica para verificar se o livro já está na prateleira continua a mesma
         existing = BookShelf.objects.filter(
-            user=request.user,
-            book=book,
-            shelf_type=shelf_type,
+            user=request.user, book=book, shelf_type=shelf_type,
             custom_shelf_name=custom_shelf_name if shelf_type == 'custom' else ''
         ).first()
 
         if existing:
             shelf_display = existing.get_shelf_display()
-            return JsonResponse({'success': False, 'message': f'"{book.title}" já está em "{shelf_display}".'},
-                                status=400)
+            return JsonResponse({'success': False, 'message': f'"{book.title}" já está em "{shelf_display}".'}, status=400)
 
-        # Criar a entrada na tabela BookShelf
         bookshelf = BookShelf.objects.create(
-            user=request.user,
-            book=book,
-            shelf_type=shelf_type,
+            user=request.user, book=book, shelf_type=shelf_type,
             custom_shelf_name=custom_shelf_name if shelf_type == 'custom' else '',
             notes=notes
         )
 
-        # Calcular contadores atualizados
+        # =========================================================================
+        #  PONTO CRÍTICO DA CORREÇÃO (add_to_shelf)
+        #  Se o livro for adicionado à prateleira "Lendo", crie o progresso.
+        # =========================================================================
+        if shelf_type == 'reading':
+            ReadingProgress.objects.get_or_create(
+                user=request.user,
+                book=book,
+                defaults={
+                    'total_pages': book.page_count or 1,  # Usa 1 como fallback se não houver contagem
+                    'current_page': 0
+                }
+            )
+        # =========================================================================
+
         shelf_counts = {
             'favorites': BookShelf.objects.filter(user=request.user, shelf_type='favorites').count(),
             'to_read': BookShelf.objects.filter(user=request.user, shelf_type='to_read').count(),
             'reading': BookShelf.objects.filter(user=request.user, shelf_type='reading').count(),
             'read': BookShelf.objects.filter(user=request.user, shelf_type='read').count(),
-            'abandoned': BookShelf.objects.filter(user=request.user, shelf_type='abandoned').count(),
         }
-
         shelf_display = bookshelf.get_shelf_display()
 
         return JsonResponse({
@@ -92,17 +86,8 @@ def add_to_shelf(request):
             'shelf_counts': shelf_counts,
             'bookshelf_id': bookshelf.id
         })
-
-    except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'message': 'Dados JSON inválidos.'
-        }, status=400)
     except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'message': f'Erro ao adicionar livro: {str(e)}'
-        }, status=500)
+        return JsonResponse({'success': False, 'message': f'Erro ao adicionar livro: {str(e)}'}, status=500)
 
 
 @login_required
@@ -301,15 +286,11 @@ def move_to_shelf(request):
         new_shelf_type = data.get('new_shelf_type')
         new_custom_shelf_name = data.get('new_custom_shelf_name', '').strip()
 
-        # Validações
         if not bookshelf_id or not new_shelf_type:
-            return JsonResponse({
-                'success': False,
-                'message': 'Parâmetros incompletos.'
-            }, status=400)
+            return JsonResponse({'success': False, 'message': 'Parâmetros incompletos.'}, status=400)
 
-        # Buscar bookshelf existente
         bookshelf = get_object_or_404(BookShelf, id=bookshelf_id, user=request.user)
+        book = bookshelf.book  # Pega a referência ao livro
 
         # Validar novo shelf_type
         valid_shelf_types = ['favorites', 'to_read', 'reading', 'read', 'abandoned', 'custom']
@@ -347,6 +328,16 @@ def move_to_shelf(request):
         bookshelf.shelf_type = new_shelf_type
         bookshelf.custom_shelf_name = new_custom_shelf_name if new_shelf_type == 'custom' else ''
         bookshelf.save()
+
+        if new_shelf_type == 'reading':
+            ReadingProgress.objects.get_or_create(
+                user=request.user,
+                book=book,
+                defaults={
+                    'total_pages': book.page_count or 1,
+                    'current_page': 0
+                }
+            )
 
         new_shelf_display = bookshelf.get_shelf_display()
 

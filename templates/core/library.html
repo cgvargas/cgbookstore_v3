@@ -79,7 +79,7 @@
                 <hr class="my-3">
 
                 <!-- Estatasticas -->
-                {# ? ATUALIZADO: Variáveis padronizadas para usar o objeto 'profile' #}
+                {# ✅ ATUALIZADO: Variáveis padronizadas para usar o objeto 'profile' #}
                 {% if profile %}
                     <div class="stats-card">
                         <div class="value">{{ profile.total_xp }}</div>
@@ -445,8 +445,13 @@
                 </div>
                 {% endfor %}
 
-                <!-- Modal - Criar Prateleira Personalizada -->
-                <div class="modal fade" id="libraryCustomShelfModal" tabindex="-1" aria-labelledby="libraryCustomShelfModalLabel" aria-hidden="true">
+                <!-- ✅ MODAL CORRIGIDO - Criar Prateleira Personalizada -->
+                <div class="modal fade" id="libraryCustomShelfModal"
+                     tabindex="-1"
+                     aria-labelledby="libraryCustomShelfModalLabel"
+                     aria-hidden="true"
+                     data-bs-backdrop="true"
+                     data-bs-keyboard="true">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header">
@@ -474,7 +479,7 @@
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                     <i class="fas fa-times me-2"></i>Cancelar
                                 </button>
-                                <button type="button" class="btn btn-primary" id="libraryCreateCustomShelfBtn" onclick="createLibraryCustomShelf()">
+                                <button type="button" class="btn btn-primary" id="libraryCreateCustomShelfBtn">
                                     <i class="fas fa-check me-2"></i>Criar Prateleira
                                 </button>
                             </div>
@@ -548,17 +553,17 @@
                                 <select class="form-select" id="select-shelf" onchange="loadShelfBooks(this.value)">
                                     <option value="">-- Escolha uma prateleira --</option>
                                     <optgroup label="Prateleiras Padrão">
-                                        <option value="favorites">? Favoritos ({{ favorites_count }})</option>
-                                        <option value="to_read">?? Quero Ler ({{ to_read_count }})</option>
-                                        <option value="reading">?? Lendo ({{ reading_count }})</option>
-                                        <option value="read">? Lidos ({{ read_count }})</option>
-                                        <option value="abandoned">?? Abandonados ({{ abandoned_count }})</option>
+                                        <option value="favorites">❤ Favoritos ({{ favorites_count }})</option>
+                                        <option value="to_read">🔖 Quero Ler ({{ to_read_count }})</option>
+                                        <option value="reading">📖 Lendo ({{ reading_count }})</option>
+                                        <option value="read">✅ Lidos ({{ read_count }})</option>
+                                        <option value="abandoned">🗑️ Abandonados ({{ abandoned_count }})</option>
                                     </optgroup>
                                     {% if custom_shelves %}
                                     <optgroup label="Prateleiras Personalizadas">
                                         {% for shelf in custom_shelves %}
                                         <option value="custom:{{ shelf.name }}">
-                                            ?? {{ shelf.name }} ({{ shelf.count }})
+                                            📁 {{ shelf.name }} ({{ shelf.count }})
                                         </option>
                                         {% endfor %}
                                     </optgroup>
@@ -594,94 +599,20 @@
 {{ block.super }}
 <script>
     /**
-     * Mostra modal de criar prateleira na biblioteca
+     * ✅ CORREÇÃO: Delegar gerenciamento do modal para LibraryManager
      */
-    function showLibraryCustomShelfModal() {
-        // Limpar form
-        document.getElementById('libraryCustomShelfName').value = '';
-        document.getElementById('libraryCustomShelfError').style.display = 'none';
-
-        // Mostrar modal
-        const modal = new bootstrap.Modal(document.getElementById('libraryCustomShelfModal'));
-        modal.show();
-
-        // Focar no input
-        setTimeout(() => {
-            document.getElementById('libraryCustomShelfName').focus();
-        }, 500);
+    window.showLibraryCustomShelfModal = function() {
+        if (window.LibraryManager && typeof window.LibraryManager.showCustomShelfModal === 'function') {
+            window.LibraryManager.showCustomShelfModal();
+        } else {
+            console.error('LibraryManager não está disponível');
+        }
     }
-
-    /**
-     * Cria prateleira personalizada na biblioteca
-     */
-    function createLibraryCustomShelf() {
-        const nameInput = document.getElementById('libraryCustomShelfName');
-        const errorDiv = document.getElementById('libraryCustomShelfError');
-        const createBtn = document.getElementById('libraryCreateCustomShelfBtn');
-
-        const customShelfName = nameInput.value.trim();
-
-        // Validação
-        if (!customShelfName) {
-            errorDiv.textContent = 'Por favor, insira um nome para a prateleira.';
-            errorDiv.style.display = 'block';
-            nameInput.focus();
-            return;
-        }
-
-        if (customShelfName.length > 100) {
-            errorDiv.textContent = 'Nome muito longo (máximo 100 caracteres).';
-            errorDiv.style.display = 'block';
-            return;
-        }
-
-        // Loading
-        createBtn.disabled = true;
-        createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Criando...';
-        errorDiv.style.display = 'none';
-
-        // Criar prateleira
-        LibraryManager.createCustomShelf(customShelfName)
-            .then(data => {
-                if (data.success) {
-                    // Fechar modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('libraryCustomShelfModal'));
-                    modal.hide();
-
-                    // Recarregar página para mostrar nova prateleira
-                    LibraryManager.showToast('Prateleira criada! Recarregando...', 'success', 1500);
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    // Mostrar erro
-                    errorDiv.textContent = data.message;
-                    errorDiv.style.display = 'block';
-                }
-            })
-            .catch(error => {
-                errorDiv.textContent = 'Erro ao criar prateleira. Tente novamente.';
-                errorDiv.style.display = 'block';
-            })
-            .finally(() => {
-                // Restaurar botão
-                createBtn.disabled = false;
-                createBtn.innerHTML = '<i class="fas fa-check me-2"></i>Criar Prateleira';
-            });
-    }
-
-    // Adicionar listener para Enter no form
-    document.getElementById('libraryCustomShelfName')?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            createLibraryCustomShelf();
-        }
-    });
 
     /**
      * Alterna entre prateleiras
      */
-    // ⚡ CORREÇÃO: Expor função no escopo global
+    // ✅ CORREÇÃO: Expor função no escopo global
     window.showShelf = function(shelfType, customName = '') {
         // Atualizar navegação ativa
         document.querySelectorAll('.library-nav-item').forEach(item => {
@@ -735,12 +666,45 @@
         document.getElementById('shelf-count').textContent = shelfCount || 0;
     }
 
-    // Inicializar
+    // Inicializar modal após DOM carregar
     document.addEventListener('DOMContentLoaded', function() {
         console.log('📚 Biblioteca carregada');
 
-        // Adicionar log para debug
+        const createBtn = document.getElementById('libraryCreateCustomShelfBtn');
+        const nameInput = document.getElementById('libraryCustomShelfName');
+
+        // Conectar botão de criar
+        if (createBtn) {
+            createBtn.addEventListener('click', function() {
+                if (window.LibraryManager && typeof window.LibraryManager.createCustomShelfFromModal === 'function') {
+                    window.LibraryManager.createCustomShelfFromModal();
+                }
+            });
+        }
+
+        // Permitir Enter no input
+        if (nameInput) {
+            nameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    createBtn?.click();
+                }
+            });
+        }
+
+        // Limpar form quando modal fechar
+        const modal = document.getElementById('libraryCustomShelfModal');
+        if (modal) {
+            modal.addEventListener('hidden.bs.modal', function() {
+                if (nameInput) nameInput.value = '';
+                const errorDiv = document.getElementById('libraryCustomShelfError');
+                if (errorDiv) errorDiv.style.display = 'none';
+            });
+        }
+
+        // Log para debug
         console.log('✅ showShelf disponível:', typeof window.showShelf);
+        console.log('✅ LibraryManager disponível:', typeof window.LibraryManager);
     });
 </script>
 

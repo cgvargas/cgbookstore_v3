@@ -20,40 +20,42 @@ class BookDetailView(DetailView):
     def get_context_data(self, **kwargs):
         """Adiciona contexto extra para o template."""
         context = super().get_context_data(**kwargs)
-
-        # Livros relacionados da mesma categoria
         book = self.get_object()
+
+        # Livros relacionados da mesma categoria (lógica existente mantida)
         context['related_books'] = Book.objects.filter(
             category=book.category
-        ).exclude(
-            id=book.id
-        )[:4]
+        ).exclude(id=book.id)[:4]
 
-        # Adicionar prateleiras personalizadas se usuário autenticado
+        # Inicializa o contexto para evitar erros no template
+        context['user_is_reading'] = False
+        context['reading_progress'] = None
+        context['custom_shelves'] = []
+
         if self.request.user.is_authenticated:
-            # Buscar prateleiras do profile (inclui vazias)
+            # Buscar prateleiras personalizadas (lógica existente mantida)
             profile = self.request.user.profile
             context['custom_shelves'] = profile.get_custom_shelves()
 
-            # ⚡ NOVO: Adicionar progresso de leitura se estiver lendo este livro
+            # --- INÍCIO DA MODIFICAÇÃO ---
+            # Importa os modelos necessários
             from accounts.models import ReadingProgress, BookShelf
 
-            # Verificar se livro está na prateleira "Lendo"
+            # Verifica de forma explícita se o livro está na prateleira "Lendo"
             is_reading = BookShelf.objects.filter(
                 user=self.request.user,
                 book=book,
                 shelf_type='reading'
             ).exists()
+            context['user_is_reading'] = is_reading
 
-            # Se está lendo, buscar o progresso
+            # Se estiver lendo, busca e adiciona o objeto de progresso
             if is_reading:
-                reading_progress = ReadingProgress.objects.filter(
+                progress = ReadingProgress.objects.filter(
                     user=self.request.user,
                     book=book,
-                    is_abandoned=False,
-                    finished_at__isnull=True
-                ).select_related('book').first()
-
-                context['reading_progress'] = reading_progress
+                ).first()  # Simplificado para pegar o progresso existente
+                context['reading_progress'] = progress
+            # --- FIM DA MODIFICAÇÃO ---
 
         return context

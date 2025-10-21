@@ -124,5 +124,11 @@ class LibraryView(LoginRequiredMixin, TemplateView):
         context['recent_reviews'] = BookReview.objects.filter(
             user=user
         ).select_related('book').order_by('-created_at')[:5]
+        for shelf_item in context['reading']:
+            progress = ReadingProgress.objects.filter(
+                user=self.request.user,
+                book=shelf_item.book
+            ).first()
+            shelf_item.progress = progress
 
         return context

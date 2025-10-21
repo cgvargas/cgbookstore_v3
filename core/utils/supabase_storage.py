@@ -202,12 +202,12 @@ class SupabaseStorage:
         """Determina o content-type baseado na extensão do arquivo"""
         ext = os.path.splitext(filename)[1].lower()
         content_types = {
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.png': 'image/png',
-            '.gif': 'image/gif',
-            '.webp': 'image/webp',
-            '.svg': 'image/svg+xml',
+            '.jpg': 'images/jpeg',
+            '.jpeg': 'images/jpeg',
+            '.png': 'images/png',
+            '.gif': 'images/gif',
+            '.webp': 'images/webp',
+            '.svg': 'images/svg+xml',
             '.pdf': 'application/pdf',
         }
         return content_types.get(ext, 'application/octet-stream')

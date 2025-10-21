@@ -5,7 +5,7 @@
 
 {% block extra_css %}
 <style>
-    /* Estilo do slider de progresso */
+    /* Estilo do slider de progresso - específico para detail */
     .progress-slider-detail {
         cursor: pointer;
     }
@@ -23,11 +23,6 @@
     /* Alert compacto */
     .alert-sm {
         font-size: 0.875rem;
-    }
-
-    /* Animação da barra de progresso */
-    .progress-bar-striped {
-        animation: progress-bar-stripes 1s linear infinite;
     }
 </style>
 {% endblock %}
@@ -198,79 +193,60 @@
                         </div>
 
                         <!-- ⚡ NOVO: Widget de Progresso (apenas se estiver lendo) -->
-                        {% if reading_progress %}
-                        <div class="card mt-3 border-success shadow-sm">
-                            <div class="card-body p-3">
-                                <h6 class="card-subtitle mb-3 text-success">
-                                    <i class="fas fa-book-open me-2"></i>Seu Progresso de Leitura
-                                </h6>
+                        {% if user_is_reading and reading_progress %}
+                        <div class="card mt-4" id="readingProgressWidget"
+                             data-book-id="{{ book.id }}"
+                             data-deadline="{{ reading_progress.deadline|date:'Y-m-d'|default:'' }}">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0"><i class="fas fa-book-open me-2"></i>Seu Progresso de Leitura</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Você está lendo este livro. Atualize seu progresso abaixo.</p>
 
                                 <!-- Barra de Progresso Visual -->
-                                <div class="progress mb-3" style="height: 10px;">
-                                    <div class="progress-bar bg-success progress-bar-striped"
-                                         role="progressbar"
-                                         style="width: {{ reading_progress.percentage }}%"
-                                         aria-valuenow="{{ reading_progress.percentage }}"
-                                         aria-valuemin="0"
-                                         aria-valuemax="100">
+                                <div class="progress mb-3" style="height: 20px;">
+                                    <div id="progress-bar-inner" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                         role="progressbar" style="width: {{ reading_progress.percentage }}%;"
+                                         aria-valuenow="{{ reading_progress.percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                         <strong id="progress-percentage">{{ reading_progress.percentage }}%</strong>
                                     </div>
                                 </div>
 
-                                <!-- Slider de Páginas -->
-                                <div class="mb-3">
-                                    <label class="form-label small text-muted mb-1">
-                                        <i class="fas fa-bookmark me-1"></i>Atualizar página atual:
-                                    </label>
-                                    <input type="range"
-                                           class="form-range progress-slider-detail"
-                                           min="0"
-                                           max="{{ reading_progress.total_pages }}"
-                                           value="{{ reading_progress.current_page }}"
-                                           data-book-id="{{ book.id }}"
-                                           id="progress-slider-{{ book.id }}">
-                                    <div class="d-flex justify-content-between align-items-center mt-1">
-                                        <small class="text-muted">
-                                            <span id="progress-text-{{ book.id }}">{{ reading_progress.current_page }}</span>
-                                            / {{ reading_progress.total_pages }} páginas
-                                        </small>
-                                        <span class="badge bg-success" id="progress-percentage-{{ book.id }}">
-                                            {{ reading_progress.percentage }}%
-                                        </span>
+                                <!-- Formulário de Atualização -->
+                                <div class="row align-items-end">
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <label for="currentPage" class="form-label fw-bold">Página Atual:</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="currentPage"
+                                                   value="{{ reading_progress.current_page }}"
+                                                   min="0" max="{{ book.page_count }}">
+                                            <span class="input-group-text">
+                                                de <strong id="totalPages" class="ms-1">{{ book.page_count|default:reading_progress.total_pages }}</strong>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button class="btn btn-success w-100" id="updateProgressBtn">
+                                            <i class="fas fa-save me-2"></i>Salvar Progresso
+                                        </button>
                                     </div>
                                 </div>
 
-                                <!-- Status do Prazo -->
-                                {% if reading_progress.deadline %}
-                                <div class="alert alert-sm py-2 px-3 mb-2
-                                            {% if reading_progress.deadline_status == 'overdue' %}alert-danger
-                                            {% elif reading_progress.deadline_status == 'approaching' %}alert-warning
-                                            {% else %}alert-info{% endif %}">
-                                    <small>
-                                        <i class="fas fa-calendar-alt me-1"></i>
-                                        <strong>Prazo:</strong> {{ reading_progress.deadline|date:"d/m/Y" }}
-                                        {% if reading_progress.days_until_deadline > 0 %}
-                                            <span class="text-muted">({{ reading_progress.days_until_deadline }} dias restantes)</span>
-                                        {% elif reading_progress.days_until_deadline == 0 %}
-                                            <span class="text-danger fw-bold">(Vence hoje!)</span>
+                                <hr class="my-3">
+
+                                <!-- Gerenciamento de Prazo -->
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div id="deadline-display" class="text-muted">
+                                        {% if reading_progress.deadline %}
+                                            <strong>Prazo:</strong> {{ reading_progress.deadline|date:"d/m/Y" }}
                                         {% else %}
-                                            <span class="text-danger fw-bold">({{ reading_progress.days_overdue }} dias de atraso)</span>
+                                            <span>Nenhum prazo definido.</span>
                                         {% endif %}
-                                    </small>
-                                </div>
-                                {% endif %}
-
-                                <!-- Botões de Ação -->
-                                <div class="d-grid gap-2">
-                                    <button class="btn btn-sm btn-outline-success btn-set-deadline-detail"
-                                            data-book-id="{{ book.id }}">
-                                        <i class="fas fa-calendar-{% if reading_progress.deadline %}check{% else %}plus{% endif %} me-1"></i>
+                                    </div>
+                                    <button class="btn btn-outline-primary btn-sm" id="setDeadlineBtn">
+                                        <i class="fas fa-calendar-alt me-2"></i>
                                         {% if reading_progress.deadline %}Alterar Prazo{% else %}Definir Prazo{% endif %}
                                     </button>
-
-                                    <a href="{% url 'core:library' %}" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-book-reader me-1"></i>
-                                        Ver na Minha Biblioteca
-                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -458,241 +434,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    // Variável global para armazenar as prateleiras atuais do livro
-    let currentBookShelves = [];
-    const bookId = {{ book.id }};
-
-    /**
-     * Adiciona livro à prateleira padrão (Quero Ler)
-     */
-    function addToDefaultShelf(bookId) {
-        addToShelf(bookId, 'to_read');
-    }
-
-    /**
-     * Adiciona livro a uma prateleira específica
-     */
-    function addToShelf(bookId, shelfType, customShelfName = '') {
-        const button = document.querySelector('.btn-add-to-library-main');
-
-        // Mostrar loading
-        if (button) {
-            button.disabled = true;
-            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adicionando...';
-        }
-
-        // Usar LibraryManager com os 3 parâmetros
-        LibraryManager.addToShelf(bookId, shelfType, customShelfName)
-            .then(data => {
-                if (data.success) {
-                    // Atualizar lista de prateleiras
-                    loadBookShelves();
-                }
-            })
-            .finally(() => {
-                // Restaurar botão
-                if (button) {
-                    button.disabled = false;
-                    button.innerHTML = '<i class="fas fa-book-reader me-2"></i><span id="library-button-text">Adicionar à Biblioteca</span>';
-                }
-            });
-    }
-
-    /**
-     * Carrega as prateleiras atuais do livro
-     */
-    function loadBookShelves() {
-        LibraryManager.getBookShelves(bookId)
-            .then(data => {
-                if (data.success) {
-                    currentBookShelves = data.shelves;
-                    updateLibraryIndicator();
-                }
-            });
-    }
-
-    /**
-     * Atualiza o indicador visual de prateleiras
-     */
-    function updateLibraryIndicator() {
-        const indicator = document.getElementById('current-shelves-indicator');
-        const list = document.getElementById('current-shelves-list');
-        const buttonText = document.getElementById('library-button-text');
-
-        if (currentBookShelves.length > 0) {
-            // Mostrar indicador
-            indicator.style.display = 'block';
-
-            // Atualizar texto do botão
-            if (buttonText) {
-                buttonText.textContent = 'Adicionar a outra prateleira';
-            }
-
-            // Criar lista de badges
-            const badges = currentBookShelves.map(shelf => {
-                const icons = {
-                    'favorites': '<i class="fas fa-heart"></i>',
-                    'to_read': '<i class="fas fa-bookmark"></i>',
-                    'reading': '<i class="fas fa-book-open"></i>',
-                    'read': '<i class="fas fa-check-circle"></i>',
-                    'abandoned': '<i class="fas fa-times-circle"></i>',
-                    'custom': '<i class="fas fa-folder"></i>'
-                };
-                const icon = icons[shelf.shelf_type] || icons.custom;
-                return `<span class="badge bg-primary me-1">${icon} ${shelf.shelf_display}</span>`;
-            }).join('');
-
-            list.innerHTML = badges;
-        } else {
-            // Esconder indicador
-            indicator.style.display = 'none';
-
-            // Restaurar texto do botão
-            if (buttonText) {
-                buttonText.textContent = 'Adicionar à Biblioteca';
-            }
-        }
-    }
-
-    /**
-     * Mostra modal de criar prateleira personalizada
-     */
-    function showCustomShelfModal(bookId) {
-        // Guardar bookId globalmente
-        window.currentBookIdForCustomShelf = bookId;
-
-        // Limpar form
-        document.getElementById('customShelfName').value = '';
-        document.getElementById('customShelfError').style.display = 'none';
-
-        // Mostrar modal
-        const modal = new bootstrap.Modal(document.getElementById('customShelfModal'));
-        modal.show();
-
-        // Focar no input
-        setTimeout(() => {
-            document.getElementById('customShelfName').focus();
-        }, 500);
-    }
-
-    /**
-     * Cria prateleira personalizada e adiciona livro
-     */
-    function createAndAddToCustomShelf() {
-        const nameInput = document.getElementById('customShelfName');
-        const errorDiv = document.getElementById('customShelfError');
-        const createBtn = document.getElementById('createCustomShelfBtn');
-
-        const customShelfName = nameInput.value.trim();
-        const bookId = window.currentBookIdForCustomShelf;
-
-        // Validação
-        if (!customShelfName) {
-            errorDiv.textContent = 'Por favor, insira um nome para a prateleira.';
-            errorDiv.style.display = 'block';
-            nameInput.focus();
-            return;
-        }
-
-        if (customShelfName.length > 100) {
-            errorDiv.textContent = 'Nome muito longo (máximo 100 caracteres).';
-            errorDiv.style.display = 'block';
-            return;
-        }
-
-        // Loading
-        createBtn.disabled = true;
-        createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Criando...';
-        errorDiv.style.display = 'none';
-
-        // Adicionar diretamente (a API valida se já existe)
-        LibraryManager.addToShelf(bookId, 'custom', customShelfName)
-            .then(data => {
-                if (data.success) {
-                    // Fechar modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('customShelfModal'));
-                    modal.hide();
-
-                    // Atualizar lista de prateleiras
-                    loadBookShelves();
-                } else {
-                    // Mostrar erro
-                    errorDiv.textContent = data.message;
-                    errorDiv.style.display = 'block';
-                }
-            })
-            .catch(error => {
-                errorDiv.textContent = 'Erro ao criar prateleira. Tente novamente.';
-                errorDiv.style.display = 'block';
-            })
-            .finally(() => {
-                // Restaurar botão
-                createBtn.disabled = false;
-                createBtn.innerHTML = '<i class="fas fa-check me-2"></i>Criar e Adicionar';
-            });
-    }
-
-    // Permitir Enter no formulário
-    document.addEventListener('DOMContentLoaded', function() {
-        const customShelfNameInput = document.getElementById('customShelfName');
-        if (customShelfNameInput) {
-            customShelfNameInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    createAndAddToCustomShelf();
-                }
-            });
-        }
-    });
-
-    // Carregar prateleiras ao carregar a página
-    {% if user.is_authenticated %}
-    document.addEventListener('DOMContentLoaded', function() {
-        loadBookShelves();
-    });
-    {% endif %}
-
-    {% if reading_progress %}
-    // ⚡ Conectar slider de progresso na página de detalhes
-    document.addEventListener('DOMContentLoaded', function() {
-        const slider = document.getElementById('progress-slider-{{ book.id }}');
-        if (slider) {
-            slider.addEventListener('input', function() {
-                const currentPage = parseInt(this.value);
-                const totalPages = parseInt(this.max);
-                const percentage = Math.round((currentPage / totalPages) * 100);
-
-                // Atualizar UI local
-                document.getElementById('progress-text-{{ book.id }}').textContent = currentPage;
-                document.getElementById('progress-percentage-{{ book.id }}').textContent = percentage + '%';
-
-                // Atualizar barra
-                const progressBar = document.querySelector('.progress-bar');
-                if (progressBar) {
-                    progressBar.style.width = percentage + '%';
-                    progressBar.setAttribute('aria-valuenow', percentage);
-                }
-            });
-
-            slider.addEventListener('change', function() {
-                const currentPage = parseInt(this.value);
-
-                // Usar o ReadingProgressManager para salvar
-                if (window.readingProgressManager) {
-                    window.readingProgressManager.updateProgress({{ book.id }}, currentPage);
-                }
-            });
-        }
-
-        // Conectar botão de definir prazo
-        const deadlineBtn = document.querySelector('.btn-set-deadline-detail');
-        if (deadlineBtn && window.readingProgressManager) {
-            deadlineBtn.addEventListener('click', function() {
-                window.readingProgressManager.showDeadlineModal({{ book.id }});
-            });
-        }
-    });
-    {% endif %}
-</script>
+{{ block.super }}
 {% endblock %}

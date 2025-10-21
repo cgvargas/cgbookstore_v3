@@ -494,3 +494,37 @@
         width: 100%;
     }
 }
+
+/* ========== MODAL DE PRATELEIRA PERSONALIZADA - FIX ========== */
+
+/* Garantir que o backdrop funcione corretamente */
+.modal-backdrop {
+    z-index: 1040 !important;
+}
+
+/* Garantir que o modal fique acima do backdrop */
+#libraryCustomShelfModal {
+    z-index: 1050 !important;
+}
+
+/* Garantir que o modal seja clicável */
+#libraryCustomShelfModal .modal-dialog {
+    position: relative;
+    z-index: 1051 !important;
+}
+
+/* Prevenir que o body fique travado */
+body.modal-open {
+    overflow: hidden !important;
+}
+
+/* Estilo adicional para o modal */
+#libraryCustomShelfModal .modal-content {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+/* Input do modal */
+#libraryCustomShelfName:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}

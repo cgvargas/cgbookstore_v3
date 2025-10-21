@@ -483,6 +483,174 @@ const LibraryManager = (function() {
     }
 
     // ========================================
+    // ✅ NOVO: GERENCIAMENTO DE MODAL DE PRATELEIRA PERSONALIZADA
+    // ========================================
+
+    /**
+     * Mostra modal de criar prateleira personalizada.
+     * ✅ COM LIMPEZA AUTOMÁTICA DE BACKDROPS
+     */
+    function showCustomShelfModal() {
+        const modal = document.getElementById('libraryCustomShelfModal');
+        const nameInput = document.getElementById('libraryCustomShelfName');
+        const errorDiv = document.getElementById('libraryCustomShelfError');
+
+        if (!modal) {
+            console.error('Modal libraryCustomShelfModal não encontrado');
+            return;
+        }
+
+        // ✅ CORREÇÃO CRÍTICA: Limpar TUDO antes de abrir
+        cleanupModals();
+
+        // Limpar form
+        if (nameInput) nameInput.value = '';
+        if (errorDiv) errorDiv.style.display = 'none';
+
+        try {
+            // Verificar instância existente
+            let bsModal = bootstrap.Modal.getInstance(modal);
+
+            // Se existir, destruir completamente
+            if (bsModal) {
+                bsModal.dispose();
+                bsModal = null;
+            }
+
+            // Criar nova instância limpa
+            bsModal = new bootstrap.Modal(modal, {
+                backdrop: true,
+                keyboard: true,
+                focus: false
+            });
+
+            // Focar no input após modal abrir
+            modal.addEventListener('shown.bs.modal', function focusInput() {
+                setTimeout(() => {
+                    if (nameInput) nameInput.focus();
+                }, 150);
+            }, { once: true });
+
+            // ✅ NOVO: Limpar quando modal fechar
+            modal.addEventListener('hidden.bs.modal', function cleanup() {
+                cleanupModals();
+            }, { once: true });
+
+            // Mostrar modal
+            bsModal.show();
+
+        } catch (error) {
+            console.error('Erro ao abrir modal:', error);
+            cleanupModals(); // Limpar mesmo em caso de erro
+            showToast('Erro ao abrir modal. Tente novamente.', 'error');
+        }
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Limpa todos os resíduos de modais
+     */
+    function cleanupModals() {
+        // Remover todos os backdrops
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
+
+        // Remover classe modal-open do body
+        document.body.classList.remove('modal-open');
+
+        // Restaurar overflow do body
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+
+        // Forçar remoção de atributos aria
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            modal.style.display = '';
+            modal.classList.remove('show');
+            modal.removeAttribute('aria-modal');
+            modal.removeAttribute('role');
+            modal.setAttribute('aria-hidden', 'true');
+        });
+
+        console.log('🧹 Modais limpos');
+    }
+
+    /**
+     * Cria prateleira personalizada a partir do modal.
+     */
+    function createCustomShelfFromModal() {
+        const nameInput = document.getElementById('libraryCustomShelfName');
+        const errorDiv = document.getElementById('libraryCustomShelfError');
+        const createBtn = document.getElementById('libraryCreateCustomShelfBtn');
+
+        if (!nameInput) {
+            console.error('Input libraryCustomShelfName não encontrado');
+            return;
+        }
+
+        const customShelfName = nameInput.value.trim();
+
+        // Validação
+        if (!customShelfName) {
+            if (errorDiv) {
+                errorDiv.textContent = 'Por favor, insira um nome para a prateleira.';
+                errorDiv.style.display = 'block';
+            }
+            nameInput.focus();
+            return;
+        }
+
+        if (customShelfName.length > 100) {
+            if (errorDiv) {
+                errorDiv.textContent = 'Nome muito longo (máximo 100 caracteres).';
+                errorDiv.style.display = 'block';
+            }
+            return;
+        }
+
+        // Loading
+        if (createBtn) {
+            createBtn.disabled = true;
+            createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Criando...';
+        }
+        if (errorDiv) errorDiv.style.display = 'none';
+
+        // Criar prateleira
+        createCustomShelf(customShelfName)
+            .then(data => {
+                if (data.success) {
+                    // Fechar modal
+                    const modal = document.getElementById('libraryCustomShelfModal');
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    if (bsModal) bsModal.hide();
+
+                    // Recarregar página
+                    showToast('Prateleira criada! Recarregando...', 'success', 1500);
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    // Mostrar erro
+                    if (errorDiv) {
+                        errorDiv.textContent = data.message;
+                        errorDiv.style.display = 'block';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao criar prateleira:', error);
+                if (errorDiv) {
+                    errorDiv.textContent = 'Erro ao criar prateleira. Tente novamente.';
+                    errorDiv.style.display = 'block';
+                }
+            })
+            .finally(() => {
+                // Restaurar botão
+                if (createBtn) {
+                    createBtn.disabled = false;
+                    createBtn.innerHTML = '<i class="fas fa-check me-2"></i>Criar Prateleira';
+                }
+            });
+    }
+
+    // ========================================
     // INICIALIZAÇÃO
     // ========================================
 
@@ -817,8 +985,8 @@ const LibraryManager = (function() {
 
             // Buscar livros da prateleira (via DOM - mais simples)
             const shelfGrid = shelfType === 'custom'
-                ? document.querySelector(`[data-custom-shelf="${customName}"]`)
-                : document.getElementById(`shelf-${shelfType}`);
+                ? document.querySelector('[data-custom-shelf="' + customName + '"]')
+                : document.getElementById('shelf-' + shelfType);
 
             if (!shelfGrid) {
                 container.innerHTML = `
@@ -842,21 +1010,29 @@ const LibraryManager = (function() {
                 return;
             }
 
-            let html = '';
+            // ✅ CORREÇÃO: Construir HTML de forma mais segura
+            const bookItems = [];
+
             bookCards.forEach(card => {
                 const bookshelfId = card.dataset.bookshelfId;
                 const bookTitle = card.querySelector('.book-title')?.textContent || 'Sem título';
                 const bookAuthor = card.querySelector('.book-author')?.textContent || 'Autor desconhecido';
-                const bookCover = card.querySelector('.book-cover')?.src || '/static/images/no-cover.jpg';
+                const bookCoverImg = card.querySelector('.book-cover');
+                const bookCover = bookCoverImg ? bookCoverImg.src : '/static/images/no-cover.jpg';
                 const bookNotes = card.dataset.notes || '';
 
-                html += `
+                // Escapar HTML para segurança
+                const escapedTitle = escapeHtml(bookTitle);
+                const escapedAuthor = escapeHtml(bookAuthor);
+                const escapedNotes = escapeHtml(bookNotes);
+
+                bookItems.push(`
                     <div class="book-manage-item" data-bookshelf-id="${bookshelfId}">
-                        <img src="${bookCover}" alt="${bookTitle}" class="book-manage-cover">
+                        <img src="${bookCover}" alt="${escapedTitle}" class="book-manage-cover" onerror="this.src='/static/images/no-cover.jpg'">
                         <div class="book-manage-info">
-                            <h6>${bookTitle}</h6>
-                            <small><i class="fas fa-user me-1"></i>${bookAuthor}</small>
-                            ${bookNotes ? `<small class="text-muted"><i class="fas fa-sticky-note me-1"></i>${bookNotes}</small>` : ''}
+                            <h6>${escapedTitle}</h6>
+                            <small><i class="fas fa-user me-1"></i>${escapedAuthor}</small>
+                            ${escapedNotes ? '<small class="text-muted"><i class="fas fa-sticky-note me-1"></i>' + escapedNotes + '</small>' : ''}
                         </div>
                         <div class="book-manage-actions">
                             <button class="btn btn-sm btn-outline-primary btn-xs"
@@ -871,10 +1047,10 @@ const LibraryManager = (function() {
                             </button>
                         </div>
                     </div>
-                `;
+                `);
             });
 
-            container.innerHTML = html;
+            container.innerHTML = bookItems.join('');
 
         } catch (error) {
             console.error('Erro ao carregar livros:', error);
@@ -885,6 +1061,17 @@ const LibraryManager = (function() {
                 </div>
             `;
         }
+    }
+
+    /**
+     * Escapa HTML para prevenir XSS
+     * @param {string} text - Texto a escapar
+     * @returns {string} Texto escapado
+     */
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     /**
@@ -986,10 +1173,16 @@ const LibraryManager = (function() {
         deleteCustomShelf: deleteCustomShelf,
         renameCustomShelf: renameCustomShelf,
         loadShelfBooks: loadShelfBooks,
-        updateBookNotes: updateBookNotes
+        updateBookNotes: updateBookNotes,
+        // ✅ NOVOS: Métodos para modal de prateleira personalizada
+        showCustomShelfModal: showCustomShelfModal,
+        createCustomShelfFromModal: createCustomShelfFromModal,
+        cleanupModals: cleanupModals
     };
-
 })();
+
+// ✅ CORREÇÃO: Expor LibraryManager globalmente
+window.LibraryManager = LibraryManager;
 
 // Auto-inicializar quando o DOM estiver pronto
 if (document.readyState === 'loading') {

@@ -23,6 +23,7 @@ from .library_ajax_views import (
 )
 
 __all__ = [
+    # Views baseadas em classe
     'HomeView',
     'BookListView',
     'BookDetailView',
@@ -31,5 +32,15 @@ __all__ = [
     'ContactView',
     'LibraryView',
     'EventListView',
+
+    # ✅ VIEWS AJAX
+    'add_to_shelf',
+    'remove_from_shelf',
+    'get_book_shelves',
+    'create_custom_shelf',
+    'move_to_shelf',
+    'delete_custom_shelf',
+    'rename_custom_shelf',
+    'update_book_notes',
 ]
 
