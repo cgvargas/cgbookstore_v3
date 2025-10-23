@@ -607,3 +607,447 @@ body.modal-open {
 .swal2-container.swal2-backdrop-show {
     background: rgba(0, 0, 0, 0.6) !important;
 }
+
+/**
+ * =========================================================================
+ * ATUALIZAÇÃO: Sistema de Notificações v3.0.0
+ *
+ * Data: Outubro 2025
+ *
+ * Novos Componentes:
+ * - Filtros de notificações (status, categoria)
+ * - Category chips (badges)
+ * - Botão de toggle de som
+ * - Melhorias responsivas
+ * =========================================================================
+ */
+
+/* ========== NOTIFICATION FILTERS ========== */
+
+.notification-filters {
+    display: flex;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    flex-wrap: wrap;
+}
+
+.notification-filters select {
+    padding: 6px 12px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    background: white;
+    font-size: 0.85rem;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+    flex: 1;
+    min-width: 120px;
+}
+
+.notification-filters select:hover {
+    border-color: #4a90e2;
+    background: #f8f9fa;
+}
+
+.notification-filters select:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+/* Estilo específico para cada filtro */
+.filter-status {
+    border-left: 3px solid #28a745;
+}
+
+.filter-category {
+    border-left: 3px solid #6c757d;
+}
+
+/* Dark mode - Filtros */
+[data-theme="dark"] .notification-filters {
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .notification-filters select {
+    background: #2d3748;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .notification-filters select:hover {
+    background: #374151;
+    border-color: #4a90e2;
+}
+
+/* ========== CATEGORY CHIPS ========== */
+
+.category-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 6px;
+}
+
+.category-chip.category-reading {
+    background: rgba(74, 144, 226, 0.1);
+    color: #4a90e2;
+    border: 1px solid rgba(74, 144, 226, 0.2);
+}
+
+.category-chip.category-system {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+    border: 1px solid rgba(108, 117, 125, 0.2);
+}
+
+/* Dark mode - Category Chips */
+[data-theme="dark"] .category-chip.category-reading {
+    background: rgba(74, 144, 226, 0.2);
+    color: #7ab3ff;
+}
+
+[data-theme="dark"] .category-chip.category-system {
+    background: rgba(156, 163, 175, 0.2);
+    color: #9ca3af;
+}
+
+/* ========== SOUND TOGGLE BUTTON ========== */
+
+.btn-toggle-sound {
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #6c757d;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+}
+
+.btn-toggle-sound:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: #4a90e2;
+    color: #4a90e2;
+    transform: translateY(-1px);
+}
+
+.btn-toggle-sound:active {
+    transform: translateY(0);
+}
+
+.btn-toggle-sound i {
+    font-size: 1rem;
+    transition: color 0.2s ease;
+}
+
+/* Estado ativo (som ligado) */
+.btn-toggle-sound.sound-enabled {
+    color: #28a745;
+    border-color: rgba(40, 167, 69, 0.3);
+}
+
+.btn-toggle-sound.sound-enabled:hover {
+    background: rgba(40, 167, 69, 0.1);
+    border-color: #28a745;
+}
+
+/* Estado inativo (som desligado) */
+.btn-toggle-sound.sound-disabled {
+    color: #dc3545;
+    border-color: rgba(220, 53, 69, 0.3);
+}
+
+.btn-toggle-sound.sound-disabled:hover {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: #dc3545;
+}
+
+/* Dark mode - Sound Button */
+[data-theme="dark"] .btn-toggle-sound {
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #9ca3af;
+}
+
+[data-theme="dark"] .btn-toggle-sound:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #4a90e2;
+}
+
+[data-theme="dark"] .btn-toggle-sound.sound-enabled {
+    color: #48bb78;
+    border-color: rgba(72, 187, 120, 0.3);
+}
+
+[data-theme="dark"] .btn-toggle-sound.sound-disabled {
+    color: #f56565;
+    border-color: rgba(245, 101, 101, 0.3);
+}
+
+/* ========== NOTIFICATION HEADER IMPROVEMENTS ========== */
+
+.notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.notifications-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    flex-shrink: 0;
+}
+
+.notifications-header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Dark mode - Header */
+[data-theme="dark"] .notifications-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .notifications-header h4 {
+    color: #e2e8f0;
+}
+
+/* ========== NOTIFICATION ITEM IMPROVEMENTS ========== */
+
+.notification-item {
+    position: relative;
+    padding: 12px 16px;
+    transition: all 0.2s ease;
+}
+
+.notification-item.category-reading {
+    border-left: 3px solid #4a90e2;
+}
+
+.notification-item.category-system {
+    border-left: 3px solid #6c757d;
+}
+
+.notification-item:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.notification-item.read {
+    opacity: 0.7;
+}
+
+/* Dark mode - Notification Item */
+[data-theme="dark"] .notification-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="dark"] .notification-item.category-reading {
+    border-left-color: #7ab3ff;
+}
+
+[data-theme="dark"] .notification-item.category-system {
+    border-left-color: #9ca3af;
+}
+
+/* ========== NOTIFICATION TITLE IMPROVEMENTS ========== */
+
+.notification-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+[data-theme="dark"] .notification-title {
+    color: #e2e8f0;
+}
+
+/* ========== EMPTY STATE ========== */
+
+.notification-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.notification-empty::before {
+    content: "🔕";
+    display: block;
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+[data-theme="dark"] .notification-empty {
+    color: #9ca3af;
+}
+
+/* ========== RESPONSIVE ADJUSTMENTS ========== */
+
+@media (max-width: 768px) {
+    .notifications-dropdown {
+        width: 95vw;
+        max-width: 95vw;
+        right: 2.5vw;
+    }
+
+    .notification-filters {
+        padding: 8px;
+    }
+
+    .notification-filters select {
+        font-size: 0.8rem;
+        padding: 5px 8px;
+        min-width: 100px;
+    }
+
+    .notifications-header {
+        padding: 10px 12px;
+    }
+
+    .notifications-header h4 {
+        font-size: 1rem;
+    }
+
+    .notifications-header-actions {
+        flex: 1 0 100%;
+        justify-content: flex-end;
+    }
+
+    .btn-toggle-sound {
+        padding: 5px 8px;
+        min-width: 32px;
+        height: 32px;
+    }
+
+    .category-chip {
+        font-size: 0.65rem;
+        padding: 2px 6px;
+    }
+
+    .notification-item {
+        padding: 10px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .notifications-dropdown {
+        width: 100vw;
+        max-width: 100vw;
+        right: 0;
+        border-radius: 0;
+    }
+
+    .notification-filters {
+        flex-direction: column;
+    }
+
+    .notification-filters select {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .category-chip {
+        font-size: 0.6rem;
+    }
+}
+
+/* ========== ANIMATIONS ========== */
+
+@keyframes filterHighlight {
+    0% {
+        background: rgba(74, 144, 226, 0.1);
+    }
+    50% {
+        background: rgba(74, 144, 226, 0.2);
+    }
+    100% {
+        background: rgba(74, 144, 226, 0.1);
+    }
+}
+
+.notification-filters select:focus {
+    animation: filterHighlight 0.3s ease;
+}
+
+@keyframes soundBounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+.btn-toggle-sound:active {
+    animation: soundBounce 0.3s ease;
+}
+
+/* ========== ACCESSIBILITY ========== */
+
+.notification-filters select:focus-visible,
+.btn-toggle-sound:focus-visible {
+    outline: 2px solid #4a90e2;
+    outline-offset: 2px;
+}
+
+/* Reduzir movimento para usuários com preferência */
+@media (prefers-reduced-motion: reduce) {
+    .notification-filters select,
+    .btn-toggle-sound,
+    .notification-item,
+    .category-chip {
+        transition: none;
+    }
+
+    .btn-toggle-sound:active {
+        animation: none;
+    }
+}
+
+/* ========== PRINT STYLES ========== */
+
+@media print {
+    .notification-filters,
+    .btn-toggle-sound,
+    .btn-mark-read,
+    .btn-mark-all-read,
+    .btn-edit-notifications {
+        display: none !important;
+    }
+
+    .notification-item {
+        page-break-inside: avoid;
+        border: 1px solid #ddd;
+        margin-bottom: 8px;
+    }
+}
+
+/* ========== FIM DA ATUALIZAÇÃO ========== */

@@ -33,6 +33,7 @@ from core.views.reading_progress_views import (
     get_unread_notifications_count, get_all_notifications_unified,
     mark_notification_read_unified,
     delete_selected_notifications_unified,
+    mark_all_notifications_as_read,
 )
 
 app_name = 'core'
@@ -80,4 +81,5 @@ urlpatterns = [
     path('api/notifications/unified/', get_all_notifications_unified, name='notifications_unified'),
     path('api/notifications/mark-read-unified/', mark_notification_read_unified, name='mark_read_unified'),
     path('api/notifications/delete-unified/', delete_selected_notifications_unified, name='delete_unified'),
+    path('api/notifications/mark-all-as-read/', mark_all_notifications_as_read, name='mark_all_as_read'),
 ]

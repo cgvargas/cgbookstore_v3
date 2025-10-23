@@ -737,22 +737,14 @@ def delete_selected_notifications(request):
 def get_unread_notifications_count(request):
     """
     Retorna apenas a contagem de notificações não lidas.
-    Endpoint leve para atualizar o badge sem carregar todas as notificações.
-
-    Returns:
-        JSON: {
-            'success': bool,
-            'unread_count': int
-        }
     """
     try:
-        unread_count = ReadingNotification.get_unread_count(request.user)
+        unread_count = get_total_unread_count(request.user)
 
         return JsonResponse({
             'success': True,
             'unread_count': unread_count
         })
-
     except Exception as e:
         return JsonResponse({
             'success': False,
@@ -1039,3 +1031,49 @@ def get_category_counts(user):
             'unread': SystemNotification.objects.filter(user=user, is_read=False).count()
         }
     }
+
+
+@login_required
+@require_http_methods(["POST"])
+def mark_all_notifications_as_read(request):
+    """
+    Marca todas as notificações do usuário como lidas.
+
+    Endpoint: POST /api/notifications/mark-all-as-read/
+
+    Returns:
+        JSON com:
+        - success: bool
+        - message: str
+        - updated_count: int (total de notificações marcadas)
+    """
+    try:
+        user = request.user
+
+        # Marcar todas as ReadingNotifications como lidas
+        reading_count = ReadingNotification.objects.filter(
+            user=user,
+            is_read=False
+        ).update(is_read=True)
+
+        # Marcar todas as SystemNotifications como lidas
+        system_count = SystemNotification.objects.filter(
+            user=user,
+            is_read=False
+        ).update(is_read=True)
+
+        total_updated = reading_count + system_count
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{total_updated} notificação(ões) marcada(s) como lida(s).',
+            'updated_count': total_updated,
+            'reading_count': reading_count,
+            'system_count': system_count
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao marcar notificações: {str(e)}'
+        }, status=500)
