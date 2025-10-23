@@ -521,7 +521,7 @@ const LibraryManager = (function() {
             bsModal = new bootstrap.Modal(modal, {
                 backdrop: true,
                 keyboard: true,
-                focus: false
+                focus: true
             });
 
             // Focar no input após modal abrir
@@ -662,6 +662,17 @@ const LibraryManager = (function() {
 
         // Event delegation para botões dinâmicos
         document.addEventListener('click', function(e) {
+            // ✅ CORREÇÃO CRÍTICA: Ignorar cliques dentro de modais
+            if (e.target.closest('.modal') ||
+                e.target.closest('.swal2-container') ||
+                e.target.closest('.modal-backdrop') ||
+                e.target.matches('input') ||
+                e.target.matches('textarea') ||
+                e.target.matches('select') ||
+                e.target.matches('button[data-bs-dismiss]')) {
+                return; // Não processar eventos de modais
+            }
+
             // Botão adicionar à biblioteca
             if (e.target.closest('.btn-add-to-library')) {
                 const button = e.target.closest('.btn-add-to-library');
@@ -706,6 +717,26 @@ const LibraryManager = (function() {
                 }
             }
         });
+
+        // Event listener para botão de criar prateleira personalizada
+        const createShelfBtn = document.getElementById('libraryCreateCustomShelfBtn');
+        if (createShelfBtn) {
+            createShelfBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                createCustomShelfFromModal();
+            });
+        }
+
+        // Event listener para pressionar Enter no input
+        const shelfNameInput = document.getElementById('libraryCustomShelfName');
+        if (shelfNameInput) {
+            shelfNameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    createCustomShelfFromModal();
+                }
+            });
+        }
 
         // Adicionar estilos de animação
         addAnimationStyles();
@@ -879,73 +910,145 @@ const LibraryManager = (function() {
     }
 
     /**
-     * Renomeia uma prateleira personalizada.
+     * Remove temporariamente aria-hidden de elementos que possam interferir com SweetAlert2
+     */
+    function temporarilyRemoveAriaHidden() {
+        const elements = document.querySelectorAll('[aria-hidden="true"]');
+        const removedElements = [];
+
+        elements.forEach(el => {
+            removedElements.push(el);
+            el.removeAttribute('aria-hidden');
+        });
+
+        return removedElements;
+    }
+
+    /**
+     * Restaura aria-hidden nos elementos
+     */
+    function restoreAriaHidden(elements) {
+        elements.forEach(el => {
+            el.setAttribute('aria-hidden', 'true');
+        });
+    }
+
+    /**
+     * Renomeia uma prateleira personalizada usando modal Bootstrap.
      * @param {string} oldName - Nome atual da prateleira
      */
     async function renameCustomShelf(oldName) {
-        // Prompt com SweetAlert2 (se disponível) ou prompt nativo
-        let newName;
+        const modal = document.getElementById('renameShelfModal');
+        const oldNameInput = document.getElementById('renameShelfOldName');
+        const newNameInput = document.getElementById('renameShelfNewName');
+        const errorDiv = document.getElementById('renameShelfError');
+        const confirmBtn = document.getElementById('renameShelfConfirmBtn');
 
-        if (typeof Swal !== 'undefined') {
-            const result = await Swal.fire({
-                title: 'Renomear Prateleira',
-                html: `
-                    <p class="mb-2">Nome atual: <strong>${oldName}</strong></p>
-                    <input type="text" id="new-shelf-name" class="swal2-input"
-                           placeholder="Novo nome" value="${oldName}" maxlength="100">
-                `,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Renomear',
-                cancelButtonText: 'Cancelar',
-                preConfirm: () => {
-                    const input = document.getElementById('new-shelf-name');
-                    const value = input.value.trim();
-                    if (!value) {
-                        Swal.showValidationMessage('O nome não pode ser vazio');
-                        return false;
-                    }
-                    if (value.length > 100) {
-                        Swal.showValidationMessage('Nome muito longo (máx: 100 caracteres)');
-                        return false;
-                    }
-                    return value;
-                }
-            });
-
-            if (!result.isConfirmed) return;
-            newName = result.value;
-        } else {
-            newName = prompt(`Renomear prateleira "${oldName}".\n\nNovo nome:`, oldName);
-            if (!newName || newName.trim() === '') return;
-            newName = newName.trim();
+        if (!modal || !oldNameInput || !newNameInput || !confirmBtn) {
+            console.error('Elementos do modal de renomear não encontrados');
+            return;
         }
 
-        try {
-            const response = await fetch('/api/library/rename-custom-shelf/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({ old_name: oldName, new_name: newName })
-            });
+        // Configurar modal
+        oldNameInput.value = oldName;
+        newNameInput.value = oldName;
+        errorDiv.style.display = 'none';
 
-            const data = await response.json();
+        // Abrir modal
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
 
-            if (data.success) {
-                showToast(data.message, 'success');
+        // Focar no input após modal abrir
+        modal.addEventListener('shown.bs.modal', function focusInput() {
+            setTimeout(() => {
+                newNameInput.focus();
+                newNameInput.select();
+            }, 100);
+        }, { once: true });
 
-                // Recarregar página após 1.5s
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                showToast(data.message || 'Erro ao renomear prateleira.', 'error');
+        // Handler do botão confirmar
+        const handleConfirm = async function() {
+            const newName = newNameInput.value.trim();
+
+            // Validação
+            if (!newName) {
+                errorDiv.textContent = 'O nome não pode ser vazio';
+                errorDiv.style.display = 'block';
+                return;
             }
 
-        } catch (error) {
-            console.error('Erro ao renomear prateleira:', error);
-            showToast('Erro de conexão. Tente novamente.', 'error');
-        }
+            if (newName.length > 100) {
+                errorDiv.textContent = 'Nome muito longo (máx: 100 caracteres)';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (newName === oldName) {
+                errorDiv.textContent = 'O novo nome deve ser diferente do atual';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            // Desabilitar botão durante requisição
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Renomeando...';
+
+            try {
+                const response = await fetch('/api/library/rename-custom-shelf/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        old_name: oldName,
+                        new_name: newName
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    bsModal.hide();
+
+                    // Recarregar página após 1.5s
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    errorDiv.textContent = data.message || 'Erro ao renomear prateleira.';
+                    errorDiv.style.display = 'block';
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '<i class="fas fa-check me-2"></i>Renomear';
+                }
+
+            } catch (error) {
+                console.error('Erro ao renomear prateleira:', error);
+                errorDiv.textContent = 'Erro de conexão. Tente novamente.';
+                errorDiv.style.display = 'block';
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fas fa-check me-2"></i>Renomear';
+            }
+        };
+
+        // Adicionar event listener ao botão
+        confirmBtn.addEventListener('click', handleConfirm, { once: true });
+
+        // Limpar ao fechar modal
+        modal.addEventListener('hidden.bs.modal', function cleanup() {
+            confirmBtn.removeEventListener('click', handleConfirm);
+            newNameInput.value = '';
+            errorDiv.style.display = 'none';
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-check me-2"></i>Renomear';
+        }, { once: true });
+
+        // Permitir Enter no input
+        newNameInput.addEventListener('keypress', function handleEnter(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                confirmBtn.click();
+            }
+        }, { once: true });
     }
 
     /**
@@ -1204,4 +1307,9 @@ document.addEventListener('DOMContentLoaded', function() {
 // Função global para loadShelfBooks (chamada pelo select no template)
 function loadShelfBooks(shelfValue) {
     LibraryManager.loadShelfBooks(shelfValue);
+}
+
+// Função global para showCustomShelfModal (chamada pelo botão no template)
+function showLibraryCustomShelfModal() {
+    LibraryManager.showCustomShelfModal();
 }
