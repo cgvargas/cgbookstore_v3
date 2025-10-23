@@ -235,18 +235,25 @@
                                 <hr class="my-3">
 
                                 <!-- Gerenciamento de Prazo -->
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div id="deadline-display" class="text-muted">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                    <div id="deadline-display" class="text-muted me-3 mb-2 mb-md-0">
                                         {% if reading_progress.deadline %}
                                             <strong>Prazo:</strong> {{ reading_progress.deadline|date:"d/m/Y" }}
                                         {% else %}
                                             <span>Nenhum prazo definido.</span>
                                         {% endif %}
                                     </div>
-                                    <button class="btn btn-outline-primary btn-sm" id="setDeadlineBtn">
-                                        <i class="fas fa-calendar-alt me-2"></i>
-                                        {% if reading_progress.deadline %}Alterar Prazo{% else %}Definir Prazo{% endif %}
-                                    </button>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-outline-primary btn-sm" id="setDeadlineBtn">
+                                            <i class="fas fa-calendar-alt me-2"></i>
+                                            {% if reading_progress.deadline %}Alterar{% else %}Definir Prazo{% endif %}
+                                        </button>
+                                        {% if reading_progress.deadline %}
+                                            <button class="btn btn-outline-danger btn-sm" id="removeDeadlineBtn" title="Remover Prazo">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load l10n %}
 
 {% block title %}Minha Biblioteca - CGBookStore{% endblock %}
 
 {% block extra_css %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/library-profile.css' %}">
-    <link rel="stylesheet" href="{% static 'css/reading-progress.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -255,29 +255,30 @@
                             <div class="book-author">{{ item.book.author.name }}</div>
 
                             <!-- Barra de Progresso -->
-                            {% if item.book.reading_progress.first %}
-                            {% with progress=item.book.reading_progress.first %}
-                            <div class="mt-2">
-                                <!-- Barra de progresso visual simples -->
-                                <div class="progress" style="height: 6px; border-radius: 3px;">
-                                    <div class="progress-bar bg-success"
-                                         role="progressbar"
-                                         style="width: {{ progress.percentage }}%"
-                                         aria-valuenow="{{ progress.percentage }}"
-                                         aria-valuemin="0"
-                                         aria-valuemax="100">
+                            {% if item.progress %}
+                                {% comment %} ✅ CORREÇÃO: Desativa a localização para forçar o uso de ponto decimal {% endcomment %}
+                                {% localize off %}
+                                <div class="mt-2">
+                                    <!-- Barra de progresso visual simples -->
+                                    <div class="progress" style="height: 6px; border-radius: 3px;">
+                                        <div class="progress-bar bg-success"
+                                             role="progressbar"
+                                             style="width: {{ item.progress.percentage }}%;"
+                                             aria-valuenow="{{ item.progress.percentage }}"
+                                             aria-valuemin="0"
+                                             aria-valuemax="100">
+                                        </div>
+                                    </div>
+
+                                    <!-- Info básica -->
+                                    <div class="d-flex justify-content-between align-items-center mt-1">
+                                        <small class="text-muted">
+                                            {{ item.progress.current_page }}/{{ item.progress.total_pages }} páginas
+                                        </small>
+                                        <span class="badge bg-success">{{ item.progress.percentage|floatformat:"0" }}%</span>
                                     </div>
                                 </div>
-
-                                <!-- Info básica -->
-                                <div class="d-flex justify-content-between align-items-center mt-1">
-                                    <small class="text-muted">
-                                        {{ progress.current_page }}/{{ progress.total_pages }} páginas
-                                    </small>
-                                    <span class="badge bg-success">{{ progress.percentage }}%</span>
-                                </div>
-                            </div>
-                            {% endwith %}
+                                {% endlocalize %}
                             {% endif %}
 
                             <div class="book-actions">
@@ -444,49 +445,47 @@
                     {% endif %}
                 </div>
                 {% endfor %}
+            </main>
+        </div>
+    </div>
 
-                <!-- ✅ MODAL CORRIGIDO - Criar Prateleira Personalizada -->
-                <div class="modal fade" id="libraryCustomShelfModal"
-                     tabindex="-1"
-                     aria-labelledby="libraryCustomShelfModalLabel"
-                     aria-hidden="true"
-                     data-bs-backdrop="true"
-                     data-bs-keyboard="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="libraryCustomShelfModalLabel">
-                                    <i class="fas fa-folder-plus me-2"></i>Nova Prateleira Personalizada
-                                </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form id="libraryCustomShelfForm">
-                                    <div class="mb-3">
-                                        <label for="libraryCustomShelfName" class="form-label">Nome da Prateleira</label>
-                                        <input type="text"
-                                               class="form-control"
-                                               id="libraryCustomShelfName"
-                                               placeholder="Ex: Ficção Científica Favorita"
-                                               maxlength="100"
-                                               required>
-                                        <div class="form-text">Máximo 100 caracteres</div>
-                                        <div id="libraryCustomShelfError" class="text-danger mt-2" style="display: none;"></div>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                    <i class="fas fa-times me-2"></i>Cancelar
-                                </button>
-                                <button type="button" class="btn btn-primary" id="libraryCreateCustomShelfBtn">
-                                    <i class="fas fa-check me-2"></i>Criar Prateleira
-                                </button>
-                            </div>
-                        </div>
+    <!-- ✅ MODAL CORRIGIDO - Criar Prateleira Personalizada -->
+    <div class="modal fade" id="libraryCustomShelfModal"
+         tabindex="-1"
+         aria-labelledby="libraryCustomShelfModalLabel"
+         aria-hidden="true"
+         data-bs-backdrop="true"
+         data-bs-keyboard="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="libraryCustomShelfModalLabel">
+                        <i class="fas fa-folder-plus me-2"></i>Nova Prateleira Personalizada
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="libraryCustomShelfName" class="form-label">Nome da Prateleira</label>
+                        <input type="text"
+                               class="form-control"
+                               id="libraryCustomShelfName"
+                               placeholder="Ex: Ficção Científica Favorita"
+                               maxlength="100"
+                               required>
+                        <div class="form-text">Máximo 100 caracteres</div>
+                        <div id="libraryCustomShelfError" class="text-danger mt-2" style="display: none;"></div>
                     </div>
                 </div>
-            </main>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" id="libraryCreateCustomShelfBtn">
+                        <i class="fas fa-check me-2"></i>Criar Prateleira
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -589,6 +588,51 @@
             </div>
         </div>
     </div>
+    <!-- Modal: Renomear Prateleira -->
+    <div class="modal fade" id="renameShelfModal" tabindex="-1" aria-labelledby="renameShelfModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="renameShelfModalLabel">
+                        <i class="fas fa-edit me-2"></i>Renomear Prateleira
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="renameShelfForm" onsubmit="return false;">
+                        <div class="mb-3">
+                            <label for="renameShelfOldName" class="form-label">Nome atual:</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="renameShelfOldName"
+                                   readonly
+                                   disabled
+                                   style="background-color: var(--bs-secondary-bg); cursor: not-allowed;">
+                        </div>
+                        <div class="mb-3">
+                            <label for="renameShelfNewName" class="form-label">Novo nome:</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="renameShelfNewName"
+                                   placeholder="Digite o novo nome"
+                                   maxlength="100"
+                                   required>
+                            <div class="form-text">Máximo 100 caracteres</div>
+                            <div id="renameShelfError" class="text-danger mt-2" style="display: none;"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" id="renameShelfConfirmBtn">
+                        <i class="fas fa-check me-2"></i>Renomear
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {% include 'core/widgets/background_modal.html' %}
 
@@ -669,38 +713,6 @@
     // Inicializar modal após DOM carregar
     document.addEventListener('DOMContentLoaded', function() {
         console.log('📚 Biblioteca carregada');
-
-        const createBtn = document.getElementById('libraryCreateCustomShelfBtn');
-        const nameInput = document.getElementById('libraryCustomShelfName');
-
-        // Conectar botão de criar
-        if (createBtn) {
-            createBtn.addEventListener('click', function() {
-                if (window.LibraryManager && typeof window.LibraryManager.createCustomShelfFromModal === 'function') {
-                    window.LibraryManager.createCustomShelfFromModal();
-                }
-            });
-        }
-
-        // Permitir Enter no input
-        if (nameInput) {
-            nameInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    createBtn?.click();
-                }
-            });
-        }
-
-        // Limpar form quando modal fechar
-        const modal = document.getElementById('libraryCustomShelfModal');
-        if (modal) {
-            modal.addEventListener('hidden.bs.modal', function() {
-                if (nameInput) nameInput.value = '';
-                const errorDiv = document.getElementById('libraryCustomShelfError');
-                if (errorDiv) errorDiv.style.display = 'none';
-            });
-        }
 
         // Log para debug
         console.log('✅ showShelf disponível:', typeof window.showShelf);

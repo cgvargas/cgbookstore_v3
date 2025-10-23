@@ -177,10 +177,34 @@
                     <div class="notifications-dropdown">
                         <div class="notifications-header">
                             <h4>Notificações</h4>
-                            <button class="btn-mark-all-read">Marcar todas como lidas</button>
+                            <!-- Grupo de botões do modo normal -->
+                            <div class="notifications-header-actions" data-mode="normal">
+                                <button class="btn-mark-all-read" title="Marcar todas como lidas">
+                                    <i class="fas fa-check-double"></i> Marcar Todas
+                                </button>
+                                <button class="btn-edit-notifications" title="Selecionar para limpar">
+                                    <i class="fas fa-eraser"></i> Limpar
+                                </button>
+                            </div>
+
+                            <!-- Grupo de botões do modo de edição (inicialmente escondido) -->
+                            <div class="notifications-header-actions" data-mode="edit" style="display: none;">
+                                <button class="btn-delete-selected" title="Deletar selecionadas">
+                                    <i class="fas fa-trash"></i> Deletar
+                                </button>
+                                <button class="btn-cancel-edit" title="Cancelar">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+                            </div>
                         </div>
                         <div class="notifications-list">
                             <!-- Preenchido dinamicamente -->
+                        </div>
+
+                        <div id="notifications-loader" style="display: none; text-align: center; padding: 15px;">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -259,14 +283,18 @@
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
-<!-- Theme Switcher -->
+<!-- Theme Switcher (Global) -->
 <script src="{% static 'js/theme-switcher.js' %}?v=1.0"></script>
 
-<!-- JavaScript Extra (para páginas específicas) -->
+<!-- Gerenciadores Globais (Sempre necessários para Navbar e Notificações) -->
+<script src="{% static 'js/library-manager.js' %}?v=2.0"></script>
+<script src="{% static 'js/reading-progress.js' %}?v=2.2"></script>
+
+<!-- JavaScript Extra (para scripts específicos de cada página) -->
 {% block extra_js %}
+    <!-- Scripts específicos da página serão inseridos aqui pelos templates filhos -->
+    <!-- O profile-manager.js pode ficar aqui ou ser movido para global, dependendo do uso -->
     <script src="{% static 'js/profile-manager.js' %}?v=1.1"></script>
-    <script src="{% static 'js/reading-progress.js' %}?v=2.1"></script>
-    <script src="{% static 'js/library-manager.js' %}?v=2.0"></script>
 {% endblock %}
 
 </body>
