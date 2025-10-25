@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -20,10 +20,10 @@
     <link rel="stylesheet" href="{% static 'css/themes.css' %}">
     <link rel="stylesheet" href="{% static 'css/reading-progress.css' %}?v=3.0">
 
-    <!-- Sistema de Gamificação -->
+    <!-- Sistema de GamificaÃ§Ã£o -->
     <link rel="stylesheet" href="{% static 'css/gamification.css' %}?v=1.0">
 
-    <!-- CSS Extra (para páginas específicas) -->
+    <!-- CSS Extra (para pÃ¡ginas especÃ­ficas) -->
     {% block extra_css %}{% endblock %}
 
     <style>
@@ -150,7 +150,7 @@
                     {% endif %}
                 </ul>
 
-                <!-- Formulário de Busca -->
+                <!-- FormulÃ¡rio de Busca -->
                 <form class="d-flex me-3" method="GET" action="{% url 'core:search' %}">
                     <input class="form-control me-2" type="search" name="q" placeholder="Buscar livros..." aria-label="Buscar">
                     <button class="btn btn-outline-light" type="submit">
@@ -170,17 +170,17 @@
                     </ul>
                 </div>
 
-                <!-- Centro de Notificações -->
+                <!-- Centro de NotificaÃ§Ãµes -->
                 <div class="notifications-container me-3">
-                    <button class="notifications-toggle" aria-label="Notificações">
+                    <button class="notifications-toggle" aria-label="NotificaÃ§Ãµes">
                         <i class="fas fa-bell"></i>
                         <span class="notifications-badge">0</span>
                     </button>
 
                     <div class="notifications-dropdown">
                         <div class="notifications-header">
-                            <h4>Notificações</h4>
-                            <!-- Grupo de botões do modo normal -->
+                            <h4>NotificaÃ§Ãµes</h4>
+                            <!-- Grupo de botÃµes do modo normal -->
                             <div class="notifications-header-actions" data-mode="normal">
                                 <button class="btn-mark-all-read" title="Marcar todas como lidas">
                                     <i class="fas fa-check-double"></i> Marcar Todas
@@ -190,7 +190,7 @@
                                 </button>
                             </div>
 
-                            <!-- Grupo de botões do modo de edição (inicialmente escondido) -->
+                            <!-- Grupo de botÃµes do modo de ediÃ§Ã£o (inicialmente escondido) -->
                             <div class="notifications-header-actions" data-mode="edit" style="display: none;">
                                 <button class="btn-delete-selected" title="Deletar selecionadas">
                                     <i class="fas fa-trash"></i> Deletar
@@ -212,7 +212,7 @@
                     </div>
                 </div>
 
-                <!-- Menu do Usuário -->
+                <!-- Menu do UsuÃ¡rio -->
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
@@ -223,6 +223,16 @@
                             <li>
                                 <a class="dropdown-item" href="{% url 'core:library' %}">
                                     <i class="fas fa-book-reader me-2"></i>Minha Biblioteca
+                                </a>
+                            </li>
+
+                            <!-- NOVO: Gamificação -->
+                            <li>
+                                <a class="dropdown-item" href="{% url 'core:gamification_dashboard' %}">
+                                    <i class="fas fa-trophy me-2 text-warning"></i>Gamificação
+                                    {% if user.userprofile.level > 1 %}
+                                    <span class="badge bg-primary ms-2">Nv. {{ user.userprofile.level }}</span>
+                                    {% endif %}
                                 </a>
                             </li>
                             {% if user.is_staff %}
@@ -260,7 +270,7 @@
         </div>
     </nav>
 
-    <!-- Conteúdo Principal -->
+    <!-- ConteÃºdo Principal -->
     <main class="py-4">
         {% block content %}
         {% endblock %}
@@ -289,19 +299,19 @@
 <!-- Theme Switcher (Global) -->
 <script src="{% static 'js/theme-switcher.js' %}?v=1.0"></script>
 
-<!-- Gerenciadores Globais (Sempre necessários para Navbar e Notificações) -->
+<!-- Gerenciadores Globais (Sempre necessÃ¡rios para Navbar e NotificaÃ§Ãµes) -->
 <script src="{% static 'js/library-manager.js' %}?v=2.0"></script>
 <script src="{% static 'js/notification-sounds.js' %}?v=1.0"></script>
 <script src="{% static 'js/reading-progress.js' %}?v=2.2"></script>
 
-<!-- JavaScript Extra (para scripts específicos de cada página) -->
+<!-- JavaScript Extra (para scripts especÃ­ficos de cada pÃ¡gina) -->
 {% block extra_js %}
-    <!-- Scripts específicos da página serão inseridos aqui pelos templates filhos -->
+    <!-- Scripts especÃ­ficos da pÃ¡gina serÃ£o inseridos aqui pelos templates filhos -->
     <!-- O profile-manager.js pode ficar aqui ou ser movido para global, dependendo do uso -->
     <script src="{% static 'js/profile-manager.js' %}?v=1.1"></script>
 {% endblock %}
 
-<!-- JS para o sistema de Gameficação) -->
+<!-- JS para o sistema de GameficaÃ§Ã£o) -->
 <script src="{% static 'js/gamification.js' %}?v=1.0"></script>
 
 </body>
