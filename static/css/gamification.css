@@ -1,0 +1,491 @@
+/**
+ * CGBookStore v3 - Estilos de Gamificação
+ * Arquivo: gamification.css
+ * Versão: 1.0
+ * Data: 24/10/2025
+ *
+ * Estilos e animações para o sistema de gamificação
+ */
+
+/* ========================================
+   1. ANIMAÇÕES DE CONQUISTAS
+   ======================================== */
+
+/* Animação de confete */
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(-100%) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+.confetti-animation::before,
+.confetti-animation::after {
+    content: '🎉';
+    position: absolute;
+    font-size: 2rem;
+    animation: confetti-fall 3s ease-in-out;
+}
+
+.confetti-animation::before {
+    left: 20%;
+    animation-delay: 0.2s;
+}
+
+.confetti-animation::after {
+    right: 20%;
+    animation-delay: 0.5s;
+}
+
+/* Animação de pulse */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.pulse-animation {
+    animation: pulse 1s ease-in-out;
+}
+
+/* Animação de shake (para conquistas disponíveis) */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake-animation {
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Animação de glow (brilho) */
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(255, 193, 7, 0.8);
+    }
+}
+
+.glow-animation {
+    animation: glow 2s ease-in-out infinite;
+}
+
+/* Animação de fade in */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-animation {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* ========================================
+   2. ESTILOS DE CONQUISTAS
+   ======================================== */
+
+/* Card de conquista */
+.achievement-card {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.achievement-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.achievement-card.unlocked {
+    border-color: #ffc107;
+}
+
+.achievement-card.locked {
+    opacity: 0.6;
+    filter: grayscale(50%);
+}
+
+.achievement-card.available {
+    border-color: #28a745;
+    animation: glow 2s ease-in-out infinite;
+}
+
+/* Ícone de conquista */
+.achievement-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.achievement-card:hover .achievement-icon {
+    transform: scale(1.2) rotate(5deg);
+}
+
+/* Barra de progresso de conquista */
+.achievement-progress {
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+
+.achievement-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #ffc107, #ff9800);
+    transition: width 0.5s ease;
+}
+
+/* ========================================
+   3. ESTILOS DE BADGES
+   ======================================== */
+
+/* Card de badge */
+.badge-card {
+    position: relative;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.badge-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.badge-card.showcased {
+    border-color: #ffc107;
+}
+
+/* Ícone de badge */
+.badge-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Selo de "Novo" */
+.badge-new {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #dc3545;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+/* Selo de "Em Destaque" */
+.badge-showcased {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: #ffc107;
+    color: #000;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+/* ========================================
+   4. ESTILOS DE RANKING
+   ======================================== */
+
+/* Card de ranking */
+.ranking-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.ranking-card:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ranking-card.rank-1 {
+    border-left-color: #ffd700; /* Ouro */
+}
+
+.ranking-card.rank-2 {
+    border-left-color: #c0c0c0; /* Prata */
+}
+
+.ranking-card.rank-3 {
+    border-left-color: #cd7f32; /* Bronze */
+}
+
+.ranking-card.current-user {
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+/* Medalhas de ranking */
+.rank-medal {
+    font-size: 2rem;
+    margin-right: 0.5rem;
+}
+
+.rank-1 .rank-medal {
+    color: #ffd700;
+}
+
+.rank-2 .rank-medal {
+    color: #c0c0c0;
+}
+
+.rank-3 .rank-medal {
+    color: #cd7f32;
+}
+
+/* ========================================
+   5. ESTILOS DO DASHBOARD
+   ======================================== */
+
+/* Card de estatística */
+.stat-card {
+    transition: all 0.3s ease;
+    border-top: 3px solid transparent;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card.stat-xp {
+    border-top-color: #ffc107;
+}
+
+.stat-card.stat-achievements {
+    border-top-color: #28a745;
+}
+
+.stat-card.stat-badges {
+    border-top-color: #17a2b8;
+}
+
+.stat-card.stat-rank {
+    border-top-color: #dc3545;
+}
+
+/* Valor da estatística */
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #ffc107;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-value {
+    transform: scale(1.1);
+}
+
+/* ========================================
+   6. ESTILOS DE TOASTS
+   ======================================== */
+
+/* Container de toasts */
+.toast-container {
+    z-index: 9999;
+}
+
+/* Toast customizado */
+.toast {
+    min-width: 300px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.toast.hiding {
+    animation: fadeOut 0.3s ease-out;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+/* ========================================
+   7. ESTILOS DE MODAL
+   ======================================== */
+
+/* Modal de conquista */
+#achievement-modal .modal-content {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+#achievement-modal .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+#achievement-modal .modal-body {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    padding: 2rem;
+}
+
+#achievement-modal #achievement-icon {
+    filter: drop-shadow(0 0 20px rgba(255, 193, 7, 0.5));
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* ========================================
+   8. ESTILOS DE BOTÕES
+   ======================================== */
+
+/* Botão de reivindicar conquista */
+.btn-claim-achievement {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.btn-claim-achievement::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.5s, height 0.5s;
+}
+
+.btn-claim-achievement:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Botão de destacar badge */
+.btn-showcase-badge {
+    transition: all 0.3s ease;
+}
+
+.btn-showcase-badge.showcased {
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+}
+
+/* ========================================
+   9. RESPONSIVIDADE
+   ======================================== */
+
+@media (max-width: 768px) {
+    /* Toasts em telas pequenas */
+    .toast-container {
+        top: 10px !important;
+        right: 10px !important;
+        left: 10px !important;
+    }
+
+    .toast {
+        min-width: auto;
+        width: 100%;
+    }
+
+    /* Cards de conquista/badge */
+    .achievement-card,
+    .badge-card {
+        margin-bottom: 1rem;
+    }
+
+    /* Estatísticas do dashboard */
+    .stat-value {
+        font-size: 2rem;
+    }
+}
+
+/* ========================================
+   10. UTILITÁRIOS
+   ======================================== */
+
+/* Texto com gradiente */
+.text-gradient {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Brilho de texto */
+.text-glow {
+    text-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+}
+
+/* Loading spinner customizado */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Badge de notificação */
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #dc3545;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+}
+
+/* Tooltip customizado */
+.custom-tooltip {
+    position: relative;
+    cursor: help;
+}
+
+.custom-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.custom-tooltip:hover::after {
+    opacity: 1;
+}

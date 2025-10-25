@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Coleção de Badges | CG.BookStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    .badges-page { padding: 2rem 0; }
+    .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem; }
+    .badge-card {
+        background: var(--card-bg);
+        border: 3px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    .badge-card:hover { transform: translateY(-8px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15); }
+    .badge-card.unlocked { border-color: var(--success-color); }
+    .badge-card.locked { opacity: 0.5; filter: grayscale(100%); }
+    .badge-icon-huge { font-size: 4.5rem; display: block; margin-bottom: 1rem; }
+    .badge-name { font-weight: 700; margin-bottom: 0.5rem; }
+    .rarity-legendary { border-color: #ffd700; box-shadow: 0 0 20px rgba(255,215,0,0.4); }
+    .rarity-epic { border-color: #a335ee; box-shadow: 0 0 15px rgba(163,53,238,0.4); }
+    .rarity-rare { border-color: #0070dd; box-shadow: 0 0 10px rgba(0,112,221,0.4); }
+    .rarity-uncommon { border-color: #1eff00; }
+    .rarity-event { border-color: #ff6b6b; }
+    .showcase-btn {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    .showcase-btn.active { background: #ffd700; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container badges-page">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>🏅 Coleção de Badges</h2>
+            <p class="text-muted">{{ unlocked_count }}/{{ total_badges }} desbloqueados ({{ collection_percentage }}%)</p>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="mb-4">
+        <a href="?status=all" class="btn btn-sm {% if status_filter == 'all' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Todos</a>
+        <a href="?status=unlocked" class="btn btn-sm {% if status_filter == 'unlocked' %}btn-success{% else %}btn-outline-secondary{% endif %}">Desbloqueados</a>
+        <a href="?status=locked" class="btn btn-sm {% if status_filter == 'locked' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Bloqueados</a>
+    </div>
+
+    <!-- Grid de Badges -->
+    <div class="badge-grid">
+        {% for item in badges_data %}
+        <div class="badge-card {% if item.is_unlocked %}unlocked rarity-{{ item.badge.rarity }}{% else %}locked{% endif %}">
+            {% if item.is_unlocked %}
+                <button class="showcase-btn {% if item.is_showcased %}active{% endif %}" data-badge-id="{{ item.badge.id }}">
+                    <i class="fas fa-star"></i>
+                </button>
+            {% endif %}
+            <span class="badge-icon-huge">{{ item.badge.icon }}</span>
+            <div class="badge-name">{{ item.badge.name }}</div>
+            <small class="text-muted d-block mb-2">{{ item.badge.description }}</small>
+            <span class="badge bg-secondary">{{ item.badge.get_rarity_display }}</span>
+            {% if item.earned_at %}
+                <small class="d-block mt-2 text-muted">{{ item.earned_at|date:"d/m/Y" }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.showcase-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+        const badgeId = this.dataset.badgeId;
+        const isActive = this.classList.contains('active');
+        const url = isActive ? '/api/gamification/remove-showcase-badge/' : '/api/gamification/showcase-badge/';
+        
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ badge_id: badgeId })
+            });
+            const data = await response.json();
+            if (data.success) {
+                this.classList.toggle('active');
+            } else {
+                alert(data.error);
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+        }
+    });
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

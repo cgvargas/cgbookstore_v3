@@ -241,6 +241,7 @@ class UserProfile(models.Model):
         calculated_level = int((self.total_xp / 100) ** 0.5) + 1
         return min(calculated_level, 30)  # Máximo nível 30
 
+    @property
     def xp_for_next_level(self):
         """Retorna quanto XP falta para o próximo nível."""
         current_level = self.level
@@ -259,6 +260,11 @@ class UserProfile(models.Model):
 
         percentage = (xp_in_current_level / xp_needed_for_level) * 100
         return min(100, max(0, percentage))
+
+    @property  # ✅ ADICIONADO
+    def xp_progress_percentage(self):
+        """Alias para xp_percentage_to_next_level (compatibilidade com views)."""
+        return self.xp_percentage_to_next_level()
 
     @property
     def level_name(self):

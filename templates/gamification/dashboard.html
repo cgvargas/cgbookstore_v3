@@ -1,0 +1,494 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gamificação - Dashboard | CG.BookStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Dashboard de Gamificação - Estilos */
+    .gamification-dashboard {
+        padding: 2rem 0;
+    }
+
+    .stat-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+        height: 100%;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid var(--border-color);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .stat-card-icon.xp { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .stat-card-icon.achievement { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .stat-card-icon.badge { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .stat-card-icon.ranking { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    .progress-custom {
+        height: 12px;
+        border-radius: 10px;
+        background: var(--border-color);
+        overflow: hidden;
+    }
+
+    .progress-bar-custom {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+
+    .achievement-item {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .achievement-item:hover {
+        border-color: var(--primary-color);
+        transform: translateX(5px);
+    }
+
+    .achievement-icon {
+        font-size: 2.5rem;
+        min-width: 60px;
+        text-align: center;
+    }
+
+    .achievement-info h6 {
+        margin: 0 0 0.25rem 0;
+        color: var(--text-primary);
+    }
+
+    .achievement-info small {
+        color: var(--text-secondary);
+    }
+
+    .badge-showcase {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .badge-item {
+        background: var(--card-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1rem;
+        text-align: center;
+        min-width: 100px;
+        transition: all 0.3s ease;
+    }
+
+    .badge-item:hover {
+        transform: scale(1.05);
+        border-color: var(--primary-color);
+    }
+
+    .badge-item.legendary { border-color: #ffd700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+    .badge-item.epic { border-color: #a335ee; box-shadow: 0 0 15px rgba(163, 53, 238, 0.3); }
+    .badge-item.rare { border-color: #0070dd; box-shadow: 0 0 10px rgba(0, 112, 221, 0.3); }
+
+    .badge-icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .ranking-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .ranking-item:hover {
+        border-color: var(--primary-color);
+        transform: translateX(5px);
+    }
+
+    .ranking-position {
+        font-size: 1.5rem;
+        font-weight: 700;
+        min-width: 40px;
+        text-align: center;
+    }
+
+    .ranking-position.top1 { color: #ffd700; }
+    .ranking-position.top2 { color: #c0c0c0; }
+    .ranking-position.top3 { color: #cd7f32; }
+
+    .multiplier-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin: 0.25rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header h4 {
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .btn-view-all {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .stat-value {
+            font-size: 2rem;
+        }
+        
+        .badge-showcase {
+            justify-content: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container gamification-dashboard">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-1">🎮 Dashboard de Gamificação</h2>
+            <p class="text-muted">Acompanhe seu progresso, conquistas e ranking</p>
+        </div>
+    </div>
+
+    <!-- Cards de Estatísticas Principais -->
+    <div class="row g-4 mb-5">
+        <!-- XP e Nível -->
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-card-icon xp">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h3 class="stat-value">{{ total_xp|default:0 }}</h3>
+                <p class="stat-label">XP Total</p>
+                <div class="mt-3">
+                    <small class="text-muted">Nível {{ current_level }}</small>
+                    <div class="progress-custom mt-2">
+                        <div class="progress-bar-custom" style="width: {{ xp_progress_percentage }}%"></div>
+                    </div>
+                    <small class="text-muted">{{ xp_progress_percentage }}% para nível {{ current_level|add:1 }}</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conquistas -->
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-card-icon achievement">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <h3 class="stat-value">{{ unlocked_achievements_count }}/{{ total_achievements }}</h3>
+                <p class="stat-label">Conquistas</p>
+                <div class="mt-3">
+                    <div class="progress-custom">
+                        <div class="progress-bar-custom" style="width: {{ achievements_percentage }}%; background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);"></div>
+                    </div>
+                    <small class="text-muted">{{ achievements_percentage }}% completo</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Badges -->
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-card-icon badge">
+                    <i class="fas fa-medal"></i>
+                </div>
+                <h3 class="stat-value">{{ unlocked_badges_count }}/{{ total_badges }}</h3>
+                <p class="stat-label">Badges</p>
+                <div class="mt-3">
+                    <div class="progress-custom">
+                        <div class="progress-bar-custom" style="width: {{ badges_percentage }}%; background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);"></div>
+                    </div>
+                    <small class="text-muted">{{ badges_percentage }}% coleção</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ranking -->
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-card-icon ranking">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <h3 class="stat-value">
+                    {% if ranking_position %}
+                        #{{ ranking_position }}
+                    {% else %}
+                        --
+                    {% endif %}
+                </h3>
+                <p class="stat-label">Ranking Mensal</p>
+                <div class="mt-3">
+                    <small class="text-muted">{{ monthly_xp|default:0 }} XP este mês</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Multiplicadores Ativos -->
+    {% if active_multipliers %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="alert alert-info d-flex align-items-center">
+                <i class="fas fa-fire fa-2x me-3"></i>
+                <div>
+                    <strong>🔥 Multiplicadores Ativos:</strong>
+                    {% for multiplier in active_multipliers %}
+                        <span class="multiplier-badge">{{ multiplier.name }} - {{ multiplier.multiplier_value }}x XP</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- Coluna Esquerda -->
+        <div class="col-lg-8">
+            <!-- Conquistas Recentes -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="section-header">
+                        <h4><i class="fas fa-trophy text-warning me-2"></i>Conquistas Recentes</h4>
+                        <a href="{% url 'core:achievements_list' %}" class="btn btn-sm btn-outline-primary btn-view-all">
+                            Ver Todas
+                        </a>
+                    </div>
+
+                    {% if recent_achievements %}
+                        {% for ua in recent_achievements %}
+                        <div class="achievement-item">
+                            <div class="achievement-icon">{{ ua.achievement.icon }}</div>
+                            <div class="achievement-info flex-grow-1">
+                                <h6>{{ ua.achievement.name }}</h6>
+                                <small>{{ ua.achievement.description }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-success">+{{ ua.achievement.xp_reward }} XP</span>
+                                <br>
+                                <small class="text-muted">{{ ua.earned_at|date:"d/m/Y" }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center py-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Nenhuma conquista desbloqueada ainda. Continue lendo!
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Conquistas Próximas de Desbloquear -->
+            {% if near_achievements %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="section-header">
+                        <h4><i class="fas fa-bullseye text-primary me-2"></i>Quase Lá!</h4>
+                    </div>
+
+                    {% for item in near_achievements %}
+                    <div class="achievement-item">
+                        <div class="achievement-icon" style="filter: grayscale(100%);">{{ item.achievement.icon }}</div>
+                        <div class="achievement-info flex-grow-1">
+                            <h6>{{ item.achievement.name }}</h6>
+                            <small>{{ item.achievement.description }}</small>
+                            <div class="progress-custom mt-2">
+                                <div class="progress-bar-custom" style="width: {{ item.progress }}%"></div>
+                            </div>
+                            <small class="text-muted">{{ item.progress }}% completo</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-secondary">+{{ item.achievement.xp_reward }} XP</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Top 5 do Ranking -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="section-header">
+                        <h4><i class="fas fa-ranking-star text-success me-2"></i>Top 5 - {{ current_month_name }}</h4>
+                        <a href="{% url 'core:monthly_ranking' %}" class="btn btn-sm btn-outline-primary btn-view-all">
+                            Ver Ranking Completo
+                        </a>
+                    </div>
+
+                    {% if top_5_ranking %}
+                        {% for rank in top_5_ranking %}
+                        <div class="ranking-item">
+                            <div class="ranking-position {% if rank.rank_position == 1 %}top1{% elif rank.rank_position == 2 %}top2{% elif rank.rank_position == 3 %}top3{% endif %}">
+                                #{{ rank.rank_position }}
+                            </div>
+                            <div class="flex-grow-1">
+                                <strong>{{ rank.user.username }}</strong>
+                                <br>
+                                <small class="text-muted">{{ rank.books_read }} livros • {{ rank.total_xp }} XP</small>
+                            </div>
+                            <span class="badge bg-primary">Nv. {{ rank.user.profile.level }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center py-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Ranking ainda não disponível para este mês.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Coluna Direita -->
+        <div class="col-lg-4">
+            <!-- Badges em Destaque -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="section-header">
+                        <h4><i class="fas fa-award text-info me-2"></i>Badges em Destaque</h4>
+                        <a href="{% url 'core:badges_collection' %}" class="btn btn-sm btn-outline-primary btn-view-all">
+                            Ver Coleção
+                        </a>
+                    </div>
+
+                    <div class="badge-showcase">
+                        {% if showcased_badges %}
+                            {% for ub in showcased_badges %}
+                            <div class="badge-item {{ ub.badge.rarity }}">
+                                <span class="badge-icon">{{ ub.badge.icon }}</span>
+                                <strong>{{ ub.badge.name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ ub.badge.get_rarity_display }}</small>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted text-center w-100 py-3">
+                                <i class="fas fa-medal fa-3x mb-3 d-block"></i>
+                                Nenhum badge em destaque.
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estatísticas de Leitura -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="section-header">
+                        <h4><i class="fas fa-book-open text-danger me-2"></i>Estatísticas</h4>
+                        <a href="{% url 'core:user_profile_stats' %}" class="btn btn-sm btn-outline-primary btn-view-all">
+                            Ver Detalhes
+                        </a>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>📚 Livros Lidos</span>
+                            <strong>{{ books_read }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>📖 Lendo Agora</span>
+                            <strong>{{ books_reading }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>📄 Páginas Lidas</span>
+                            <strong>{{ total_pages_read|default:0 }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>⭐ Reviews Escritas</span>
+                            <strong>{{ reviews_count }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animação de contadores
+    document.addEventListener('DOMContentLoaded', function() {
+        const statValues = document.querySelectorAll('.stat-value');
+        
+        statValues.forEach(element => {
+            const target = parseInt(element.textContent);
+            if (isNaN(target)) return;
+            
+            let current = 0;
+            const increment = target / 50;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    element.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current);
+                }
+            }, 20);
+        });
+    });
+</script>
+{% endblock %}

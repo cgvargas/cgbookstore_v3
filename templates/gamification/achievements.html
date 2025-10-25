@@ -1,0 +1,424 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Conquistas | CG.BookStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Página de Conquistas - Estilos */
+    .achievements-page {
+        padding: 2rem 0;
+    }
+
+    .filters-bar {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .filter-group {
+        margin-bottom: 1rem;
+    }
+
+    .filter-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 20px;
+        background: var(--card-bg);
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 0.25rem;
+        display: inline-block;
+    }
+
+    .filter-btn:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+
+    .filter-btn.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+
+    .achievement-card {
+        background: var(--card-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .achievement-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .achievement-card.unlocked {
+        border-color: var(--success-color);
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, transparent 100%);
+    }
+
+    .achievement-card.locked {
+        opacity: 0.7;
+    }
+
+    .achievement-icon-large {
+        font-size: 4rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.1));
+    }
+
+    .achievement-card.locked .achievement-icon-large {
+        filter: grayscale(100%) opacity(0.5);
+    }
+
+    .achievement-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .achievement-description {
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+    }
+
+    .achievement-category {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-right: 0.5rem;
+    }
+
+    .category-leitura { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    .category-progresso { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+    .category-social { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+    .category-diversidade { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; }
+    .category-especiais { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; }
+
+    .difficulty-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .difficulty-easy { background: #4caf50; color: white; }
+    .difficulty-medium { background: #ff9800; color: white; }
+    .difficulty-hard { background: #f44336; color: white; }
+    .difficulty-expert { background: #9c27b0; color: white; }
+    .difficulty-master { background: #212121; color: white; }
+
+    .progress-section {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .progress-bar-achievement {
+        height: 20px;
+        border-radius: 10px;
+        background: var(--border-color);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        transition: width 0.5s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .xp-reward {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        color: #333;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 700;
+        box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3);
+    }
+
+    .unlocked-badge {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: var(--success-color);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stats-summary {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: block;
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .earned-date {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .achievement-icon-large {
+            font-size: 3rem;
+        }
+        
+        .achievement-title {
+            font-size: 1.25rem;
+        }
+
+        .xp-reward {
+            position: static;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container achievements-page">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-1">🏆 Conquistas</h2>
+            <p class="text-muted">Desbloqueie conquistas lendo livros e atingindo objetivos</p>
+        </div>
+    </div>
+
+    <!-- Estatísticas Resumidas -->
+    <div class="stats-summary">
+        <div class="row g-4">
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">{{ total_achievements }}</span>
+                    <span class="stat-label">Total</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number text-success">{{ unlocked_count }}</span>
+                    <span class="stat-label">Desbloqueadas</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number text-muted">{{ locked_count }}</span>
+                    <span class="stat-label">Bloqueadas</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number text-warning">{{ total_xp_earned }}</span>
+                    <span class="stat-label">XP Ganho</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Filtros -->
+    <div class="filters-bar">
+        <div class="filter-group">
+            <label class="fw-bold mb-2"><i class="fas fa-filter me-2"></i>Categoria:</label>
+            <br>
+            <a href="?category=all&difficulty={{ difficulty_filter }}&status={{ status_filter }}" 
+               class="filter-btn {% if category_filter == 'all' %}active{% endif %}">
+                Todas
+            </a>
+            {% for cat in categories %}
+            <a href="?category={{ cat }}&difficulty={{ difficulty_filter }}&status={{ status_filter }}" 
+               class="filter-btn {% if category_filter == cat %}active{% endif %}">
+                {{ cat|title }}
+            </a>
+            {% endfor %}
+        </div>
+
+        <div class="filter-group">
+            <label class="fw-bold mb-2"><i class="fas fa-signal me-2"></i>Dificuldade:</label>
+            <br>
+            <a href="?category={{ category_filter }}&difficulty=all&status={{ status_filter }}" 
+               class="filter-btn {% if difficulty_filter == 'all' %}active{% endif %}">
+                Todas
+            </a>
+            <a href="?category={{ category_filter }}&difficulty=easy&status={{ status_filter }}" 
+               class="filter-btn {% if difficulty_filter == 'easy' %}active{% endif %}">
+                Fácil
+            </a>
+            <a href="?category={{ category_filter }}&difficulty=medium&status={{ status_filter }}" 
+               class="filter-btn {% if difficulty_filter == 'medium' %}active{% endif %}">
+                Médio
+            </a>
+            <a href="?category={{ category_filter }}&difficulty=hard&status={{ status_filter }}" 
+               class="filter-btn {% if difficulty_filter == 'hard' %}active{% endif %}">
+                Difícil
+            </a>
+            <a href="?category={{ category_filter }}&difficulty=expert&status={{ status_filter }}" 
+               class="filter-btn {% if difficulty_filter == 'expert' %}active{% endif %}">
+                Expert
+            </a>
+            <a href="?category={{ category_filter }}&difficulty=master&status={{ status_filter }}" 
+               class="filter-btn {% if difficulty_filter == 'master' %}active{% endif %}">
+                Master
+            </a>
+        </div>
+
+        <div class="filter-group">
+            <label class="fw-bold mb-2"><i class="fas fa-lock me-2"></i>Status:</label>
+            <br>
+            <a href="?category={{ category_filter }}&difficulty={{ difficulty_filter }}&status=all" 
+               class="filter-btn {% if status_filter == 'all' %}active{% endif %}">
+                Todas
+            </a>
+            <a href="?category={{ category_filter }}&difficulty={{ difficulty_filter }}&status=unlocked" 
+               class="filter-btn {% if status_filter == 'unlocked' %}active{% endif %}">
+                Desbloqueadas
+            </a>
+            <a href="?category={{ category_filter }}&difficulty={{ difficulty_filter }}&status=locked" 
+               class="filter-btn {% if status_filter == 'locked' %}active{% endif %}">
+                Bloqueadas
+            </a>
+        </div>
+    </div>
+
+    <!-- Lista de Conquistas -->
+    <div class="row">
+        {% for item in achievements_data %}
+        <div class="col-md-6 col-lg-4">
+            <div class="achievement-card {% if item.is_unlocked %}unlocked{% else %}locked{% endif %}">
+                <!-- Badge de Desbloqueada -->
+                {% if item.is_unlocked %}
+                <div class="unlocked-badge">
+                    <i class="fas fa-check-circle"></i>
+                    Desbloqueada
+                </div>
+                {% endif %}
+
+                <!-- XP Reward -->
+                <div class="xp-reward">
+                    <i class="fas fa-star me-1"></i>{{ item.achievement.xp_reward }} XP
+                </div>
+
+                <!-- Ícone -->
+                <div class="achievement-icon-large">
+                    {{ item.achievement.icon }}
+                </div>
+
+                <!-- Título e Descrição -->
+                <h5 class="achievement-title">{{ item.achievement.name }}</h5>
+                <p class="achievement-description">{{ item.achievement.description }}</p>
+
+                <!-- Categoria e Dificuldade -->
+                <div class="mb-3">
+                    <span class="achievement-category category-{{ item.achievement.category }}">
+                        {{ item.achievement.category|title }}
+                    </span>
+                    <span class="difficulty-badge difficulty-{{ item.achievement.difficulty_level }}">
+                        {{ item.achievement.get_difficulty_level_display }}
+                    </span>
+                </div>
+
+                <!-- Progresso (se não desbloqueada) -->
+                {% if not item.is_unlocked %}
+                <div class="progress-section">
+                    <div class="d-flex justify-content-between mb-2">
+                        <small class="text-muted">Progresso:</small>
+                        <small class="fw-bold">{{ item.progress }}%</small>
+                    </div>
+                    <div class="progress-bar-achievement">
+                        <div class="progress-fill" style="width: {{ item.progress }}%">
+                            {% if item.progress >= 50 %}
+                                {{ item.progress }}%
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Data de Desbloqueio -->
+                <div class="earned-date">
+                    <i class="fas fa-calendar me-1"></i>
+                    Desbloqueada em {{ item.earned_at|date:"d/m/Y" }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle fa-3x mb-3"></i>
+                <h4>Nenhuma conquista encontrada</h4>
+                <p>Tente ajustar os filtros para ver mais conquistas.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animação de entrada das conquistas
+    document.addEventListener('DOMContentLoaded', function() {
+        const achievementCards = document.querySelectorAll('.achievement-card');
+        
+        achievementCards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 50);
+        });
+    });
+</script>
+{% endblock %}

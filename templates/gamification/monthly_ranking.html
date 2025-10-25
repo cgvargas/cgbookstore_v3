@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ranking Mensal | CG.BookStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ranking-page { padding: 2rem 0; }
+    .ranking-table { background: var(--card-bg); border-radius: 12px; overflow: hidden; }
+    .ranking-row {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        transition: background 0.3s;
+    }
+    .ranking-row:hover { background: rgba(var(--primary-rgb), 0.05); }
+    .ranking-row.user-row { background: rgba(var(--success-rgb), 0.1); border-left: 4px solid var(--success-color); }
+    .rank-position { font-size: 1.5rem; font-weight: 700; min-width: 60px; text-align: center; }
+    .rank-position.top1 { color: #ffd700; }
+    .rank-position.top2 { color: #c0c0c0; }
+    .rank-position.top3 { color: #cd7f32; }
+    .user-info { flex: 1; }
+    .stats-badge { background: var(--primary-color); color: white; padding: 0.25rem 0.75rem; border-radius: 12px; margin: 0 0.25rem; font-size: 0.85rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container ranking-page">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>🏆 Ranking Mensal - {{ current_month_name }} {{ current_year }}</h2>
+            <p class="text-muted">{{ total_participants }} participantes</p>
+        </div>
+    </div>
+
+    <!-- Navegação de Meses -->
+    <div class="mb-4">
+        <select class="form-select" onchange="window.location.href='?year=' + this.value.split('-')[0] + '&month=' + this.value.split('-')[1]">
+            <option value="{{ current_year }}-{{ current_month }}">{{ current_month_name }} {{ current_year }}</option>
+            {% for month in available_months %}
+                <option value="{{ month.year }}-{{ month.month }}">
+                    Mês {{ month.month }}/{{ month.year }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="row mb-4">
+        <div class="col-md-4"><div class="alert alert-info">🥇 Top XP: <strong>{{ top_xp }}</strong></div></div>
+        <div class="col-md-4"><div class="alert alert-success">📊 Média XP: <strong>{{ avg_xp }}</strong></div></div>
+        <div class="col-md-4"><div class="alert alert-warning">📚 Média Livros: <strong>{{ avg_books }}</strong></div></div>
+    </div>
+
+    <!-- Tabela de Ranking -->
+    <div class="ranking-table">
+        {% for rank in rankings %}
+        <div class="ranking-row {% if rank.user.id == user.id %}user-row{% endif %}">
+            <div class="rank-position {% if rank.rank_position == 1 %}top1{% elif rank.rank_position == 2 %}top2{% elif rank.rank_position == 3 %}top3{% endif %}">
+                #{{ rank.rank_position }}
+            </div>
+            <div class="user-info">
+                <strong>{{ rank.user.username }}</strong>
+                <div class="mt-1">
+                    <span class="stats-badge">{{ rank.total_xp }} XP</span>
+                    <span class="stats-badge">{{ rank.books_read }} livros</span>
+                    <span class="stats-badge">Nv. {{ rank.user.profile.level }}</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 text-muted">Nenhum dado disponível para este mês.</div>
+        {% endfor %}
+    </div>
+
+    {% if user_ranking and not user_in_top_100 %}
+    <div class="alert alert-info mt-4">
+        <strong>Sua Posição:</strong> #{{ user_position }} • {{ user_ranking.total_xp }} XP • {{ user_ranking.books_read }} livros
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

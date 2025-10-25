@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Estatísticas | CG.BookStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-page { padding: 2rem 0; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+    .stat-item { text-align: center; padding: 1rem; background: rgba(var(--primary-rgb), 0.05); border-radius: 8px; }
+    .stat-number { font-size: 2.5rem; font-weight: 700; color: var(--primary-color); display: block; }
+    .stat-label { color: var(--text-secondary); margin-top: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container stats-page">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>📊 Estatísticas Detalhadas</h2>
+            <p class="text-muted">Membro há {{ days_as_member }} dias</p>
+        </div>
+    </div>
+
+    <!-- Visão Geral -->
+    <div class="stat-card">
+        <h4 class="mb-4">⚡ Visão Geral</h4>
+        <div class="stat-grid">
+            <div class="stat-item">
+                <span class="stat-number">{{ total_xp }}</span>
+                <span class="stat-label">XP Total</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ current_level }}</span>
+                <span class="stat-label">Nível</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ total_books_read }}</span>
+                <span class="stat-label">Livros Lidos</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ total_pages }}</span>
+                <span class="stat-label">Páginas</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conquistas e Badges -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="stat-card">
+                <h5>🏆 Conquistas</h5>
+                <ul class="list-unstyled mt-3">
+                    {% for cat in achievements_by_category %}
+                    <li>{{ cat.category|title }}: <strong>{{ cat.count }}</strong></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="stat-card">
+                <h5>🏅 Badges</h5>
+                <ul class="list-unstyled mt-3">
+                    {% for badge in badges_by_rarity %}
+                    <li>{{ badge.rarity|title }}: <strong>{{ badge.count }}</strong></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- XP por Mês -->
+    <div class="stat-card">
+        <h4 class="mb-4">📈 XP nos Últimos 12 Meses</h4>
+        <canvas id="xpChart"></canvas>
+    </div>
+
+    <!-- Conquistas Raras -->
+    {% if rare_achievements %}
+    <div class="stat-card">
+        <h4 class="mb-4">💎 Conquistas Raras Desbloqueadas</h4>
+        <div class="row">
+            {% for ua in rare_achievements %}
+            <div class="col-md-6">
+                <div class="d-flex align-items-center mb-3">
+                    <span style="font-size: 2rem; margin-right: 1rem;">{{ ua.achievement.icon }}</span>
+                    <div>
+                        <strong>{{ ua.achievement.name }}</strong>
+                        <br>
+                        <small class="text-muted">+{{ ua.achievement.xp_reward }} XP</small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const ctx = document.getElementById('xpChart').getContext('2d');
+const xpData = {{ xp_by_month|safe }};
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: xpData.map(d => d.month_name),
+        datasets: [{
+            label: 'XP Ganho',
+            data: xpData.map(d => d.xp),
+            borderColor: 'rgb(102, 126, 234)',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+    }
+});
+</script>
+{% endblock %}

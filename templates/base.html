@@ -20,6 +20,9 @@
     <link rel="stylesheet" href="{% static 'css/themes.css' %}">
     <link rel="stylesheet" href="{% static 'css/reading-progress.css' %}?v=3.0">
 
+    <!-- Sistema de Gamificação -->
+    <link rel="stylesheet" href="{% static 'css/gamification.css' %}?v=1.0">
+
     <!-- CSS Extra (para páginas específicas) -->
     {% block extra_css %}{% endblock %}
 
@@ -297,6 +300,9 @@
     <!-- O profile-manager.js pode ficar aqui ou ser movido para global, dependendo do uso -->
     <script src="{% static 'js/profile-manager.js' %}?v=1.1"></script>
 {% endblock %}
+
+<!-- JS para o sistema de Gameficação) -->
+<script src="{% static 'js/gamification.js' %}?v=1.0"></script>
 
 </body>
 </html>
