@@ -42,7 +42,7 @@ def google_books_search_user(request):
         if not query:
             return JsonResponse({
                 'success': False,
-                'message': 'Termo de busca não fornecido.'
+                'message': 'O termo de busca não foi fornecido.'
             }, status=400)
 
         # Parâmetros de paginação
@@ -137,7 +137,7 @@ def import_google_book_user(request, google_book_id):
         if not book_data:
             return JsonResponse({
                 'success': False,
-                'message': 'Não foi possível obter dados do livro no Google Books.'
+                'message': 'Não foi possível obter os dados do livro no Google Books.'
             }, status=404)
 
         # Verificar se já existe pelo ISBN
@@ -148,7 +148,7 @@ def import_google_book_user(request, google_book_id):
             if existing_book:
                 return JsonResponse({
                     'success': True,
-                    'message': f'Livro já existe no catálogo!',
+                    'message': 'O livro já existe no catálogo!',
                     'book_id': existing_book.id,
                     'book_title': existing_book.title,
                     'already_existed': True
@@ -161,7 +161,7 @@ def import_google_book_user(request, google_book_id):
             if existing_book:
                 return JsonResponse({
                     'success': True,
-                    'message': f'Livro já existe no catálogo!',
+                    'message': 'O livro já existe no catálogo!',
                     'book_id': existing_book.id,
                     'book_title': existing_book.title,
                     'already_existed': True
@@ -221,7 +221,7 @@ def import_google_book_user(request, google_book_id):
 
         return JsonResponse({
             'success': True,
-            'message': f'"{book.title}" importado com sucesso!',
+            'message': f'"{book.title}" foi importado com sucesso!',
             'book_id': book.id,
             'book_title': book.title,
             'already_existed': False
@@ -230,7 +230,7 @@ def import_google_book_user(request, google_book_id):
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'message': f'Erro ao importar livro: {str(e)}'
+            'message': f'Erro ao importar o livro: {str(e)}'
         }, status=500)
 
 
@@ -239,7 +239,7 @@ def import_google_book_user(request, google_book_id):
 def local_books_search_api(request):
     query = request.GET.get('q', '').strip()
     if not query:
-        return JsonResponse({'success': False, 'message': 'Termo de busca não fornecido.'}, status=400)
+        return JsonResponse({'success': False, 'message': 'O termo de busca não foi fornecido.'}, status=400)
 
     books = Book.objects.filter(
         Q(title__icontains=query) |

@@ -7,6 +7,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('chatbot/', include('chatbot_literario.urls', namespace='chatbot')),
     path('accounts/', include('accounts.urls', namespace='accounts')),
+    path('debates/', include('debates.urls')),
     path('', include('core.urls', namespace='core')),
 ]
 

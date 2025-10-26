@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ topic.title }} - Debates{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Header do Tópico -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    {% if topic.is_pinned %}
+                    <span class="badge bg-warning text-dark me-2">
+                        <i class="fas fa-thumbtack"></i> Fixado
+                    </span>
+                    {% endif %}
+                    {% if topic.is_locked %}
+                    <span class="badge bg-secondary me-2">
+                        <i class="fas fa-lock"></i> Bloqueado
+                    </span>
+                    {% endif %}
+                    <h2>{{ topic.title }}</h2>
+                </div>
+                <a href="{% url 'core:book_detail' topic.book.slug %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-book me-1"></i>Ver Livro
+                </a>
+            </div>
+            
+            <p class="lead">{{ topic.description }}</p>
+            
+            <hr>
+            
+            <div class="d-flex justify-content-between text-muted small">
+                <span>
+                    <i class="fas fa-user me-1"></i>Criado por <strong>{{ topic.creator.username }}</strong>
+                </span>
+                <span>
+                    <i class="far fa-clock me-1"></i>{{ topic.created_at|date:"d/m/Y H:i" }}
+                </span>
+                <span>
+                    <i class="fas fa-eye me-1"></i>{{ topic.views_count }} visualizações
+                </span>
+                <span>
+                    <i class="fas fa-comment me-1"></i>{{ topic.posts_count }} posts
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulário Novo Post -->
+    {% if user.is_authenticated and not topic.is_locked %}
+    <div class="card mb-4" id="new-post-form">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-plus me-2"></i>Nova Resposta
+        </div>
+        <div class="card-body">
+            <form id="postForm">
+                {% csrf_token %}
+                <label for="new-post-content" class="form-label visually-hidden">Escreva sua resposta</label>
+                <textarea class="form-control mb-3" id="new-post-content" name="content" rows="4" placeholder="Escreva sua resposta..." required></textarea>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane me-2"></i>Enviar
+                </button>
+            </form>
+        </div>
+    </div>
+    {% elif not user.is_authenticated %}
+    <div class="alert alert-warning">
+        <i class="fas fa-sign-in-alt me-2"></i>
+        <a href="{% url 'accounts:login' %}?next={{ request.path }}">Faça login</a> para participar do debate.
+    </div>
+    {% endif %}
+
+    <!-- Posts -->
+    <div id="posts-container">
+        {% for post in posts %}
+        <div class="card mb-3 post-card" data-post-id="{{ post.id }}">
+            <div class="card-body">
+                <div class="d-flex">
+
+                    <!-- Votos -->
+                    <div class="vote-controls me-3 text-center">
+                        <button class="btn btn-sm vote-btn {% if post.user_vote == 'up' %}btn-success{% else %}btn-outline-secondary{% endif %}"
+                                data-vote="up" data-post-id="{{ post.id }}">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                        <div class="vote-score my-1 fw-bold">{{ post.votes_score }}</div>
+                        <button class="btn btn-sm vote-btn {% if post.user_vote == 'down' %}btn-danger{% else %}btn-outline-secondary{% endif %}"
+                                data-vote="down" data-post-id="{{ post.id }}">
+                            <i class="fas fa-arrow-down"></i>
+                        </button>
+                    </div>
+
+                    <!-- Conteúdo -->
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between mb-2">
+                            <strong>{{ post.author.username }}</strong>
+                            <small class="text-muted">
+                                {{ post.created_at|date:"d/m/Y H:i" }}
+                                {% if post.edited_at %}
+                                <span class="badge bg-secondary ms-1" title="Editado em {{ post.edited_at|date:'d/m/Y H:i' }}">
+                                    <i class="fas fa-edit"></i> Editado
+                                </span>
+                                {% endif %}
+                            </small>
+                        </div>
+
+                        <!-- Conteúdo do Post -->
+                        <div class="post-content" data-post-id="{{ post.id }}">
+                            <p class="mb-2">{{ post.content|linebreaks }}</p>
+                        </div>
+
+                        <!-- Formulário de Edição (oculto) -->
+                        <div class="post-edit-form" data-post-id="{{ post.id }}" style="display: none;">
+                            <label for="edit-post-content-{{ post.id }}" class="form-label visually-hidden">Editar post</label>
+                            <textarea class="form-control mb-2" id="edit-post-content-{{ post.id }}" rows="3">{{ post.content }}</textarea>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-success save-edit-btn" data-post-id="{{ post.id }}">
+                                    <i class="fas fa-check me-1"></i>Salvar
+                                </button>
+                                <button class="btn btn-sm btn-secondary cancel-edit-btn" data-post-id="{{ post.id }}">
+                                    <i class="fas fa-times me-1"></i>Cancelar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Ações -->
+                        <div class="post-actions">
+                            <button class="btn btn-sm btn-outline-primary reply-btn" data-post-id="{{ post.id }}">
+                                <i class="fas fa-reply me-1"></i>Responder
+                            </button>
+                            {% if post.author == user %}
+                            <button class="btn btn-sm btn-outline-warning edit-btn" data-post-id="{{ post.id }}">
+                                <i class="fas fa-edit me-1"></i>Editar
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-btn" data-post-id="{{ post.id }}">
+                                <i class="fas fa-trash me-1"></i>Deletar
+                            </button>
+                            {% elif user.is_staff %}
+                            <button class="btn btn-sm btn-outline-danger delete-btn" data-post-id="{{ post.id }}">
+                                <i class="fas fa-trash me-1"></i>Deletar
+                            </button>
+                            {% endif %}
+                        </div>
+
+                        <!-- Respostas -->
+                        {% if post.replies.all %}
+                        <div class="replies mt-3 ms-4">
+                            {% for reply in post.replies.all %}
+                            {% if not reply.is_deleted %}
+                            <div class="card mb-2 bg-light">
+                                <div class="card-body py-2">
+                                    <div class="d-flex justify-content-between">
+                                        <strong class="small">{{ reply.author.username }}</strong>
+                                        <small class="text-muted">{{ reply.created_at|date:"d/m/Y H:i" }}</small>
+                                    </div>
+                                    <p class="small mb-0">{{ reply.content|linebreaks }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not posts %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>Seja o primeiro a comentar neste debate!
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    // Submit post
+    document.getElementById('postForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch("{% url 'debates:create_post' topic.slug %}", {
+            method: 'POST',
+            body: formData,
+            headers: {'X-CSRFToken': csrfToken}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.success) {
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+        });
+    });
+    
+    // Votos
+    document.querySelectorAll('.vote-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const postId = this.dataset.postId;
+            const voteType = this.dataset.vote;
+            
+            fetch(`/debates/post/votar/${postId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `vote_type=${voteType}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    location.reload();
+                }
+            });
+        });
+    });
+    
+    // Editar - Mostrar formulário
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const postId = this.dataset.postId;
+            const contentDiv = document.querySelector(`.post-content[data-post-id="${postId}"]`);
+            const editForm = document.querySelector(`.post-edit-form[data-post-id="${postId}"]`);
+
+            contentDiv.style.display = 'none';
+            editForm.style.display = 'block';
+        });
+    });
+
+    // Editar - Salvar
+    document.querySelectorAll('.save-edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const postId = this.dataset.postId;
+            const textarea = document.querySelector(`.post-edit-form[data-post-id="${postId}"] textarea`);
+            const newContent = textarea.value.trim();
+
+            if(!newContent) {
+                alert('Conteúdo não pode ser vazio');
+                return;
+            }
+
+            fetch(`/debates/post/editar/${postId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `content=${encodeURIComponent(newContent)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error);
+                }
+            });
+        });
+    });
+
+    // Editar - Cancelar
+    document.querySelectorAll('.cancel-edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const postId = this.dataset.postId;
+            const contentDiv = document.querySelector(`.post-content[data-post-id="${postId}"]`);
+            const editForm = document.querySelector(`.post-edit-form[data-post-id="${postId}"]`);
+
+            contentDiv.style.display = 'block';
+            editForm.style.display = 'none';
+        });
+    });
+
+    // Delete
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if(!confirm('Deletar este post?')) return;
+            
+            const postId = this.dataset.postId;
+            fetch(`/debates/post/deletar/${postId}/`, {
+                method: 'POST',
+                headers: {'X-CSRFToken': csrfToken}
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) location.reload();
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

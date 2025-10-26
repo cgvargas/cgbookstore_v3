@@ -1,0 +1,121 @@
+/* ========================================
+   SISTEMA DE DEBATES - ESTILOS
+   ======================================== */
+
+/* Topic Cards */
+.list-group-item {
+    transition: all 0.3s ease;
+}
+
+.list-group-item:hover {
+    background-color: var(--bs-light);
+    border-left: 4px solid var(--bs-primary);
+}
+
+/* Vote Controls */
+.vote-controls {
+    min-width: 50px;
+}
+
+.vote-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.vote-btn:hover {
+    transform: scale(1.1);
+}
+
+.vote-btn.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.vote-btn.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.vote-score {
+    font-size: 1.2rem;
+    color: var(--bs-dark);
+}
+
+/* Post Cards */
+.post-card {
+    border-left: 3px solid var(--bs-primary);
+    transition: box-shadow 0.3s ease;
+}
+
+.post-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Replies */
+.replies {
+    border-left: 3px solid var(--bs-light);
+    padding-left: 1rem;
+}
+
+.replies .card {
+    border-left: 2px solid var(--bs-info);
+}
+
+/* Post Actions */
+.post-actions {
+    margin-top: 0.5rem;
+}
+
+.post-actions .btn {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+/* Badges */
+.badge.bg-warning {
+    color: #000 !important;
+}
+
+/* Dark Mode */
+[data-theme="dark"] .list-group-item {
+    background-color: var(--bs-dark);
+    border-color: rgba(255,255,255,0.1);
+    color: var(--bs-light);
+}
+
+[data-theme="dark"] .list-group-item:hover {
+    background-color: rgba(255,255,255,0.05);
+}
+
+[data-theme="dark"] .card {
+    background-color: var(--bs-dark);
+    border-color: rgba(255,255,255,0.1);
+    color: var(--bs-light);
+}
+
+[data-theme="dark"] .vote-score {
+    color: var(--bs-light);
+}
+
+[data-theme="dark"] .bg-light {
+    background-color: rgba(255,255,255,0.05) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .vote-controls {
+        min-width: 40px;
+    }
+
+    .vote-btn {
+        width: 35px;
+        height: 35px;
+    }
+
+    .vote-score {
+        font-size: 1rem;
+    }
+}

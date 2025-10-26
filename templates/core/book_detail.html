@@ -270,6 +270,17 @@
                         <i class="fas fa-external-link-alt me-2"></i>Visualizar no Google Books
                     </a>
                 {% endif %}
+
+                <!-- Botões de Debate -->
+                <hr class="my-3">
+                <div class="d-flex gap-2">
+                    <a href="{% url 'debates:create_topic' book.id %}" class="btn btn-outline-primary">
+                        <i class="fas fa-comments me-1"></i>Criar Debate
+                    </a>
+                    <a href="{% url 'debates:list' %}?book={{ book.id }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-eye me-1"></i>Ver Debates
+                    </a>
+                </div>
             </div>
         </div>
 

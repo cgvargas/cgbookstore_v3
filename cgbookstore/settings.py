@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'chatbot_literario.apps.ChatbotLiterarioConfig',
     'accounts.apps.AccountsConfig',
+    'debates',
 ]
 
 MIDDLEWARE = [

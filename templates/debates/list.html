@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Debates - CG.BookStore{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-comments me-2"></i>Debates Literários</h1>
+    </div>
+
+    <!-- Busca -->
+    <form method="GET" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Buscar debates..." value="{{ search_query }}">
+            <button class="btn btn-primary" type="submit">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+        </div>
+    </form>
+
+    <!-- Lista de Tópicos -->
+    {% if topics %}
+    <div class="list-group">
+        {% for topic in topics %}
+        <a href="{% url 'debates:topic_detail' topic.slug %}" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <div class="flex-grow-1">
+                    {% if topic.is_pinned %}
+                    <span class="badge bg-warning text-dark me-2">
+                        <i class="fas fa-thumbtack"></i> Fixado
+                    </span>
+                    {% endif %}
+                    {% if topic.is_locked %}
+                    <span class="badge bg-secondary me-2">
+                        <i class="fas fa-lock"></i> Bloqueado
+                    </span>
+                    {% endif %}
+                    <h5 class="mb-1">{{ topic.title }}</h5>
+                    <p class="mb-1 text-muted">{{ topic.description|truncatewords:20 }}</p>
+                    <small class="text-muted">
+                        <i class="fas fa-book me-1"></i>{{ topic.book.title }} |
+                        <i class="fas fa-user me-1"></i>{{ topic.creator.username }} |
+                        <i class="far fa-clock me-1"></i>{{ topic.created_at|date:"d/m/Y H:i" }}
+                    </small>
+                </div>
+                <div class="text-end">
+                    <div class="badge bg-primary mb-2">
+                        <i class="fas fa-comment"></i> {{ topic.posts_count }}
+                    </div>
+                    <br>
+                    <small class="text-muted">
+                        <i class="fas fa-eye"></i> {{ topic.views_count }}
+                    </small>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        {% if search_query %}
+        Nenhum debate encontrado para "{{ search_query }}".
+        {% else %}
+        Nenhum debate ainda. Seja o primeiro a criar!
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

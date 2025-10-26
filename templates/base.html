@@ -23,7 +23,10 @@
     <!-- Sistema de GamificaÃ§Ã£o -->
     <link rel="stylesheet" href="{% static 'css/gamification.css' %}?v=1.0">
 
-    <!-- CSS Extra (para pÃ¡ginas especÃ­ficas) -->
+    <!-- CSS do Sistema de Debates -->
+    <link rel="stylesheet" href="{% static 'css/debates.css' %}">
+
+    <!-- CSS Extra (para páginas específicas) -->
     {% block extra_css %}{% endblock %}
 
     <style>
@@ -212,7 +215,7 @@
                     </div>
                 </div>
 
-                <!-- Menu do UsuÃ¡rio -->
+                <!-- Menu do Usuário -->
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
@@ -226,13 +229,20 @@
                                 </a>
                             </li>
 
-                            <!-- NOVO: Gamificação -->
+                            <!-- Gamificação -->
                             <li>
                                 <a class="dropdown-item" href="{% url 'core:gamification_dashboard' %}">
                                     <i class="fas fa-trophy me-2 text-warning"></i>Gamificação
                                     {% if user.userprofile.level > 1 %}
                                     <span class="badge bg-primary ms-2">Nv. {{ user.userprofile.level }}</span>
                                     {% endif %}
+                                </a>
+                            </li>
+
+                            <!-- Debates -->
+                            <li>
+                                <a class="dropdown-item" href="{% url 'debates:list' %}">
+                                    <i class="fas fa-comments me-2 text-info"></i>Debates
                                 </a>
                             </li>
                             {% if user.is_staff %}
@@ -299,19 +309,19 @@
 <!-- Theme Switcher (Global) -->
 <script src="{% static 'js/theme-switcher.js' %}?v=1.0"></script>
 
-<!-- Gerenciadores Globais (Sempre necessÃ¡rios para Navbar e NotificaÃ§Ãµes) -->
+<!-- Gerenciadores Globais (Sempre necessários para Navbar e Notificações) -->
 <script src="{% static 'js/library-manager.js' %}?v=2.0"></script>
 <script src="{% static 'js/notification-sounds.js' %}?v=1.0"></script>
 <script src="{% static 'js/reading-progress.js' %}?v=2.2"></script>
 
-<!-- JavaScript Extra (para scripts especÃ­ficos de cada pÃ¡gina) -->
+<!-- JavaScript Extra (para scripts específicos de cada página) -->
 {% block extra_js %}
-    <!-- Scripts especÃ­ficos da pÃ¡gina serÃ£o inseridos aqui pelos templates filhos -->
+    <!-- Scripts específicos da página serão inseridos aqui pelos templates filhos -->
     <!-- O profile-manager.js pode ficar aqui ou ser movido para global, dependendo do uso -->
     <script src="{% static 'js/profile-manager.js' %}?v=1.1"></script>
 {% endblock %}
 
-<!-- JS para o sistema de GameficaÃ§Ã£o) -->
+<!-- JS para o sistema de Gamificação) -->
 <script src="{% static 'js/gamification.js' %}?v=1.0"></script>
 
 </body>
