@@ -11,6 +11,10 @@ urlpatterns = [
     # Criar
     path('criar/<int:book_id>/', views.create_topic, name='create_topic'),
 
+    # Tópicos - Editar e Deletar
+    path('topico/<slug:slug>/editar/', views.edit_topic, name='edit_topic'),
+    path('topico/<slug:slug>/deletar/', views.delete_topic, name='delete_topic'),
+
     # Posts
     path('post/criar/<slug:topic_slug>/', views.create_post, name='create_post'),
     path('post/votar/<int:post_id>/', views.vote_post, name='vote_post'),

@@ -126,5 +126,5 @@ class BookReview(models.Model):
 
         # Adiciona pontos ao usuário por criar resenha
         if is_new and hasattr(self.user, 'profile'):
-            points = 15 if self.review_text else 5  # Mais pontos se escreveu resenha
-            self.user.profile.add_points(points)
+            xp_amount = 25 if self.review_text else 10  # Mais XP se escreveu resenha
+            self.user.profile.add_xp(xp_amount)

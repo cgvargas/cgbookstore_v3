@@ -5,6 +5,11 @@
 
 {% block content %}
 <div class="container my-5">
+    <!-- Botão Voltar -->
+    <a href="{% url 'debates:list' %}" class="btn btn-link text-muted mb-2 p-0" title="Voltar para lista de debates">
+        <i class="fas fa-arrow-left me-1"></i>Debates
+    </a>
+
     <!-- Header do Tópico -->
     <div class="card mb-4">
         <div class="card-body">
@@ -22,12 +27,51 @@
                     {% endif %}
                     <h2>{{ topic.title }}</h2>
                 </div>
-                <a href="{% url 'core:book_detail' topic.book.slug %}" class="btn btn-outline-primary btn-sm">
-                    <i class="fas fa-book me-1"></i>Ver Livro
-                </a>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'core:book_detail' topic.book.slug %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-book me-1"></i>Ver Livro
+                    </a>
+
+                    <!-- Botões de Editar/Deletar Tópico -->
+                    {% if topic.creator == user %}
+                    <button class="btn btn-outline-warning btn-sm" id="edit-topic-btn">
+                        <i class="fas fa-edit me-1"></i>Editar Tópico
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" id="delete-topic-btn">
+                        <i class="fas fa-trash me-1"></i>Deletar Tópico
+                    </button>
+                    {% elif user.is_staff %}
+                    <button class="btn btn-outline-danger btn-sm" id="delete-topic-btn">
+                        <i class="fas fa-trash me-1"></i>Deletar Tópico
+                    </button>
+                    {% endif %}
+                </div>
             </div>
-            
-            <p class="lead">{{ topic.description }}</p>
+
+            <!-- Formulário de Edição do Tópico (oculto) -->
+            <div id="topic-edit-form" style="display: none;">
+                <div class="mb-3">
+                    <label for="topic-title" class="form-label">Título</label>
+                    <input type="text" class="form-control" id="topic-title" value="{{ topic.title }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="topic-description" class="form-label">Descrição</label>
+                    <textarea class="form-control" id="topic-description" rows="3" required>{{ topic.description }}</textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success" id="save-topic-btn">
+                        <i class="fas fa-check me-1"></i>Salvar
+                    </button>
+                    <button class="btn btn-secondary" id="cancel-topic-edit-btn">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Conteúdo do Tópico -->
+            <div id="topic-content">
+                <p class="lead">{{ topic.description }}</p>
+            </div>
             
             <hr>
             
@@ -126,10 +170,11 @@
                         </div>
 
                         <!-- Ações -->
-                        <div class="post-actions">
+                        <div class="post-actions mt-2">
                             <button class="btn btn-sm btn-outline-primary reply-btn" data-post-id="{{ post.id }}">
                                 <i class="fas fa-reply me-1"></i>Responder
                             </button>
+
                             {% if post.author == user %}
                             <button class="btn btn-sm btn-outline-warning edit-btn" data-post-id="{{ post.id }}">
                                 <i class="fas fa-edit me-1"></i>Editar
@@ -151,11 +196,54 @@
                             {% if not reply.is_deleted %}
                             <div class="card mb-2 bg-light">
                                 <div class="card-body py-2">
-                                    <div class="d-flex justify-content-between">
+                                    <div class="d-flex justify-content-between mb-2">
                                         <strong class="small">{{ reply.author.username }}</strong>
-                                        <small class="text-muted">{{ reply.created_at|date:"d/m/Y H:i" }}</small>
+                                        <small class="text-muted">
+                                            {{ reply.created_at|date:"d/m/Y H:i" }}
+                                            {% if reply.edited_at %}
+                                            <span class="badge bg-secondary ms-1" title="Editado em {{ reply.edited_at|date:'d/m/Y H:i' }}">
+                                                <i class="fas fa-edit"></i> Editado
+                                            </span>
+                                            {% endif %}
+                                        </small>
                                     </div>
-                                    <p class="small mb-0">{{ reply.content|linebreaks }}</p>
+
+                                    <!-- Conteúdo da Resposta -->
+                                    <div class="post-content" data-post-id="{{ reply.id }}">
+                                        <p class="small mb-2">{{ reply.content|linebreaks }}</p>
+                                    </div>
+
+                                    <!-- Formulário de Edição (oculto) -->
+                                    <div class="post-edit-form" data-post-id="{{ reply.id }}" style="display: none;">
+                                        <label for="edit-post-content-{{ reply.id }}" class="form-label visually-hidden">Editar resposta</label>
+                                        <textarea class="form-control form-control-sm mb-2" id="edit-post-content-{{ reply.id }}" rows="2">{{ reply.content }}</textarea>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-sm btn-success save-edit-btn" data-post-id="{{ reply.id }}">
+                                                <i class="fas fa-check me-1"></i>Salvar
+                                            </button>
+                                            <button class="btn btn-sm btn-secondary cancel-edit-btn" data-post-id="{{ reply.id }}">
+                                                <i class="fas fa-times me-1"></i>Cancelar
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Ações da Resposta -->
+                                    {% if reply.author == user %}
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-outline-warning edit-btn" data-post-id="{{ reply.id }}">
+                                            <i class="fas fa-edit me-1"></i>Editar
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger delete-btn" data-post-id="{{ reply.id }}">
+                                            <i class="fas fa-trash me-1"></i>Deletar
+                                        </button>
+                                    </div>
+                                    {% elif user.is_staff %}
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-outline-danger delete-btn" data-post-id="{{ reply.id }}">
+                                            <i class="fas fa-trash me-1"></i>Deletar
+                                        </button>
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                             {% endif %}
@@ -278,11 +366,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Delete
+    // Delete Post
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             if(!confirm('Deletar este post?')) return;
-            
+
             const postId = this.dataset.postId;
             fetch(`/debates/post/deletar/${postId}/`, {
                 method: 'POST',
@@ -294,6 +382,82 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
+    // ============================================
+    // EDIÇÃO E DELEÇÃO DE TÓPICO
+    // ============================================
+
+    // Editar Tópico - Mostrar Formulário
+    const editTopicBtn = document.getElementById('edit-topic-btn');
+    if (editTopicBtn) {
+        editTopicBtn.addEventListener('click', function() {
+            document.getElementById('topic-content').style.display = 'none';
+            document.getElementById('topic-edit-form').style.display = 'block';
+            document.querySelector('h2').style.display = 'none';
+        });
+    }
+
+    // Cancelar Edição do Tópico
+    const cancelTopicEditBtn = document.getElementById('cancel-topic-edit-btn');
+    if (cancelTopicEditBtn) {
+        cancelTopicEditBtn.addEventListener('click', function() {
+            document.getElementById('topic-content').style.display = 'block';
+            document.getElementById('topic-edit-form').style.display = 'none';
+            document.querySelector('h2').style.display = 'block';
+        });
+    }
+
+    // Salvar Edição do Tópico
+    const saveTopicBtn = document.getElementById('save-topic-btn');
+    if (saveTopicBtn) {
+        saveTopicBtn.addEventListener('click', function() {
+            const title = document.getElementById('topic-title').value.trim();
+            const description = document.getElementById('topic-description').value.trim();
+
+            if (!title || !description) {
+                alert('Título e descrição são obrigatórios');
+                return;
+            }
+
+            fetch("{% url 'debates:edit_topic' topic.slug %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error);
+                }
+            });
+        });
+    }
+
+    // Deletar Tópico
+    const deleteTopicBtn = document.getElementById('delete-topic-btn');
+    if (deleteTopicBtn) {
+        deleteTopicBtn.addEventListener('click', function() {
+            if (!confirm('Tem certeza que deseja deletar este tópico? Todos os posts serão perdidos!')) return;
+
+            fetch("{% url 'debates:delete_topic' topic.slug %}", {
+                method: 'POST',
+                headers: {'X-CSRFToken': csrfToken}
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert(data.error);
+                }
+            });
+        });
+    }
 });
 </script>
 {% endblock %}

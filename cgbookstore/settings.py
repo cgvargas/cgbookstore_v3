@@ -42,6 +42,10 @@ INSTALLED_APPS = [
     'chatbot_literario.apps.ChatbotLiterarioConfig',
     'accounts.apps.AccountsConfig',
     'debates',
+    'recommendations',
+
+    # Third-party Apps
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -52,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.RateLimitMiddleware',  # Rate limiting
 ]
 
 ROOT_URLCONF = 'cgbookstore.urls'
@@ -78,10 +83,48 @@ WSGI_APPLICATION = 'cgbookstore.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(
         default=config('DATABASE_URL'),
-        conn_max_age=60,
+        conn_max_age=600,  # 10 minutos (aumentado de 60s para melhor pooling)
         conn_health_checks=True,
     )
 }
+
+# Adicionar opções de timeout ao banco de dados
+DATABASES['default']['OPTIONS'] = {
+    'connect_timeout': 10,
+    'options': '-c statement_timeout=30000'  # 30s timeout para queries
+}
+
+
+# ==============================================================================
+# CACHE CONFIGURATION (Redis)
+# ==============================================================================
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'CONNECTION_POOL_KWARGS': {
+                'max_connections': 50,
+                'retry_on_timeout': True,
+            },
+            'SOCKET_CONNECT_TIMEOUT': 5,
+            'SOCKET_TIMEOUT': 5,
+            'IGNORE_EXCEPTIONS': True,  # Fallback se Redis cair
+        },
+        'KEY_PREFIX': 'cgbookstore',
+        'TIMEOUT': config('REDIS_CACHE_TIMEOUT', default=300, cast=int),
+    }
+}
+
+# Cache de sessões (reduz carga no banco)
+# TEMPORARIAMENTE DESABILITADO - Usar sessões em banco até resolver Redis
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+# SESSION_CACHE_ALIAS = 'default'
+
+# Sessões em banco de dados (padrão Django)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 
 # Password validation
@@ -108,6 +151,21 @@ LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
+
+
+# ==============================================================================
+# CELERY CONFIGURATION
+# ==============================================================================
+
+CELERY_BROKER_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
+CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutos
+CELERY_RESULT_EXPIRES = 3600  # 1 hora
 
 
 # Static files (CSS, JavaScript, Images)
@@ -164,4 +222,35 @@ LOGIN_REDIRECT_URL = '/'
 
 # Redireciona para a home page após o logout (opcional, já que a LogoutView pode fazer isso)
 LOGOUT_REDIRECT_URL = '/'
+
+
+# ========== SISTEMA DE RECOMENDAÇÕES IA ==========
+
+# Django REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',  # Permite login via sessão Django
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    # Removido DEFAULT_PERMISSION_CLASSES para permitir acesso via sessão
+    # Cada view controla suas próprias permissões
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+}
+
+# Google Gemini AI
+GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
+
+# Configurações de Recomendações
+RECOMMENDATIONS_CONFIG = {
+    'MIN_INTERACTIONS': 5,  # Mínimo de interações para gerar recomendações personalizadas
+    'CACHE_TIMEOUT': 3600,  # Cache de 1 hora para recomendações
+    'SIMILARITY_CACHE_TIMEOUT': 86400,  # Cache de 24 horas para similaridade
+    'MAX_RECOMMENDATIONS': 10,  # Número máximo de recomendações retornadas
+    'HYBRID_WEIGHTS': {
+        'collaborative': 0.6,  # Peso da filtragem colaborativa
+        'content': 0.3,        # Peso da filtragem baseada em conteúdo
+        'trending': 0.1,       # Peso dos livros em alta
+    },
+}
 

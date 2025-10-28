@@ -2,7 +2,8 @@
 
 from django.views.generic import TemplateView
 from django.utils import timezone
-from core.models import Section, Event
+from django.db.models import Count
+from core.models import Section, Event, Book
 
 
 class HomeView(TemplateView):
@@ -21,6 +22,14 @@ class HomeView(TemplateView):
             'items__content_type',
             'items__content_object'
         ).order_by('order')
+
+        # Adicionar contagem de reviews aos livros de cada seção
+        for section in sections:
+            if section.content_type == 'books':
+                for item in section.get_items():
+                    if hasattr(item.content_object, 'user_reviews'):
+                        # Adicionar reviews_count dinamicamente ao objeto livro
+                        item.content_object.reviews_count = item.content_object.user_reviews.count()
 
         context['sections'] = sections
 

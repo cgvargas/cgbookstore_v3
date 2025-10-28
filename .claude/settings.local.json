@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py runserver:*)",
+      "Bash(python manage.py:*)",
+      "Bash(pip install:*)",
+      "Bash(wsl --version)",
+      "Bash(wsl sudo apt install redis-server -y)",
+      "Bash(timeout 15 python:*)",
+      "Bash(timeout 20 python:*)",
+      "Bash(python:*)",
+      "Bash(timeout 5 python:*)",
+      "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\" test_cache_quick.py)",
+      "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\" manage.py:*)",
+      "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\" manage.py migrate recommendations)",
+      "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\" test_recommendations.py)",
+      "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\" manage.py check --deploy)",
+      "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\" test_api_recommendations.py)",
+      "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\" test_user_claud.py)",
+      "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\" -c:*)",
+      "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\":*)",
+      "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\" test_enhanced_ai.py)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

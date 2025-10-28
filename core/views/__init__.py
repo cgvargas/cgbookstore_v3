@@ -7,6 +7,7 @@ Inclui views principais, AJAX, gamificação e APIs REST.
 from .home_view import HomeView
 from .book_views import BookListView
 from .book_detail_view import BookDetailView
+from .author_views import AuthorListView, AuthorDetailView
 from .search_view import SearchView
 from .about_view import AboutView
 from .contact_view import ContactView
@@ -58,6 +59,8 @@ __all__ = [
     'HomeView',
     'BookListView',
     'BookDetailView',
+    'AuthorListView',
+    'AuthorDetailView',
     'SearchView',
     'AboutView',
     'ContactView',

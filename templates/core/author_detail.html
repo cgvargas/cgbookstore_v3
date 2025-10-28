@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}{{ author.name }} - CG.BookStore{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Botão Voltar -->
+    <a href="{% url 'core:author_list' %}" class="btn btn-link text-muted mb-3 p-0" title="Voltar para lista de autores">
+        <i class="fas fa-arrow-left me-1"></i>Autores
+    </a>
+
+    <!-- Header do Autor -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <!-- Foto do Autor -->
+                <div class="col-md-3 text-center mb-4 mb-md-0">
+                    {% if author.photo %}
+                    <img src="{{ author.photo.url }}"
+                         class="author-detail-photo"
+                         alt="{{ author.name }}">
+                    {% else %}
+                    <div class="author-detail-placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    {% endif %}
+
+                    <!-- Redes Sociais -->
+                    {% if author.website or author.twitter or author.instagram %}
+                    <div class="social-buttons mt-4">
+                        {% if author.website %}
+                        <a href="{{ author.website }}" target="_blank" rel="noopener noreferrer"
+                           class="btn btn-outline-primary btn-sm mb-2 w-100">
+                            <i class="fas fa-globe me-2"></i>Website
+                        </a>
+                        {% endif %}
+                        {% if author.twitter %}
+                        <a href="https://twitter.com/{{ author.twitter }}" target="_blank" rel="noopener noreferrer"
+                           class="btn btn-outline-info btn-sm mb-2 w-100">
+                            <i class="fab fa-twitter me-2"></i>Twitter
+                        </a>
+                        {% endif %}
+                        {% if author.instagram %}
+                        <a href="https://instagram.com/{{ author.instagram }}" target="_blank" rel="noopener noreferrer"
+                           class="btn btn-outline-danger btn-sm mb-2 w-100">
+                            <i class="fab fa-instagram me-2"></i>Instagram
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Informações do Autor -->
+                <div class="col-md-9">
+                    <h1 class="mb-3">{{ author.name }}</h1>
+
+                    <!-- Estatísticas -->
+                    <div class="mb-4">
+                        <span class="badge bg-primary me-2">
+                            <i class="fas fa-book"></i> {{ books_count }} livro{{ books_count|pluralize }}
+                        </span>
+                    </div>
+
+                    <!-- Biografia -->
+                    {% if author.bio %}
+                    <div class="author-bio">
+                        <h5 class="mb-3">
+                            <i class="fas fa-user-circle me-2"></i>Sobre o Autor
+                        </h5>
+                        <p class="text-justify">{{ author.bio|linebreaks }}</p>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Biografia do autor ainda não disponível.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Livros do Autor -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+                <i class="fas fa-book me-2"></i>Livros de {{ author.name }}
+            </h4>
+        </div>
+        <div class="card-body">
+            {% if books %}
+            <div class="row g-4">
+                {% for book in books %}
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{% url 'core:book_detail' book.slug %}" class="text-decoration-none">
+                        <div class="card book-card h-100">
+                            <!-- Imagem do Livro -->
+                            <div class="book-cover-wrapper">
+                                {% if book.cover_image %}
+                                <img src="{{ book.cover_image.url }}"
+                                     class="card-img-top book-cover"
+                                     alt="{{ book.title }}"
+                                     loading="lazy">
+                                {% else %}
+                                <div class="book-cover-placeholder">
+                                    <i class="fas fa-book fa-3x"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="card-body p-3">
+                                <!-- Título -->
+                                <h6 class="card-title mb-2 book-title">{{ book.title }}</h6>
+
+                                <!-- Preço e Avaliação em uma linha -->
+                                <div class="d-flex justify-content-between align-items-center mb-2 book-info-row">
+                                    {% if book.price %}
+                                    <span class="text-success fw-bold price-text">
+                                        R$ {{ book.price }}
+                                    </span>
+                                    {% endif %}
+
+                                    {% if book.average_rating %}
+                                    <div class="rating-compact">
+                                        <span class="stars-small">
+                                            {% for i in 5|range %}
+                                                {% if i < book.average_rating %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </span>
+                                        <small class="text-muted ms-1">({{ book.reviews_count }})</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Categoria -->
+                                {% if book.category %}
+                                <span class="badge bg-secondary small">
+                                    {{ book.category.name }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-warning text-center">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <h5>Nenhum livro disponível</h5>
+                <p>Este autor ainda não possui livros cadastrados no catálogo.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+/* Foto do Autor na Página de Detalhes */
+.author-detail-photo {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 5px solid var(--bs-primary);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.author-detail-placeholder {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    color: white;
+    margin: 0 auto;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Biografia */
+.author-bio {
+    background: var(--bs-light);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid var(--bs-primary);
+}
+
+.text-justify {
+    text-align: justify;
+}
+
+/* Cards de Livros */
+.book-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.book-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+.book-cover-wrapper {
+    position: relative;
+    width: 100%;
+    padding-top: 150%; /* Aspect ratio 2:3 */
+    overflow: hidden;
+    background: var(--bs-light);
+}
+
+.book-cover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.book-cover-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.book-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.4em;
+}
+
+/* Informações do livro - Preço e Avaliação */
+.book-info-row {
+    font-size: 0.85rem;
+    gap: 0.5rem;
+}
+
+.price-text {
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.rating-compact {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.stars-small i {
+    font-size: 0.75rem;
+}
+
+.rating-compact small {
+    font-size: 0.7rem;
+}
+
+/* Dark Mode */
+[data-theme="dark"] .author-bio {
+    background: rgba(255,255,255,0.05);
+}
+
+[data-theme="dark"] .book-card {
+    background-color: var(--bs-dark);
+    border-color: rgba(255,255,255,0.1);
+}
+
+[data-theme="dark"] .book-card:hover {
+    box-shadow: 0 8px 16px rgba(255,255,255,0.1);
+}
+
+[data-theme="dark"] .book-cover-wrapper {
+    background: rgba(255,255,255,0.05);
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .author-detail-photo,
+    .author-detail-placeholder {
+        width: 150px;
+        height: 150px;
+    }
+
+    .author-detail-placeholder {
+        font-size: 3.5rem;
+    }
+}
+</style>
+{% endblock %}
