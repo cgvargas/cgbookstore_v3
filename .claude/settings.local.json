@@ -1,7 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit:*)"
+      "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\":*)"
     ],
     "deny": [],
     "ask": []
