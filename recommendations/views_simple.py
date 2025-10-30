@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 @require_http_methods(["GET"])
 @login_required
-@ratelimit(key='user', rate='30/h', method='GET')
+@ratelimit(key='user', rate='300/h', method='GET', block=True)  # 300/h em DEV (ajustar para 30/h em PROD)
 def get_recommendations_simple(request):
     """
     View Django pura (sem DRF) para obter recomendações.
