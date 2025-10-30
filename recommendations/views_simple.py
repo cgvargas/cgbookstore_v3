@@ -4,11 +4,18 @@ Views simples (Django puro) para contornar problemas do DRF.
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from django_ratelimit.decorators import ratelimit
+from django.utils import timezone
 from .algorithms import (
     CollaborativeFilteringAlgorithm,
     ContentBasedFilteringAlgorithm,
     HybridRecommendationSystem
+)
+from .algorithms_optimized import (
+    OptimizedHybridRecommendationSystem,
+    OptimizedCollaborativeFiltering,
+    OptimizedContentBased
 )
 from .gemini_ai import GeminiRecommendationEngine
 from .gemini_ai_enhanced import EnhancedGeminiRecommendationEngine
@@ -21,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 @require_http_methods(["GET"])
 @login_required
-# @ratelimit(key='user', rate='30/h', method='GET')  # Temporariamente desabilitado para testes
+@ratelimit(key='user', rate='30/h', method='GET')
 def get_recommendations_simple(request):
     """
     View Django pura (sem DRF) para obter recomendações.
@@ -38,17 +45,17 @@ def get_recommendations_simple(request):
 
         logger.info(f"Generating {algorithm} recommendations for {request.user.username}")
 
-        # Selecionar algoritmo
+        # Selecionar algoritmo (usando versões OTIMIZADAS com filtro rigoroso)
         if algorithm == 'collaborative':
-            engine = CollaborativeFilteringAlgorithm()
+            engine = OptimizedCollaborativeFiltering()
             recommendations = engine.recommend(request.user, n=limit)
 
         elif algorithm == 'content':
-            engine = ContentBasedFilteringAlgorithm()
+            engine = OptimizedContentBased()
             recommendations = engine.recommend(request.user, n=limit)
 
         elif algorithm == 'hybrid':
-            engine = HybridRecommendationSystem()
+            engine = OptimizedHybridRecommendationSystem()
             recommendations = engine.recommend(request.user, n=limit)
 
         elif algorithm == 'ai':
@@ -99,10 +106,10 @@ def get_recommendations_simple(request):
                     'source': 'google_books'  # Indicar que é do Google Books
                 })
 
-            # Se não encontrou livros, usar algoritmo híbrido como fallback
+            # Se não encontrou livros, usar algoritmo híbrido OTIMIZADO como fallback
             if not books_data:
-                logger.warning("Enhanced AI found no books, using hybrid fallback")
-                engine = HybridRecommendationSystem()
+                logger.warning("Enhanced AI found no books, using optimized hybrid fallback")
+                engine = OptimizedHybridRecommendationSystem()
                 recommendations = engine.recommend(request.user, n=limit)
 
                 from core.models import Book
@@ -173,4 +180,107 @@ def get_recommendations_simple(request):
             'algorithm': request.GET.get('algorithm', 'hybrid'),
             'count': 0,
             'recommendations': []
+        }, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+@ratelimit(key='user', rate='100/h', method='POST')
+def track_click_simple(request):
+    """
+    Registra clique em uma recomendação (versão simples sem DRF).
+
+    Aceita:
+    - book_id: ID do livro (inteiro) - para livros do catálogo local
+    - book_title: Título do livro (string) - para livros externos (Google Books)
+    - algorithm: Algoritmo usado para recomendar
+    - source: Origem da recomendação ('local_db' ou 'google_books')
+
+    Returns:
+        JSON com confirmação do tracking
+    """
+    try:
+        import json
+
+        # Parse do body JSON
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'error': 'JSON inválido'
+            }, status=400)
+
+        book_id = data.get('book_id')
+        book_title = data.get('book_title')
+        algorithm = data.get('algorithm', 'unknown')
+        source = data.get('source', 'unknown')
+
+        # Validar que pelo menos um identificador foi fornecido
+        if not book_id and not book_title:
+            return JsonResponse({
+                'error': 'book_id ou book_title é obrigatório'
+            }, status=400)
+
+        # Registrar interação se for livro do catálogo local
+        if book_id:
+            from core.models import Book
+
+            try:
+                book = Book.objects.get(id=book_id)
+
+                # Criar ou atualizar interação
+                interaction, created = UserBookInteraction.objects.get_or_create(
+                    user=request.user,
+                    book=book,
+                    interaction_type='click',
+                    defaults={'created_at': timezone.now()}
+                )
+
+                if not created:
+                    # Atualizar timestamp
+                    interaction.created_at = timezone.now()
+                    interaction.save()
+
+                logger.info(
+                    f"Click tracked: user={request.user.username}, "
+                    f"book={book.title}, algorithm={algorithm}, source={source}"
+                )
+
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Clique registrado com sucesso',
+                    'book_id': book_id,
+                    'book_title': book.title,
+                    'algorithm': algorithm,
+                    'source': source,
+                    'interaction_created': created
+                })
+
+            except Book.DoesNotExist:
+                logger.warning(f"Book not found for tracking: id={book_id}")
+                return JsonResponse({
+                    'error': f'Livro não encontrado: {book_id}'
+                }, status=404)
+
+        # Se for livro externo (Google Books), apenas logar
+        else:
+            logger.info(
+                f"External book click tracked: user={request.user.username}, "
+                f"book_title={book_title}, algorithm={algorithm}, source={source}"
+            )
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Clique em livro externo registrado (analytics only)',
+                'book_title': book_title,
+                'algorithm': algorithm,
+                'source': source,
+                'note': 'Livro externo - interação não salva no banco'
+            })
+
+    except Exception as e:
+        logger.error(f"Error tracking click: {e}", exc_info=True)
+        return JsonResponse({
+            'error': 'Erro ao registrar clique',
+            'detail': str(e)
         }, status=500)

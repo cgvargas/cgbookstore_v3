@@ -20,7 +20,9 @@
       "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\" -c:*)",
       "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\":*)",
       "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\" test_enhanced_ai.py)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\" testes/test_melhorias_fase1.py)",
+      "Bash(timeout 20 \"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\":*)"
     ],
     "deny": [],
     "ask": []

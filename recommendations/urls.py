@@ -19,6 +19,7 @@ urlpatterns = [
 
     # Function-based views (Django puro - SEM DRF)
     path('api/recommendations/', views_simple.get_recommendations_simple, name='get_recommendations'),
+    path('api/track-click/', views_simple.track_click_simple, name='track_click_simple'),
 
     # Function-based views (DRF - caso precise)
     path('api/recommendations-drf/', views.get_recommendations, name='get_recommendations_drf'),

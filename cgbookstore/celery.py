@@ -27,9 +27,10 @@ app.conf.beat_schedule = {
     },
 
     # Recomendações: calcular similaridades diariamente às 3h
+    # ATUALIZA matriz de similaridade entre livros (TF-IDF + Cosine Similarity)
     'compute-book-similarities': {
         'task': 'recommendations.tasks.compute_book_similarities',
-        'schedule': crontab(minute=0, hour=3),
+        'schedule': crontab(minute=0, hour=3),  # Todos os dias às 3h da manhã
     },
 
     # Recomendações: gerar recomendações para todos os usuários a cada hora
