@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>COMO_FUNCIONA_IA_RECOMENDACOES.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="%F0%9F%A4%96-como-funciona-o-sistema-de-recomenda%C3%A7%C3%B5es-com-ia">🤖 Como Funciona o Sistema de Recomendações com IA</h1>
+<h2 id="%F0%9F%93%8A-vis%C3%A3o-geral">📊 Visão Geral</h2>
+<p>O sistema de recomendações com IA usa o <strong>Google Gemini 2.5 Flash</strong> para gerar recomendações personalizadas baseadas no perfil e histórico de leitura do usuário.</p>
+<hr>
+<h2 id="%F0%9F%94%84-fluxo-completo-passo-a-passo">🔄 Fluxo Completo (Passo a Passo)</h2>
+<pre class="hljs"><code><div>┌─────────────────────────────────────────────────────────────────┐
+│  1. USUÁRIO CLICA NO BOTÃO &quot;IA PREMIUM&quot;                         │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  2. NAVEGADOR FAZ REQUEST PARA API                              │
+│     GET /recommendations/api/recommendations/?algorithm=ai      │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  3. BACKEND - views_simple.py                                   │
+│                                                                 │
+│  a) Verificar se usuário está autenticado                      │
+│  b) Buscar histórico do usuário no banco:                      │
+│     - Últimas 20 interações (UserBookInteraction)              │
+│     - Livros lidos, avaliados, na wishlist, etc.               │
+│  c) Preparar dados do histórico:                               │
+│     [{                                                          │
+│       &quot;title&quot;: &quot;Os Filhos de Húrin&quot;,                           │
+│       &quot;author&quot;: &quot;J.R.R. Tolkien&quot;,                              │
+│       &quot;categories&quot;: &quot;Fantasia&quot;,                                │
+│       &quot;interaction_type&quot;: &quot;read&quot;                               │
+│     }, ...]                                                     │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  4. CHAMAR GeminiRecommendationEngine                           │
+│     engine.generate_recommendations(user, history_data, n=6)    │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  5. VERIFICAR CACHE (gemini_ai.py)                              │
+│                                                                 │
+│  Cache Key: &quot;gemini_rec:{user_id}:6&quot;                           │
+│  Timeout: 1 hora (3600 segundos)                               │
+│                                                                 │
+│  ✅ Se existe no cache → Retornar resultado imediato            │
+│  ❌ Se não existe → Continuar para API do Gemini               │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  6. CONSTRUIR PROMPT PARA GEMINI (_build_prompt)                │
+│                                                                 │
+│  Prompt contém:                                                 │
+│  ┌───────────────────────────────────────────────────────────┐ │
+│  │ Você é um especialista em recomendação de livros.         │ │
+│  │                                                            │ │
+│  │ PERFIL DO USUÁRIO:                                        │ │
+│  │ - Nome: claud                                             │ │
+│  │ - Livros lidos: Os Filhos de Húrin, Harry Potter...      │ │
+│  │ - Gêneros favoritos: Fantasia, Ficção Científica         │ │
+│  │ - Total de livros lidos: 8                                │ │
+│  │                                                            │ │
+│  │ INSTRUÇÕES:                                               │ │
+│  │ 1. Recomende 6 livros DIFERENTES                          │ │
+│  │ 2. Para cada livro forneça:                               │ │
+│  │    - Título completo                                      │ │
+│  │    - Autor                                                │ │
+│  │    - Justificativa personalizada                          │ │
+│  │                                                            │ │
+│  │ FORMATO: JSON                                             │ │
+│  │ {                                                          │ │
+│  │   &quot;recommendations&quot;: [                                    │ │
+│  │     {                                                      │ │
+│  │       &quot;title&quot;: &quot;Duna&quot;,                                    │ │
+│  │       &quot;author&quot;: &quot;Frank Herbert&quot;,                          │ │
+│  │       &quot;reason&quot;: &quot;Como você gostou de... é perfeito&quot;       │ │
+│  │     }                                                      │ │
+│  │   ]                                                        │ │
+│  │ }                                                          │ │
+│  └───────────────────────────────────────────────────────────┘ │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  7. CHAMAR API DO GOOGLE GEMINI                                 │
+│                                                                 │
+│  Model: gemini-2.5-flash                                        │
+│  API Key: AIzaSy...Db_A (configurada em settings)              │
+│                                                                 │
+│  Request: model.generate_content(prompt)                       │
+│                                                                 │
+│  ⏱️  Tempo de resposta: ~3-5 segundos                           │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  8. GEMINI RETORNA RESPOSTA JSON                                │
+│                                                                 │
+│  {                                                              │
+│    &quot;recommendations&quot;: [                                         │
+│      {                                                          │
+│        &quot;title&quot;: &quot;O Hobbit&quot;,                                     │
+│        &quot;author&quot;: &quot;J.R.R. Tolkien&quot;,                              │
+│        &quot;reason&quot;: &quot;Claud já mostrou apreço pela riqueza do      │
+│                   mundo de Tolkien com 'Os Filhos de Húrin'... │
+│                   porta de entrada perfeita para Terra Média&quot;   │
+│      },                                                         │
+│      {                                                          │
+│        &quot;title&quot;: &quot;Duna&quot;,                                         │
+│        &quot;author&quot;: &quot;Frank Herbert&quot;,                               │
+│        &quot;reason&quot;: &quot;Ficção científica épica com worldbuilding    │
+│                   tão rico quanto Tolkien...&quot;                   │
+│      },                                                         │
+│      ... (mais 4 livros)                                        │
+│    ]                                                            │
+│  }                                                              │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  9. PARSE E VALIDAÇÃO (_parse_recommendations)                  │
+│                                                                 │
+│  - Remove markdown (```json)                                    │
+│  - Parse JSON                                                   │
+│  - Adiciona score padrão: 0.95 (95%)                           │
+│  - Retorna lista de dicts                                       │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  10. SALVAR NO CACHE                                            │
+│                                                                 │
+│  cache.set(&quot;gemini_rec:123:6&quot;, recommendations, timeout=3600)  │
+│                                                                 │
+│  ✅ Próxima chamada na próxima hora será instantânea!           │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  11. VOLTAR PARA views_simple.py                                │
+│                                                                 │
+│  Agora temos 6 recomendações da IA:                            │
+│  [                                                              │
+│    {&quot;title&quot;: &quot;O Hobbit&quot;, &quot;author&quot;: &quot;Tolkien&quot;, ...},           │
+│    {&quot;title&quot;: &quot;Duna&quot;, &quot;author&quot;: &quot;Herbert&quot;, ...},                │
+│    ...                                                          │
+│  ]                                                              │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  12. BUSCAR LIVROS REAIS NO BANCO DE DADOS ⚠️ CRÍTICO!          │
+│                                                                 │
+│  PROBLEMA: Gemini pode recomendar livros que NÃO EXISTEM       │
+│            no nosso catálogo!                                   │
+│                                                                 │
+│  SOLUÇÃO: Para cada recomendação da IA:                        │
+│                                                                 │
+│  for rec in ai_recommendations:                                │
+│      # Limpar título (remover subtítulos)                      │
+│      book_title = rec['title'].split('(')[0].strip()          │
+│                                                                 │
+│      # Buscar no banco (ICONTAINS = busca parcial)            │
+│      book = Book.objects.filter(                               │
+│          title__icontains=book_title                           │
+│      ).first()                                                  │
+│                                                                 │
+│      if book:  # ✅ Livro EXISTE                                │
+│          books_data.append({                                    │
+│              'id': book.id,                                     │
+│              'slug': book.slug,                                 │
+│              'title': book.title,  # Título real do banco      │
+│              'author': str(book.author),                        │
+│              'cover_image': book.cover_image.url,  # ⭐ URL real│
+│              'score': rec['score'],  # 0.95                    │
+│              'reason': rec['reason']  # Justificativa da IA    │
+│          })                                                     │
+│      else:  # ❌ Livro NÃO EXISTE → ignorar                     │
+│          continue                                               │
+│                                                                 │
+│  RESULTADO:                                                     │
+│  - &quot;O Hobbit&quot; → ✅ Encontrado → Adiciona                        │
+│  - &quot;Duna&quot; → ❌ Não existe → Ignora                              │
+│  - &quot;O Nome do Vento&quot; → ✅ Encontrado → Adiciona                 │
+│  ...                                                            │
+│                                                                 │
+│  Final: 2 livros reais (de 6 recomendados)                     │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  13. FALLBACK SE NENHUM LIVRO ENCONTRADO                        │
+│                                                                 │
+│  if not books_data:  # Se nenhum livro da IA existe            │
+│      # Usar algoritmo HÍBRIDO como backup                      │
+│      engine = HybridRecommendationSystem()                     │
+│      recommendations = engine.recommend(user, n=6)             │
+│                                                                 │
+│      # Adicionar nota na razão                                 │
+│      reason = &quot;IA recomendou livros similares | &quot; + ...        │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  14. RETORNAR RESPOSTA JSON                                     │
+│                                                                 │
+│  return JsonResponse({                                          │
+│      'algorithm': 'ai',                                         │
+│      'count': 2,                                                │
+│      'recommendations': [                                       │
+│          {                                                      │
+│              'id': 2,                                           │
+│              'slug': 'o-hobbit-edicao-ilustrada',              │
+│              'title': 'O Hobbit em quadrinhos',                │
+│              'author': 'J.R.R. Tolkien',                        │
+│              'cover_image': 'https://supabase.co/.../hobbit',  │
+│              'score': 0.95,                                     │
+│              'reason': 'Claud já mostrou apreço...'            │
+│          },                                                     │
+│          {                                                      │
+│              'id': 45,                                          │
+│              'slug': 'o-nome-do-vento',                         │
+│              'title': 'O Nome do Vento',                        │
+│              'author': 'Patrick Rothfuss',                      │
+│              'cover_image': 'https://supabase.co/.../vento',   │
+│              'score': 0.95,                                     │
+│              'reason': 'Fantasia moderna com prosa lírica...'  │
+│          }                                                      │
+│      ]                                                          │
+│  })                                                             │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  15. NAVEGADOR RECEBE E RENDERIZA                               │
+│                                                                 │
+│  JavaScript (recommendations_section.html):                     │
+│                                                                 │
+│  fetch('/recommendations/api/recommendations/?algorithm=ai')   │
+│      .then(response =&gt; response.json())                        │
+│      .then(data =&gt; {                                           │
+│          renderRecommendations(data.recommendations)           │
+│      })                                                         │
+│                                                                 │
+│  renderRecommendations() cria HTML:                            │
+│                                                                 │
+│  &lt;div class=&quot;card&quot;&gt;                                             │
+│      &lt;span class=&quot;score&quot;&gt;95%&lt;/span&gt;                            │
+│      &lt;img src=&quot;https://supabase.co/.../hobbit.jpg&quot;&gt;           │
+│      &lt;h6&gt;O Hobbit em quadrinhos&lt;/h6&gt;                           │
+│      &lt;p&gt;J.R.R. Tolkien&lt;/p&gt;                                     │
+│      &lt;p class=&quot;reason&quot;&gt;Claud já mostrou apreço...&lt;/p&gt;          │
+│      &lt;a href=&quot;/livros/o-hobbit-edicao-ilustrada/&quot;&gt;             │
+│          Ver livro                                              │
+│      &lt;/a&gt;                                                       │
+│  &lt;/div&gt;                                                         │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  16. USUÁRIO VÊ AS RECOMENDAÇÕES NA TELA! 🎉                    │
+└─────────────────────────────────────────────────────────────────┘
+</div></code></pre>
+<hr>
+<h2 id="%F0%9F%94%91-componentes-principais">🔑 Componentes Principais</h2>
+<h3 id="1-geminiaipy---motor-da-ia">1. <strong>gemini_ai.py</strong> - Motor da IA</h3>
+<ul>
+<li><strong>Classe:</strong> <code>GeminiRecommendationEngine</code></li>
+<li><strong>Modelo:</strong> <code>gemini-2.5-flash</code> (Google)</li>
+<li><strong>Métodos principais:</strong>
+<ul>
+<li><code>generate_recommendations()</code> - Gera lista de livros</li>
+<li><code>_build_prompt()</code> - Cria prompt personalizado</li>
+<li><code>_parse_recommendations()</code> - Parse da resposta JSON</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-viewssimplepy---api-backend">2. <strong>views_simple.py</strong> - API Backend</h3>
+<ul>
+<li><strong>Endpoint:</strong> <code>/recommendations/api/recommendations/?algorithm=ai</code></li>
+<li><strong>Função:</strong> <code>get_recommendations_simple()</code></li>
+<li><strong>Responsabilidades:</strong>
+<ol>
+<li>Buscar histórico do usuário</li>
+<li>Chamar Gemini AI</li>
+<li>Validar livros no banco</li>
+<li>Retornar JSON com livros reais</li>
+</ol>
+</li>
+</ul>
+<h3 id="3-recommendationssectionhtml---frontend">3. <strong>recommendations_section.html</strong> - Frontend</h3>
+<ul>
+<li><strong>JavaScript:</strong> Faz fetch da API</li>
+<li><strong>Renderização:</strong> Cria cards de livros dinamicamente</li>
+<li><strong>Fallback:</strong> Mostra placeholder se imagem falhar</li>
+</ul>
+<hr>
+<h2 id="%F0%9F%92%BE-cache-e-performance">💾 Cache e Performance</h2>
+<h3 id="cache-da-ia-1-hora">Cache da IA (1 hora)</h3>
+<pre class="hljs"><code><div>cache_key = <span class="hljs-string">f'gemini_rec:<span class="hljs-subst">{user.id}</span>:<span class="hljs-subst">{n}</span>'</span>
+cache.set(cache_key, recommendations, timeout=<span class="hljs-number">3600</span>)
+</div></code></pre>
+<p><strong>Benefícios:</strong></p>
+<ul>
+<li>⚡ Primeira chamada: ~3-5 segundos (API Gemini)</li>
+<li>⚡ Chamadas subsequentes: ~100ms (cache)</li>
+<li>💰 Economia de custos da API</li>
+<li>🔋 Redução de requisições ao Gemini</li>
+</ul>
+<hr>
+<h2 id="%F0%9F%8E%AF-diferen%C3%A7a-entre-algoritmos">🎯 Diferença entre Algoritmos</h2>
+<table>
+<thead>
+<tr>
+<th>Algoritmo</th>
+<th>Como funciona</th>
+<th>Dados usados</th>
+<th>Velocidade</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Híbrido</strong></td>
+<td>60% collaborative + 30% content + 10% trending</td>
+<td>Interações de usuários + metadados dos livros</td>
+<td>⚡⚡⚡ Rápido (~100ms)</td>
+</tr>
+<tr>
+<td><strong>IA Premium</strong></td>
+<td>Gemini analisa perfil e gera recomendações personalizadas</td>
+<td>Histórico completo + análise de contexto</td>
+<td>⚡ Moderado (~3s primeira vez, cache depois)</td>
+</tr>
+<tr>
+<td><strong>Similares</strong></td>
+<td>Collaborative filtering (usuários com gostos parecidos)</td>
+<td>Interações de todos os usuários</td>
+<td>⚡⚡⚡ Rápido (~100ms)</td>
+</tr>
+<tr>
+<td><strong>Conteúdo</strong></td>
+<td>Content-based (metadados dos livros)</td>
+<td>Categorias, autores, descrições</td>
+<td>⚡⚡⚡ Rápido (~100ms)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="%F0%9F%93%88-exemplo-real---usu%C3%A1rio-%22claud%22">📈 Exemplo Real - Usuário &quot;claud&quot;</h2>
+<h3 id="entrada-hist%C3%B3rico-do-usu%C3%A1rio">Entrada (Histórico do Usuário)</h3>
+<pre class="hljs"><code><div>user_history = [
+    {
+        <span class="hljs-string">'title'</span>: <span class="hljs-string">'Os Filhos de Húrin'</span>,
+        <span class="hljs-string">'author'</span>: <span class="hljs-string">'J.R.R. Tolkien'</span>,
+        <span class="hljs-string">'categories'</span>: <span class="hljs-string">'Fantasia'</span>,
+        <span class="hljs-string">'interaction_type'</span>: <span class="hljs-string">'read'</span>
+    },
+    {
+        <span class="hljs-string">'title'</span>: <span class="hljs-string">'Harry Potter e o Prisioneiro de Azkaban'</span>,
+        <span class="hljs-string">'author'</span>: <span class="hljs-string">'J.K. Rowling'</span>,
+        <span class="hljs-string">'categories'</span>: <span class="hljs-string">'Fantasia'</span>,
+        <span class="hljs-string">'interaction_type'</span>: <span class="hljs-string">'click'</span>
+    },
+    {
+        <span class="hljs-string">'title'</span>: <span class="hljs-string">'Jujutsu Kaisen, Vol. 1'</span>,
+        <span class="hljs-string">'author'</span>: <span class="hljs-string">'Gege Akutami'</span>,
+        <span class="hljs-string">'categories'</span>: <span class="hljs-string">'Mangá'</span>,
+        <span class="hljs-string">'interaction_type'</span>: <span class="hljs-string">'review'</span>,
+        <span class="hljs-string">'rating'</span>: <span class="hljs-number">4</span>
+    }
+]
+</div></code></pre>
+<h3 id="processamento-gemini">Processamento Gemini</h3>
+<pre class="hljs"><code><div>Prompt → &quot;Usuário leu Tolkien, Harry Potter, Mangá...&quot;
+         ↓
+Gemini analisa padrões:
+- Gosta de fantasia épica
+- Aprecia worldbuilding complexo
+- Interesse em narrativas heroicas
+         ↓
+Recomenda: O Hobbit, Duna, A Odisseia, etc.
+</div></code></pre>
+<h3 id="sa%C3%ADda-resposta-final">Saída (Resposta Final)</h3>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"algorithm"</span>: <span class="hljs-string">"ai"</span>,
+  <span class="hljs-attr">"count"</span>: <span class="hljs-number">2</span>,
+  <span class="hljs-attr">"recommendations"</span>: [
+    {
+      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"O Hobbit em quadrinhos"</span>,
+      <span class="hljs-attr">"author"</span>: <span class="hljs-string">"J.R.R. Tolkien"</span>,
+      <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"o-hobbit-edicao-ilustrada"</span>,
+      <span class="hljs-attr">"cover_image"</span>: <span class="hljs-string">"https://supabase.co/.../hobbit.jpg"</span>,
+      <span class="hljs-attr">"score"</span>: <span class="hljs-number">0.95</span>,
+      <span class="hljs-attr">"reason"</span>: <span class="hljs-string">"Porta de entrada perfeita para Terra Média..."</span>
+    },
+    {
+      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"O Nome do Vento"</span>,
+      <span class="hljs-attr">"author"</span>: <span class="hljs-string">"Patrick Rothfuss"</span>,
+      <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"o-nome-do-vento"</span>,
+      <span class="hljs-attr">"cover_image"</span>: <span class="hljs-string">"https://supabase.co/.../vento.jpg"</span>,
+      <span class="hljs-attr">"score"</span>: <span class="hljs-number">0.95</span>,
+      <span class="hljs-attr">"reason"</span>: <span class="hljs-string">"Fantasia moderna com prosa lírica..."</span>
+    }
+  ]
+}
+</div></code></pre>
+<hr>
+<h2 id="%E2%9A%A0%EF%B8%8F-tratamento-de-erros">⚠️ Tratamento de Erros</h2>
+<h3 id="1-gemini-api-indispon%C3%ADvel">1. Gemini API indisponível</h3>
+<pre class="hljs"><code><div><span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> engine.is_available():
+    <span class="hljs-keyword">return</span> JsonResponse({
+        <span class="hljs-string">'error'</span>: <span class="hljs-string">'Gemini AI não configurado'</span>,
+        <span class="hljs-string">'status'</span>: <span class="hljs-number">503</span>
+    })
+</div></code></pre>
+<h3 id="2-livros-n%C3%A3o-existem-no-banco">2. Livros não existem no banco</h3>
+<pre class="hljs"><code><div><span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> books_data:
+    <span class="hljs-comment"># Fallback para algoritmo híbrido</span>
+    engine = HybridRecommendationSystem()
+    recommendations = engine.recommend(user, n=limit)
+</div></code></pre>
+<h3 id="3-timeout-da-api">3. Timeout da API</h3>
+<pre class="hljs"><code><div><span class="hljs-keyword">try</span>:
+    response = model.generate_content(prompt)
+<span class="hljs-keyword">except</span> Exception <span class="hljs-keyword">as</span> e:
+    logger.error(<span class="hljs-string">f"Gemini error: <span class="hljs-subst">{e}</span>"</span>)
+    <span class="hljs-keyword">return</span> []  <span class="hljs-comment"># Retorna lista vazia</span>
+</div></code></pre>
+<hr>
+<h2 id="%F0%9F%9A%80-vantagens-do-sistema-ia">🚀 Vantagens do Sistema IA</h2>
+<ol>
+<li>
+<p><strong>Justificativas Personalizadas</strong> 📝</p>
+<ul>
+<li>Cada recomendação vem com explicação única</li>
+<li>Contexto baseado no perfil real do usuário</li>
+</ul>
+</li>
+<li>
+<p><strong>Análise de Contexto</strong> 🧠</p>
+<ul>
+<li>Entende padrões complexos (não só categorias)</li>
+<li>Considera evolução do gosto do usuário</li>
+</ul>
+</li>
+<li>
+<p><strong>Descoberta de Novos Livros</strong> 🔍</p>
+<ul>
+<li>Recomenda livros fora do padrão</li>
+<li>Expande horizontes de leitura</li>
+</ul>
+</li>
+<li>
+<p><strong>Cache Inteligente</strong> ⚡</p>
+<ul>
+<li>Performance similar aos outros algoritmos após cache</li>
+<li>Atualização automática a cada hora</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="%F0%9F%93%81-arquivos-principais">📁 Arquivos Principais</h2>
+<ul>
+<li><strong>Backend IA:</strong> <code>recommendations/gemini_ai.py</code> (linhas 18-297)</li>
+<li><strong>API Endpoint:</strong> <code>recommendations/views_simple.py</code> (linhas 53-134)</li>
+<li><strong>Frontend:</strong> <code>templates/recommendations/recommendations_section.html</code> (linhas 113-228)</li>
+<li><strong>Configuração:</strong> <code>cgbookstore/settings.py</code> (GEMINI_API_KEY)</li>
+</ul>
+<hr>
+<h2 id="%F0%9F%8E%93-resumo-t%C3%A9cnico">🎓 Resumo Técnico</h2>
+<p><strong>O sistema IA funciona assim:</strong></p>
+<ol>
+<li>✅ Usuário clica &quot;IA Premium&quot;</li>
+<li>✅ Backend busca histórico de leitura (últimas 20 interações)</li>
+<li>✅ Monta prompt personalizado com perfil do usuário</li>
+<li>✅ Gemini 2.5 Flash analisa e retorna 6 livros (JSON)</li>
+<li>✅ Backend valida quais livros existem no catálogo</li>
+<li>✅ Retorna apenas livros reais com imagens válidas</li>
+<li>✅ Se nenhum existir, usa algoritmo híbrido como fallback</li>
+<li>✅ Cacheia resultado por 1 hora (performance)</li>
+<li>✅ Frontend renderiza cards com justificativas da IA</li>
+</ol>
+<p><strong>Resultado:</strong> Recomendações personalizadas com explicações detalhadas! 🎉</p>
+
+</body>
+</html>

@@ -355,15 +355,16 @@ class UserProfile(models.Model):
         self.streak_days = 0
         self.save()
 
-    # ========== MÉTODOS DE PLANO ==========
-
     def is_premium_active(self):
-        """Verifica se o plano premium está ativo."""
+        """
+        Verifica se o plano premium do usuário está ativo.
+        Retorna True se for premium e a data de expiração for futura ou nula.
+        """
         if not self.is_premium:
             return False
 
         if self.premium_expires_at is None:
-            return True  # Premium vitalício
+            return True  # Assinatura vitalícia
 
         from django.utils import timezone
         return timezone.now() < self.premium_expires_at
