@@ -136,13 +136,18 @@ document.addEventListener('DOMContentLoaded', function() {
 function loadRecommendations(algorithm) {
     const container = document.getElementById('recommendations-container');
 
-    // Mostrar loading
+    // Mostrar loading com mensagem específica para IA
+    const loadingMessage = algorithm === 'ai'
+        ? 'Consultando IA... Isso pode levar alguns segundos na primeira vez 🤖'
+        : `Gerando recomendações...`;
+
     container.innerHTML = `
         <div class="col-12 text-center py-5">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Carregando...</span>
             </div>
-            <p class="mt-3 text-muted">Gerando recomendações com ${algorithm}...</p>
+            <p class="mt-3 text-muted">${loadingMessage}</p>
+            ${algorithm === 'ai' ? '<p class="small text-muted">(Próximas requisições serão instantâneas!)</p>' : ''}
         </div>
     `;
 
