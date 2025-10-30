@@ -7,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django_ratelimit.decorators import ratelimit
 from django.utils import timezone
+from django.conf import settings
 from .algorithms import (
     CollaborativeFilteringAlgorithm,
     ContentBasedFilteringAlgorithm,
@@ -26,9 +27,24 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def conditional_ratelimit(rate):
+    """
+    Aplica rate limiting apenas se DEBUG=False.
+    Em desenvolvimento (DEBUG=True), permite requisições ilimitadas.
+    """
+    def decorator(func):
+        if settings.DEBUG:
+            # Em DEBUG mode, não aplicar rate limiting
+            return func
+        else:
+            # Em produção, aplicar rate limiting
+            return ratelimit(key='user', rate=rate, method='GET', block=True)(func)
+    return decorator
+
+
 @require_http_methods(["GET"])
 @login_required
-@ratelimit(key='user', rate='300/h', method='GET', block=True)  # 300/h em DEV (ajustar para 30/h em PROD)
+@conditional_ratelimit(rate='30/h')  # Só aplica em produção (DEBUG=False)
 def get_recommendations_simple(request):
     """
     View Django pura (sem DRF) para obter recomendações.
