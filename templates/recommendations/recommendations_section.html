@@ -161,7 +161,7 @@ function loadRecommendations(algorithm) {
         })
         .then(data => {
             if (data.recommendations && data.recommendations.length > 0) {
-                renderRecommendations(data.recommendations);
+                renderRecommendations(data.recommendations, algorithm);
             } else {
                 container.innerHTML = `
                     <div class="col-12 text-center py-5">
@@ -183,7 +183,7 @@ function loadRecommendations(algorithm) {
         });
 }
 
-function renderRecommendations(recommendations) {
+function renderRecommendations(recommendations, algorithm) {
     const container = document.getElementById('recommendations-container');
     let html = '';
 
@@ -227,7 +227,7 @@ function renderRecommendations(recommendations) {
                                class="btn btn-sm btn-primary w-100 mt-2 recommendation-link"
                                data-book-id="${rec.id}"
                                data-book-title="${bookTitle}"
-                               data-algorithm="${currentAlgorithm}"
+                               data-algorithm="${algorithm}"
                                data-source="${source}"
                                onclick="trackRecommendationClick(event, this)">
                                 <i class="fas fa-eye me-1"></i> Ver livro
@@ -238,7 +238,7 @@ function renderRecommendations(recommendations) {
                                class="btn btn-sm btn-success w-100 mt-2 recommendation-link"
                                data-book-id=""
                                data-book-title="${bookTitle}"
-                               data-algorithm="${currentAlgorithm}"
+                               data-algorithm="${algorithm}"
                                data-source="${source}"
                                onclick="trackRecommendationClick(event, this)">
                                 <i class="fas fa-external-link-alt me-1"></i> Ver no Google Books
