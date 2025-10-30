@@ -27,7 +27,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def conditional_ratelimit(rate):
+def conditional_ratelimit(rate, method='GET'):
     """
     Aplica rate limiting apenas se DEBUG=False.
     Em desenvolvimento (DEBUG=True), permite requisições ilimitadas.
@@ -38,7 +38,7 @@ def conditional_ratelimit(rate):
             return func
         else:
             # Em produção, aplicar rate limiting
-            return ratelimit(key='user', rate=rate, method='GET', block=True)(func)
+            return ratelimit(key='user', rate=rate, method=method, block=True)(func)
     return decorator
 
 
@@ -201,7 +201,7 @@ def get_recommendations_simple(request):
 
 @require_http_methods(["POST"])
 @login_required
-@ratelimit(key='user', rate='100/h', method='POST')
+@conditional_ratelimit(rate='100/h', method='POST')  # Só aplica em produção (DEBUG=False)
 def track_click_simple(request):
     """
     Registra clique em uma recomendação (versão simples sem DRF).
