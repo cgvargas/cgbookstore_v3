@@ -61,14 +61,16 @@ class EnhancedGeminiRecommendationEngine:
         cached_result = cache.get(cache_key)
 
         if cached_result is not None:
-            logger.info(f"✅ Using cached enhanced recommendations for {user.username}")
+            logger.info(f"Using cached enhanced recommendations for {user.username}")
             return cached_result
 
         try:
-            # PASSO 1: Pedir para Gemini recomendar livros NOVOS
-            prompt = self._build_enhanced_prompt(user, user_history, known_books, n)
+            # PASSO 1: Pedir MAIS livros ao Gemini (3x) para compensar filtros
+            # Muitos livros serão descartados (sem capa, não encontrados, etc)
+            requested_books = n * 3
+            prompt = self._build_enhanced_prompt(user, user_history, known_books, requested_books)
 
-            logger.info(f"Calling Gemini AI for {user.username}...")
+            logger.info(f"Calling Gemini AI for {user.username} (requesting {requested_books} books)...")
             response = self.model.generate_content(prompt)
 
             # PASSO 2: Parse das recomendações da IA
@@ -78,34 +80,52 @@ class EnhancedGeminiRecommendationEngine:
                 logger.warning("Gemini returned no recommendations")
                 return []
 
+            logger.info(f"Gemini suggested {len(ai_recommendations)} books, filtering through Google Books API...")
+
             # PASSO 3: Enriquecer com dados do Google Books
             enriched_recommendations = []
+            books_tried = 0
+            books_filtered_no_cover = 0
+            books_not_found = 0
 
             for rec in ai_recommendations:
+                books_tried += 1
                 google_book = self._search_google_books(rec['title'], rec['author'])
 
                 if google_book:
-                    # PASSO 4: Gerar descrição curta com IA
-                    short_description = self._generate_short_description(
-                        rec['title'],
-                        rec['author'],
-                        google_book.get('description', ''),
-                        rec['reason']
-                    )
+                    # Usar descrição do Google Books ou razão da IA (mais rápido)
+                    description = google_book.get('description', rec['reason'])
+                    if description and len(description) > 150:
+                        description = description[:147] + '...'
 
                     enriched_recommendations.append({
                         'title': google_book.get('title', rec['title']),
                         'author': google_book.get('author', rec['author']),
                         'cover_image': google_book.get('cover_url'),
                         'google_books_id': google_book.get('id'),
-                        'description': short_description,
+                        'description': description or rec['reason'],
                         'reason': rec['reason'],
                         'score': 0.95,
                         'source': 'google_books'
                     })
 
+                    logger.debug(f"✓ Book added: {rec['title']} (has cover)")
+
                     if len(enriched_recommendations) >= n:
+                        logger.info(f"✓ Reached target of {n} books, stopping search")
                         break
+                elif google_book is None:
+                    # None significa que foi filtrado (sem capa ou não encontrado)
+                    logger.debug(f"✗ Book filtered: {rec['title']} (no cover or not found)")
+                    books_filtered_no_cover += 1
+                else:
+                    books_not_found += 1
+
+            # Log de estatísticas
+            logger.info(
+                f"📊 Stats: {books_tried} tried, {len(enriched_recommendations)} added, "
+                f"{books_filtered_no_cover} filtered (no cover/not found)"
+            )
 
             # Cachear por 24 horas (86400 segundos)
             cache.set(
@@ -150,7 +170,7 @@ class EnhancedGeminiRecommendationEngine:
             if interaction.book and interaction.book.title:
                 known_books.add(interaction.book.title.lower().strip())
 
-        logger.info(f"📚 User {user.username} knows {len(known_books)} books (shelves + interactions)")
+        logger.info(f"User {user.username} knows {len(known_books)} books (shelves + interactions)")
 
         return list(known_books)
 
@@ -244,77 +264,99 @@ Responda SÓ o JSON."""
 
     def _search_google_books(self, title, author):
         """
-        Busca livro no Google Books API.
+        Busca livro no Google Books API com múltiplas estratégias de fallback.
 
         Returns:
             Dict com dados do livro ou None
         """
         try:
-            # Construir query de busca
-            query = f'intitle:{title} inauthor:{author}'
-
-            # Chamar API do Google Books
             url = 'https://www.googleapis.com/books/v1/volumes'
+
+            # ESTRATÉGIA 1: Busca completa (título + autor) em português
+            query = f'intitle:{title} inauthor:{author}'
             params = {
                 'q': query,
-                'maxResults': 1,
-                'langRestrict': 'pt',  # Priorizar português
+                'maxResults': 3,  # Pegar 3 resultados para ter mais opções
+                'langRestrict': 'pt',
                 'printType': 'books'
             }
 
             response = requests.get(url, params=params, timeout=5)
             response.raise_for_status()
-
             data = response.json()
 
+            # Se não encontrou, tentar sem restrição de idioma
             if data.get('totalItems', 0) == 0:
-                # Tentar busca sem restrição de idioma
+                logger.debug(f"No results in PT for '{title}', trying all languages...")
                 params['langRestrict'] = ''
                 response = requests.get(url, params=params, timeout=5)
                 data = response.json()
 
-                if data.get('totalItems', 0) == 0:
-                    logger.warning(f"Book not found on Google Books: {title}")
-                    return None
+            # ESTRATÉGIA 2: Se ainda não encontrou, buscar só pelo título
+            if data.get('totalItems', 0) == 0:
+                logger.debug(f"No results with author, trying title only: '{title}'")
+                params['q'] = f'intitle:{title}'
+                params['maxResults'] = 5  # Mais resultados para compensar
+                response = requests.get(url, params=params, timeout=5)
+                data = response.json()
 
-            # Extrair dados do primeiro resultado
-            item = data['items'][0]
-            volume_info = item.get('volumeInfo', {})
+            # ESTRATÉGIA 3: Última tentativa - busca genérica
+            if data.get('totalItems', 0) == 0:
+                logger.debug(f"No results with intitle, trying general search")
+                params['q'] = f'{title} {author}'
+                response = requests.get(url, params=params, timeout=5)
+                data = response.json()
 
-            # Extrair imagem da capa (maior qualidade disponível)
-            image_links = volume_info.get('imageLinks', {})
-            cover_url = (
-                image_links.get('large') or
-                image_links.get('medium') or
-                image_links.get('thumbnail') or
-                image_links.get('smallThumbnail')
-            )
+            if data.get('totalItems', 0) == 0:
+                logger.warning(f"Book not found on Google Books after all strategies: {title} by {author}")
+                return None
 
-            # Converter para HTTPS
-            if cover_url and cover_url.startswith('http:'):
-                cover_url = cover_url.replace('http:', 'https:')
+            # Iterar pelos resultados e pegar o primeiro COM CAPA
+            for item in data.get('items', []):
+                volume_info = item.get('volumeInfo', {})
 
-            return {
-                'id': item.get('id'),
-                'title': volume_info.get('title'),
-                'author': ', '.join(volume_info.get('authors', [author])),
-                'description': volume_info.get('description', ''),
-                'cover_url': cover_url,
-                'google_books_link': volume_info.get('infoLink'),
-                'preview_link': volume_info.get('previewLink'),
-                'publisher': volume_info.get('publisher'),
-                'published_date': volume_info.get('publishedDate'),
-                'page_count': volume_info.get('pageCount'),
-                'categories': volume_info.get('categories', []),
-                'average_rating': volume_info.get('averageRating'),
-                'ratings_count': volume_info.get('ratingsCount')
-            }
+                # Extrair imagem da capa (maior qualidade disponível)
+                image_links = volume_info.get('imageLinks', {})
+                cover_url = (
+                    image_links.get('large') or
+                    image_links.get('medium') or
+                    image_links.get('thumbnail') or
+                    image_links.get('smallThumbnail')
+                )
+
+                # Se este resultado tem capa, usar ele!
+                if cover_url:
+                    # Converter para HTTPS
+                    if cover_url.startswith('http:'):
+                        cover_url = cover_url.replace('http:', 'https:')
+
+                    logger.debug(f"✓ Found book with cover: {volume_info.get('title')}")
+
+                    return {
+                        'id': item.get('id'),
+                        'title': volume_info.get('title'),
+                        'author': ', '.join(volume_info.get('authors', [author])),
+                        'description': volume_info.get('description', ''),
+                        'cover_url': cover_url,
+                        'google_books_link': volume_info.get('infoLink'),
+                        'preview_link': volume_info.get('previewLink'),
+                        'publisher': volume_info.get('publisher'),
+                        'published_date': volume_info.get('publishedDate'),
+                        'page_count': volume_info.get('pageCount'),
+                        'categories': volume_info.get('categories', []),
+                        'average_rating': volume_info.get('averageRating'),
+                        'ratings_count': volume_info.get('ratingsCount')
+                    }
+
+            # Se chegou aqui, encontrou resultados mas nenhum tinha capa
+            logger.warning(f"Book '{title}' found but has no cover in any result, filtering out")
+            return None
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Google Books API error for '{title}': {e}")
             return None
         except Exception as e:
-            logger.error(f"Error searching Google Books: {e}")
+            logger.error(f"Error searching Google Books for '{title}': {e}")
             return None
 
     def _generate_short_description(self, title, author, full_description, ai_reason):
