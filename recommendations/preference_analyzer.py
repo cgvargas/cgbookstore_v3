@@ -166,9 +166,9 @@ class UserPreferenceAnalyzer:
 
         top_genres.sort(key=lambda x: x['weight'], reverse=True)
 
+        genre_list = ', '.join([f"{g['genre']} ({g['weight']:.2f})" for g in top_genres[:3]])
         logger.info(
-            f"🎯 Top Genres [{self.user.username}]: "
-            f"{', '.join([f'{g[\"genre\"]} ({g[\"weight\"]:.2f})' for g in top_genres[:3]])}"
+            f"🎯 Top Genres [{self.user.username}]: {genre_list}"
         )
 
         return top_genres[:n]
@@ -205,9 +205,9 @@ class UserPreferenceAnalyzer:
 
         top_authors.sort(key=lambda x: x['weight'], reverse=True)
 
+        author_list = ', '.join([f"{a['author']} ({a['weight']:.2f})" for a in top_authors[:3]])
         logger.info(
-            f"✍️ Top Authors [{self.user.username}]: "
-            f"{', '.join([f'{a[\"author\"]} ({a[\"weight\"]:.2f})' for a in top_authors[:3]])}"
+            f"✍️ Top Authors [{self.user.username}]: {author_list}"
         )
 
         return top_authors[:n]
