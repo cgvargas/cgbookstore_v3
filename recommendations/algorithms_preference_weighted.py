@@ -473,8 +473,9 @@ class PreferenceWeightedHybrid:
         # Filtrar capas
         filtered_books = [book for book in books if book.has_valid_cover]
 
+        genre_names = ', '.join(str(g) for g in top_genres) if top_genres else 'None'
         logger.info(
-            f"📈 Trending in favorite genres ({', '.join(top_genres)}): {len(filtered_books)} books"
+            f"📈 Trending in favorite genres ({genre_names}): {len(filtered_books)} books"
         )
 
         return filtered_books[:n]
