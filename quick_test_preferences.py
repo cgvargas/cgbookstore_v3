@@ -1,12 +1,11 @@
+# -*- coding: utf-8 -*-
 """
-Quick Test: Sistema de Priorização por Prateleiras
+Quick Test: Sistema de Priorizacao por Prateleiras
 
 Execute este script quando o Django estiver rodando:
-python manage.py shell_plus < quick_test_preferences.py
-
-Ou via shell interativo:
 python manage.py shell
->>> exec(open('quick_test_preferences.py').read())
+
+>>> exec(open('quick_test_preferences.py', encoding='utf-8').read())
 """
 
 print("\n" + "="*80)

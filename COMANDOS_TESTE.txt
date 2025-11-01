@@ -1,0 +1,73 @@
+# COMANDOS PARA TESTAR NO DJANGO SHELL
+
+# Abra o shell:
+python manage.py shell
+
+# Cole estes comandos (um de cada vez ou todos juntos):
+
+# ============================================
+# TESTE 1: Importar e verificar
+# ============================================
+
+from django.contrib.auth.models import User
+from recommendations.preference_analyzer import UserPreferenceAnalyzer, ShelfWeightConfig
+from recommendations.algorithms_preference_weighted import PreferenceWeightedHybrid
+
+print("Importacao OK!")
+
+# ============================================
+# TESTE 2: Ver configuracao de pesos
+# ============================================
+
+print("\nCONFIGURACAO DE PESOS:")
+for shelf_type in ['favorites', 'read', 'reading', 'to_read', 'abandoned']:
+    weight = ShelfWeightConfig.get_weight(shelf_type)
+    desc = ShelfWeightConfig.get_description(shelf_type)
+    print(f"{desc}: {weight:.0%}")
+
+# ============================================
+# TESTE 3: Analisar usuario
+# ============================================
+
+user = User.objects.first()
+print(f"\nUsuario: {user.username}")
+print(f"Livros: {user.bookshelves.count()}")
+
+analyzer = UserPreferenceAnalyzer(user)
+profile = analyzer.get_preference_profile()
+
+print(f"\nTotal de livros: {profile['total_books']}")
+
+if profile['top_genres']:
+    print(f"Top genero: {profile['top_genres'][0]['genre']}")
+
+if profile['top_authors']:
+    print(f"Top autor: {profile['top_authors'][0]['author']}")
+
+# ============================================
+# TESTE 4: Gerar recomendacoes
+# ============================================
+
+engine = PreferenceWeightedHybrid()
+recs = engine.recommend(user, n=6)
+
+print(f"\nRecomendacoes: {len(recs)}")
+
+for i, rec in enumerate(recs[:3], 1):
+    book = rec['book']
+    score = rec['score']
+    boost = rec.get('preference_boost', 0)
+
+    print(f"\n{i}. {book.title}")
+    print(f"   Score: {score:.2f}")
+
+    if boost > 0:
+        print(f"   BOOST: +{boost*100:.0f}%")
+
+print("\nSUCESSO!")
+
+# ============================================
+# TESTE COMPLETO (copie tudo de uma vez):
+# ============================================
+
+exec(open('test_preferences_basic.py', encoding='utf-8').read())
