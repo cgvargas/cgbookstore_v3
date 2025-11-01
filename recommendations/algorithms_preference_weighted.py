@@ -15,6 +15,7 @@ from django.core.cache import cache
 from django.conf import settings
 from django.db.models import Count, Q
 from core.models import Book
+from accounts.models import BookShelf
 from .models import UserBookInteraction
 from .algorithms import (
     filter_books_with_valid_covers,
@@ -25,6 +26,25 @@ from .preference_analyzer import UserPreferenceAnalyzer, ShelfWeightConfig
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def get_user_shelf_book_ids(user):
+    """
+    Retorna IDs de TODOS os livros nas prateleiras do usuário.
+
+    Inclui livros de todas as prateleiras:
+    - Favoritos
+    - Lidos
+    - Lendo
+    - Quero Ler
+    - Abandonados
+
+    Usado para EXCLUIR esses livros das recomendações.
+    """
+    return set(
+        BookShelf.objects.filter(user=user)
+        .values_list('book_id', flat=True)
+    )
 
 
 class PreferenceWeightedCollaborative(CollaborativeFilteringAlgorithm):
@@ -120,9 +140,10 @@ class PreferenceWeightedCollaborative(CollaborativeFilteringAlgorithm):
             logger.warning(f"No similar users found for {user.username}, using popular books")
             return self._get_popular_books(n)
 
-        # Livros que usuário já tem
-        weighted_books = analyzer.get_weighted_books()
-        user_book_ids = [item['book'].id for item in weighted_books]
+        # Livros que usuário já tem (TODAS as prateleiras)
+        user_book_ids = get_user_shelf_book_ids(user)
+
+        logger.info(f"🚫 Excluding {len(user_book_ids)} books from user's shelves")
 
         # Buscar progressivamente mais livros até ter N com capa
         results = []
@@ -304,6 +325,15 @@ class PreferenceWeightedContentBased(ContentBasedFilteringAlgorithm):
                 f"({top_source['shelf_type']}, peso {top_source['weight']:.0%})"
             )
 
+        # 🚫 FILTRAR livros que já estão nas prateleiras do usuário
+        user_book_ids = get_user_shelf_book_ids(user)
+        sorted_recommendations = [
+            rec for rec in sorted_recommendations
+            if rec['book'].id not in user_book_ids
+        ]
+
+        logger.info(f"🚫 Excluded {len(all_recommendations) - len(sorted_recommendations)} books from user's shelves")
+
         # Filtrar capas
         sorted_recommendations = filter_books_with_valid_covers(sorted_recommendations)
 
@@ -469,6 +499,10 @@ class PreferenceWeightedHybrid:
         # Filtrar apenas livros dos gêneros favoritos
         if top_genres:
             books = books.filter(category__in=top_genres)
+
+        # 🚫 FILTRAR livros que já estão nas prateleiras do usuário
+        user_book_ids = get_user_shelf_book_ids(user)
+        books = books.exclude(id__in=user_book_ids)
 
         # Filtrar capas
         filtered_books = [book for book in books if book.has_valid_cover]
