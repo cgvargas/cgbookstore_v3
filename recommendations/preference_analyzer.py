@@ -168,7 +168,7 @@ class UserPreferenceAnalyzer:
 
         logger.info(
             f"🎯 Top Genres [{self.user.username}]: "
-            f"{', '.join([f\"{g['genre']} ({g['weight']:.2f})\" for g in top_genres[:3]])}"
+            f"{', '.join([f'{g[\"genre\"]} ({g[\"weight\"]:.2f})' for g in top_genres[:3]])}"
         )
 
         return top_genres[:n]
@@ -207,7 +207,7 @@ class UserPreferenceAnalyzer:
 
         logger.info(
             f"✍️ Top Authors [{self.user.username}]: "
-            f"{', '.join([f\"{a['author']} ({a['weight']:.2f})\" for a in top_authors[:3]])}"
+            f"{', '.join([f'{a[\"author\"]} ({a[\"weight\"]:.2f})' for a in top_authors[:3]])}"
         )
 
         return top_authors[:n]
@@ -241,11 +241,14 @@ class UserPreferenceAnalyzer:
         }
 
         # Log perfil
+        top_genre = profile['top_genres'][0]['genre'] if profile['top_genres'] else 'N/A'
+        top_author = profile['top_authors'][0]['author'] if profile['top_authors'] else 'N/A'
+
         logger.info(
             f"👤 Preference Profile [{self.user.username}]: "
             f"Total={profile['total_books']}, "
-            f"Top Genre={profile['top_genres'][0]['genre'] if profile['top_genres'] else 'N/A'}, "
-            f"Top Author={profile['top_authors'][0]['author'] if profile['top_authors'] else 'N/A'}"
+            f"Top Genre={top_genre}, "
+            f"Top Author={top_author}"
         )
 
         return profile
