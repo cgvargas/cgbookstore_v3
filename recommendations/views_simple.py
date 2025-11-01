@@ -18,6 +18,11 @@ from .algorithms_optimized import (
     OptimizedCollaborativeFiltering,
     OptimizedContentBased
 )
+from .algorithms_preference_weighted import (
+    PreferenceWeightedHybrid,
+    PreferenceWeightedCollaborative,
+    PreferenceWeightedContentBased
+)
 from .gemini_ai import GeminiRecommendationEngine
 from .gemini_ai_enhanced import EnhancedGeminiRecommendationEngine
 from .models import UserBookInteraction
@@ -50,7 +55,8 @@ def get_recommendations_simple(request):
     View Django pura (sem DRF) para obter recomendações.
 
     Query params:
-    - algorithm: 'collaborative', 'content', 'hybrid', 'ai' (default: hybrid)
+    - algorithm: 'collaborative', 'content', 'hybrid', 'ai',
+                 'preference_hybrid', 'preference_collab', 'preference_content' (default: hybrid)
     - limit: número de recomendações (default: 10, max: 50)
     """
     try:
@@ -72,6 +78,21 @@ def get_recommendations_simple(request):
 
         elif algorithm == 'hybrid':
             engine = OptimizedHybridRecommendationSystem()
+            recommendations = engine.recommend(request.user, n=limit)
+
+        elif algorithm == 'preference_hybrid':
+            # Sistema ponderado por prateleiras (favoritos > lidos > lendo > quero ler)
+            engine = PreferenceWeightedHybrid()
+            recommendations = engine.recommend(request.user, n=limit)
+
+        elif algorithm == 'preference_collab':
+            # Collaborative ponderado por prateleiras
+            engine = PreferenceWeightedCollaborative()
+            recommendations = engine.recommend(request.user, n=limit)
+
+        elif algorithm == 'preference_content':
+            # Content-based ponderado por prateleiras
+            engine = PreferenceWeightedContentBased()
             recommendations = engine.recommend(request.user, n=limit)
 
         elif algorithm == 'ai':

@@ -10,16 +10,19 @@
             </h2>
             {% if user.is_authenticated %}
             <div class="btn-group" role="group">
-                <button type="button" class="btn btn-sm btn-outline-primary active" data-algorithm="hybrid">
+                <button type="button" class="btn btn-sm btn-outline-primary active" data-algorithm="preference_hybrid" title="Recomendações ponderadas pelas suas prateleiras (Favoritos > Lidos > Lendo > Quero Ler)">
+                    <i class="fas fa-star"></i> Personalizado
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" data-algorithm="hybrid" title="Sistema híbrido clássico">
                     <i class="fas fa-blender"></i> Híbrido
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-primary" data-algorithm="ai">
+                <button type="button" class="btn btn-sm btn-outline-primary" data-algorithm="ai" title="Recomendações potencializadas com IA Gemini + Google Books">
                     <i class="fas fa-robot"></i> IA Premium
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-primary" data-algorithm="collaborative">
+                <button type="button" class="btn btn-sm btn-outline-primary" data-algorithm="collaborative" title="Baseado em usuários com gostos similares">
                     <i class="fas fa-users"></i> Similares
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-primary" data-algorithm="content">
+                <button type="button" class="btn btn-sm btn-outline-primary" data-algorithm="content" title="Baseado no conteúdo dos livros que você gosta">
                     <i class="fas fa-book"></i> Conteúdo
                 </button>
             </div>
@@ -113,8 +116,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     {% if user.is_authenticated %}
-    // Carregar recomendações iniciais
-    loadRecommendations('hybrid');
+    // Carregar recomendações iniciais (agora usando o algoritmo ponderado por padrão)
+    loadRecommendations('preference_hybrid');
 
     // Event listeners para trocar de algoritmo
     document.querySelectorAll('[data-algorithm]').forEach(button => {

@@ -84,7 +84,10 @@ class RecommendationSerializer(serializers.ModelSerializer):
 class RecommendationRequestSerializer(serializers.Serializer):
     """Serializer para requisições de recomendação."""
     algorithm = serializers.ChoiceField(
-        choices=['collaborative', 'content', 'hybrid', 'ai'],
+        choices=[
+            'collaborative', 'content', 'hybrid', 'ai',
+            'preference_hybrid', 'preference_collab', 'preference_content'
+        ],
         default='hybrid'
     )
     limit = serializers.IntegerField(default=10, min_value=1, max_value=50)
