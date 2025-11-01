@@ -39,4 +39,39 @@ Uma livraria online moderna e responsiva construída com Django e Python, utiliz
 
 ## 📁 Estrutura do Projeto
 
+```
+cgbookstore_v3/
+├── accounts/               # Sistema de autenticação e usuários
+├── core/                   # Catálogo de livros (modelos, views)
+├── recommendations/        # Sistema de recomendações ML + IA
+├── chatbot_literario/      # Chatbot inteligente
+├── notifications/          # Sistema de notificações
+├── config/                 # Configurações do Django
+├── templates/              # Templates HTML
+├── static/                 # Arquivos estáticos (CSS, JS, imagens)
+├── media/                  # Uploads (capas de livros)
+│
+├── docs/                   # 📚 Documentação
+│   ├── guides/            # Guias de uso
+│   ├── testing/           # Documentação de testes
+│   └── integration/       # Guias de integração
+│
+├── scripts/                # 🔧 Scripts utilitários
+│   ├── setup/             # Scripts de configuração
+│   ├── testing/           # Scripts de teste
+│   └── maintenance/       # Scripts de manutenção
+│
+├── documents/              # Documentação técnica detalhada
+│   └── status/            # Status do projeto
+│
+├── manage.py               # CLI do Django
+├── requirements.txt        # Dependências Python
+└── README.md              # Este arquivo
+```
+
+### 📖 Documentação
+
+- **[docs/](docs/)** - Documentação completa organizada
+- **[scripts/](scripts/)** - Scripts para desenvolvimento e testes
+
 O projeto é organizado em apps Django, seguindo as melhores práticas da comunidade:
