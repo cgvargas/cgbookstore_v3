@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.cache import cache
 import logging
 import json
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -19,10 +20,22 @@ class GeminiRecommendationEngine:
         self.api_key = settings.GEMINI_API_KEY
         # Usando gemini-2.5-flash (rápido e eficiente para recomendações)
         self.model_name = 'gemini-2.5-flash'
+        # Timeout de 30 segundos para chamadas da API
+        self.request_timeout = 30
 
         if self.api_key:
             genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel(self.model_name)
+            # Configurar modelo com parâmetros de geração otimizados
+            generation_config = {
+                'temperature': 0.7,
+                'top_p': 0.95,
+                'top_k': 40,
+                'max_output_tokens': 2048,
+            }
+            self.model = genai.GenerativeModel(
+                self.model_name,
+                generation_config=generation_config
+            )
         else:
             logger.warning("GEMINI_API_KEY not configured. AI recommendations will be disabled.")
             self.model = None
@@ -51,17 +64,38 @@ class GeminiRecommendationEngine:
         cached_result = cache.get(cache_key)
 
         if cached_result is not None:
+            logger.info(f"[CACHE HIT] Returning cached recommendations for user {user.username}")
             return cached_result
+
+        logger.info(f"[CACHE MISS] Generating new AI recommendations for user {user.username}")
+        start_time = time.time()
 
         try:
             # Construir prompt com contexto do usuário
             prompt = self._build_prompt(user, user_history, n)
 
-            # Chamar API do Gemini
-            response = self.model.generate_content(prompt)
+            # Chamar API do Gemini com timeout
+            logger.info(f"Calling Gemini API with timeout of {self.request_timeout}s...")
+
+            # Avisar se está demorando
+            response = self.model.generate_content(
+                prompt,
+                request_options={'timeout': self.request_timeout}
+            )
+
+            api_time = time.time() - start_time
+
+            if api_time > 10:
+                logger.warning(f"Gemini API took {api_time:.2f}s to respond (slower than expected)")
+            else:
+                logger.info(f"Gemini API responded in {api_time:.2f}s")
 
             # Processar resposta
             recommendations = self._parse_recommendations(response.text)
+
+            if not recommendations:
+                logger.warning(f"Gemini returned no recommendations for user {user.username}")
+                return []
 
             # Cachear por 1 hora
             cache.set(
@@ -70,12 +104,18 @@ class GeminiRecommendationEngine:
                 timeout=settings.RECOMMENDATIONS_CONFIG['CACHE_TIMEOUT']
             )
 
-            logger.info(f"Generated {len(recommendations)} AI recommendations for {user.username}")
+            total_time = time.time() - start_time
+            logger.info(f"Generated {len(recommendations)} AI recommendations for {user.username} in {total_time:.2f}s")
 
             return recommendations
 
+        except TimeoutError as e:
+            elapsed = time.time() - start_time
+            logger.error(f"Timeout generating Gemini recommendations after {elapsed:.2f}s (configured: {self.request_timeout}s): {e}")
+            return []
         except Exception as e:
-            logger.error(f"Error generating Gemini recommendations: {e}")
+            elapsed = time.time() - start_time
+            logger.error(f"Error generating Gemini recommendations after {elapsed:.2f}s: {e}", exc_info=True)
             return []
 
     def _build_prompt(self, user, user_history, n):
@@ -193,7 +233,10 @@ Responda APENAS com o JSON, sem texto adicional.
         cached_result = cache.get(cache_key)
 
         if cached_result is not None:
+            logger.debug(f"[CACHE HIT] Explanation for book {book.id}")
             return cached_result
+
+        logger.debug(f"[CACHE MISS] Generating explanation for book {book.id}")
 
         try:
             prompt = f"""
@@ -206,7 +249,10 @@ seria uma ótima leitura para o usuário {user.username}, considerando:
 Seja persuasivo e específico. Use tom amigável e conversacional.
 """
 
-            response = self.model.generate_content(prompt)
+            response = self.model.generate_content(
+                prompt,
+                request_options={'timeout': self.request_timeout}
+            )
             explanation = response.text.strip()
 
             # Cachear por 24 horas
@@ -216,8 +262,12 @@ Seja persuasivo e específico. Use tom amigável e conversacional.
                 timeout=settings.RECOMMENDATIONS_CONFIG['SIMILARITY_CACHE_TIMEOUT']
             )
 
+            logger.debug(f"Generated explanation for book {book.id}")
             return explanation
 
+        except TimeoutError as e:
+            logger.error(f"Timeout generating explanation for book {book.id}: {e}")
+            return "Recomendado baseado em suas preferências."
         except Exception as e:
             logger.error(f"Error generating explanation: {e}")
             return "Recomendado baseado em suas preferências."
@@ -240,7 +290,10 @@ Seja persuasivo e específico. Use tom amigável e conversacional.
         cached_result = cache.get(cache_key)
 
         if cached_result is not None:
+            logger.info(f"[CACHE HIT] Returning cached insights for user {user.username}")
             return cached_result
+
+        logger.info(f"[CACHE MISS] Generating reading insights for user {user.username}")
 
         try:
             read_books = [
@@ -250,6 +303,7 @@ Seja persuasivo e específico. Use tom amigável e conversacional.
             ]
 
             if not read_books:
+                logger.debug(f"No read books found for user {user.username}")
                 return {}
 
             prompt = f"""
@@ -273,7 +327,10 @@ FORMATO DE RESPOSTA (JSON):
 Responda APENAS com o JSON.
 """
 
-            response = self.model.generate_content(prompt)
+            response = self.model.generate_content(
+                prompt,
+                request_options={'timeout': self.request_timeout}
+            )
             clean_text = response.text.strip()
 
             if clean_text.startswith('```json'):
@@ -290,8 +347,12 @@ Responda APENAS com o JSON.
                 timeout=settings.RECOMMENDATIONS_CONFIG['SIMILARITY_CACHE_TIMEOUT']
             )
 
+            logger.info(f"Generated reading insights for user {user.username}")
             return insights
 
+        except TimeoutError as e:
+            logger.error(f"Timeout generating insights for user {user.username}: {e}")
+            return {}
         except Exception as e:
-            logger.error(f"Error generating insights: {e}")
+            logger.error(f"Error generating insights: {e}", exc_info=True)
             return {}

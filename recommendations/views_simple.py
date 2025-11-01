@@ -122,30 +122,10 @@ def get_recommendations_simple(request):
                     'source': 'google_books'  # Indicar que é do Google Books
                 })
 
-            # Se não encontrou livros, usar algoritmo híbrido OTIMIZADO como fallback
+            # Se a IA não encontrou livros, a lista estará vazia, o que é o correto.
+            # O frontend deve ser responsável por mostrar uma mensagem de "nenhum resultado".
             if not books_data:
-                logger.warning("Enhanced AI found no books, using optimized hybrid fallback")
-                engine = OptimizedHybridRecommendationSystem()
-                recommendations = engine.recommend(request.user, n=limit)
-
-                from core.models import Book
-                for rec in recommendations:
-                    book = rec['book']
-                    author_name = 'Autor desconhecido'
-                    if hasattr(book, 'author') and book.author:
-                        author_name = str(book.author) if not isinstance(book.author, str) else book.author
-
-                    books_data.append({
-                        'id': book.id,
-                        'slug': book.slug,
-                        'title': book.title,
-                        'author': author_name,
-                        'cover_image': book.cover_image.url if hasattr(book, 'cover_image') and book.cover_image else None,
-                        'description': book.description[:150] if hasattr(book, 'description') and book.description else '',
-                        'score': rec['score'],
-                        'reason': f"Baseado em suas preferências | {rec['reason']}",
-                        'source': 'local_db'
-                    })
+                logger.warning("Enhanced AI found no books. Returning empty list as intended.")
 
             return JsonResponse({
                 'algorithm': algorithm,
@@ -178,7 +158,8 @@ def get_recommendations_simple(request):
                 'author': author_name,
                 'cover_image': book.cover_image.url if hasattr(book, 'cover_image') and book.cover_image else None,
                 'score': rec['score'],
-                'reason': rec['reason']
+                'reason': rec['reason'],
+                'source': 'local_db'
             }
             books_data.append(book_data)
 

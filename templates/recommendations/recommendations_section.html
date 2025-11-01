@@ -136,6 +136,9 @@ document.addEventListener('DOMContentLoaded', function() {
 function loadRecommendations(algorithm) {
     const container = document.getElementById('recommendations-container');
 
+    // Marcar tempo de início para feedback de performance
+    const startTime = performance.now();
+
     // Mostrar loading com mensagem específica para IA
     const loadingMessage = algorithm === 'ai'
         ? 'Consultando IA... Isso pode levar alguns segundos na primeira vez 🤖'
@@ -147,7 +150,7 @@ function loadRecommendations(algorithm) {
                 <span class="visually-hidden">Carregando...</span>
             </div>
             <p class="mt-3 text-muted">${loadingMessage}</p>
-            ${algorithm === 'ai' ? '<p class="small text-muted">(Próximas requisições serão instantâneas!)</p>' : ''}
+            ${algorithm === 'ai' ? '<p class="small text-muted">(Próximas requisições serão instantâneas graças ao cache!)</p>' : ''}
         </div>
     `;
 
@@ -165,8 +168,11 @@ function loadRecommendations(algorithm) {
             return response.json();
         })
         .then(data => {
+            const loadTime = ((performance.now() - startTime) / 1000).toFixed(2);
+            const isFastLoad = loadTime < 1.0; // Menos de 1s = provavelmente cache
+
             if (data.recommendations && data.recommendations.length > 0) {
-                renderRecommendations(data.recommendations, algorithm);
+                renderRecommendations(data.recommendations, algorithm, loadTime, isFastLoad);
             } else {
                 container.innerHTML = `
                     <div class="col-12 text-center py-5">
@@ -183,14 +189,44 @@ function loadRecommendations(algorithm) {
                 <div class="col-12 text-center py-5">
                     <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
                     <p class="text-muted">Erro ao carregar recomendações. Tente novamente.</p>
+                    <p class="small text-muted">Se o problema persistir, verifique se o Redis está rodando.</p>
                 </div>
             `;
         });
 }
 
-function renderRecommendations(recommendations, algorithm) {
+function renderRecommendations(recommendations, algorithm, loadTime, isFastLoad) {
     const container = document.getElementById('recommendations-container');
+
+    // Banner de performance/cache no topo
     let html = '';
+    if (isFastLoad && algorithm === 'ai') {
+        html += `
+            <div class="col-12 mb-3">
+                <div class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+                    <i class="fas fa-bolt me-2"></i>
+                    <div>
+                        <strong>Cache ativo!</strong> Recomendações carregadas em ${loadTime}s.
+                        <small class="text-muted">(Cache válido por 1 hora)</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+    } else if (!isFastLoad && algorithm === 'ai') {
+        html += `
+            <div class="col-12 mb-3">
+                <div class="alert alert-info alert-dismissible fade show d-flex align-items-center" role="alert">
+                    <i class="fas fa-robot me-2"></i>
+                    <div>
+                        <strong>IA consultada!</strong> Recomendações geradas em ${loadTime}s.
+                        <small class="text-muted">(Próxima consulta será instantânea!)</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+    }
 
     recommendations.forEach(rec => {
         const score = Math.round(rec.score * 100);
@@ -219,10 +255,7 @@ function renderRecommendations(recommendations, algorithm) {
                     ` : ''}
                     <img src="${bookCover}" class="card-img-top" alt="${bookTitle}"
                          style="height: 250px; object-fit: cover;"
-                         onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div style="height: 250px; display: none; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-size: 3rem;">
-                        <i class="fas fa-book"></i>
-                    </div>
+                         onerror="this.src='https://via.placeholder.com/150x250/667eea/ffffff?text=Sem+Capa';">
                     <div class="card-body d-flex flex-column">
                         <h6 class="card-title text-truncate" title="${bookTitle}">${bookTitle}</h6>
                         <p class="card-text text-muted small mb-2">${bookAuthor}</p>

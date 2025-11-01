@@ -151,7 +151,7 @@ class OptimizedHybridRecommendationSystem:
         excluded_books = self.exclusion_filter.get_excluded_books(user)
 
         # Gerar mais recomendações que o necessário (para compensar exclusões)
-        raw_recommendations = self.engine.recommend(user, n=n * 3)
+        raw_recommendations = self.engine.recommend(user, n=n * 5)
 
         # Filtrar
         filtered = self.exclusion_filter.filter_recommendations(
@@ -176,7 +176,7 @@ class OptimizedCollaborativeFiltering:
     def recommend(self, user, n=10):
         """Gera recomendações colaborativas filtradas."""
         excluded_books = self.exclusion_filter.get_excluded_books(user)
-        raw_recommendations = self.engine.recommend(user, n=n * 3)
+        raw_recommendations = self.engine.recommend(user, n=n * 5)
         filtered = self.exclusion_filter.filter_recommendations(
             raw_recommendations,
             excluded_books
@@ -197,7 +197,7 @@ class OptimizedContentBased:
     def recommend(self, user, n=10):
         """Gera recomendações baseadas em conteúdo filtradas."""
         excluded_books = self.exclusion_filter.get_excluded_books(user)
-        raw_recommendations = self.engine.recommend(user, n=n * 3)
+        raw_recommendations = self.engine.recommend(user, n=n * 5)
         filtered = self.exclusion_filter.filter_recommendations(
             raw_recommendations,
             excluded_books

@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(\"/c/ProjectsDjango/cgbookstore_v3/.venv/Scripts/python.exe\":*)"
+      "Bash(python manage.py shell:*)",
+      "Bash(python test_ai_recommendations.py:*)",
+      "Bash(python:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

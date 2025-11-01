@@ -171,28 +171,60 @@ def get_recommendations(request):
                 'interaction_type': interaction.interaction_type
             } for interaction in user_history]
 
+            # Pedir mais recomendações para compensar livros sem capa
             recommendations = engine.generate_recommendations(
                 request.user,
                 history_data,
-                n=limit
+                n=limit * 3  # Pedir 3x mais
             )
 
-            # Converter formato de saída do Gemini
-            recommendations = [
-                {
-                    'book': None,  # Gemini retorna dados, não objetos
-                    'score': rec['score'],
-                    'reason': rec['reason'],
-                    'title': rec['title'],
-                    'author': rec['author']
-                }
-                for rec in recommendations
-            ]
+            # Tentar encontrar os livros no banco de dados e filtrar por capa
+            filtered_recommendations = []
+
+            for rec in recommendations:
+                # Tentar encontrar o livro no banco
+                try:
+                    # Buscar por título (case insensitive)
+                    from django.db.models import Q
+                    book = Book.objects.filter(
+                        Q(title__iexact=rec['title']) |
+                        Q(title__icontains=rec['title'][:30])  # Parte do título
+                    ).first()
+
+                    if book and book.has_valid_cover:
+                        # Livro encontrado E tem capa válida
+                        book_data = BookMiniSerializer(book).data
+                        book_data['score'] = rec['score']
+                        book_data['reason'] = rec['reason']
+                        filtered_recommendations.append(book_data)
+                    elif not book:
+                        # Livro não encontrado no banco - incluir como sugestão do Gemini
+                        logger.info(f"Book not found in DB: {rec['title']} by {rec['author']}")
+                        filtered_recommendations.append({
+                            'book': None,
+                            'score': rec['score'],
+                            'reason': rec['reason'],
+                            'title': rec['title'],
+                            'author': rec['author'],
+                            'cover_image': None,
+                            'source': 'gemini_suggestion'
+                        })
+                    else:
+                        # Livro sem capa - pular
+                        logger.debug(f"Filtered AI book without cover: {rec['title']}")
+
+                    # Parar quando atingir o limite
+                    if len(filtered_recommendations) >= limit:
+                        break
+
+                except Exception as e:
+                    logger.error(f"Error processing AI recommendation: {e}")
+                    continue
 
             return Response({
                 'algorithm': algorithm,
-                'count': len(recommendations),
-                'recommendations': recommendations
+                'count': len(filtered_recommendations),
+                'recommendations': filtered_recommendations
             })
 
         else:

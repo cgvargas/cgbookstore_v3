@@ -15,6 +15,37 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def filter_books_with_valid_covers(recommendations):
+    """
+    Filtra recomendações removendo livros sem capa válida.
+
+    Args:
+        recommendations: Lista de dicts com formato {'book': Book, 'score': float, 'reason': str}
+
+    Returns:
+        Lista filtrada contendo apenas livros com capas válidas
+    """
+    filtered = []
+    removed_count = 0
+    removed_titles = []
+
+    for rec in recommendations:
+        book = rec.get('book')
+        if book and book.has_valid_cover:
+            filtered.append(rec)
+        else:
+            removed_count += 1
+            if book:
+                removed_titles.append(f"{book.title} (ID: {book.id})")
+
+    if removed_count > 0:
+        print(f"🚫 FILTER: Removed {removed_count} books without covers from {len(recommendations)} total", flush=True)
+        logger.error(f"🚫 FILTER DEBUG: Removed {removed_count} books without covers from {len(recommendations)} total")
+        logger.warning(f"🚫 Filtered out {removed_count} books without covers: {', '.join(removed_titles[:3])}")
+
+    return filtered
+
+
 class CollaborativeFilteringAlgorithm:
     """
     Filtragem Colaborativa baseada em usuários similares.
@@ -64,7 +95,9 @@ class CollaborativeFilteringAlgorithm:
     def recommend(self, user, n=10):
         """
         Recomenda livros baseado em usuários similares.
+        Filtra livros sem capa válida e busca mais se necessário.
         """
+        logger.info(f"COLLABORATIVE START: User={user.username}, n={n}")
         similar_users = self.find_similar_users(user)
 
         if not similar_users:
@@ -77,45 +110,80 @@ class CollaborativeFilteringAlgorithm:
             .values_list('book_id', flat=True)
         )
 
-        recommended_books = (
-            UserBookInteraction.objects
-            .filter(
-                user_id__in=similar_users,
-                interaction_type__in=['read', 'completed']
-            )
-            .exclude(book_id__in=user_books)
-            .values('book_id')
-            .annotate(score=Count('id'))
-            .order_by('-score')[:n]
-        )
-
-        book_ids = [b['book_id'] for b in recommended_books]
-        books = Book.objects.filter(id__in=book_ids)
-
-        # Mapear scores
-        scores = {b['book_id']: b['score'] for b in recommended_books}
-        max_score = max(scores.values()) if scores else 1
-
+        # Buscar progressivamente mais livros até ter N livros com capa
         results = []
-        for book in books:
-            normalized_score = scores.get(book.id, 0) / max_score
-            results.append({
-                'book': book,
-                'score': normalized_score,
-                'reason': f"Recomendado por {scores.get(book.id, 0)} usuários similares"
-            })
+        fetch_multiplier = 4  # Começar com 4x (24 livros para 6)
+        max_attempts = 3
 
-        return results
+        for attempt in range(max_attempts):
+            fetch_limit = n * fetch_multiplier
+
+            recommended_books = (
+                UserBookInteraction.objects
+                .filter(
+                    user_id__in=similar_users,
+                    interaction_type__in=['read', 'completed']
+                )
+                .exclude(book_id__in=user_books)
+                .values('book_id')
+                .annotate(score=Count('id'))
+                .order_by('-score')[:fetch_limit]
+            )
+
+            if not recommended_books:
+                break
+
+            book_ids = [b['book_id'] for b in recommended_books]
+            books = Book.objects.filter(id__in=book_ids)
+
+            # Mapear scores
+            scores = {b['book_id']: b['score'] for b in recommended_books}
+            max_score = max(scores.values()) if scores else 1
+
+            results = []
+            for book in books:
+                normalized_score = scores.get(book.id, 0) / max_score
+                results.append({
+                    'book': book,
+                    'score': normalized_score,
+                    'reason': f"Recomendado por {scores.get(book.id, 0)} usuários similares"
+                })
+
+            # Filtrar livros sem capa válida
+            results = filter_books_with_valid_covers(results)
+
+            # Se já temos N livros com capa, parar
+            if len(results) >= n:
+                logger.info(f"✓ Collaborative: Got {len(results)} books with covers on attempt {attempt + 1}")
+                break
+
+            # Aumentar multiplicador para próxima tentativa
+            fetch_multiplier += 2
+            logger.warning(f"⚠ Collaborative: attempt {attempt + 1}, got {len(results)} books, need {n}. Trying again...")
+
+        # Log final (sempre visível)
+        print(f"🔍 COLLABORATIVE FINAL: Returning {len(results)} books (requested {n})", flush=True)
+        logger.error(f"🔍 COLLABORATIVE DEBUG: Returning {len(results)} books (requested {n})")
+        if len(results) < n:
+            print(f"⚠️ WARNING: Only {len(results)} books with covers found!", flush=True)
+            logger.error(f"⚠️ WARNING: Only {len(results)} books with covers found!")
+
+        # Retornar apenas N livros
+        return results[:n]
 
     def _get_popular_books(self, n=10):
         """
         Retorna livros populares (fallback para cold start).
+        Filtra livros sem capa válida.
         """
+        # Buscar progressivamente mais livros até ter N com capa
+        fetch_multiplier = 3
+
         popular_books = (
             UserBookInteraction.objects
             .values('book')
             .annotate(count=Count('id'))
-            .order_by('-count')[:n]
+            .order_by('-count')[:n * fetch_multiplier]
         )
 
         book_ids = [b['book'] for b in popular_books]
@@ -129,7 +197,10 @@ class CollaborativeFilteringAlgorithm:
                 'reason': "Livro popular entre usuários"
             })
 
-        return results
+        # Filtrar livros sem capa válida
+        results = filter_books_with_valid_covers(results)
+
+        return results[:n]
 
 
 class ContentBasedFilteringAlgorithm:
@@ -240,6 +311,7 @@ class ContentBasedFilteringAlgorithm:
     def recommend(self, user, n=10):
         """
         Recomenda livros baseado nos livros que o usuário já interagiu.
+        Filtra livros sem capa válida.
         """
         # Obter livros que o usuário já leu/gostou
         user_books = (
@@ -257,10 +329,11 @@ class ContentBasedFilteringAlgorithm:
             return []
 
         # Encontrar livros similares para cada livro do usuário
+        # Buscar mais para compensar filtros (15 ao invés de 10)
         all_recommendations = {}
 
         for interaction in user_books:
-            similar_books = self.find_similar_books(interaction.book, n=5)
+            similar_books = self.find_similar_books(interaction.book, n=15)
 
             for rec in similar_books:
                 book_id = rec['book'].id
@@ -271,12 +344,18 @@ class ContentBasedFilteringAlgorithm:
                     # Incrementar score se o livro já foi recomendado
                     all_recommendations[book_id]['score'] += rec['score']
 
-        # Ordenar por score e retornar top N
+        # Ordenar por score
         sorted_recommendations = sorted(
             all_recommendations.values(),
             key=lambda x: x['score'],
             reverse=True
-        )[:n]
+        )
+
+        # Filtrar livros sem capa válida
+        sorted_recommendations = filter_books_with_valid_covers(sorted_recommendations)
+
+        # Pegar apenas N livros
+        sorted_recommendations = sorted_recommendations[:n]
 
         # Normalizar scores
         if sorted_recommendations:
@@ -300,6 +379,7 @@ class HybridRecommendationSystem:
     def recommend(self, user, n=10):
         """
         Combina recomendações de múltiplos algoritmos.
+        Filtra livros sem capa válida.
         """
         cache_key = f'hybrid_rec:{user.id}:{n}'
         cached_result = cache.get(cache_key)
@@ -307,9 +387,11 @@ class HybridRecommendationSystem:
         if cached_result is not None:
             return cached_result
 
-        # Obter recomendações de cada algoritmo
-        collab_recs = self.collaborative.recommend(user, n=n*2)
-        content_recs = self.content_based.recommend(user, n=n*2)
+        # Obter recomendações de cada algoritmo (já filtradas)
+        # Os algoritmos já retornam livros filtrados
+        # Pedir 3x mais para garantir diversidade após filtragem
+        collab_recs = self.collaborative.recommend(user, n=n*3)
+        content_recs = self.content_based.recommend(user, n=n*3)
 
         # Combinar recomendações com pesos
         all_recommendations = {}
@@ -336,7 +418,7 @@ class HybridRecommendationSystem:
                 }
 
         # Adicionar componente de trending (livros em alta)
-        trending_books = self._get_trending_books(n=5)
+        trending_books = self._get_trending_books(n=10)
         for book in trending_books:
             if book.id not in all_recommendations:
                 all_recommendations[book.id] = {
@@ -345,12 +427,18 @@ class HybridRecommendationSystem:
                     'reason': "Livro em alta no momento"
                 }
 
-        # Ordenar por score e retornar top N
+        # Ordenar por score
         sorted_recommendations = sorted(
             all_recommendations.values(),
             key=lambda x: x['score'],
             reverse=True
-        )[:n]
+        )
+
+        # Aplicar filtro adicional (por segurança, caso trending não esteja filtrado)
+        sorted_recommendations = filter_books_with_valid_covers(sorted_recommendations)
+
+        # Pegar apenas N livros
+        sorted_recommendations = sorted_recommendations[:n]
 
         # Normalizar scores
         if sorted_recommendations:
@@ -365,19 +453,28 @@ class HybridRecommendationSystem:
     def _get_trending_books(self, n=5):
         """
         Retorna livros em alta (mais interações nos últimos 7 dias).
+        Filtra livros sem capa válida.
         """
         from django.utils import timezone
         from datetime import timedelta
 
         week_ago = timezone.now() - timedelta(days=7)
 
+        # Buscar mais para compensar filtros
+        fetch_limit = n * 2
+
         trending = (
             UserBookInteraction.objects
             .filter(created_at__gte=week_ago)
             .values('book')
             .annotate(count=Count('id'))
-            .order_by('-count')[:n]
+            .order_by('-count')[:fetch_limit]
         )
 
         book_ids = [t['book'] for t in trending]
-        return Book.objects.filter(id__in=book_ids)
+        books = Book.objects.filter(id__in=book_ids)
+
+        # Filtrar apenas livros com capa válida
+        filtered_books = [book for book in books if book.has_valid_cover]
+
+        return filtered_books[:n]

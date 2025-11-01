@@ -201,3 +201,11 @@ class Book(models.Model):
     def has_google_books_data(self):
         """Verifica se o livro possui dados sincronizados do Google Books."""
         return bool(self.google_books_id)
+
+    @property
+    def has_valid_cover(self):
+        """
+        Verifica se o livro possui uma capa válida (não genérica).
+        Retorna True se houver uma imagem de capa carregada.
+        """
+        return bool(self.cover_image and self.cover_image.name)
