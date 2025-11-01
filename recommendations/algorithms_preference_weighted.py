@@ -439,6 +439,22 @@ class PreferenceWeightedHybrid:
             reverse=True
         )
 
+        # 🚫 FILTRO DE SEGURANÇA: Excluir livros das prateleiras do usuário
+        # (Mesmo que os sub-algoritmos já tenham filtrado, garantir que nada passou)
+        user_book_ids = get_user_shelf_book_ids(user)
+        before_filter = len(sorted_recommendations)
+        sorted_recommendations = [
+            rec for rec in sorted_recommendations
+            if rec['book'].id not in user_book_ids
+        ]
+        after_filter = len(sorted_recommendations)
+
+        if before_filter > after_filter:
+            logger.warning(
+                f"🚫 Hybrid safety filter: Removed {before_filter - after_filter} books from shelves "
+                f"(this shouldn't happen - check sub-algorithms)"
+            )
+
         # Aplicar filtro adicional (segurança)
         sorted_recommendations = filter_books_with_valid_covers(sorted_recommendations)
 
