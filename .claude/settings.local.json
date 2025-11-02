@@ -7,7 +7,13 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(git mv:*)",
+      "Bash(tree:*)",
+      "Bash(pip install:*)",
+      "Bash(del scriptsfix_video_section_url.py)",
+      "Bash(del nul 2)",
+      "Bash(NUL)"
     ],
     "deny": [],
     "ask": []

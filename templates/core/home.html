@@ -4,6 +4,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/carousel.css' %}">
+<link rel="stylesheet" href="{% static 'css/banner-carousel.css' %}">
 <style>
     /* Estilos para cards de autores */
     .author-card {
@@ -122,6 +123,9 @@
 
 {% block content %}
 <div class="container-fluid px-0">
+    <!-- Banner Carousel -->
+    {% include 'core/widgets/banner_carousel.html' %}
+
     <!-- Seção de Boas-Vindas -->
     <div class="container">
         <div class="p-5 mb-4 bg-light rounded-3 text-center">
@@ -439,6 +443,9 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Banner Carousel JS -->
+<script src="{% static 'js/banner-carousel.js' %}"></script>
+
 <!-- Swiper JS -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>

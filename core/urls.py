@@ -5,6 +5,7 @@ from core.views import (
     BookDetailView,
     AuthorListView,
     AuthorDetailView,
+    VideoListView,
     SearchView,
     AboutView,
     ContactView,
@@ -38,6 +39,12 @@ from core.views.reading_progress_views import (
     mark_notification_read_unified,
     delete_selected_notifications_unified,
     mark_all_notifications_as_read,
+)
+
+# Banner Tracking
+from core.views.banner_views import (
+    track_banner_view,
+    track_banner_click,
 )
 
 # GAMIFICAÇÃO - Views Principais (FASE 2.1)
@@ -74,6 +81,7 @@ urlpatterns = [
     path('livros/<slug:slug>/', BookDetailView.as_view(), name='book_detail'),
     path('autores/', AuthorListView.as_view(), name='author_list'),
     path('autores/<slug:slug>/', AuthorDetailView.as_view(), name='author_detail'),
+    path('videos/', VideoListView.as_view(), name='video_list'),
     path('buscar/', SearchView.as_view(), name='search'),
     path('sobre/', AboutView.as_view(), name='about'),
     path('contato/', ContactView.as_view(), name='contact'),
@@ -154,4 +162,10 @@ urlpatterns = [
     # Ranking e Estatísticas
     path('api/gamification/ranking/', get_monthly_ranking, name='api_monthly_ranking'),
     path('api/gamification/user-stats/', get_user_stats, name='api_user_stats'),
+
+    # ==========================================
+    # APIs AJAX - BANNER TRACKING
+    # ==========================================
+    path('api/banner/<int:banner_id>/view/', track_banner_view, name='track_banner_view'),
+    path('api/banner/<int:banner_id>/click/', track_banner_click, name='track_banner_click'),
 ]

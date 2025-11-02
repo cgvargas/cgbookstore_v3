@@ -251,7 +251,8 @@ class SectionAdmin(admin.ModelAdmin):
                 'items_per_row',
                 'show_see_more',
                 'see_more_url'
-            )
+            ),
+            'description': 'URLs sugeridas: /livros/ (livros), /autores/ (autores), /videos/ (vídeos), /eventos/ (eventos)'
         }),
         ('Estilo Visual', {
             'classes': ('collapse',),

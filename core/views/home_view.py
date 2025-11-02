@@ -2,8 +2,8 @@
 
 from django.views.generic import TemplateView
 from django.utils import timezone
-from django.db.models import Count
-from core.models import Section, Event, Book
+from django.db.models import Count, Q
+from core.models import Section, Event, Book, Banner
 
 
 class HomeView(TemplateView):
@@ -15,6 +15,16 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        # Buscar banners ativos e visíveis para o carrossel
+        now = timezone.now()
+        banners = Banner.objects.filter(active=True).filter(
+            Q(start_date__isnull=True) | Q(start_date__lte=now)
+        ).filter(
+            Q(end_date__isnull=True) | Q(end_date__gte=now)
+        ).order_by('order')
+
+        context['banners'] = banners
 
         # Buscar todas as seções ativas ordenadas
         sections = Section.objects.filter(active=True).prefetch_related(
@@ -34,7 +44,6 @@ class HomeView(TemplateView):
         context['sections'] = sections
 
         # Buscar evento em destaque (próximo evento futuro)
-        now = timezone.now()
         featured_event = Event.objects.filter(
             active=True,
             featured=True,

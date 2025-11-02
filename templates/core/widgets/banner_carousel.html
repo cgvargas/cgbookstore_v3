@@ -1,0 +1,87 @@
+{% load static %}
+
+<!-- Banner Carousel Widget -->
+{% if banners %}
+<div id="homeBannerCarousel" class="banner-carousel-container" data-aos="fade-in">
+    <div class="banner-carousel">
+        <!-- Slides dos Banners -->
+        <div class="banner-slides">
+            {% for banner in banners %}
+            <div class="banner-slide {% if forloop.first %}active{% endif %}" data-banner-id="{{ banner.id }}">
+                {% if banner.link_url %}
+                <a href="{{ banner.link_url }}"
+                   {% if banner.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+                   class="banner-link"
+                   onclick="trackBannerClick({{ banner.id }})">
+                {% endif %}
+
+                    <div class="banner-image-wrapper">
+                        <img src="{{ banner.image.url }}"
+                             alt="{{ banner.title }}"
+                             class="banner-image">
+
+                        <!-- Overlay com gradiente para melhor legibilidade do texto -->
+                        <div class="banner-overlay"></div>
+
+                        <!-- Conteúdo do Banner -->
+                        <div class="banner-content">
+                            <div class="container">
+                                <h2 class="banner-title">{{ banner.title }}</h2>
+
+                                {% if banner.subtitle %}
+                                <p class="banner-subtitle">{{ banner.subtitle }}</p>
+                                {% endif %}
+
+                                {% if banner.description %}
+                                <p class="banner-description">{{ banner.description }}</p>
+                                {% endif %}
+
+                                {% if banner.link_url and banner.link_text %}
+                                <button class="banner-cta-button">
+                                    {{ banner.link_text }} <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                {% if banner.link_url %}
+                </a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Controles de Navegação -->
+        {% if banners|length > 1 %}
+        <button class="banner-control banner-control-prev" onclick="bannerCarousel.prev()" aria-label="Banner anterior">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <button class="banner-control banner-control-next" onclick="bannerCarousel.next()" aria-label="Próximo banner">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+
+        <!-- Indicadores -->
+        <div class="banner-indicators">
+            {% for banner in banners %}
+            <button class="banner-indicator {% if forloop.first %}active{% endif %}"
+                    onclick="bannerCarousel.goTo({{ forloop.counter0 }})"
+                    aria-label="Ir para banner {{ forloop.counter }}">
+            </button>
+            {% endfor %}
+        </div>
+
+        <!-- Controle de Auto-play -->
+        <button class="banner-autoplay-toggle"
+                onclick="bannerCarousel.toggleAutoplay()"
+                aria-label="Pausar/Reproduzir carrossel"
+                title="Pausar/Reproduzir">
+            <i class="fas fa-pause"></i>
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- JavaScript do Carrossel será carregado externamente -->
+{% endif %}

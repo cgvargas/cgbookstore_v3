@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Vídeos YouTube - CG.BookStore{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">
+                <i class="fab fa-youtube text-danger me-2"></i>Vídeos YouTube
+            </h1>
+            <p class="text-muted mb-0">Confira nossa seleção de vídeos sobre literatura, resenhas e dicas de leitura</p>
+        </div>
+    </div>
+
+    <!-- Barra de Busca e Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" action="{% url 'core:video_list' %}" class="row g-3">
+                <!-- Campo de Busca -->
+                <div class="col-md-7">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" name="q"
+                               placeholder="Buscar vídeos por título ou descrição..."
+                               value="{{ search_query }}"
+                               aria-label="Buscar vídeo">
+                    </div>
+                </div>
+
+                <!-- Filtro por Tipo -->
+                <div class="col-md-3">
+                    <select class="form-select" name="video_type" aria-label="Filtrar por tipo">
+                        <option value="">Todos os tipos</option>
+                        {% for type_value, type_label in video_types %}
+                        <option value="{{ type_value }}" {% if selected_video_type == type_value %}selected{% endif %}>
+                            {{ type_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Botão Buscar -->
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-1"></i>Buscar
+                    </button>
+                </div>
+            </form>
+
+            <!-- Tags de Filtros Ativos -->
+            {% if search_query or selected_video_type %}
+            <div class="mt-3">
+                {% if search_query %}
+                <span class="badge bg-info me-2">
+                    <i class="fas fa-search"></i> "{{ search_query }}"
+                </span>
+                {% endif %}
+                {% if selected_video_type %}
+                <span class="badge bg-secondary me-2">
+                    <i class="fas fa-tag"></i> {{ selected_video_type|title }}
+                </span>
+                {% endif %}
+                <a href="{% url 'core:video_list' %}" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-times"></i> Limpar filtros
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Contador de Resultados -->
+    {% if videos %}
+    <div class="mb-3">
+        <span class="badge bg-danger fs-6">
+            <i class="fab fa-youtube"></i> {{ page_obj.paginator.count }} vídeo{{ page_obj.paginator.count|pluralize }} encontrado{{ page_obj.paginator.count|pluralize }}
+        </span>
+    </div>
+    {% endif %}
+
+    <!-- Grid de Vídeos -->
+    {% if videos %}
+    <div class="row g-4 mb-4">
+        {% for video in videos %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card video-card h-100">
+                <!-- Thumbnail do Vídeo -->
+                <div class="video-thumbnail-wrapper">
+                    <a href="{{ video.video_url }}" target="_blank" rel="noopener noreferrer">
+                        <img src="{{ video.thumbnail_url }}"
+                             class="card-img-top video-thumbnail"
+                             alt="{{ video.title }}"
+                             loading="lazy">
+                        <div class="play-button-overlay">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+
+                        <!-- Badge de Duração -->
+                        {% if video.duration %}
+                        <span class="video-duration-badge">
+                            {{ video.duration }}
+                        </span>
+                        {% endif %}
+                    </a>
+                </div>
+
+                <div class="card-body d-flex flex-column">
+                    <!-- Tipo de Vídeo -->
+                    <div class="mb-2">
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-tag"></i> {{ video.get_video_type_display }}
+                        </span>
+                    </div>
+
+                    <!-- Título -->
+                    <h5 class="card-title mb-2">
+                        <a href="{{ video.video_url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                            {{ video.title }}
+                        </a>
+                    </h5>
+
+                    <!-- Descrição -->
+                    {% if video.description %}
+                    <p class="card-text text-muted small flex-grow-1">
+                        {{ video.description|truncatewords:20 }}
+                    </p>
+                    {% endif %}
+
+                    <!-- Informações do Vídeo -->
+                    <div class="video-info mt-auto">
+                        <div class="d-flex justify-content-between align-items-center text-muted small">
+                            <!-- Data de Publicação -->
+                            <span>
+                                <i class="far fa-calendar"></i>
+                                {% if video.published_date %}
+                                    {{ video.published_date|date:"d/m/Y" }}
+                                {% else %}
+                                    {{ video.created_at|date:"d/m/Y" }}
+                                {% endif %}
+                            </span>
+
+                            <!-- Visualizações -->
+                            {% if video.views_count %}
+                            <span>
+                                <i class="far fa-eye"></i>
+                                {{ video.views_count|default:"0" }}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Botão de Assistir -->
+                        <a href="{{ video.video_url }}" target="_blank" rel="noopener noreferrer"
+                           class="btn btn-danger btn-sm w-100 mt-3">
+                            <i class="fab fa-youtube me-1"></i>Assistir no YouTube
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Paginação -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Navegação de páginas">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_video_type %}&video_type={{ selected_video_type }}{% endif %}" aria-label="Primeira">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_video_type %}&video_type={{ selected_video_type }}{% endif %}" aria-label="Anterior">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_video_type %}&video_type={{ selected_video_type }}{% endif %}">{{ num }}</a></li>
+            {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_video_type %}&video_type={{ selected_video_type }}{% endif %}" aria-label="Próxima">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_video_type %}&video_type={{ selected_video_type }}{% endif %}" aria-label="Última">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <!-- Mensagem quando não há resultados -->
+    <div class="alert alert-info text-center">
+        <i class="fab fa-youtube fa-3x mb-3 text-danger"></i>
+        <h4>Nenhum vídeo encontrado</h4>
+        {% if search_query or selected_category %}
+        <p>Não encontramos vídeos com os filtros aplicados.</p>
+        <a href="{% url 'core:video_list' %}" class="btn btn-danger">
+            <i class="fab fa-youtube me-1"></i>Ver todos os vídeos
+        </a>
+        {% else %}
+        <p>Ainda não há vídeos cadastrados no catálogo.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+/* Estilos para Cards de Vídeos */
+.video-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+
+.video-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.video-thumbnail-wrapper {
+    position: relative;
+    overflow: hidden;
+    background: #000;
+}
+
+.video-thumbnail {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.video-thumbnail-wrapper:hover .video-thumbnail {
+    transform: scale(1.05);
+    opacity: 0.8;
+}
+
+/* Play Button Overlay */
+.play-button-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70px;
+    height: 70px;
+    background: rgba(255, 0, 0, 0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: white;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.video-thumbnail-wrapper:hover .play-button-overlay {
+    transform: translate(-50%, -50%) scale(1.1);
+    background: rgba(255, 0, 0, 1);
+}
+
+/* Badge de Duração */
+.video-duration-badge {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Video Info */
+.video-info {
+    border-top: 1px solid var(--bs-border-color);
+    padding-top: 0.75rem;
+}
+
+/* Dark Mode */
+[data-theme="dark"] .video-card {
+    background-color: var(--bs-dark);
+    border-color: rgba(255,255,255,0.1);
+}
+
+[data-theme="dark"] .video-card:hover {
+    box-shadow: 0 8px 20px rgba(255,255,255,0.1);
+}
+
+[data-theme="dark"] .video-info {
+    border-top-color: rgba(255,255,255,0.1);
+}
+</style>
+{% endblock %}

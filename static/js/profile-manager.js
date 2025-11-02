@@ -5,7 +5,7 @@
 
 class ProfileManager {
     constructor() {
-        this.maxAvatarSize = 2 * 1024 * 1024; // 2MB
+        this.maxAvatarSize = 5 * 1024 * 1024; // 5MB
         this.maxBannerSize = 5 * 1024 * 1024; // 5MB
         this.initEventListeners();
     }

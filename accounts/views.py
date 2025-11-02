@@ -69,11 +69,11 @@ def upload_avatar(request):
         avatar_file = request.FILES['avatar']
         profile = request.user.profile
 
-        max_size = 2 * 1024 * 1024  # 2MB
+        max_size = 5 * 1024 * 1024  # 5MB
         if avatar_file.size > max_size:
-            return JsonResponse({'success': False, 'error': 'Arquivo muito grande. Tamanho máximo: 2MB'}, status=400)
+            return JsonResponse({'success': False, 'error': 'Arquivo muito grande. Tamanho máximo: 5MB'}, status=400)
 
-        if not avatar_file.content_type.startswith('images/'):
+        if not avatar_file.content_type.startswith('image/'):
             return JsonResponse({'success': False, 'error': 'Arquivo deve ser uma imagem'}, status=400)
 
         try:
@@ -133,7 +133,7 @@ def upload_banner(request):
         if banner_file.size > max_size:
             return JsonResponse({'success': False, 'error': 'Arquivo muito grande. Tamanho máximo: 5MB'}, status=400)
 
-        if not banner_file.content_type.startswith('images/'):
+        if not banner_file.content_type.startswith('image/'):
             return JsonResponse({'success': False, 'error': 'Arquivo deve ser uma imagem'}, status=400)
 
         try:
@@ -255,7 +255,7 @@ def upload_background(request):
             return JsonResponse({'success': False, 'error': 'Arquivo muito grande. Tamanho máximo: 10MB'}, status=400)
 
         # Validar tipo
-        if not background_file.content_type.startswith('images/'):
+        if not background_file.content_type.startswith('image/'):
             return JsonResponse({'success': False, 'error': 'Arquivo deve ser uma imagem'}, status=400)
 
         try:

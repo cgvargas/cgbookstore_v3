@@ -10,6 +10,7 @@ from .video import Video
 from .section import Section
 from .section_item import SectionItem
 from .event import Event
+from .banner import Banner
 
 __all__ = [
     'Category',
@@ -19,4 +20,5 @@ __all__ = [
     'Section',
     'SectionItem',
     'Event',
+    'Banner',
 ]

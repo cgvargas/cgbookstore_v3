@@ -56,7 +56,7 @@ class UserProfile(models.Model):
         blank=True,
         null=True,
         verbose_name="Avatar",
-        help_text="Foto de perfil (máx. 2MB, 500x500px)"
+        help_text="Foto de perfil (máx. 5MB, 500x500px)"
     )
 
     banner = models.ImageField(

@@ -1,0 +1,426 @@
+/**
+ * BANNER CAROUSEL - Sistema de Carrossel de Banners da Home
+ * CGBookStore v3
+ *
+ * Funcionalidades:
+ * - Carrossel responsivo e fluido
+ * - Transições suaves entre banners
+ * - Controles de navegação intuitivos
+ * - Auto-play com controle manual
+ * - Indicadores de progresso
+ * - Overlay para legibilidade do texto
+ */
+
+/* ============================================
+   CONTAINER PRINCIPAL
+   ============================================ */
+
+.banner-carousel-container {
+    width: 100%;
+    margin-bottom: 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.banner-carousel {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    background: var(--card-bg);
+}
+
+/* ============================================
+   SLIDES
+   ============================================ */
+
+.banner-slides {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.banner-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+    z-index: 1;
+}
+
+.banner-slide.active {
+    opacity: 1;
+    visibility: visible;
+    z-index: 2;
+}
+
+.banner-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.banner-link:hover .banner-image {
+    transform: scale(1.05);
+}
+
+/* ============================================
+   IMAGEM DO BANNER
+   ============================================ */
+
+.banner-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.banner-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.6s ease;
+}
+
+/* Overlay para melhorar legibilidade do texto */
+.banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0.7) 0%,
+        rgba(0, 0, 0, 0.4) 50%,
+        rgba(0, 0, 0, 0.1) 100%
+    );
+    z-index: 1;
+}
+
+/* ============================================
+   CONTEÚDO DO BANNER
+   ============================================ */
+
+.banner-content {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    transform: translateY(-50%);
+    z-index: 2;
+    color: #fff;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+    padding: 2rem;
+}
+
+.banner-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.banner-subtitle {
+    font-size: 1.8rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    opacity: 0.95;
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.banner-description {
+    font-size: 1.2rem;
+    font-weight: 400;
+    margin-bottom: 2rem;
+    max-width: 700px;
+    line-height: 1.6;
+    opacity: 0.9;
+    animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+.banner-cta-button {
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--theme-color) 0%, var(--theme-color-dark, #4a5568) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 0.8s ease-out 0.8s both;
+}
+
+.banner-cta-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.banner-cta-button:active {
+    transform: translateY(-1px);
+}
+
+/* ============================================
+   CONTROLES DE NAVEGAÇÃO
+   ============================================ */
+
+.banner-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    font-size: 1.5rem;
+}
+
+.banner-control:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.banner-control-prev {
+    left: 2rem;
+}
+
+.banner-control-next {
+    right: 2rem;
+}
+
+/* ============================================
+   INDICADORES
+   ============================================ */
+
+.banner-indicators {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.8rem;
+    z-index: 10;
+}
+
+.banner-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.banner-indicator:hover {
+    background: rgba(255, 255, 255, 0.6);
+    transform: scale(1.2);
+}
+
+.banner-indicator.active {
+    background: #fff;
+    width: 32px;
+    border-radius: 6px;
+}
+
+/* ============================================
+   BOTÃO DE AUTO-PLAY
+   ============================================ */
+
+.banner-autoplay-toggle {
+    position: absolute;
+    bottom: 2rem;
+    right: 2rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    font-size: 1.2rem;
+}
+
+.banner-autoplay-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+}
+
+.banner-autoplay-toggle.paused {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================
+   ANIMAÇÕES
+   ============================================ */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+
+/* Tablets */
+@media (max-width: 992px) {
+    .banner-carousel {
+        height: 500px;
+    }
+
+    .banner-title {
+        font-size: 2.5rem;
+    }
+
+    .banner-subtitle {
+        font-size: 1.5rem;
+    }
+
+    .banner-description {
+        font-size: 1rem;
+    }
+
+    .banner-control {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+
+    .banner-control-prev {
+        left: 1rem;
+    }
+
+    .banner-control-next {
+        right: 1rem;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .banner-carousel {
+        height: 400px;
+    }
+
+    .banner-content {
+        padding: 1.5rem;
+    }
+
+    .banner-title {
+        font-size: 2rem;
+    }
+
+    .banner-subtitle {
+        font-size: 1.2rem;
+    }
+
+    .banner-description {
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .banner-cta-button {
+        padding: 0.8rem 2rem;
+        font-size: 1rem;
+    }
+
+    .banner-control {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .banner-control-prev {
+        left: 0.5rem;
+    }
+
+    .banner-control-next {
+        right: 0.5rem;
+    }
+
+    .banner-indicators {
+        bottom: 1rem;
+        gap: 0.5rem;
+    }
+
+    .banner-indicator {
+        width: 10px;
+        height: 10px;
+    }
+
+    .banner-indicator.active {
+        width: 24px;
+    }
+
+    .banner-autoplay-toggle {
+        width: 40px;
+        height: 40px;
+        bottom: 1rem;
+        right: 1rem;
+        font-size: 1rem;
+    }
+
+    /* Overlay mais escuro em mobile para melhor legibilidade */
+    .banner-overlay {
+        background: linear-gradient(
+            to top,
+            rgba(0, 0, 0, 0.8) 0%,
+            rgba(0, 0, 0, 0.5) 50%,
+            rgba(0, 0, 0, 0.3) 100%
+        );
+    }
+}
+
+/* Mobile pequeno */
+@media (max-width: 576px) {
+    .banner-carousel {
+        height: 350px;
+    }
+
+    .banner-title {
+        font-size: 1.5rem;
+    }
+
+    .banner-subtitle {
+        font-size: 1rem;
+    }
+
+    .banner-description {
+        font-size: 0.85rem;
+        display: none; /* Oculta descrição em telas muito pequenas */
+    }
+}
