@@ -1,0 +1,197 @@
+{% load static %}
+<!-- Premium CTA Widget - Componente Reutilizável -->
+<!-- Oculta se o usuário já for Premium Ativo -->
+{% if not user.is_authenticated or not user.subscription or user.subscription.status != 'ativa' %}
+<div class="premium-cta-widget {{ class|default:'' }}">
+    <div class="premium-cta-content">
+        <div class="premium-badge">
+            <i class="fas fa-crown"></i>
+            <span>PREMIUM</span>
+        </div>
+
+        <h3 class="premium-title">{{ title|default:"Desbloqueie Recursos Premium" }}</h3>
+        <p class="premium-description">
+            {{ description|default:"Acesso ilimitado ao chatbot literário, recomendações personalizadas e muito mais!" }}
+        </p>
+
+        <div class="premium-features mb-3">
+            <div class="premium-feature-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Chatbot Literário Premium</span>
+            </div>
+            <div class="premium-feature-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Recomendações IA Avançada</span>
+            </div>
+            <div class="premium-feature-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Sem Anúncios</span>
+            </div>
+        </div>
+
+        <div class="premium-price">
+            <span class="price-label">Apenas</span>
+            <span class="price-value">R$ 9,90</span>
+            <span class="price-period">/mês</span>
+        </div>
+
+        <a href="{% url 'finance:subscription_checkout' %}" class="btn btn-premium">
+            <i class="fas fa-star me-2"></i>Assinar Premium
+        </a>
+    </div>
+</div>
+
+<style>
+.premium-cta-widget {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 2.5rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.premium-cta-widget::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.premium-cta-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+
+.premium-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+.premium-badge i {
+    color: #ffd700;
+}
+
+.premium-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.premium-description {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    opacity: 0.95;
+}
+
+.premium-features {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: left;
+    max-width: 400px;
+    margin: 0 auto 2rem;
+}
+
+.premium-feature-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1rem;
+}
+
+.premium-feature-item i {
+    color: #4ade80;
+    font-size: 1.2rem;
+}
+
+.premium-price {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
+
+.price-value {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #ffd700;
+}
+
+.price-period {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.btn-premium {
+    background: white;
+    color: #667eea;
+    font-weight: 600;
+    padding: 1rem 3rem;
+    border-radius: 50px;
+    border: none;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    color: #5568d3;
+    background: #f0f0f0;
+}
+
+/* Versão Compacta */
+.premium-cta-widget.compact {
+    padding: 1.5rem;
+    text-align: left;
+}
+
+.premium-cta-widget.compact .premium-title {
+    font-size: 1.5rem;
+}
+
+.premium-cta-widget.compact .premium-description {
+    font-size: 1rem;
+}
+
+.premium-cta-widget.compact .premium-price {
+    justify-content: flex-start;
+}
+
+@media (max-width: 768px) {
+    .premium-title {
+        font-size: 1.5rem;
+    }
+
+    .price-value {
+        font-size: 2rem;
+    }
+
+    .premium-cta-widget {
+        padding: 1.5rem;
+    }
+}
+</style>
+{% endif %}

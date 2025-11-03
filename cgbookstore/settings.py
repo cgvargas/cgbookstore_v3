@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'debates',
     'recommendations',
+    'finance.apps.FinanceConfig',
 
     # Third-party Apps
     'rest_framework',
@@ -240,6 +241,17 @@ REST_FRAMEWORK = {
 
 # Google Gemini AI
 GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
+
+# ==============================================================================
+# MERCADO PAGO - MÓDULO FINANCEIRO
+# ==============================================================================
+MERCADOPAGO_ACCESS_TOKEN = config('MERCADOPAGO_ACCESS_TOKEN', default='')
+MERCADOPAGO_PUBLIC_KEY = config('MERCADOPAGO_PUBLIC_KEY', default='')
+SITE_URL = config('SITE_URL', default='http://localhost:8000')
+
+# Email Configuration
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@cgbookstore.com')
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 
 # Configurações de Recomendações
 RECOMMENDATIONS_CONFIG = {

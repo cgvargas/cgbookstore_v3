@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout Premium - CG.BookStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkout-container {
+        max-width: 700px;
+        margin: 40px auto;
+        background: var(--card-bg);
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+    }
+
+    .checkout-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .checkout-header h1 {
+        color: var(--text-primary);
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .checkout-header .subtitle {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+    }
+
+    .price-display {
+        text-align: center;
+        margin: 30px 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        color: white;
+    }
+
+    .price-value {
+        font-size: 4rem;
+        font-weight: 800;
+        margin: 10px 0;
+    }
+
+    .price-period {
+        font-size: 1.5rem;
+        opacity: 0.9;
+    }
+
+    .benefits-list {
+        list-style: none;
+        padding: 0;
+        margin: 30px 0;
+    }
+
+    .benefits-list li {
+        padding: 15px;
+        margin-bottom: 10px;
+        background: var(--body-bg);
+        border-left: 4px solid #4CAF50;
+        border-radius: 5px;
+        color: var(--text-primary);
+        transition: transform 0.2s;
+    }
+
+    .benefits-list li:hover {
+        transform: translateX(5px);
+    }
+
+    .benefits-list li:before {
+        content: "✓ ";
+        color: #4CAF50;
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin-right: 10px;
+    }
+
+    .payment-methods {
+        margin: 30px 0;
+    }
+
+    .payment-methods h3 {
+        color: var(--text-primary);
+        margin-bottom: 15px;
+    }
+
+    .payment-options {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+    }
+
+    .payment-option {
+        padding: 20px;
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: var(--card-bg);
+    }
+
+    .payment-option:hover {
+        border-color: #667eea;
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .payment-option.active {
+        border-color: #667eea;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    }
+
+    .payment-option-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        color: #667eea;
+    }
+
+    .payment-option-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 5px;
+    }
+
+    .payment-option-desc {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .btn-subscribe {
+        width: 100%;
+        padding: 18px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.3rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 20px;
+    }
+
+    .btn-subscribe:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .status-alert {
+        padding: 20px;
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .status-alert strong {
+        font-size: 1.2rem;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 20px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+
+    .back-link:hover {
+        color: var(--text-primary);
+    }
+
+    @media (max-width: 768px) {
+        .checkout-container {
+            padding: 20px;
+        }
+
+        .price-value {
+            font-size: 3rem;
+        }
+
+        .payment-options {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="checkout-container">
+        <div class="checkout-header">
+            <h1><i class="fas fa-crown text-warning"></i> Premium CGBookStore</h1>
+            <p class="subtitle">Desbloqueie todos os recursos e transforme sua experiência literária</p>
+        </div>
+
+        {% if subscription and subscription.is_active %}
+        <div class="status-alert">
+            <strong><i class="fas fa-check-circle"></i> Sua assinatura está ativa!</strong>
+            <p>Válida até: {{ subscription.expiration_date|date:"d/m/Y H:i" }}</p>
+        </div>
+        {% endif %}
+
+        <div class="price-display">
+            <div class="price-label">Apenas</div>
+            <div class="price-value">R$ 9,90</div>
+            <div class="price-period">/mês</div>
+        </div>
+
+        <ul class="benefits-list">
+            <li><i class="fas fa-robot me-2"></i>Acesso ilimitado ao chatbot literário premium</li>
+            <li><i class="fas fa-brain me-2"></i>Recomendações personalizadas de livros</li>
+            <li><i class="fas fa-chart-line me-2"></i>Análise avançada de preferências</li>
+            <li><i class="fas fa-ad me-2"></i>Sem anúncios</li>
+            <li><i class="fas fa-headset me-2"></i>Suporte prioritário</li>
+        </ul>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="payment-methods">
+                <h3><i class="fas fa-credit-card me-2"></i>Escolha o método de pagamento:</h3>
+                <div class="payment-options">
+                    <div class="payment-option {% if not payment_method or payment_method == 'pix' %}active{% endif %}"
+                         onclick="selectMethod('pix')">
+                        <div class="payment-option-icon"><i class="fas fa-qrcode"></i></div>
+                        <div class="payment-option-title">PIX</div>
+                        <div class="payment-option-desc">Aprovação instantânea</div>
+                    </div>
+                    <div class="payment-option {% if payment_method == 'credit_card' %}active{% endif %}"
+                         onclick="selectMethod('credit_card')">
+                        <div class="payment-option-icon"><i class="fas fa-credit-card"></i></div>
+                        <div class="payment-option-title">Cartão</div>
+                        <div class="payment-option-desc">Crédito</div>
+                    </div>
+                    <div class="payment-option {% if payment_method == 'boleto' %}active{% endif %}"
+                         onclick="selectMethod('boleto')">
+                        <div class="payment-option-icon"><i class="fas fa-barcode"></i></div>
+                        <div class="payment-option-title">Boleto</div>
+                        <div class="payment-option-desc">1-3 dias úteis</div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" name="payment_method" id="payment_method" value="{% if payment_method %}{{ payment_method }}{% else %}pix{% endif %}">
+            <button type="submit" class="btn-subscribe">
+                <i class="fas fa-star me-2"></i>Assinar Agora
+            </button>
+        </form>
+
+        <a href="{% url 'core:home' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Voltar ao início
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function selectMethod(method) {
+        document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById('payment_method').value = method;
+    }
+</script>
+{% endblock %}

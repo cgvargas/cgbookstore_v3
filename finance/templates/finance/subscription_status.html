@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Status da Assinatura - CG.BookStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    .subscription-container {
+        max-width: 700px;
+        margin: 40px auto;
+    }
+
+    .subscription-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .subscription-header h1 {
+        color: var(--text-primary);
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .status-card {
+        background: var(--card-bg);
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+        margin: 20px 0;
+    }
+
+    .status-active {
+        border-left: 5px solid #4CAF50;
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.05), rgba(76, 175, 80, 0.02));
+    }
+
+    .status-inactive {
+        border-left: 5px solid #f44336;
+        background: linear-gradient(135deg, rgba(244, 67, 54, 0.05), rgba(244, 67, 54, 0.02));
+    }
+
+    .status-pending {
+        border-left: 5px solid #FF9800;
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.05), rgba(255, 152, 0, 0.02));
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--text-primary);
+    }
+
+    .status-badge i {
+        font-size: 2rem;
+    }
+
+    .status-active .status-badge {
+        color: #4CAF50;
+    }
+
+    .status-inactive .status-badge {
+        color: #f44336;
+    }
+
+    .status-pending .status-badge {
+        color: #FF9800;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .actions-container {
+        text-align: center;
+        margin-top: 30px;
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 15px 30px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-primary-action {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+    }
+
+    .btn-primary-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        color: white;
+    }
+
+    .btn-danger-action {
+        background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        color: white;
+    }
+
+    .btn-danger-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(244, 67, 54, 0.4);
+        color: white;
+    }
+
+    .btn-secondary-action {
+        background: var(--card-bg);
+        color: var(--text-primary);
+        border: 2px solid var(--border-color);
+    }
+
+    .btn-secondary-action:hover {
+        background: var(--body-bg);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+
+    .no-subscription {
+        text-align: center;
+        padding: 40px;
+    }
+
+    .no-subscription i {
+        font-size: 5rem;
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+    }
+
+    .no-subscription h2 {
+        color: var(--text-primary);
+        margin-bottom: 15px;
+    }
+
+    .no-subscription p {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+    }
+
+    @media (max-width: 768px) {
+        .subscription-container {
+            padding: 20px;
+        }
+
+        .status-card {
+            padding: 20px;
+        }
+
+        .actions-container {
+            flex-direction: column;
+        }
+
+        .btn-action {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container subscription-container">
+    <div class="subscription-header">
+        <h1><i class="fas fa-user-circle"></i> Minha Assinatura</h1>
+    </div>
+
+    {% if subscription %}
+        <div class="status-card {% if subscription.is_active %}status-active{% elif subscription.status == 'pendente' %}status-pending{% else %}status-inactive{% endif %}">
+            <div class="status-badge">
+                {% if subscription.is_active %}
+                    <i class="fas fa-check-circle"></i>
+                    <span>Assinatura Ativa</span>
+                {% elif subscription.status == 'pendente' %}
+                    <i class="fas fa-clock"></i>
+                    <span>Pagamento Pendente</span>
+                {% elif subscription.status == 'cancelada' %}
+                    <i class="fas fa-times-circle"></i>
+                    <span>Assinatura Cancelada</span>
+                {% else %}
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Assinatura Expirada</span>
+                {% endif %}
+            </div>
+
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-credit-card me-2"></i>Método de Pagamento:</span>
+                <span class="info-value">{{ subscription.get_payment_method_display }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-dollar-sign me-2"></i>Valor Mensal:</span>
+                <span class="info-value">R$ {{ subscription.price }}</span>
+            </div>
+
+            {% if subscription.start_date %}
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-calendar-check me-2"></i>Data de Início:</span>
+                <span class="info-value">{{ subscription.start_date|date:"d/m/Y H:i" }}</span>
+            </div>
+            {% endif %}
+
+            {% if subscription.expiration_date %}
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-calendar-times me-2"></i>Válida até:</span>
+                <span class="info-value">{{ subscription.expiration_date|date:"d/m/Y H:i" }}</span>
+            </div>
+            {% endif %}
+
+            {% if subscription.next_billing_date %}
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-calendar-alt me-2"></i>Próxima Cobrança:</span>
+                <span class="info-value">{{ subscription.next_billing_date|date:"d/m/Y" }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="actions-container">
+            {% if subscription.is_active %}
+                <a href="{% url 'finance:subscription_cancel' %}"
+                   class="btn-action btn-danger-action"
+                   onclick="return confirm('Deseja realmente cancelar sua assinatura?')">
+                    <i class="fas fa-times"></i> Cancelar Assinatura
+                </a>
+            {% else %}
+                <a href="{% url 'finance:subscription_checkout' %}" class="btn-action btn-primary-action">
+                    <i class="fas fa-redo"></i> Renovar Assinatura
+                </a>
+            {% endif %}
+            <a href="{% url 'core:home' %}" class="btn-action btn-secondary-action">
+                <i class="fas fa-home"></i> Voltar ao Início
+            </a>
+        </div>
+    {% else %}
+        <div class="status-card status-inactive">
+            <div class="no-subscription">
+                <i class="fas fa-crown"></i>
+                <h2>Você não possui uma assinatura ativa</h2>
+                <p>Assine o CGBookStore Premium e aproveite todos os benefícios!</p>
+            </div>
+        </div>
+        <div class="actions-container">
+            <a href="{% url 'finance:subscription_checkout' %}" class="btn-action btn-primary-action">
+                <i class="fas fa-star"></i> Assinar Agora
+            </a>
+            <a href="{% url 'core:home' %}" class="btn-action btn-secondary-action">
+                <i class="fas fa-home"></i> Voltar ao Início
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
