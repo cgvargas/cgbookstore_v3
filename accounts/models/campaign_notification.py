@@ -108,10 +108,27 @@ class CampaignNotification(BaseNotification):
         campaign_name = grant.campaign.name if grant.campaign else "Campanha"
         days_left = (grant.expires_at - timezone.now()).days
 
-        message = (
-            f"⚠️ Seu Premium da campanha '{campaign_name}' expira em {days_left} dia(s). "
-            f"Aproveite os benefícios enquanto pode!"
-        )
+        # Mensagem personalizada baseada em dias restantes
+        if days_left <= 0:
+            message = (
+                f"🚨 Seu Premium da campanha '{campaign_name}' expira HOJE! "
+                f"Renove agora para não perder o acesso."
+            )
+        elif days_left == 1:
+            message = (
+                f"⚠️ Seu Premium da campanha '{campaign_name}' expira AMANHÃ! "
+                f"Não perca tempo, renove agora."
+            )
+        elif days_left <= 3:
+            message = (
+                f"⏰ Seu Premium da campanha '{campaign_name}' expira em {days_left} dias. "
+                f"Garanta sua renovação!"
+            )
+        else:
+            message = (
+                f"ℹ️ Seu Premium da campanha '{campaign_name}' expira em {days_left} dias. "
+                f"Aproveite os benefícios enquanto pode!"
+            )
 
         notification = cls.objects.create(
             user=user,
