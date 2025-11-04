@@ -7,7 +7,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.utils.html import format_html
-from .models import UserProfile, BookShelf, ReadingProgress, BookReview
+from .models import UserProfile, BookShelf, ReadingProgress, BookReview, CampaignNotification
 
 
 # Inline para UserProfile no User Admin
@@ -392,3 +392,74 @@ class BookReviewAdmin(admin.ModelAdmin):
         self.message_user(request, f'{updated} resenhas marcadas como privadas.')
 
     mark_as_private.short_description = 'Marcar como privado'
+
+
+@admin.register(CampaignNotification)
+class CampaignNotificationAdmin(admin.ModelAdmin):
+    """Admin para CampaignNotification."""
+
+    list_display = ('user', 'campaign', 'notification_type', 'is_read_display',
+                    'priority', 'created_at_display')
+
+    list_filter = ('notification_type', 'is_read', 'priority', 'created_at')
+
+    search_fields = ('user__username', 'campaign__name', 'message')
+
+    readonly_fields = ('created_at', 'read_at', 'campaign', 'campaign_grant',
+                       'user', 'notification_type', 'message')
+
+    fieldsets = (
+        ('Informações', {
+            'fields': ('user', 'campaign', 'campaign_grant', 'notification_type')
+        }),
+        ('Conteúdo', {
+            'fields': ('message', 'priority', 'action_url', 'action_text')
+        }),
+        ('Status', {
+            'fields': ('is_read', 'read_at', 'created_at')
+        }),
+        ('Dados Extras', {
+            'fields': ('extra_data',),
+            'classes': ('collapse',)
+        }),
+    )
+
+    actions = ['mark_as_read', 'mark_as_unread']
+
+    def is_read_display(self, obj):
+        """Exibe status de leitura com ícone."""
+        if obj.is_read:
+            return format_html(
+                '<span style="color: #28a745; font-weight: bold;">✓ Lida</span>'
+            )
+        return format_html(
+            '<span style="color: #dc3545; font-weight: bold;">● Não lida</span>'
+        )
+
+    is_read_display.short_description = 'Status'
+
+    def created_at_display(self, obj):
+        """Exibe data de criação formatada."""
+        return obj.created_at.strftime('%d/%m/%Y %H:%M')
+
+    created_at_display.short_description = 'Criada em'
+
+    def mark_as_read(self, request, queryset):
+        """Marca notificações como lidas."""
+        count = 0
+        for notification in queryset:
+            if notification.mark_as_read():
+                count += 1
+        self.message_user(request, f'{count} notificação(ões) marcada(s) como lida(s).')
+
+    mark_as_read.short_description = 'Marcar como lida'
+
+    def mark_as_unread(self, request, queryset):
+        """Marca notificações como não lidas."""
+        count = 0
+        for notification in queryset:
+            if notification.mark_as_unread():
+                count += 1
+        self.message_user(request, f'{count} notificação(ões) marcada(s) como não lida(s).')
+
+    mark_as_unread.short_description = 'Marcar como não lida'

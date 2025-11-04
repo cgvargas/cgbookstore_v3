@@ -8,6 +8,7 @@ from .reading_progress import ReadingProgress
 from .book_review import BookReview
 from .base_notification import BaseNotification, NotificationRegistry
 from .reading_notification import ReadingNotification, SystemNotification
+from .campaign_notification import CampaignNotification
 
 # Novos models de gamificação
 from .achievement import Achievement
@@ -26,6 +27,7 @@ __all__ = [
     'NotificationRegistry',
     'ReadingNotification',
     'SystemNotification',
+    'CampaignNotification',
     # Gamificação
     'Achievement',
     'UserAchievement',

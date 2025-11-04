@@ -186,12 +186,16 @@ class CampaignService:
                 ).values_list('user_id', flat=True)
                 users = users.filter(id__in=expired_ids)
 
-            # Limite de quantidade
+        # Aplicar distinct() ANTES do slice
+        users = users.distinct()
+
+        # Limite de quantidade (aplicar DEPOIS do distinct)
+        if target_type == 'custom':
             limit = criteria.get('limit')
             if limit:
                 users = users[:limit]
 
-        return users.distinct()
+        return users
 
     @staticmethod
     def grant_premium(user, campaign, reason=''):
@@ -263,6 +267,19 @@ class CampaignService:
             # Atualizar estatísticas da campanha
             campaign.total_granted += 1
             campaign.save()
+
+            # Enviar notificação se habilitado
+            if campaign.send_notification:
+                try:
+                    from accounts.models import CampaignNotification
+                    notification = CampaignNotification.create_premium_granted_notification(
+                        user=user,
+                        campaign=campaign,
+                        grant=grant
+                    )
+                    logger.info(f"Notificação enviada para {user.username}: {notification.id}")
+                except Exception as e:
+                    logger.warning(f"Erro ao enviar notificação para {user.username}: {str(e)}")
 
             logger.info(f"Premium concedido: {user.username} via campanha {campaign.name}")
 
@@ -354,6 +371,15 @@ class CampaignService:
                     granted_count += 1
                 else:
                     errors.append(f"{user.username}: {result.get('error')}")
+
+            # Atualiza controle de execuções
+            from django.db.models import F
+            campaign.last_execution_date = timezone.now()
+            campaign.execution_count = F('execution_count') + 1
+            campaign.save(update_fields=['last_execution_date', 'execution_count'])
+
+            # Recarrega para obter o valor atualizado do execution_count
+            campaign.refresh_from_db()
 
             return {
                 'success': True,

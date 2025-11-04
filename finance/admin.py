@@ -54,7 +54,19 @@ class CampaignGrantInline(admin.TabularInline):
     extra = 0
     readonly_fields = ['user', 'granted_at', 'expires_at', 'is_active', 'was_notified']
     can_delete = False
-    max_num = 10  # Mostra apenas os primeiros 10
+    verbose_name = 'Concessão Recente'
+    verbose_name_plural = 'Concessões Recentes (últimas 10)'
+
+    # Limita a 10 registros
+    def get_max_num(self, request, obj=None, **kwargs):
+        """Limita a 10 concessões"""
+        return 10
+
+    def get_queryset(self, request):
+        """Otimiza queryset sem fazer slice (evita erro de filter após slice)"""
+        qs = super().get_queryset(request)
+        # Apenas otimiza com select_related e ordena, SEM fazer slice aqui
+        return qs.select_related('user', 'subscription').order_by('-granted_at')
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -64,11 +76,13 @@ class CampaignGrantInline(admin.TabularInline):
 class CampaignAdmin(admin.ModelAdmin):
     list_display = [
         'name', 'target_type', 'duration_days', 'status_display',
-        'start_date', 'end_date', 'total_granted_display', 'total_eligible', 'remaining_display'
+        'start_date', 'end_date', 'total_granted_display', 'total_eligible', 'remaining_display',
+        'execution_count_display', 'last_execution_display'
     ]
-    list_filter = ['status', 'target_type', 'duration_days', 'start_date', 'auto_grant']
+    list_filter = ['status', 'target_type', 'duration_days', 'start_date', 'auto_grant', 'execution_count']
     search_fields = ['name', 'description']
-    readonly_fields = ['total_granted', 'total_eligible', 'created_at', 'updated_at', 'created_by']
+    readonly_fields = ['total_granted', 'total_eligible', 'created_at', 'updated_at', 'created_by',
+                       'execution_count', 'last_execution_date']
     inlines = [CampaignGrantInline]
 
     fieldsets = (
@@ -76,13 +90,17 @@ class CampaignAdmin(admin.ModelAdmin):
             'fields': ('name', 'description', 'status')
         }),
         ('Configuração', {
-            'fields': ('duration_days', 'target_type', 'criteria', 'auto_grant', 'max_grants')
+            'fields': ('duration_days', 'target_type', 'criteria', 'auto_grant', 'send_notification', 'max_grants')
         }),
         ('Período', {
             'fields': ('start_date', 'end_date')
         }),
         ('Estatísticas', {
             'fields': ('total_granted', 'total_eligible'),
+            'classes': ('collapse',)
+        }),
+        ('Controle de Execuções', {
+            'fields': ('execution_count', 'last_execution_date'),
             'classes': ('collapse',)
         }),
         ('Auditoria', {
@@ -130,6 +148,59 @@ class CampaignAdmin(admin.ModelAdmin):
             int(remaining)
         )
     remaining_display.short_description = 'Restantes'
+
+    def execution_count_display(self, obj):
+        """Exibe número de execuções com badge visual"""
+        if obj.execution_count == 0:
+            return format_html(
+                '<span style="background-color: #666666; color: white; padding: 3px 8px; '
+                'border-radius: 10px; font-size: 11px; font-weight: bold;">Nunca executada</span>'
+            )
+        elif obj.execution_count == 1:
+            return format_html(
+                '<span style="background-color: #4CAF50; color: white; padding: 3px 8px; '
+                'border-radius: 10px; font-size: 11px; font-weight: bold;">✓ 1 vez</span>'
+            )
+        else:
+            return format_html(
+                '<span style="background-color: #2196F3; color: white; padding: 3px 8px; '
+                'border-radius: 10px; font-size: 11px; font-weight: bold;">✓ {} vezes</span>',
+                obj.execution_count
+            )
+    execution_count_display.short_description = 'Execuções'
+
+    def last_execution_display(self, obj):
+        """Exibe última execução com formatação condicional"""
+        if not obj.last_execution_date:
+            return format_html('<span style="color: #999; font-style: italic;">Nunca</span>')
+
+        from django.utils import timezone
+        now = timezone.now()
+        diff = now - obj.last_execution_date
+
+        # Formatação da data
+        date_str = obj.last_execution_date.strftime('%d/%m/%Y %H:%M')
+
+        # Cor baseada em quão recente foi a execução
+        if diff.days == 0:
+            color = '#4CAF50'  # Verde - hoje
+            time_ago = 'Hoje'
+        elif diff.days <= 7:
+            color = '#2196F3'  # Azul - última semana
+            time_ago = f'Há {diff.days} dia(s)'
+        elif diff.days <= 30:
+            color = '#FF9800'  # Laranja - último mês
+            time_ago = f'Há {diff.days} dias'
+        else:
+            color = '#999999'  # Cinza - mais de 30 dias
+            time_ago = f'Há {diff.days} dias'
+
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span><br>'
+            '<span style="color: #666; font-size: 10px;">{}</span>',
+            color, date_str, time_ago
+        )
+    last_execution_display.short_description = 'Última Execução'
 
     def save_model(self, request, obj, form, change):
         if not obj.created_by:

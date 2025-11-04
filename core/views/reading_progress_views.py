@@ -8,7 +8,7 @@ from django.views.decorators.http import require_http_methods
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator, EmptyPage
 from django.utils import timezone
-from accounts.models import ReadingProgress, ReadingNotification, BookShelf, SystemNotification
+from accounts.models import ReadingProgress, ReadingNotification, BookShelf, SystemNotification, CampaignNotification
 from core.models import Book
 from datetime import datetime, date
 import json
@@ -763,7 +763,7 @@ def get_all_notifications_unified(request):
         page (int): Número da página
         unread_only (bool): Apenas não lidas
         notification_type (str): Filtro por tipo (opcional)
-        category (str): Filtro por categoria: 'reading', 'system', 'all' (default: 'all')
+        category (str): Filtro por categoria: 'reading', 'system', 'campaign', 'all' (default: 'all')
 
     Returns:
         JSON com notificações de todos os tipos unificadas
@@ -800,6 +800,17 @@ def get_all_notifications_unified(request):
 
             all_notifications.extend(system_notifs)
 
+        # Buscar notificações de campanhas
+        if category_filter in ['all', 'campaign']:
+            campaign_notifs = CampaignNotification.objects.filter(
+                user=request.user
+            ).select_related('campaign', 'campaign_grant')
+
+            if unread_only:
+                campaign_notifs = campaign_notifs.filter(is_read=False)
+
+            all_notifications.extend(campaign_notifs)
+
         # Ordenar todas juntas por data de criação
         all_notifications.sort(key=lambda x: x.created_at, reverse=True)
 
@@ -823,19 +834,29 @@ def get_all_notifications_unified(request):
             # Determinar categoria
             if isinstance(notif, ReadingNotification):
                 category = 'reading'
+                book_title = notif.book_title
+                icon_class = notif.icon_class
             elif isinstance(notif, SystemNotification):
                 category = 'system'
+                book_title = notif.book_title
+                icon_class = notif.icon_class
+            elif isinstance(notif, CampaignNotification):
+                category = 'campaign'
+                book_title = None
+                icon_class = 'fas fa-gift text-purple'
             else:
                 category = 'other'
+                book_title = None
+                icon_class = 'fas fa-bell'
 
             notifications_data.append({
                 'id': notif.id,
                 'category': category,
                 'type': notif.notification_type,
-                'type_display': notif.get_notification_type_display(),
-                'book_title': notif.book_title,
+                'type_display': notif.get_notification_type_display() if hasattr(notif, 'get_notification_type_display') else notif.notification_type,
+                'book_title': book_title,
                 'message': notif.message,
-                'icon_class': notif.icon_class,
+                'icon_class': icon_class,
                 'priority': notif.priority,
                 'priority_name': notif.priority_name,
                 'is_read': notif.is_read,
@@ -868,7 +889,7 @@ def mark_notification_read_unified(request):
 
     POST Parameters:
         notification_id (int): ID da notificação
-        category (str): Categoria ('reading' ou 'system')
+        category (str): Categoria ('reading', 'system' ou 'campaign')
 
     Returns:
         JSON com sucesso e contadores atualizados
@@ -901,6 +922,14 @@ def mark_notification_read_unified(request):
                     user=request.user
                 )
             except SystemNotification.DoesNotExist:
+                pass
+        elif category == 'campaign':
+            try:
+                notification = CampaignNotification.objects.get(
+                    id=notification_id,
+                    user=request.user
+                )
+            except CampaignNotification.DoesNotExist:
                 pass
 
         if not notification:
@@ -975,6 +1004,12 @@ def delete_selected_notifications_unified(request):
                     user=request.user
                 ).delete()[0]
                 deleted_count += deleted
+            elif category == 'campaign':
+                deleted = CampaignNotification.objects.filter(
+                    id=notif_id,
+                    user=request.user
+                ).delete()[0]
+                deleted_count += deleted
 
         if deleted_count == 0:
             return JsonResponse({
@@ -1016,7 +1051,12 @@ def get_total_unread_count(user):
         is_read=False
     ).count()
 
-    return reading_count + system_count
+    campaign_count = CampaignNotification.objects.filter(
+        user=user,
+        is_read=False
+    ).count()
+
+    return reading_count + system_count + campaign_count
 
 
 def get_category_counts(user):
@@ -1029,6 +1069,10 @@ def get_category_counts(user):
         'system': {
             'total': SystemNotification.objects.filter(user=user).count(),
             'unread': SystemNotification.objects.filter(user=user, is_read=False).count()
+        },
+        'campaign': {
+            'total': CampaignNotification.objects.filter(user=user).count(),
+            'unread': CampaignNotification.objects.filter(user=user, is_read=False).count()
         }
     }
 
@@ -1062,14 +1106,21 @@ def mark_all_notifications_as_read(request):
             is_read=False
         ).update(is_read=True)
 
-        total_updated = reading_count + system_count
+        # Marcar todas as CampaignNotifications como lidas
+        campaign_count = CampaignNotification.objects.filter(
+            user=user,
+            is_read=False
+        ).update(is_read=True)
+
+        total_updated = reading_count + system_count + campaign_count
 
         return JsonResponse({
             'success': True,
             'message': f'{total_updated} notificação(ões) marcada(s) como lida(s).',
             'updated_count': total_updated,
             'reading_count': reading_count,
-            'system_count': system_count
+            'system_count': system_count,
+            'campaign_count': campaign_count
         })
 
     except Exception as e:

@@ -356,6 +356,12 @@ class Campaign(models.Model):
         help_text='Se marcado, o Premium será concedido automaticamente aos usuários elegíveis'
     )
 
+    send_notification = models.BooleanField(
+        default=True,
+        verbose_name='Enviar Notificação',
+        help_text='Se marcado, os usuários receberão uma notificação no sininho quando receberem Premium'
+    )
+
     max_grants = models.IntegerField(
         null=True,
         blank=True,
@@ -387,6 +393,19 @@ class Campaign(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
+
+    # Controle de execuções
+    last_execution_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Última Execução',
+        help_text='Data e hora da última vez que a campanha foi executada'
+    )
+    execution_count = models.IntegerField(
+        default=0,
+        verbose_name='Número de Execuções',
+        help_text='Quantas vezes esta campanha foi executada manualmente'
+    )
 
     class Meta:
         verbose_name = 'Campanha de Marketing'

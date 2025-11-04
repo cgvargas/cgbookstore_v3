@@ -639,7 +639,7 @@ const NotificationManager = {
             if (!item || item.classList.contains('read')) return;
 
             try {
-                const response = await fetch('/api/notifications/mark-read-unified/', {
+                const response = await fetch('/api/notifications/unified/mark-read/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -668,7 +668,7 @@ const NotificationManager = {
          */
         async markAllAsRead() {
             try {
-                const response = await fetch('/api/notifications/mark-all-read/', {
+                const response = await fetch('/api/notifications/unified/mark-all-read/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -677,7 +677,7 @@ const NotificationManager = {
                 });
 
                 const data = await response.json();
-                if (data.success && data.marked_count > 0) {
+                if (data.success && data.updated_count > 0) {
                     showToast(data.message, 'success');
                     this.resetAndFetch();
                 }
@@ -712,7 +712,7 @@ const NotificationManager = {
             if (!result.isConfirmed) return;
 
             try {
-                const response = await fetch('/api/notifications/delete-unified/', {
+                const response = await fetch('/api/notifications/unified/delete-selected/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
