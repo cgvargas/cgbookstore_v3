@@ -5,8 +5,14 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Django-allauth URLs (ANTES de accounts/)
+    path('accounts/', include('allauth.urls')),
+
+    # Nossas URLs customizadas (profile, etc.)
+    path('profile/', include('accounts.urls', namespace='accounts')),
+
     path('chatbot/', include('chatbot_literario.urls', namespace='chatbot')),
-    path('accounts/', include('accounts.urls', namespace='accounts')),
     path('debates/', include('debates.urls')),
     path('recommendations/', include('recommendations.urls', namespace='recommendations')),
     path('finance/', include('finance.urls', namespace='finance')),

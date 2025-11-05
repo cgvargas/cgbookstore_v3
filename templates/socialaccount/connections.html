@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+{% load socialaccount %}
+
+{% block title %}Contas Conectadas - CG.BookStore{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+.connections-container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 0 20px;
+}
+
+.page-header {
+    margin-bottom: 40px;
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.page-subtitle {
+    font-size: 16px;
+    color: #666;
+}
+
+.section {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Contas Conectadas */
+.connected-accounts {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.account-card {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.account-card:hover {
+    border-color: #4285F4;
+    box-shadow: 0 4px 15px rgba(66, 133, 244, 0.1);
+}
+
+.account-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-right: 20px;
+    font-size: 24px;
+    color: white;
+}
+
+.account-icon.google {
+    background: #4285F4;
+}
+
+.account-icon.facebook {
+    background: #1877F2;
+}
+
+.account-info {
+    flex: 1;
+}
+
+.account-info h3 {
+    margin: 0 0 5px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.account-info p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.account-actions {
+    margin-left: auto;
+}
+
+.btn-disconnect {
+    padding: 8px 20px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-disconnect:hover {
+    background: #c82333;
+}
+
+/* Nenhuma Conta */
+.no-accounts {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+    font-size: 16px;
+}
+
+.no-accounts i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    color: #ddd;
+    display: block;
+}
+
+/* Adicionar Conta */
+.add-account-section {
+    margin-top: 30px;
+}
+
+.social-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-social {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 14px 20px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-social:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    color: white;
+}
+
+.btn-social i {
+    margin-right: 12px;
+    font-size: 18px;
+}
+
+.btn-google {
+    background: #4285F4;
+    border-color: #4285F4;
+}
+
+.btn-google:hover {
+    background: #357AE8;
+    border-color: #357AE8;
+}
+
+.btn-facebook {
+    background: #1877F2;
+    border-color: #1877F2;
+}
+
+.btn-facebook:hover {
+    background: #166FE5;
+    border-color: #166FE5;
+}
+
+/* Alert */
+.alert {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+/* Back Link */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    color: #4285F4;
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.back-link i {
+    margin-right: 5px;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="connections-container">
+    <!-- Back Link -->
+    <a href="{% url 'accounts:edit_profile' %}" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        Voltar para Perfil
+    </a>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">Contas Conectadas</h1>
+        <p class="page-subtitle">
+            Gerencie as contas sociais conectadas à sua conta do CGBookstore
+        </p>
+    </div>
+
+    <!-- Mensagens -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Contas Já Conectadas -->
+    <div class="section">
+        <h2 class="section-title">Suas Contas Conectadas</h2>
+
+        {% if form.accounts %}
+            <div class="connected-accounts">
+                {% for base_account in form.accounts %}
+                    {% with base_account.get_provider_account as account %}
+                        <div class="account-card">
+                            <div class="account-icon {{ account.provider }}">
+                                {% if account.provider == 'google' %}
+                                    <i class="fab fa-google"></i>
+                                {% elif account.provider == 'facebook' %}
+                                    <i class="fab fa-facebook-f"></i>
+                                {% endif %}
+                            </div>
+
+                            <div class="account-info">
+                                <h3>{{ account.get_provider.name }}</h3>
+                                <p>{{ account }}</p>
+                            </div>
+
+                            <div class="account-actions">
+                                <form method="post" action="{% url 'socialaccount_connections' %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="account" value="{{ base_account.id }}">
+                                    <button
+                                        type="submit"
+                                        class="btn-disconnect"
+                                        onclick="return confirm('Tem certeza que deseja desconectar esta conta?')"
+                                    >
+                                        Desconectar
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endwith %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-accounts">
+                <i class="fas fa-unlink"></i>
+                <p>Você ainda não conectou nenhuma conta social.</p>
+                <p>Conecte uma conta abaixo para fazer login mais rapidamente!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Adicionar Nova Conta -->
+    <div class="section add-account-section">
+        <h2 class="section-title">Conectar Nova Conta</h2>
+        <p style="color: #666; margin-bottom: 20px;">
+            Conecte uma nova conta social para fazer login de forma mais rápida e segura.
+        </p>
+
+        <div class="social-buttons">
+            <!-- Google -->
+            {% if 'google' not in form.accounts|map:"provider" %}
+                <a href="{% provider_login_url 'google' process='connect' %}" class="btn-social btn-google">
+                    <i class="fab fa-google"></i>
+                    <span>Conectar Google</span>
+                </a>
+            {% endif %}
+
+            <!-- Facebook -->
+            {% if 'facebook' not in form.accounts|map:"provider" %}
+                <a href="{% provider_login_url 'facebook' process='connect' %}" class="btn-social btn-facebook">
+                    <i class="fab fa-facebook-f"></i>
+                    <span>Conectar Facebook</span>
+                </a>
+            {% endif %}
+        </div>
+
+        {% if form.accounts|length >= 2 %}
+            <div class="alert alert-success" style="margin-top: 20px;">
+                <strong>Parabéns!</strong> Você conectou todas as contas sociais disponíveis.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Informações Adicionais -->
+    <div class="section">
+        <h3 style="font-size: 18px; margin-bottom: 15px; color: #333;">
+            <i class="fas fa-info-circle" style="color: #4285F4; margin-right: 8px;"></i>
+            Por que conectar contas sociais?
+        </h3>
+        <ul style="color: #666; line-height: 1.8;">
+            <li>Login mais rápido e seguro</li>
+            <li>Não precisa lembrar de outra senha</li>
+            <li>Seus dados estão protegidos pelo Google/Facebook</li>
+            <li>Você pode desconectar a qualquer momento</li>
+        </ul>
+
+        <h3 style="font-size: 18px; margin: 25px 0 15px 0; color: #333;">
+            <i class="fas fa-shield-alt" style="color: #28a745; margin-right: 8px;"></i>
+            Privacidade e Segurança
+        </h3>
+        <ul style="color: #666; line-height: 1.8;">
+            <li>Não compartilhamos seus dados com terceiros</li>
+            <li>Apenas solicitamos acesso a email e informações básicas do perfil</li>
+            <li>Você pode revogar o acesso a qualquer momento nas configurações da sua conta social</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

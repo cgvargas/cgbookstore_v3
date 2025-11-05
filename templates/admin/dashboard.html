@@ -402,6 +402,42 @@
             <div class="stat-card-label">Vídeos cadastrados</div>
         </div>
     </a>
+
+    {% if finance_stats %}
+    <!-- FINANCE STATISTICS -->
+    <a href="{% url 'admin:finance_subscription_changelist' %}" class="stat-card-link">
+        <div class="stat-card success">
+            <div class="stat-card-header">
+                <span class="stat-card-title">Assinaturas Ativas</span>
+                <span class="stat-card-icon">💎</span>
+            </div>
+            <div class="stat-card-value">{{ finance_stats.active_subscriptions }}</div>
+            <div class="stat-card-label">Premium ativos</div>
+        </div>
+    </a>
+
+    <a href="{% url 'admin:finance_campaign_changelist' %}" class="stat-card-link">
+        <div class="stat-card warning">
+            <div class="stat-card-header">
+                <span class="stat-card-title">Campanhas Ativas</span>
+                <span class="stat-card-icon">🎁</span>
+            </div>
+            <div class="stat-card-value">{{ campaign_stats.active_campaigns }}</div>
+            <div class="stat-card-label">Campanhas em andamento</div>
+        </div>
+    </a>
+
+    <a href="{% url 'admin:finance_campaigngrant_changelist' %}" class="stat-card-link">
+        <div class="stat-card info">
+            <div class="stat-card-header">
+                <span class="stat-card-title">Premiums Concedidos</span>
+                <span class="stat-card-icon">🎉</span>
+            </div>
+            <div class="stat-card-value">{{ campaign_stats.active_grants }}</div>
+            <div class="stat-card-label">Via campanhas (ativos)</div>
+        </div>
+    </a>
+    {% endif %}
 </div>
 
 <!-- AÇÕES RÁPIDAS -->
@@ -411,16 +447,24 @@
     </div>
     <div class="quick-actions">
         <a href="{% url 'admin:core_book_add' %}" class="action-btn">
-            ➕ Adicionar Livro
-        </a>
-        <a href="{% url 'admin:google_books_search' %}" class="action-btn success">
-            🔍 Buscar Google Books
+            📚 Adicionar Livro
         </a>
         <a href="{% url 'admin:core_event_add' %}" class="action-btn">
             📅 Criar Evento
         </a>
         <a href="{% url 'admin:core_section_add' %}" class="action-btn">
             🎨 Nova Seção
+        </a>
+        {% if finance_stats %}
+        <a href="{% url 'admin:finance_campaign_add' %}" class="action-btn" style="background: #ff6b6b;">
+            🎁 Criar Campanha
+        </a>
+        {% endif %}
+        <a href="{% url 'admin:core_author_add' %}" class="action-btn">
+            ✍️ Adicionar Autor
+        </a>
+        <a href="{% url 'admin:core_video_add' %}" class="action-btn">
+            🎥 Adicionar Vídeo
         </a>
     </div>
 </div>
@@ -437,11 +481,19 @@
         <a href="{% url 'admin:app_list' 'core' %}" class="action-btn" style="background: #fd7e14;">
             📦 Core
         </a>
-        <a href="{% url 'admin:core_video_add' %}" class="action-btn" style="background: #e83e8c;">
-            🎥 Adicionar Vídeos
+        {% if finance_stats %}
+        <a href="{% url 'admin:app_list' 'finance' %}" class="action-btn" style="background: #28a745;">
+            💰 Finanças
         </a>
-        <a href="{% url 'admin:core_author_add' %}" class="action-btn" style="background: #20c997;">
-            ✍️ Adicionar Autores
+        {% endif %}
+        <a href="{% url 'admin:app_list' 'accounts' %}" class="action-btn" style="background: #17a2b8;">
+            👤 Contas e Perfis
+        </a>
+        <a href="{% url 'admin:app_list' 'recommendations' %}" class="action-btn" style="background: #ffc107;">
+            🎯 Recomendações
+        </a>
+        <a href="{% url 'admin:app_list' 'debates' %}" class="action-btn" style="background: #e83e8c;">
+            💬 Sistema de Debates
         </a>
     </div>
 </div>
@@ -503,6 +555,64 @@
     </div>
 </div>
 
+{% if finance_stats %}
+<!-- FINANCE SECTION: ASSINATURAS + CAMPANHAS -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-top: 25px;">
+
+    <!-- ASSINATURAS RECENTES -->
+    <div class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">💎 Últimas Assinaturas</h2>
+            <a href="{% url 'admin:finance_subscription_changelist' %}" class="section-link">Ver todas →</a>
+        </div>
+        <ul class="recent-list">
+            {% for subscription in recent_subscriptions %}
+            <li class="recent-item">
+                <div class="recent-info">
+                    <div class="recent-title">{{ subscription.user.username }}</div>
+                    <div class="recent-meta">
+                        {% if subscription.status == 'ativa' %}
+                        <span style="color: var(--success-color);">✓ Ativa</span>
+                        {% else %}
+                        <span style="color: var(--text-secondary);">{{ subscription.get_status_display }}</span>
+                        {% endif %}
+                        • R$ {{ subscription.price }}
+                        • {{ subscription.created_at|date:"d/m/Y" }}
+                    </div>
+                </div>
+            </li>
+            {% empty %}
+            <li class="recent-item">Nenhuma assinatura cadastrada ainda.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- CAMPANHAS ATIVAS -->
+    <div class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">🎁 Campanhas Ativas</h2>
+            <a href="{% url 'admin:finance_campaign_changelist' %}" class="section-link">Ver todas →</a>
+        </div>
+        <ul class="recent-list">
+            {% for campaign in active_campaigns %}
+            <li class="recent-item">
+                <div class="recent-info">
+                    <div class="recent-title">{{ campaign.name }}</div>
+                    <div class="recent-meta">
+                        {{ campaign.duration_days }} dias
+                        • {{ campaign.get_target_type_display }}
+                        • <span style="color: var(--success-color);">{{ campaign.total_granted }} concedidos</span>
+                    </div>
+                </div>
+            </li>
+            {% empty %}
+            <li class="recent-item">Nenhuma campanha ativa no momento.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
 <!-- SEÇÃO DE GRÁFICOS -->
 <div class="content-section" style="margin-top: 30px;">
     <div class="section-header">
@@ -534,6 +644,16 @@
                 <canvas id="coverSourceChart"></canvas>
             </div>
         </div>
+
+        {% if finance_stats %}
+        <!-- Gráfico: Crescimento de Assinaturas -->
+        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px;">
+            <h3 style="color: var(--text-primary); margin: 0 0 15px 0; font-size: 16px;">💎 Crescimento de Assinaturas Premium</h3>
+            <div style="height: 300px;">
+                <canvas id="subscriptionGrowthChart"></canvas>
+            </div>
+        </div>
+        {% endif %}
 
     </div>
 </div>
@@ -570,6 +690,23 @@
         percentage: Number("{{ cover_stats.percentage }}".replace(',', '.'))
     };
     console.log('📊 Dados de Capas:', window.coverSourceData);
+
+    {% if finance_stats %}
+    // Dados: Crescimento de Assinaturas
+    window.subscriptionGrowthData = {
+        labels: [
+            {% for item in subscription_chart_data %}
+                "{{ item.month }}"{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        values: [
+            {% for item in subscription_chart_data %}
+                {{ item.count }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    };
+    console.log('📊 Dados de Assinaturas:', window.subscriptionGrowthData);
+    {% endif %}
 </script>
 
 <!-- Admin Charts Script -->

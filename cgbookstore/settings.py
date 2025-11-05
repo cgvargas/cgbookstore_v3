@@ -36,6 +36,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # Requerido pelo allauth
+
+    # Django-allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    # Providers sociais (sem GitHub)
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.facebook',
 
     # Meus Apps
     'core.apps.CoreConfig',
@@ -57,6 +66,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # Requerido pelo allauth
     'core.middleware.RateLimitMiddleware',  # Rate limiting
 ]
 
@@ -265,4 +275,107 @@ RECOMMENDATIONS_CONFIG = {
         'trending': 0.1,       # Peso dos livros em alta
     },
 }
+
+# ==============================================================================
+# DJANGO-ALLAUTH CONFIGURATION
+# ==============================================================================
+
+# Site ID (requerido pelo allauth)
+SITE_ID = 1
+
+# Authentication backends
+AUTHENTICATION_BACKENDS = [
+    # Backend nativo do Django (username + password)
+    'django.contrib.auth.backends.ModelBackend',
+    # Backend do allauth (email + password, social)
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# Método de autenticação: username_email permite login com ambos
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+
+# Email é obrigatório para registro
+ACCOUNT_EMAIL_REQUIRED = True
+
+# Verificação de email: 'optional', 'mandatory', ou 'none'
+# Começar com optional, depois mudar para mandatory se necessário
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+
+# Username é obrigatório (manter compatibilidade com sistema existente)
+ACCOUNT_USERNAME_REQUIRED = True
+
+# Permitir usuários registrarem-se
+ACCOUNT_SIGNUP_ENABLED = True
+
+# Redirecionamento após login (já existe, mas allauth usa)
+LOGIN_URL = '/accounts/login/'
+ACCOUNT_LOGIN_URL = '/accounts/login/'
+
+# Confirmar logout (False = logout direto sem confirmação)
+ACCOUNT_LOGOUT_ON_GET = False
+
+# Auto-signup com social account (sem confirmação extra)
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
+# Perguntar email se provider não fornecer
+SOCIALACCOUNT_QUERY_EMAIL = True
+
+# Conectar accounts existentes por email
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+
+# Configuração dos providers sociais (Google e Facebook)
+# Credenciais serão carregadas do .env
+GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
+GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='')
+FACEBOOK_APP_ID = config('FACEBOOK_APP_ID', default='')
+FACEBOOK_APP_SECRET = config('FACEBOOK_APP_SECRET', default='')
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'APP': {
+            'client_id': GOOGLE_CLIENT_ID,
+            'secret': GOOGLE_CLIENT_SECRET,
+            'key': ''
+        }
+    },
+    'facebook': {
+        'METHOD': 'oauth2',
+        'SCOPE': ['email', 'public_profile'],
+        'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
+        'INIT_PARAMS': {'cookie': True},
+        'FIELDS': [
+            'id',
+            'email',
+            'name',
+            'first_name',
+            'last_name',
+            'verified',
+            'locale',
+            'timezone',
+            'link',
+            'gender',
+            'updated_time',
+        ],
+        'EXCHANGE_TOKEN': True,
+        'VERIFIED_EMAIL': False,
+        'VERSION': 'v18.0',
+        'APP': {
+            'client_id': FACEBOOK_APP_ID,
+            'secret': FACEBOOK_APP_SECRET,
+            'key': ''
+        }
+    }
+}
+
+# Adapters customizados
+ACCOUNT_ADAPTER = 'accounts.adapters.CustomAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'
 
