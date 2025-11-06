@@ -260,7 +260,7 @@
                         {% endif %}
                     </div>
                 {% else %}
-                    <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary btn-lg">
+                    <a href="{% url 'account_login' %}?next={{ request.path }}" class="btn btn-primary btn-lg">
                         <i class="fas fa-sign-in-alt me-2"></i>Entrar para Adicionar
                     </a>
                 {% endif %}

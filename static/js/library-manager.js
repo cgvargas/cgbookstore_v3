@@ -1313,3 +1313,16 @@ function loadShelfBooks(shelfValue) {
 function showLibraryCustomShelfModal() {
     LibraryManager.showCustomShelfModal();
 }
+
+// Funções globais para adicionar/remover livros (chamadas pelo template book_detail.html)
+function addToShelf(bookId, shelfType, customShelfName = '') {
+    return LibraryManager.addToShelf(bookId, shelfType, customShelfName);
+}
+
+function addToDefaultShelf(bookId) {
+    return LibraryManager.addToShelf(bookId, 'to_read');
+}
+
+function removeFromShelf(bookshelfId) {
+    return LibraryManager.removeFromShelf(bookshelfId);
+}

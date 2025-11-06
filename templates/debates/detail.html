@@ -112,7 +112,7 @@
     {% elif not user.is_authenticated %}
     <div class="alert alert-warning">
         <i class="fas fa-sign-in-alt me-2"></i>
-        <a href="{% url 'accounts:login' %}?next={{ request.path }}">Faça login</a> para participar do debate.
+        <a href="{% url 'account_login' %}?next={{ request.path }}">Faça login</a> para participar do debate.
     </div>
     {% endif %}
 

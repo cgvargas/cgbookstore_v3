@@ -21,9 +21,9 @@
         MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
         ALLOWED_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
         API_ENDPOINTS: {
-            UPLOAD: '/accounts/profile/upload-background/',
-            UPDATE_SETTINGS: '/accounts/profile/update-background-settings/',
-            REMOVE: '/accounts/profile/remove-background/'
+            UPLOAD: '/profile/upload-background/',
+            UPDATE_SETTINGS: '/profile/update-background-settings/',
+            REMOVE: '/profile/remove-background/'
         }
     };
     // ============================================

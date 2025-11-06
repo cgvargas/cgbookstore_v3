@@ -291,18 +291,17 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# Método de autenticação: username_email permite login com ambos
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+# ===== NOVO FORMATO (Django-allauth 0.57+) =====
+# Métodos de login permitidos: email e username
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}
 
-# Email é obrigatório para registro
-ACCOUNT_EMAIL_REQUIRED = True
+# Campos obrigatórios no cadastro
+# email* = obrigatório, username* = obrigatório, password1* e password2* = senhas
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 
 # Verificação de email: 'optional', 'mandatory', ou 'none'
 # Começar com optional, depois mudar para mandatory se necessário
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
-
-# Username é obrigatório (manter compatibilidade com sistema existente)
-ACCOUNT_USERNAME_REQUIRED = True
 
 # Permitir usuários registrarem-se
 ACCOUNT_SIGNUP_ENABLED = True

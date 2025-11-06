@@ -272,12 +272,12 @@
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:login' %}">
+                        <a class="nav-link" href="{% url 'account_login' %}">
                             <i class="fas fa-sign-in-alt me-1"></i>Entrar
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:register' %}">
+                        <a class="nav-link" href="{% url 'account_signup' %}">
                             <i class="fas fa-user-plus me-1"></i>Cadastrar
                         </a>
                     </li>
@@ -317,7 +317,7 @@
 <script src="{% static 'js/theme-switcher.js' %}?v=1.0"></script>
 
 <!-- Gerenciadores Globais (Sempre necessários para Navbar e Notificações) -->
-<script src="{% static 'js/library-manager.js' %}?v=2.0"></script>
+<script src="{% static 'js/library-manager.js' %}?v=2.1"></script>
 <script src="{% static 'js/notification-sounds.js' %}?v=1.0"></script>
 <script src="{% static 'js/reading-progress.js' %}?v=3.0"></script>
 
@@ -325,7 +325,7 @@
 {% block extra_js %}
     <!-- Scripts específicos da página serão inseridos aqui pelos templates filhos -->
     <!-- O profile-manager.js pode ficar aqui ou ser movido para global, dependendo do uso -->
-    <script src="{% static 'js/profile-manager.js' %}?v=1.1"></script>
+    <script src="{% static 'js/profile-manager.js' %}?v=1.2"></script>
 {% endblock %}
 
 <!-- JS para o sistema de Gamificação) -->

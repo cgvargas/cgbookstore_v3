@@ -75,7 +75,7 @@ class ProfileManager {
         this.setLoadingState(form, true);
 
         try {
-            const response = await fetch('/accounts/profile/upload-avatar/', {
+            const response = await fetch('/profile/upload-avatar/', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -136,7 +136,7 @@ class ProfileManager {
         this.setLoadingState(form, true);
 
         try {
-            const response = await fetch('/accounts/profile/upload-banner/', {
+            const response = await fetch('/profile/upload-banner/', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -187,7 +187,7 @@ class ProfileManager {
      */
     async updateTheme(themeName) {
         try {
-            const response = await fetch('/accounts/profile/update-theme/', {
+            const response = await fetch('/profile/update-theme/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

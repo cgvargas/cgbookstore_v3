@@ -5,19 +5,17 @@ from . import views
 app_name = 'accounts'
 
 urlpatterns = [
-    # URLs de Autenticação
-    path('login/', auth_views.LoginView.as_view(template_name='accounts/login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(template_name='accounts/logout.html'), name='logout'),
-    path('registrar/', views.register_view, name='register'),
-
     # URLs DO PERFIL
-    path('profile/edit/', views.edit_profile, name='edit_profile'),
-    path('profile/upload-avatar/', views.upload_avatar, name='upload_avatar'),
-    path('profile/upload-banner/', views.upload_banner, name='upload_banner'),
-    path('profile/update-theme/', views.update_theme, name='update_theme'),
+    path('edit/', views.edit_profile, name='edit_profile'),
+    path('upload-avatar/', views.upload_avatar, name='upload_avatar'),
+    path('upload-banner/', views.upload_banner, name='upload_banner'),
+    path('update-theme/', views.update_theme, name='update_theme'),
 
     # URLs de Background Personalizado (PREMIUM)
-    path('profile/upload-background/', views.upload_background, name='upload_background'),
-    path('profile/update-background-settings/', views.update_background_settings, name='update_background_settings'),
-    path('profile/remove-background/', views.remove_background, name='remove_background'),
+    path('upload-background/', views.upload_background, name='upload_background'),
+    path('update-background-settings/', views.update_background_settings, name='update_background_settings'),
+    path('remove-background/', views.remove_background, name='remove_background'),
+
+    # URLs de Autenticação (LEGADO - mantidas por compatibilidade)
+    path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
 ]
