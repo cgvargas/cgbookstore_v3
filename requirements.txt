@@ -1,56 +1,146 @@
-dj-config-url
-# Django Core
-Django==5.0.3
-django-environ==0.11.2
+# ========== DJANGO CORE ==========
+Django==5.1.1
+django-environ==0.12.0
 python-decouple==3.8
+asgiref==3.8.1
+sqlparse==0.5.1
+tzdata==2025.2
 
-# Autenticação Social
-django-allauth>=0.57.0
+# ========== AUTENTICAÇÃO SOCIAL ==========
+django-allauth==65.13.0
+PyJWT==2.10.1
+cryptography==44.0.2
 
-# Database - ATUALIZADO para psycopg3
-psycopg[binary]>=3.1.0
-dj-database-url==2.1.0
+# ========== DATABASE ==========
+psycopg[binary]==3.2.12
+dj-database-url==3.0.1
 
-# Supabase
-supabase>=2.4.0
-storage3>=0.7.3
-gotrue>=2.4.1
-postgrest>=0.16.0
-realtime>=2.0.0
-supafunc>=0.4.0
+# ========== SUPABASE ==========
+supabase==2.23.2
+storage3==2.23.2
+postgrest==2.23.2
+realtime==2.23.2
+supabase-auth==2.23.2
+supabase-functions==2.23.2
 
-# Pillow para imagens
-Pillow>=10.0.0
+# ========== IMAGENS E MEDIA ==========
+Pillow==11.1.0
+django-stdimage==6.0.2
+django-pictures==1.3.3
+opencv-python==4.11.0.86
 
-# APIs Externas
-requests>=2.31.0
+# ========== CACHE COM REDIS ==========
+redis==5.2.0
+django-redis==6.0.0
 
-# ========== OTIMIZAÇÕES DE ESCALABILIDADE ==========
+# ========== BACKGROUND TASKS (CELERY) ==========
+celery==5.5.3
+django-celery-beat==2.8.1
+django-celery-results==2.6.0
+amqp==5.3.1
+billiard==4.2.2
+kombu==5.5.4
+vine==5.1.0
+click==8.1.7
+click-didyoumean==0.3.1
+click-plugins==1.1.1.2
+click-repl==0.3.0
+prompt_toolkit==3.0.52
 
-# Cache com Redis
-redis==5.0.1
-django-redis==5.4.0
-
-# Background Tasks
-celery==5.3.4
-django-celery-beat==2.7.0
-django-celery-results==2.5.1
-
-# Rate Limiting
+# ========== RATE LIMITING ==========
 django-ratelimit==4.1.0
 
-# Monitoring e Performance
-django-debug-toolbar==4.2.0  # Apenas desenvolvimento
+# ========== MONITORING E DEBUG ==========
+django-debug-toolbar==6.1.0
 
-# ========== SISTEMA DE RECOMENDAÇÕES IA ==========
+# ========== MACHINE LEARNING E IA ==========
+scikit-learn==1.7.2
+numpy==2.2.2
+pandas==2.2.3
+scipy==1.16.3
+joblib==1.4.2
+threadpoolctl==3.6.0
 
-# Machine Learning
-scikit-learn==1.3.2
-numpy==1.24.3
-pandas==2.1.3
+# ========== REST API ==========
+djangorestframework==3.16.1
 
-# REST APIs
-djangorestframework==3.14.0
+# ========== GOOGLE GEMINI IA ==========
+google-generativeai==0.8.5
+google-ai-generativelanguage==0.6.15
+google-api-core==2.28.1
+google-api-python-client==2.187.0
+google-auth==2.43.0
+google-auth-httplib2==0.2.1
+googleapis-common-protos==1.71.0
+grpcio==1.76.0
+grpcio-status==1.71.2
+proto-plus==1.26.1
+protobuf==5.29.5
 
-# IA Premium (Google Gemini)
-google-generativeai==0.3.2
+# ========== PAGAMENTOS ==========
+mercadopago==2.3.0
+
+# ========== PROCESSAMENTO DE TEXTO ==========
+nltk==3.9.1
+textblob==0.18.0.post0
+beautifulsoup4==4.12.3
+soupsieve==2.6
+
+# ========== PDF PROCESSING ==========
+pdfplumber==0.11.5
+pdfminer.six==20231228
+pypdfium2==4.30.1
+pytesseract==0.3.13
+
+# ========== FORMULÁRIOS E UI ==========
+django-bootstrap4==24.4
+django-crispy-forms==2.3
+
+# ========== TIMEZONE ==========
+django-timezone-field==7.1
+pytz==2025.1
+python-crontab==3.3.0
+cron_descriptor==2.0.6
+
+# ========== HTTP E REQUESTS ==========
+requests==2.32.3
+urllib3==2.2.3
+certifi==2024.8.30
+charset-normalizer==3.4.0
+idna==2.10
+httpx==0.27.2
+httpcore==1.0.7
+h11==0.14.0
+h2==4.1.0
+hpack==4.0.0
+hyperframe==6.0.1
+anyio==4.6.2.post1
+sniffio==1.3.1
+
+# ========== VALIDAÇÃO E PARSING ==========
+pydantic==2.12.4
+pydantic_core==2.41.5
+annotated-types==0.7.0
+typing_extensions==4.15.0
+typing-inspection==0.4.2
+
+# ========== UTILITIES ==========
+python-dateutil==2.9.0.post0
+six==1.17.0
+tqdm==4.66.5
+regex==2024.9.11
+wcwidth==0.2.14
+colorama==0.4.6
+packaging==24.1
+
+# ========== SERVIDOR DE PRODUÇÃO ==========
+gunicorn==23.0.0
+whitenoise==6.7.0
+
+# ========== WEBSOCKETS ==========
+websockets==15.0.1
+
+# ========== OUTROS ==========
+deprecation==2.1.0
+StrEnum==0.4.15
+cachetools==6.2.1
