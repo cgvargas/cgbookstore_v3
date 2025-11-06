@@ -115,6 +115,10 @@ function loadAllCharts() {
     if (window.coverSourceData) {
         createCoverSourceChart();
     }
+    // Gráfico Crescimento de Assinaturas (Finance)
+    if (window.subscriptionGrowthData) {
+        createSubscriptionGrowthChart();
+    }
 }
 
 /**
@@ -377,6 +381,83 @@ function createCoverSourceChart() {
 
     createChart('coverSourceChart', config);
     console.log('✅ Gráfico de Capas carregado');
+}
+
+/**
+ * Gráfico: Crescimento de Assinaturas Premium (Linha)
+ */
+function createSubscriptionGrowthChart() {
+    const data = window.subscriptionGrowthData;
+
+    if (!data || data.labels.length === 0) {
+        console.log('Sem dados para gráfico de assinaturas');
+        return;
+    }
+
+    const config = {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Novas Assinaturas',
+                data: data.values,
+                backgroundColor: 'rgba(65, 118, 144, 0.2)',
+                borderColor: chartColors.primary,
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4, // Suavização da curva
+                pointRadius: 5,
+                pointBackgroundColor: chartColors.primary,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointHoverRadius: 7,
+                pointHoverBackgroundColor: chartColors.primary,
+                pointHoverBorderColor: '#fff',
+                pointHoverBorderWidth: 3
+            }]
+        },
+        options: {
+            ...chartDefaults,
+            plugins: {
+                ...chartDefaults.plugins,
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    ...chartDefaults.plugins.tooltip,
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.parsed.y} nova(s) assinatura(s)`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ...chartDefaults.scales.x,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.05)',
+                        drawBorder: false
+                    }
+                },
+                y: {
+                    ...chartDefaults.scales.y,
+                    beginAtZero: true,
+                    ticks: {
+                        ...chartDefaults.scales.y.ticks,
+                        stepSize: 1
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.05)',
+                        drawBorder: false
+                    }
+                }
+            }
+        }
+    };
+
+    createChart('subscriptionGrowthChart', config);
+    console.log('✅ Gráfico de Assinaturas carregado');
 }
 
 // Exportar funções para uso global
