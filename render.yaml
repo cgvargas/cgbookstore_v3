@@ -6,8 +6,9 @@ services:
     region: oregon
     plan: free
     branch: main
-    buildCommand: "./build.sh"
-    startCommand: "gunicorn cgbookstore.wsgi:application"
+    buildCommand: "chmod +x build.sh && ./build.sh"
+    startCommand: "gunicorn cgbookstore.wsgi:application --bind 0.0.0.0:$PORT"
+    healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
