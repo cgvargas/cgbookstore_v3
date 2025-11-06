@@ -98,19 +98,21 @@ WSGI_APPLICATION = 'cgbookstore.wsgi.application'
 
 
 # Database
+# Usar DATABASE_URL do ambiente, ou fallback para SQLite local em desenvolvimento
 DATABASES = {
     'default': dj_database_url.config(
-        default=config('DATABASE_URL'),
+        default=config('DATABASE_URL', default='sqlite:///' + str(BASE_DIR / 'db.sqlite3')),
         conn_max_age=600,  # 10 minutos (aumentado de 60s para melhor pooling)
         conn_health_checks=True,
     )
 }
 
-# Adicionar opções de timeout ao banco de dados
-DATABASES['default']['OPTIONS'] = {
-    'connect_timeout': 10,
-    'options': '-c statement_timeout=30000'  # 30s timeout para queries
-}
+# Adicionar opções de timeout ao banco de dados (apenas para PostgreSQL)
+if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
+    DATABASES['default']['OPTIONS'] = {
+        'connect_timeout': 10,
+        'options': '-c statement_timeout=30000'  # 30s timeout para queries
+    }
 
 
 # ==============================================================================
