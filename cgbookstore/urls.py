@@ -6,6 +6,9 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
 
+    # Ferramentas administrativas (sem necessidade de Shell)
+    path('admin-tools/', include('core.urls_admin_tools', namespace='admin_tools')),
+
     # Django-allauth URLs (ANTES de accounts/)
     path('accounts/', include('allauth.urls')),
 

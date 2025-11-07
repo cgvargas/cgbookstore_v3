@@ -1,0 +1,194 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Inicial - CG Bookstore Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { opacity: 0.9; }
+        .content { padding: 30px; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-card.ok { border-color: #48bb78; background: #f0fff4; }
+        .stat-card.warning { border-color: #ed8936; background: #fffaf0; }
+        .stat-card.error { border-color: #f56565; background: #fff5f5; }
+        .stat-card h3 { font-size: 14px; color: #718096; margin-bottom: 8px; text-transform: uppercase; }
+        .stat-card .value { font-size: 32px; font-weight: bold; color: #2d3748; }
+        .stat-card .label { font-size: 12px; color: #a0aec0; margin-top: 5px; }
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn:active { transform: translateY(0); }
+        .output {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .output-line { margin: 5px 0; }
+        .success-msg {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            color: #22543d;
+        }
+        .warning-box {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            color: #7c2d12;
+        }
+        .actions { text-align: center; margin-top: 30px; }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Setup de Dados Iniciais</h1>
+            <p>Popular banco de dados com categorias, livros e configurações</p>
+        </div>
+
+        <div class="content">
+            {% if success %}
+            <div class="success-msg">
+                ✅ <strong>Setup executado com sucesso!</strong> Dados iniciais foram populados.
+            </div>
+            {% endif %}
+
+            <h2 style="margin-bottom: 20px; color: #2d3748;">📊 Status Atual</h2>
+
+            <div class="stats">
+                <div class="stat-card {% if stats.db_connected %}ok{% else %}error{% endif %}">
+                    <h3>Banco de Dados</h3>
+                    <div class="value">{% if stats.db_connected %}✓{% else %}✗{% endif %}</div>
+                    <div class="label">{% if stats.db_connected %}Conectado{% else %}Desconectado{% endif %}</div>
+                </div>
+
+                <div class="stat-card {% if stats.site_configured %}ok{% else %}warning{% endif %}">
+                    <h3>Site Configurado</h3>
+                    <div class="value">{% if stats.site_configured %}✓{% else %}✗{% endif %}</div>
+                    <div class="label">django-allauth</div>
+                </div>
+
+                <div class="stat-card {% if stats.categories_count > 0 %}ok{% else %}warning{% endif %}">
+                    <h3>Categorias</h3>
+                    <div class="value">{{ stats.categories_count }}</div>
+                    <div class="label">cadastradas</div>
+                </div>
+
+                <div class="stat-card {% if stats.books_count > 0 %}ok{% else %}warning{% endif %}">
+                    <h3>Livros</h3>
+                    <div class="value">{{ stats.books_count }}</div>
+                    <div class="label">cadastrados</div>
+                </div>
+
+                <div class="stat-card {% if stats.social_apps_count > 0 %}ok{% else %}warning{% endif %}">
+                    <h3>Apps OAuth</h3>
+                    <div class="value">{{ stats.social_apps_count }}</div>
+                    <div class="label">configurados</div>
+                </div>
+            </div>
+
+            {% if not success and stats.categories_count == 0 %}
+            <div class="warning-box">
+                ⚠️ <strong>Banco de dados vazio!</strong> Clique no botão abaixo para popular com dados iniciais.
+            </div>
+            {% endif %}
+
+            <div class="actions">
+                <form method="POST" action="{{ post_url }}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn">
+                        🔄 Executar Setup de Dados Iniciais
+                    </button>
+                </form>
+
+                <p style="margin-top: 15px; color: #718096; font-size: 14px;">
+                    Isso criará: Site, 20 categorias, 3 livros exemplo, apps OAuth
+                </p>
+            </div>
+
+            {% if output %}
+            <h3 style="margin-top: 30px; margin-bottom: 10px; color: #2d3748;">📝 Output do Comando:</h3>
+            <div class="output">
+                {% for line in output %}
+                <div class="output-line">{{ line }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div style="text-align: center;">
+                <a href="/admin/" class="back-link">← Voltar ao Admin</a>
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                <a href="{% url 'admin_tools:health_check' %}" class="back-link">Health Check →</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

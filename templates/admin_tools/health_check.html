@@ -1,0 +1,184 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Check - CG Bookstore Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { opacity: 0.9; }
+        .content { padding: 30px; }
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .summary-card {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        .summary-card.ok { border-color: #48bb78; background: #f0fff4; }
+        .summary-card.warning { border-color: #ed8936; background: #fffaf0; }
+        .summary-card.error { border-color: #f56565; background: #fff5f5; }
+        .summary-card .icon { font-size: 36px; margin-bottom: 10px; }
+        .summary-card .count { font-size: 32px; font-weight: bold; color: #2d3748; }
+        .summary-card .label { font-size: 12px; color: #718096; margin-top: 5px; text-transform: uppercase; }
+        .check-item {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        .check-item.success { border-color: #48bb78; }
+        .check-item.warning { border-color: #ed8936; background: #fffaf0; }
+        .check-item.error { border-color: #f56565; background: #fff5f5; }
+        .check-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+        .check-content { flex-grow: 1; }
+        .check-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+        .check-message {
+            font-size: 14px;
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+        .check-details {
+            font-size: 13px;
+            color: #718096;
+            font-family: 'Courier New', monospace;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .actions { text-align: center; margin-top: 30px; }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Health Check</h1>
+            <p>Diagnóstico completo da aplicação</p>
+        </div>
+
+        <div class="content">
+            <div class="summary">
+                {% if all_ok %}
+                <div class="summary-card ok">
+                    <div class="icon">✅</div>
+                    <div class="count">OK</div>
+                    <div class="label">Tudo Funcionando</div>
+                </div>
+                {% else %}
+                <div class="summary-card {% if errors_count > 0 %}error{% else %}warning{% endif %}">
+                    <div class="icon">{% if errors_count > 0 %}❌{% else %}⚠️{% endif %}</div>
+                    <div class="count">{{ errors_count }}</div>
+                    <div class="label">Erros Críticos</div>
+                </div>
+
+                <div class="summary-card warning">
+                    <div class="icon">⚠️</div>
+                    <div class="count">{{ warnings_count }}</div>
+                    <div class="label">Avisos</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <h2 style="margin-bottom: 20px; color: #2d3748;">🔍 Verificações Detalhadas</h2>
+
+            {% for key, result in results.items %}
+            <div class="check-item {{ result.status }}">
+                <div class="check-icon">
+                    {% if result.status == 'success' %}✅
+                    {% elif result.status == 'warning' %}⚠️
+                    {% else %}❌{% endif %}
+                </div>
+                <div class="check-content">
+                    <div class="check-title">
+                        {% if key == 'database' %}🗄️ Banco de Dados
+                        {% elif key == 'redis' %}🔴 Redis
+                        {% elif key == 'site' %}🌐 Django Site
+                        {% elif key == 'social_apps' %}🔐 Apps OAuth
+                        {% elif key == 'categories' %}📚 Categorias
+                        {% elif key == 'books' %}📖 Livros
+                        {% elif key == 'environment' %}🔧 Variáveis de Ambiente
+                        {% elif key == 'security' %}🔒 Segurança
+                        {% endif %}
+                    </div>
+                    <div class="check-message">{{ result.message }}</div>
+                    <div class="check-details">{{ result.details }}</div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="actions">
+                <a href="{% url 'admin_tools:setup_initial_data' %}" class="btn">
+                    🔄 Executar Setup de Dados
+                </a>
+                &nbsp;
+                <a href="javascript:location.reload()" class="btn" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);">
+                    🔄 Atualizar Verificação
+                </a>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="/admin/" class="back-link">← Voltar ao Admin</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
