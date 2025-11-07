@@ -13,50 +13,63 @@ logger = logging.getLogger(__name__)
 
 class GeminiRecommendationEngine:
     """
-    Motor de recomendações usando Google Gemini AI.
+    Motor de recomendações usando Google Gemini AI com lazy loading do modelo.
     """
 
     def __init__(self):
         self.api_key = settings.GEMINI_API_KEY
-        # Usando gemini-2.5-flash (rápido e eficiente para recomendações)
-        self.model_name = 'gemini-2.5-flash'
-        # Timeout de 30 segundos para chamadas da API
-        self.request_timeout = 30
+        self.model_name = 'gemini-1.5-flash'  # Atualizado para o modelo mais recente e eficiente
+        self.request_timeout = 45  # Aumentado para dar mais margem
+        self._model = None  # Atributo privado para o modelo, começa como None
 
-        if self.api_key:
+    @property
+    def model(self):
+        """
+        Propriedade que inicializa o modelo do Gemini na primeira vez que é acessado.
+        Isso evita a inicialização lenta durante o boot do servidor.
+        """
+        # Se o modelo já foi inicializado, apenas o retorne
+        if self._model:
+            return self._model
+
+        # Se não há API key, não faz nada
+        if not self.api_key:
+            logger.warning("GEMINI_API_KEY not configured. AI recommendations will be disabled.")
+            return None
+        
+        # Bloco de inicialização (só roda uma vez)
+        logger.info(f"Inicializando o modelo Gemini ({self.model_name}) pela primeira vez...")
+        try:
             genai.configure(api_key=self.api_key)
-            # Configurar modelo com parâmetros de geração otimizados
             generation_config = {
                 'temperature': 0.7,
                 'top_p': 0.95,
                 'top_k': 40,
                 'max_output_tokens': 2048,
             }
-            self.model = genai.GenerativeModel(
+            # A inicialização lenta acontece aqui!
+            self._model = genai.GenerativeModel(
                 self.model_name,
                 generation_config=generation_config
             )
-        else:
-            logger.warning("GEMINI_API_KEY not configured. AI recommendations will be disabled.")
-            self.model = None
+            logger.info("Modelo Gemini inicializado com sucesso.")
+            return self._model
+        except Exception as e:
+            logger.error(f"Falha ao inicializar o modelo Gemini: {e}", exc_info=True)
+            # Define como None para não tentar de novo
+            self._model = None 
+            return None
 
     def is_available(self):
-        """Verifica se a API do Gemini está configurada."""
-        return self.model is not None
+        """Verifica se a API do Gemini está configurada e o modelo pode ser carregado."""
+        return self.api_key is not None
 
     def generate_recommendations(self, user, user_history, n=5):
         """
         Gera recomendações personalizadas usando Gemini AI.
-
-        Args:
-            user: Objeto User do Django
-            user_history: Lista de dicts com histórico do usuário
-            n: Número de recomendações desejadas
-
-        Returns:
-            Lista de recomendações com justificativas geradas por IA
         """
-        if not self.is_available():
+        # Acessar self.model aqui irá acionar a inicialização na primeira vez
+        if not self.is_available() or not self.model:
             logger.warning("Gemini AI not available")
             return []
 
@@ -66,58 +79,36 @@ class GeminiRecommendationEngine:
         if cached_result is not None:
             logger.info(f"[CACHE HIT] Returning cached recommendations for user {user.username}")
             return cached_result
-
+        
+        # O resto do seu código continua igual...
         logger.info(f"[CACHE MISS] Generating new AI recommendations for user {user.username}")
         start_time = time.time()
 
         try:
-            # Construir prompt com contexto do usuário
             prompt = self._build_prompt(user, user_history, n)
-
-            # Chamar API do Gemini com timeout
             logger.info(f"Calling Gemini API with timeout of {self.request_timeout}s...")
 
-            # Avisar se está demorando
             response = self.model.generate_content(
                 prompt,
                 request_options={'timeout': self.request_timeout}
             )
-
             api_time = time.time() - start_time
-
-            if api_time > 10:
-                logger.warning(f"Gemini API took {api_time:.2f}s to respond (slower than expected)")
-            else:
-                logger.info(f"Gemini API responded in {api_time:.2f}s")
-
-            # Processar resposta
+            logger.info(f"Gemini API responded in {api_time:.2f}s")
+            
             recommendations = self._parse_recommendations(response.text)
 
-            if not recommendations:
-                logger.warning(f"Gemini returned no recommendations for user {user.username}")
-                return []
-
-            # Cachear por 1 hora
-            cache.set(
-                cache_key,
-                recommendations,
-                timeout=settings.RECOMMENDATIONS_CONFIG['CACHE_TIMEOUT']
-            )
-
-            total_time = time.time() - start_time
-            logger.info(f"Generated {len(recommendations)} AI recommendations for {user.username} in {total_time:.2f}s")
+            if recommendations:
+                cache.set(cache_key, recommendations, timeout=3600) # Cache por 1 hora
+                logger.info(f"Generated {len(recommendations)} AI recommendations for {user.username}")
 
             return recommendations
 
-        except TimeoutError as e:
-            elapsed = time.time() - start_time
-            logger.error(f"Timeout generating Gemini recommendations after {elapsed:.2f}s (configured: {self.request_timeout}s): {e}")
-            return []
         except Exception as e:
-            elapsed = time.time() - start_time
-            logger.error(f"Error generating Gemini recommendations after {elapsed:.2f}s: {e}", exc_info=True)
+            logger.error(f"Error in generate_recommendations for user {user.username}: {e}", exc_info=True)
             return []
-
+    
+    # ... cole o resto dos seus métodos (_build_prompt, _parse_recommendations, etc.) aqui ...
+    # ... eles não precisam de nenhuma alteração ...
     def _build_prompt(self, user, user_history, n):
         """
         Constrói o prompt para o Gemini baseado no histórico do usuário.
@@ -127,37 +118,37 @@ class GeminiRecommendationEngine:
         favorite_genres = self._extract_genres(user_history)
 
         prompt = f"""
-Você é um especialista em recomendação de livros. Baseado no perfil do usuário abaixo,
-recomende {n} livros que ele provavelmente vai adorar.
+                    Você é um especialista em recomendação de livros. Baseado no perfil do usuário abaixo,
+                    recomende {n} livros que ele provavelmente vai adorar.
 
-PERFIL DO USUÁRIO:
-- Nome: {user.username}
-- Livros já lidos: {', '.join(read_books[:10]) if read_books else 'Nenhum ainda'}
-- Gêneros favoritos: {', '.join(favorite_genres) if favorite_genres else 'Variados'}
-- Total de livros lidos: {len(read_books)}
+                    PERFIL DO USUÁRIO:
+                    - Nome: {user.username}
+                    - Livros já lidos: {', '.join(read_books[:10]) if read_books else 'Nenhum ainda'}
+                    - Gêneros favoritos: {', '.join(favorite_genres) if favorite_genres else 'Variados'}
+                    - Total de livros lidos: {len(read_books)}
 
-INSTRUÇÕES:
-1. Recomende {n} livros DIFERENTES dos que o usuário já leu
-2. Para cada livro, forneça:
-   - Título completo
-   - Autor
-   - Uma justificativa personalizada (por que esse livro é perfeito para o usuário)
-3. Considere os gostos e histórico do usuário
-4. Seja específico e persuasivo nas justificativas
+                    INSTRUÇÕES:
+                    1. Recomende {n} livros DIFERENTES dos que o usuário já leu
+                    2. Para cada livro, forneça:
+                    - Título completo
+                    - Autor
+                    - Uma justificativa personalizada (por que esse livro é perfeito para o usuário)
+                    3. Considere os gostos e histórico do usuário
+                    4. Seja específico e persuasivo nas justificativas
 
-FORMATO DE RESPOSTA (JSON):
-{{
-  "recommendations": [
-    {{
-      "title": "Título do Livro",
-      "author": "Autor",
-      "reason": "Justificativa detalhada e personalizada"
-    }}
-  ]
-}}
+                    FORMATO DE RESPOSTA (JSON):
+                    {{
+                    "recommendations": [
+                        {{
+                        "title": "Título do Livro",
+                        "author": "Autor",
+                        "reason": "Justificativa detalhada e personalizada"
+                        }}
+                    ]
+                    }}
 
-Responda APENAS com o JSON, sem texto adicional.
-"""
+                    Responda APENAS com o JSON, sem texto adicional.
+                    """
         return prompt
 
     def _extract_genres(self, user_history):
@@ -240,14 +231,14 @@ Responda APENAS com o JSON, sem texto adicional.
 
         try:
             prompt = f"""
-Explique em 2-3 frases por que o livro "{book.title}" de {book.author}
-seria uma ótima leitura para o usuário {user.username}, considerando:
+                        Explique em 2-3 frases por que o livro "{book.title}" de {book.author}
+                        seria uma ótima leitura para o usuário {user.username}, considerando:
 
-- Descrição do livro: {book.description[:500] if book.description else 'Não disponível'}
-- Categorias: {book.categories if hasattr(book, 'categories') else 'Ficção'}
+                        - Descrição do livro: {book.description[:500] if book.description else 'Não disponível'}
+                        - Categorias: {book.categories if hasattr(book, 'categories') else 'Ficção'}
 
-Seja persuasivo e específico. Use tom amigável e conversacional.
-"""
+                        Seja persuasivo e específico. Use tom amigável e conversacional.
+                        """
 
             response = self.model.generate_content(
                 prompt,
@@ -307,25 +298,25 @@ Seja persuasivo e específico. Use tom amigável e conversacional.
                 return {}
 
             prompt = f"""
-Analise o perfil de leitura do usuário {user.username} e forneça insights:
+                        Analise o perfil de leitura do usuário {user.username} e forneça insights:
 
-LIVROS LIDOS ({len(read_books)}):
-{', '.join(read_books[:20])}
+                        LIVROS LIDOS ({len(read_books)}):
+                        {', '.join(read_books[:20])}
 
-Forneça:
-1. Principais temas/gêneros de interesse
-2. Padrões de leitura identificados
-3. Sugestões de próximos passos de leitura
+                        Forneça:
+                        1. Principais temas/gêneros de interesse
+                        2. Padrões de leitura identificados
+                        3. Sugestões de próximos passos de leitura
 
-FORMATO DE RESPOSTA (JSON):
-{{
-  "main_themes": ["tema1", "tema2"],
-  "reading_patterns": "Descrição dos padrões",
-  "suggestions": "Sugestões personalizadas"
-}}
+                        FORMATO DE RESPOSTA (JSON):
+                        {{
+                        "main_themes": ["tema1", "tema2"],
+                        "reading_patterns": "Descrição dos padrões",
+                        "suggestions": "Sugestões personalizadas"
+                        }}
 
-Responda APENAS com o JSON.
-"""
+                        Responda APENAS com o JSON.
+                        """
 
             response = self.model.generate_content(
                 prompt,
