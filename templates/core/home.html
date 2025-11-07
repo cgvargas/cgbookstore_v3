@@ -222,9 +222,11 @@
                                                 {% endif %}
                                             </div>
 
+                                            {% if obj.slug %}
                                             <a href="{% url 'core:book_detail' obj.slug %}" class="btn btn-sm btn-outline-primary w-100">
                                                 Ver Detalhes
                                             </a>
+                                            {% endif %}
                                         </div>
                                     </div>
 
@@ -350,9 +352,11 @@
                                             {% endif %}
                                         </div>
 
+                                        {% if obj.slug %}
                                         <a href="{% url 'core:book_detail' obj.slug %}" class="btn btn-sm btn-outline-primary w-100">
                                             Ver Detalhes
                                         </a>
+                                        {% endif %}
                                     </div>
                                 </div>
 
@@ -406,7 +410,11 @@
                     {% for item in section.get_items %}
                         {% with obj=item.content_object %}
                         {% if section.content_type == 'books' %}
+                            {% if obj.slug %}
                             <a href="{% url 'core:book_detail' obj.slug %}" class="list-group-item list-group-item-action">
+                            {% else %}
+                            <div class="list-group-item">
+                            {% endif %}
                                 <div class="d-flex w-100 justify-content-between align-items-center">
                                     <div class="d-flex align-items-center">
                                         {% if obj.cover_image %}
@@ -421,7 +429,7 @@
                                     </div>
                                     <span class="badge bg-primary rounded-pill">R$ {{ obj.price }}</span>
                                 </div>
-                            </a>
+                            {% if obj.slug %}</a>{% else %}</div>{% endif %}
                         {% endif %}
                         {% endwith %}
                     {% endfor %}
