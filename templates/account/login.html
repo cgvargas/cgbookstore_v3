@@ -259,6 +259,8 @@
         <p class="auth-subtitle">Faça login para continuar sua jornada literária</p>
 
         <!-- Login Social -->
+        <!-- Temporariamente desabilitado até resolver problema de providers duplicados -->
+        <!--
         {% get_providers as socialaccount_providers %}
         {% if socialaccount_providers %}
         <div class="social-login-section">
@@ -267,13 +269,11 @@
             <div class="social-buttons">
                 {% for provider in socialaccount_providers %}
                     {% if provider.id == 'google' %}
-                    <!-- Botão Google -->
                     <a href="{% provider_login_url provider.id %}" class="btn-social btn-google">
                         <i class="fab fa-google"></i>
                         <span>Continuar com Google</span>
                     </a>
                     {% elif provider.id == 'facebook' %}
-                    <!-- Botão Facebook -->
                     <a href="{% provider_login_url provider.id %}" class="btn-social btn-facebook">
                         <i class="fab fa-facebook-f"></i>
                         <span>Continuar com Facebook</span>
@@ -283,13 +283,12 @@
             </div>
         </div>
 
-        <!-- Divider -->
         <div class="divider">
             <span>ou continue com email</span>
         </div>
         {% else %}
-        <!-- Sem providers configurados, mostrar apenas o formulário -->
         {% endif %}
+        -->
 
         <!-- Formulário Tradicional -->
         <form method="post" class="auth-form">
