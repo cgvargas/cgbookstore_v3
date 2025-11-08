@@ -25,10 +25,13 @@ python manage.py migrate --no-input --verbosity 2
 echo 'Verifying database setup...'
 python manage.py showmigrations
 
-# Setup initial data (Site, Categories, Sample Books, Social Apps)
-# IMPORTANTE: Este comando JÁ deleta e recria SocialApps para evitar duplicatas
+# PRIMEIRO: Limpar SocialApps duplicados com limpeza forçada
+echo 'Cleaning up SocialApps...'
+python manage.py cleanup_socialapps || echo 'SocialApps cleanup completed'
+
+# DEPOIS: Setup initial data (Site, Categories, Sample Books) SEM Social Apps
 echo 'Setting up initial data...'
-python manage.py setup_initial_data --skip-superuser || echo 'Initial data setup completed with warnings'
+python manage.py setup_initial_data --skip-superuser --skip-social || echo 'Initial data setup completed with warnings'
 
 # Create superuser if environment variable is set
 if [ "$CREATE_SUPERUSER" = "true" ]; then
