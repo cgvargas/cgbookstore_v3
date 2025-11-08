@@ -3,8 +3,6 @@ Algoritmos de Recomendação usando Machine Learning.
 """
 import numpy as np
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 from django.core.cache import cache
 from django.conf import settings
 from django.db.models import Count, Q, Avg
@@ -13,6 +11,22 @@ from .models import UserBookInteraction, BookSimilarity, Recommendation, UserPro
 import logging
 
 logger = logging.getLogger(__name__)
+
+# Lazy imports para sklearn (economiza memória no startup do Gunicorn)
+_sklearn_loaded = False
+TfidfVectorizer = None
+cosine_similarity = None
+
+def _load_sklearn():
+    """Carrega sklearn apenas quando necessário (lazy loading)."""
+    global _sklearn_loaded, TfidfVectorizer, cosine_similarity
+    if not _sklearn_loaded:
+        from sklearn.feature_extraction.text import TfidfVectorizer as _TfidfVectorizer
+        from sklearn.metrics.pairwise import cosine_similarity as _cosine_similarity
+        TfidfVectorizer = _TfidfVectorizer
+        cosine_similarity = _cosine_similarity
+        _sklearn_loaded = True
+        logger.info("sklearn loaded successfully (lazy loading)")
 
 
 def filter_books_with_valid_covers(recommendations):
@@ -219,6 +233,9 @@ class ContentBasedFilteringAlgorithm:
         """
         Constrói vetores TF-IDF para todos os livros.
         """
+        # Carregar sklearn apenas quando necessário
+        _load_sklearn()
+
         cache_key = f'{self.cache_key_prefix}:vectors'
         cached_vectors = cache.get(cache_key)
 
@@ -272,6 +289,9 @@ class ContentBasedFilteringAlgorithm:
         """
         Encontra livros similares baseado em conteúdo.
         """
+        # Garantir que sklearn está carregado
+        _load_sklearn()
+
         self.build_book_vectors()
 
         if self.book_vectors is None:
