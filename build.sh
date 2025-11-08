@@ -26,12 +26,9 @@ echo 'Verifying database setup...'
 python manage.py showmigrations
 
 # Setup initial data (Site, Categories, Sample Books, Social Apps)
+# IMPORTANTE: Este comando JÁ deleta e recria SocialApps para evitar duplicatas
 echo 'Setting up initial data...'
 python manage.py setup_initial_data --skip-superuser || echo 'Initial data setup completed with warnings'
-
-# Fix duplicate SocialApps and other database issues
-echo 'Fixing database duplicates...'
-python manage.py fix_duplicates || echo 'Database fixes completed with warnings'
 
 # Create superuser if environment variable is set
 if [ "$CREATE_SUPERUSER" = "true" ]; then
