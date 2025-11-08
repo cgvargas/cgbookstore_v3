@@ -232,7 +232,11 @@
 
                                 {% elif section.content_type == 'authors' %}
                                     <!-- Card de Autor -->
+                                    {% if obj.slug %}
                                     <a href="{% url 'core:author_detail' obj.slug %}" class="text-decoration-none">
+                                    {% else %}
+                                    <div class="text-decoration-none">
+                                    {% endif %}
                                         <div class="card author-card text-center h-100">
                                             <div class="card-body">
                                                 {% if obj.photo %}
@@ -269,7 +273,7 @@
                                                 {% endif %}
                                             </div>
                                         </div>
-                                    </a>
+                                    {% if obj.slug %}</a>{% else %}</div>{% endif %}
 
                                 {% elif section.content_type == 'videos' %}
                                     <!-- Card de Vídeo - Apenas Thumbnail -->
