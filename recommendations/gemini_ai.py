@@ -1,7 +1,6 @@
 """
 Integração com Google Gemini AI para recomendações premium.
 """
-import google.generativeai as genai
 from django.conf import settings
 from django.core.cache import cache
 import logging
@@ -9,6 +8,25 @@ import json
 import time
 
 logger = logging.getLogger(__name__)
+
+# Lazy loading para Google Gemini AI (evita timeout no startup do Gunicorn)
+_genai_loaded = False
+genai = None
+
+def _load_genai():
+    """Carrega google.generativeai apenas quando necessário (lazy loading)."""
+    global _genai_loaded, genai
+    if not _genai_loaded:
+        try:
+            import google.generativeai as _genai
+            genai = _genai
+            _genai_loaded = True
+            logger.info("google.generativeai loaded successfully (lazy loading)")
+        except ImportError as e:
+            logger.error(f"Failed to import google.generativeai: {e}")
+            genai = None
+            _genai_loaded = True  # Mark as loaded to prevent repeated attempts
+    return genai
 
 
 class GeminiRecommendationEngine:
@@ -36,11 +54,17 @@ class GeminiRecommendationEngine:
         if not self.api_key:
             logger.warning("GEMINI_API_KEY not configured. AI recommendations will be disabled.")
             return None
-        
+
+        # Carregar o módulo genai (lazy loading)
+        _genai = _load_genai()
+        if _genai is None:
+            logger.error("Failed to load google.generativeai module")
+            return None
+
         # Bloco de inicialização (só roda uma vez)
         logger.info(f"Inicializando o modelo Gemini ({self.model_name}) pela primeira vez...")
         try:
-            genai.configure(api_key=self.api_key)
+            _genai.configure(api_key=self.api_key)
             generation_config = {
                 'temperature': 0.7,
                 'top_p': 0.95,
@@ -48,7 +72,7 @@ class GeminiRecommendationEngine:
                 'max_output_tokens': 2048,
             }
             # A inicialização lenta acontece aqui!
-            self._model = genai.GenerativeModel(
+            self._model = _genai.GenerativeModel(
                 self.model_name,
                 generation_config=generation_config
             )
@@ -57,7 +81,7 @@ class GeminiRecommendationEngine:
         except Exception as e:
             logger.error(f"Falha ao inicializar o modelo Gemini: {e}", exc_info=True)
             # Define como None para não tentar de novo
-            self._model = None 
+            self._model = None
             return None
 
     def is_available(self):

@@ -259,6 +259,14 @@ class Command(BaseCommand):
         """Configura apps sociais (Google e Facebook) se as credenciais existirem."""
         self.stdout.write('🔐 Configurando apps sociais...')
 
+        # IMPORTANTE: Deletar TODOS os SocialApps existentes primeiro para evitar duplicatas
+        # Isso é necessário porque migrações do Supabase podem ter criado SocialApps
+        # e get_or_create não garante unicidade em todos os cenários
+        existing_count = SocialApp.objects.all().count()
+        if existing_count > 0:
+            SocialApp.objects.all().delete()
+            self.stdout.write(self.style.WARNING(f'   🗑️  Deletados {existing_count} SocialApps existentes para evitar duplicatas'))
+
         google_client_id = os.getenv('GOOGLE_CLIENT_ID', '')
         google_secret = os.getenv('GOOGLE_CLIENT_SECRET', '')
         facebook_app_id = os.getenv('FACEBOOK_APP_ID', '')
@@ -269,49 +277,29 @@ class Command(BaseCommand):
 
         # Google OAuth
         if google_client_id and google_secret:
-            google_app, created = SocialApp.objects.get_or_create(
+            google_app = SocialApp.objects.create(
                 provider='google',
-                defaults={
-                    'name': 'Google',
-                    'client_id': google_client_id,
-                    'secret': google_secret,
-                }
+                name='Google',
+                client_id=google_client_id,
+                secret=google_secret,
             )
-            if created:
-                google_app.sites.add(site)
-                created_count += 1
-                self.stdout.write(self.style.SUCCESS('   ✅ Google OAuth configurado'))
-            else:
-                # Atualizar credenciais se mudaram
-                google_app.client_id = google_client_id
-                google_app.secret = google_secret
-                google_app.save()
-                google_app.sites.add(site)
-                self.stdout.write(self.style.WARNING('   ⚠️  Google OAuth atualizado'))
+            google_app.sites.add(site)
+            created_count += 1
+            self.stdout.write(self.style.SUCCESS('   ✅ Google OAuth configurado'))
         else:
             self.stdout.write(self.style.WARNING('   ⚠️  Credenciais Google não encontradas (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)'))
 
         # Facebook OAuth
         if facebook_app_id and facebook_secret:
-            facebook_app, created = SocialApp.objects.get_or_create(
+            facebook_app = SocialApp.objects.create(
                 provider='facebook',
-                defaults={
-                    'name': 'Facebook',
-                    'client_id': facebook_app_id,
-                    'secret': facebook_secret,
-                }
+                name='Facebook',
+                client_id=facebook_app_id,
+                secret=facebook_secret,
             )
-            if created:
-                facebook_app.sites.add(site)
-                created_count += 1
-                self.stdout.write(self.style.SUCCESS('   ✅ Facebook OAuth configurado'))
-            else:
-                # Atualizar credenciais se mudaram
-                facebook_app.client_id = facebook_app_id
-                facebook_app.secret = facebook_secret
-                facebook_app.save()
-                facebook_app.sites.add(site)
-                self.stdout.write(self.style.WARNING('   ⚠️  Facebook OAuth atualizado'))
+            facebook_app.sites.add(site)
+            created_count += 1
+            self.stdout.write(self.style.SUCCESS('   ✅ Facebook OAuth configurado'))
         else:
             self.stdout.write(self.style.WARNING('   ⚠️  Credenciais Facebook não encontradas (FACEBOOK_APP_ID, FACEBOOK_APP_SECRET)'))
 
