@@ -10,38 +10,38 @@ import os
 
 
 class Command(BaseCommand):
-    help = 'FORÇA limpeza total e recriação de SocialApps'
+    help = 'FORCA limpeza total e recriacao de SocialApps'
 
     def handle(self, *args, **options):
         self.stdout.write("="*70)
-        self.stdout.write("🧹 LIMPEZA FORÇADA DE SOCIALAPPS")
+        self.stdout.write("LIMPEZA FORCADA DE SOCIALAPPS")
         self.stdout.write("="*70)
 
         with transaction.atomic():
             # 1. DELETAR TODOS os SocialApps sem exceção
             total_antes = SocialApp.objects.all().count()
-            self.stdout.write(f"\n📊 Total de SocialApps ANTES: {total_antes}")
+            self.stdout.write(f"\nTotal de SocialApps ANTES: {total_antes}")
 
             if total_antes > 0:
                 # Listar todos antes de deletar
-                self.stdout.write("\n📋 SocialApps encontrados:")
+                self.stdout.write("\nSocialApps encontrados:")
                 for app in SocialApp.objects.all():
                     self.stdout.write(f"   ID {app.id}: {app.provider} - {app.name}")
 
                 # DELETAR TUDO
                 SocialApp.objects.all().delete()
-                self.stdout.write(self.style.WARNING(f"\n🗑️  {total_antes} SocialApps DELETADOS"))
+                self.stdout.write(self.style.WARNING(f"\n  {total_antes} SocialApps DELETADOS"))
 
             # 2. Verificar que está vazio
             count_after_delete = SocialApp.objects.all().count()
             if count_after_delete > 0:
-                self.stdout.write(self.style.ERROR(f"\n❌ ERRO: Ainda existem {count_after_delete} SocialApps após deleção!"))
+                self.stdout.write(self.style.ERROR(f"\nERRO: Ainda existem {count_after_delete} SocialApps apos delecao!"))
                 return
             else:
-                self.stdout.write(self.style.SUCCESS("\n✅ Banco zerado com sucesso"))
+                self.stdout.write(self.style.SUCCESS("\n  Banco zerado com sucesso"))
 
             # 3. Recriar SocialApps do zero
-            self.stdout.write("\n🔨 Recriando SocialApps...")
+            self.stdout.write("\nRecriando SocialApps...")
 
             google_client_id = os.getenv('GOOGLE_CLIENT_ID', '')
             google_secret = os.getenv('GOOGLE_CLIENT_SECRET', '')
@@ -63,7 +63,7 @@ class Command(BaseCommand):
                 google_app.save()
                 google_app.sites.add(site)
                 created_apps.append(f"Google (ID {google_app.id})")
-                self.stdout.write(self.style.SUCCESS(f"    ✅ Google OAuth criado (ID: {google_app.id})"))
+                self.stdout.write(self.style.SUCCESS(f"    OK: Google OAuth criado (ID: {google_app.id})"))
 
             # Facebook
             if facebook_app_id and facebook_secret:
@@ -77,11 +77,11 @@ class Command(BaseCommand):
                 facebook_app.save()
                 facebook_app.sites.add(site)
                 created_apps.append(f"Facebook (ID {facebook_app.id})")
-                self.stdout.write(self.style.SUCCESS(f"    ✅ Facebook OAuth criado (ID: {facebook_app.id})"))
+                self.stdout.write(self.style.SUCCESS(f"    OK: Facebook OAuth criado (ID: {facebook_app.id})"))
 
             # 4. Verificação final
             self.stdout.write("\n" + "="*70)
-            self.stdout.write("📊 VERIFICAÇÃO FINAL")
+            self.stdout.write("VERIFICACAO FINAL")
             self.stdout.write("="*70)
 
             final_count = SocialApp.objects.all().count()
@@ -98,12 +98,12 @@ class Command(BaseCommand):
             ).filter(count__gt=1)
 
             if duplicates.exists():
-                self.stdout.write(self.style.ERROR(f"\n❌ ERRO: Ainda existem duplicatas!"))
+                self.stdout.write(self.style.ERROR(f"\nERRO: Ainda existem duplicatas!"))
                 for dup in duplicates:
                     self.stdout.write(self.style.ERROR(f"   Provider '{dup['provider']}': {dup['count']} apps"))
             else:
-                self.stdout.write(self.style.SUCCESS("\n✅ Nenhuma duplicata encontrada!"))
+                self.stdout.write(self.style.SUCCESS("\n  Nenhuma duplicata encontrada!"))
 
             self.stdout.write("\n" + "="*70)
-            self.stdout.write(self.style.SUCCESS("✅ LIMPEZA CONCLUÍDA COM SUCESSO!"))
+            self.stdout.write(self.style.SUCCESS("LIMPEZA CONCLUIDA COM SUCESSO!"))
             self.stdout.write("="*70)
