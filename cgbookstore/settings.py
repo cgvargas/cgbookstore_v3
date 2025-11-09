@@ -348,11 +348,12 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {
             'access_type': 'online',
         },
-        'APP': {
-            'client_id': GOOGLE_CLIENT_ID,
-            'secret': GOOGLE_CLIENT_SECRET,
-            'key': ''
-        }
+        # APP configuration removed - use database SocialApp instead
+        # 'APP': {
+        #     'client_id': GOOGLE_CLIENT_ID,
+        #     'secret': GOOGLE_CLIENT_SECRET,
+        #     'key': ''
+        # }
     },
     'facebook': {
         'METHOD': 'oauth2',
@@ -375,11 +376,12 @@ SOCIALACCOUNT_PROVIDERS = {
         'EXCHANGE_TOKEN': True,
         'VERIFIED_EMAIL': False,
         'VERSION': 'v18.0',
-        'APP': {
-            'client_id': FACEBOOK_APP_ID,
-            'secret': FACEBOOK_APP_SECRET,
-            'key': ''
-        }
+        # APP configuration removed - use database SocialApp instead
+        # 'APP': {
+        #     'client_id': FACEBOOK_APP_ID,
+        #     'secret': FACEBOOK_APP_SECRET,
+        #     'key': ''
+        # }
     }
 }
 

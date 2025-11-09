@@ -17,7 +17,7 @@
                              class="img-fluid h-100 object-fit-cover" 
                              alt="{{ featured_event.title }}">
                     {% else %}
-                        <img src="https://via.placeholder.com/600x400/007bff/ffffff?text=Evento+em+Destaque" 
+                        <img src="{% static 'images/no-cover-placeholder.svg' %}" 
                              class="img-fluid h-100 object-fit-cover" 
                              alt="Sem imagem">
                     {% endif %}

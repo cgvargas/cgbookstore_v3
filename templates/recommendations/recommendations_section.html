@@ -258,7 +258,7 @@ function renderRecommendations(recommendations, algorithm, loadTime, isFastLoad)
                     ` : ''}
                     <img src="${bookCover}" class="card-img-top" alt="${bookTitle}"
                          style="height: 250px; object-fit: cover;"
-                         onerror="this.src='https://via.placeholder.com/150x250/667eea/ffffff?text=Sem+Capa';">
+                         onerror="this.src='{% static 'images/no-cover-placeholder.svg' %}';">
                     <div class="card-body d-flex flex-column">
                         <h6 class="card-title text-truncate" title="${bookTitle}">${bookTitle}</h6>
                         <p class="card-text text-muted small mb-2">${bookAuthor}</p>

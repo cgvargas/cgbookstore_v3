@@ -46,7 +46,7 @@
                 {% if book.cover_image %}
                     <img src="{{ book.cover_image.url }}" class="card-img-top" alt="{{ book.title }}">
                 {% else %}
-                    <img src="https://via.placeholder.com/400x600/6c757d/ffffff?text=Sem+Capa"
+                    <img src="{% static 'images/no-cover-placeholder.svg' %}"
                          class="card-img-top" alt="Sem capa">
                 {% endif %}
             </div>
@@ -433,7 +433,7 @@
                 {% if related_book.cover_image %}
                     <img src="{{ related_book.cover_image.url }}" class="card-img-top" alt="{{ related_book.title }}">
                 {% else %}
-                    <img src="https://via.placeholder.com/300x450/6c757d/ffffff?text=Sem+Capa"
+                    <img src="{% static 'images/no-cover-placeholder.svg' %}"
                          class="card-img-top" alt="Sem capa">
                 {% endif %}
                 <div class="card-body">

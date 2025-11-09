@@ -183,7 +183,7 @@
                                         {% if obj.cover_image %}
                                             <img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">
                                         {% else %}
-                                            <img src="https://via.placeholder.com/300x400/6c757d/ffffff?text=Sem+Capa"
+                                            <img src="{% static 'images/no-cover-placeholder.svg' %}"
                                                  class="book-cover" alt="Sem capa">
                                         {% endif %}
                                         <div class="card-body">
@@ -317,7 +317,7 @@
                                     {% if obj.cover_image %}
                                         <img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">
                                     {% else %}
-                                        <img src="https://via.placeholder.com/300x400/6c757d/ffffff?text=Sem+Capa"
+                                        <img src="{% static 'images/no-cover-placeholder.svg' %}"
                                              class="book-cover" alt="Sem capa">
                                     {% endif %}
                                     <div class="card-body">

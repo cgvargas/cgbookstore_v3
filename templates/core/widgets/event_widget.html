@@ -17,7 +17,7 @@
                              class="img-fluid rounded shadow-sm event-widget-image"
                              alt="{{ featured_event.title }}">
                     {% else %}
-                        <img src="https://via.placeholder.com/400x300/6c757d/ffffff?text=Evento"
+                        <img src="{% static 'images/no-cover-placeholder.svg' %}"
                              class="img-fluid rounded shadow-sm event-widget-image"
                              alt="Sem imagem">
                     {% endif %}
