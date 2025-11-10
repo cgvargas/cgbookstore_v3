@@ -15,8 +15,12 @@ def subscription_status_changed(sender, instance, created, **kwargs):
     Sincroniza Subscription com UserProfile quando o status muda
     """
     try:
-        # Sincroniza com UserProfile
-        profile = instance.user.userprofile
+        # Tenta obter ou criar UserProfile
+        from accounts.models import UserProfile
+        profile, profile_created = UserProfile.objects.get_or_create(user=instance.user)
+
+        if profile_created:
+            logger.info(f"UserProfile criado automaticamente para {instance.user.username}")
 
         if instance.is_active():
             profile.is_premium = True

@@ -1,0 +1,53 @@
+=============================================================================
+VARIÁVEIS DE AMBIENTE PARA ADICIONAR NO RENDER
+=============================================================================
+
+IMPORTANTE: Primeiro verifique o Single Sender no SendGrid!
+URL: https://app.sendgrid.com/settings/sender_auth/senders
+
+Depois adicione estas variáveis no Render:
+URL: https://dashboard.render.com/ → Seu serviço → Environment
+
+=============================================================================
+
+DEFAULT_FROM_EMAIL=SEU_EMAIL_VERIFICADO@gmail.com
+
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+
+EMAIL_HOST=smtp.sendgrid.net
+
+EMAIL_PORT=587
+
+EMAIL_USE_TLS=True
+
+EMAIL_HOST_USER=apikey
+
+EMAIL_HOST_PASSWORD=SG.YOUR_SENDGRID_API_KEY_HERE
+
+=============================================================================
+
+ATENÇÃO:
+- Substitua "SEU_EMAIL_VERIFICADO@gmail.com" pelo email que você verificou no SendGrid
+- Use exatamente o mesmo email que aparece como "Verified" no SendGrid
+- Exemplo: se você verificou claudio.g.vargas@gmail.com, use esse
+
+=============================================================================
+
+ORDEM DE CONFIGURAÇÃO:
+
+1. Verificar Single Sender no SendGrid
+   https://app.sendgrid.com/settings/sender_auth/senders
+
+2. Criar novo sender com seu email pessoal
+
+3. Confirmar o email que o SendGrid enviar
+
+4. Voltar e verificar status "Verified"
+
+5. Adicionar variáveis acima no Render (substituindo SEU_EMAIL_VERIFICADO)
+
+6. Salvar e aguardar deploy
+
+7. Testar cadastro em produção
+
+=============================================================================

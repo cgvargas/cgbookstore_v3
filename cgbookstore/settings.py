@@ -322,9 +322,6 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 # Permitir usuários registrarem-se
 ACCOUNT_SIGNUP_ENABLED = True
 
-# Email é obrigatório no cadastro
-ACCOUNT_EMAIL_REQUIRED = True
-
 # Não permitir emails duplicados
 ACCOUNT_UNIQUE_EMAIL = True
 
