@@ -1,0 +1,18 @@
+Olá {{ user.username }}!
+
+Obrigado por se cadastrar na CGBookStore!
+
+Para completar seu cadastro e começar a explorar nossa biblioteca de livros, você precisa confirmar seu endereço de email.
+
+Por favor, clique no link abaixo para confirmar seu email:
+
+{{ activate_url }}
+
+Este link expirará em {{ expiration_days }} dias.
+
+Se você não se cadastrou na CGBookStore, ignore este email.
+
+---
+Equipe CGBookStore
+{{ site_name }}
+{{ site_domain }}

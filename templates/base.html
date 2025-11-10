@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="{% static 'css/themes.css' %}">
     <link rel="stylesheet" href="{% static 'css/reading-progress.css' %}?v=3.0">
 
-    <!-- Sistema de GamificaÃ§Ã£o -->
+    <!-- Sistema de Gamificação -->
     <link rel="stylesheet" href="{% static 'css/gamification.css' %}?v=1.0">
 
     <!-- CSS do Sistema de Debates -->
@@ -160,7 +160,7 @@
                     {% endif %}
                 </ul>
 
-                <!-- FormulÃ¡rio de Busca -->
+                <!-- Formulário de Busca -->
                 <form class="d-flex me-3" method="GET" action="{% url 'core:search' %}">
                     <input class="form-control me-2" type="search" name="q" placeholder="Buscar livros..." aria-label="Buscar">
                     <button class="btn btn-outline-light" type="submit">
@@ -180,17 +180,17 @@
                     </ul>
                 </div>
 
-                <!-- Centro de NotificaÃ§Ãµes -->
+                <!-- Centro de Notificações -->
                 <div class="notifications-container me-3">
-                    <button class="notifications-toggle" aria-label="NotificaÃ§Ãµes">
+                    <button class="notifications-toggle" aria-label="Notificações">
                         <i class="fas fa-bell"></i>
                         <span class="notifications-badge">0</span>
                     </button>
 
                     <div class="notifications-dropdown">
                         <div class="notifications-header">
-                            <h4>NotificaÃ§Ãµes</h4>
-                            <!-- Grupo de botÃµes do modo normal -->
+                            <h4>Notificações</h4>
+                            <!-- Grupo de botões do modo normal -->
                             <div class="notifications-header-actions" data-mode="normal">
                                 <button class="btn-mark-all-read" title="Marcar todas como lidas">
                                     <i class="fas fa-check-double"></i> Marcar Todas
@@ -200,7 +200,7 @@
                                 </button>
                             </div>
 
-                            <!-- Grupo de botÃµes do modo de ediÃ§Ã£o (inicialmente escondido) -->
+                            <!-- Grupo de botões do modo de edição (inicialmente escondido) -->
                             <div class="notifications-header-actions" data-mode="edit" style="display: none;">
                                 <button class="btn-delete-selected" title="Deletar selecionadas">
                                     <i class="fas fa-trash"></i> Deletar
@@ -287,7 +287,7 @@
         </div>
     </nav>
 
-    <!-- ConteÃºdo Principal -->
+    <!-- Conteúdo Principal -->
     <main class="py-4">
         {% block content %}
         {% endblock %}

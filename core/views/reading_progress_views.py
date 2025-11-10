@@ -78,11 +78,17 @@ def update_reading_progress(request):
             }
         )
 
+        # Verificar se vai completar o livro ANTES de atualizar
+        was_finished_before = progress.is_finished
+
         # Atualizar progresso
         xp_before = request.user.profile.total_xp if hasattr(request.user, 'profile') else 0
         progress.update_progress(current_page)
         xp_after = request.user.profile.total_xp if hasattr(request.user, 'profile') else 0
         xp_gained = xp_after - xp_before
+
+        # Verificar se completou o livro AGORA
+        just_completed = not was_finished_before and progress.is_finished
 
         # Preparar resposta
         response_data = {
@@ -97,10 +103,15 @@ def update_reading_progress(request):
             }
         }
 
-        # Se completou o livro
-        if progress.is_finished and xp_gained > 0:
-            response_data['message'] = f'🎉 Parabéns! Você completou "{book.title}" e ganhou {xp_gained} XP!'
+        # Se completou o livro NESTA atualização
+        if just_completed:
+            response_data['message'] = f'🎉 Parabéns! Você completou "{book.title}"!'
+            if xp_gained > 0:
+                response_data['message'] += f' Ganhou {xp_gained} XP e o livro foi movido para "Lidos".'
+            else:
+                response_data['message'] += ' O livro foi movido automaticamente para a prateleira "Lidos".'
             response_data['progress']['xp_gained'] = xp_gained
+            response_data['progress']['moved_to_read'] = True
 
         return JsonResponse(response_data)
 

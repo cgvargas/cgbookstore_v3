@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirmar Email - CGBookStore{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-envelope-open-text fa-5x text-primary"></i>
+                    </div>
+
+                    <h2 class="mb-4">Confirmar Email</h2>
+
+                    {% if confirmation %}
+                        <p class="lead mb-4">
+                            Por favor, confirme que <strong>{{ confirmation.email_address.email }}</strong> é o endereço de email do usuário <strong>{{ confirmation.email_address.user.username }}</strong>.
+                        </p>
+
+                        <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Confirmar Email
+                            </button>
+                        </form>
+
+                        <div class="alert alert-info mt-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Após confirmar, você poderá fazer login e acessar todos os recursos da plataforma.
+                        </div>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Link inválido ou expirado</strong>
+                        </div>
+
+                        <p class="mb-4">
+                            Este link de confirmação é inválido ou já expirou. Por favor, solicite um novo link de confirmação.
+                        </p>
+
+                        <a href="{% url 'account_email' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-redo me-2"></i>
+                            Reenviar Email de Confirmação
+                        </a>
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <p class="text-muted mb-0">
+                        <small>
+                            Precisa de ajuda? <a href="mailto:suporte@cgbookstore.com">Entre em contato</a>
+                        </small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

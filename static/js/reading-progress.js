@@ -131,6 +131,14 @@ const ReadingProgressManager = {
                     showToast(data.message, 'success');
                     document.getElementById('progress-bar-inner').style.width = data.progress.percentage + '%';
                     document.getElementById('progress-percentage').textContent = data.progress.percentage + '%';
+
+                    // Se o livro foi completado e movido para "Lidos"
+                    if (data.progress.moved_to_read) {
+                        // Aguardar 2 segundos e recarregar a página para atualizar a UI
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    }
                 } else {
                     showToast(data.message, 'error');
                 }

@@ -272,6 +272,13 @@ SITE_URL = config('SITE_URL', default='http://localhost:8000')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@cgbookstore.com')
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 
+# SMTP Configuration (usado em produção)
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
 # Configurações de Recomendações
 RECOMMENDATIONS_CONFIG = {
     'MIN_INTERACTIONS': 5,  # Mínimo de interações para gerar recomendações personalizadas
@@ -309,11 +316,21 @@ ACCOUNT_LOGIN_METHODS = {'email', 'username'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 
 # Verificação de email: 'optional', 'mandatory', ou 'none'
-# Começar com optional, depois mudar para mandatory se necessário
-ACCOUNT_EMAIL_VERIFICATION = 'optional'
+# mandatory = usuário precisa confirmar email antes de fazer login
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 # Permitir usuários registrarem-se
 ACCOUNT_SIGNUP_ENABLED = True
+
+# Email é obrigatório no cadastro
+ACCOUNT_EMAIL_REQUIRED = True
+
+# Não permitir emails duplicados
+ACCOUNT_UNIQUE_EMAIL = True
+
+# Mensagem de confirmação de email
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3  # Link expira em 3 dias
+ACCOUNT_EMAIL_SUBJECT_PREFIX = '[CGBookStore] '
 
 # Redirecionamento após login (já existe, mas allauth usa)
 LOGIN_URL = '/accounts/login/'

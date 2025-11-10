@@ -256,7 +256,12 @@ class ReadingProgress(models.Model):
     # ========== MÉTODOS EXISTENTES (ATUALIZADOS) ==========
 
     def update_progress(self, current_page):
-        """Atualiza o progresso de leitura."""
+        """
+        Atualiza o progresso de leitura.
+
+        Se o usuário atingir a última página, o livro é automaticamente
+        movido da prateleira "Lendo" para "Lidos".
+        """
         self.current_page = min(current_page, self.total_pages)
 
         # Se terminou de ler
@@ -268,7 +273,34 @@ class ReadingProgress(models.Model):
             if hasattr(self.user, 'profile'):
                 self.user.profile.add_xp(50)  # 50 XP por completar livro
 
+            # Move automaticamente para prateleira "Lidos"
+            self._move_to_read_shelf()
+
         self.save()
+
+    def _move_to_read_shelf(self):
+        """
+        Move o livro da prateleira "Lendo" para "Lidos" automaticamente
+        quando a leitura é concluída.
+        """
+        from accounts.models import BookShelf
+
+        # Remove da prateleira "Lendo"
+        BookShelf.objects.filter(
+            user=self.user,
+            book=self.book,
+            shelf_type='reading'
+        ).delete()
+
+        # Adiciona na prateleira "Lidos" (se ainda não estiver)
+        BookShelf.objects.get_or_create(
+            user=self.user,
+            book=self.book,
+            shelf_type='read',
+            defaults={
+                'notes': f'Concluído em {timezone.now().strftime("%d/%m/%Y")}'
+            }
+        )
 
     # ========== NOVOS MÉTODOS - GESTÃO DE ABANDONO ==========
 

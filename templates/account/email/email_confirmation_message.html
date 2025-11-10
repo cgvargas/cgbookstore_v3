@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirme seu cadastro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .content h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .button:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 CGBookStore</h1>
+            <p>Sua biblioteca digital</p>
+        </div>
+
+        <div class="content">
+            <h2>Bem-vindo, {{ user.username }}! 🎉</h2>
+
+            <p>Obrigado por se cadastrar na <strong>CGBookStore</strong>!</p>
+
+            <p>Estamos muito felizes em tê-lo(a) conosco. Para completar seu cadastro e começar a explorar nossa incrível biblioteca de livros, você precisa confirmar seu endereço de email.</p>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ activate_url }}" class="button">
+                    ✅ Confirmar meu Email
+                </a>
+            </div>
+
+            <div class="info-box">
+                <strong>ℹ️ Informação importante:</strong>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Este link expirará em <strong>{{ expiration_days }} dias</strong></li>
+                    <li>Após confirmar, você poderá acessar todos os recursos da plataforma</li>
+                    <li>Você poderá criar sua biblioteca pessoal, receber recomendações e muito mais!</li>
+                </ul>
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ Atenção:</strong> Se você não se cadastrou na CGBookStore, pode ignorar este email com segurança.
+            </div>
+
+            <p style="margin-top: 30px; color: #6c757d; font-size: 14px;">
+                Se o botão acima não funcionar, copie e cole o seguinte link no seu navegador:
+            </p>
+            <p style="word-break: break-all; background-color: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 12px;">
+                {{ activate_url }}
+            </p>
+        </div>
+
+        <div class="footer">
+            <p><strong>Equipe CGBookStore</strong></p>
+            <p>{{ site_name }} - {{ site_domain }}</p>
+            <p style="margin-top: 10px;">
+                © {{ current_year }} CGBookStore. Todos os direitos reservados.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

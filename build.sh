@@ -34,8 +34,8 @@ echo 'Setting up initial data...'
 python manage.py setup_initial_data --skip-superuser --skip-social || echo 'Initial data setup completed with warnings'
 
 # Fix SectionItem ContentTypes (running once after migration)
-echo 'Fixing SectionItem ContentTypes...'
-python manage.py fix_section_contenttypes || echo 'ContentType fix completed'
+# echo 'Fixing SectionItem ContentTypes...'
+# python manage.py fix_section_contenttypes || echo 'ContentType fix completed'
 
 # Create superuser if environment variable is set
 if [ "$CREATE_SUPERUSER" = "true" ]; then
