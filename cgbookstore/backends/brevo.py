@@ -4,6 +4,7 @@ Uses Brevo's API for reliable email delivery
 """
 import os
 from django.core.mail.backends.base import BaseEmailBackend
+from django.conf import settings
 import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
 
@@ -16,7 +17,12 @@ class BrevoBackend(BaseEmailBackend):
 
     def __init__(self, fail_silently=False, **kwargs):
         super().__init__(fail_silently=fail_silently, **kwargs)
-        self.api_key = os.environ.get('BREVO_API_KEY') or os.environ.get('EMAIL_HOST_PASSWORD')
+        # Tentar pegar API key de várias fontes
+        self.api_key = (
+            getattr(settings, 'BREVO_API_KEY', None) or
+            os.environ.get('BREVO_API_KEY') or
+            os.environ.get('EMAIL_HOST_PASSWORD')
+        )
         self.client = None
 
     def open(self):
