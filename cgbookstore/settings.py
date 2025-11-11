@@ -328,15 +328,16 @@ ACCOUNT_LOGIN_METHODS = {'email', 'username'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 
 # Verificação de email: 'optional', 'mandatory', ou 'none'
-# 'mandatory' = exige verificação antes do primeiro login (RECOMENDADO)
-# 'optional' = pede verificação mas permite login sem verificar
+# 'mandatory' = exige verificação E bloqueia login (muito restritivo)
+# 'optional' = envia email de verificação mas permite login (RECOMENDADO)
 # 'none' = não pede verificação
 #
-# Usando 'mandatory' COM adapter customizado que:
-# - Bloqueia NOVOS usuários até verificarem email
-# - MAS permite usuários JÁ VERIFICADOS fazerem login normalmente
-# (ver accounts/adapters.py:CustomAccountAdapter.login)
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+# Usando 'optional' porque:
+# - Envia email de verificação para novos usuários
+# - MAS não bloqueia o acesso (melhor UX)
+# - Usuários podem usar o sistema imediatamente
+# - Verificação fica como "incentivo" não como "obrigação"
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
 
 # Email é obrigatório no cadastro
 ACCOUNT_EMAIL_REQUIRED = True
