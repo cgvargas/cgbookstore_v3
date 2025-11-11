@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verifique seu Email - CGBookStore{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-success">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-envelope-open-text fa-5x text-success"></i>
+                    </div>
+
+                    <h2 class="mb-4 text-success">Email de Confirmação Enviado!</h2>
+
+                    <p class="lead mb-4">
+                        Obrigado por se cadastrar na <strong>CGBookStore</strong>!
+                    </p>
+
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Enviamos um email de confirmação para {{ email }}</strong>
+                    </div>
+
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">
+                                <i class="fas fa-info-circle text-primary me-2"></i>
+                                Próximos Passos
+                            </h5>
+                            <ol class="text-start mb-0">
+                                <li class="mb-2">Abra sua caixa de entrada de email</li>
+                                <li class="mb-2">Procure por um email de <strong>noreply@cgbookstore.com</strong></li>
+                                <li class="mb-2">Clique no link de confirmação no email</li>
+                                <li class="mb-2">Volte aqui e faça login</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Não recebeu o email?</strong>
+                        <ul class="text-start mb-0 mt-2">
+                            <li>Verifique sua pasta de <strong>spam</strong> ou <strong>lixo eletrônico</strong></li>
+                            <li>Aguarde alguns minutos (pode demorar)</li>
+                            <li>Certifique-se de que digitou o email corretamente</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-grid gap-3 mt-4">
+                        <a href="{% url 'account_login' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Ir para Login
+                        </a>
+
+                        <a href="{% url 'core:home' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-2"></i>
+                            Voltar para Início
+                        </a>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="text-muted">
+                        <small>
+                            <i class="fas fa-clock me-1"></i>
+                            O link de confirmação expira em <strong>3 dias</strong>
+                        </small>
+                    </div>
+
+                    <p class="text-muted mb-0 mt-3">
+                        <small>
+                            Precisa de ajuda? <a href="mailto:suporte@cgbookstore.com">Entre em contato</a>
+                        </small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-success {
+    border-width: 2px !important;
+}
+
+.card ol {
+    padding-left: 1.2rem;
+}
+
+.card ol li {
+    line-height: 1.6;
+}
+</style>
+{% endblock %}
