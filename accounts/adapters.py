@@ -63,10 +63,9 @@ class CustomAccountAdapter(DefaultAccountAdapter):
         """
         Salva usuário com dados extras do formulário.
 
-        Garante que EmailAddress é criado para novos usuários.
+        IMPORTANTE: EmailAddress é criado automaticamente pelo allauth
+        via setup_user_email() após este método. Não criar aqui!
         """
-        from allauth.account.models import EmailAddress
-
         user = super().save_user(request, user, form, commit=False)
 
         # Adicionar lógica customizada aqui se necessário
@@ -74,18 +73,11 @@ class CustomAccountAdapter(DefaultAccountAdapter):
 
         if commit:
             user.save()
+            logger.info(f"Usuário salvo com sucesso: {user.username}")
 
-            # Garantir que EmailAddress é criado para o novo usuário
-            if user.email:
-                EmailAddress.objects.get_or_create(
-                    user=user,
-                    email=user.email.lower(),
-                    defaults={
-                        'primary': True,
-                        'verified': False  # Começa não verificado
-                    }
-                )
-                logger.info(f"EmailAddress criado para novo usuário: {user.username}")
+        # NÃO criar EmailAddress aqui!
+        # O allauth cria automaticamente em allauth.account.utils.setup_user_email()
+        # que é chamado DEPOIS deste método. Se criarmos aqui, haverá AssertionError.
 
         return user
 
