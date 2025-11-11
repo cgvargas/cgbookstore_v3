@@ -275,6 +275,20 @@
                 </div>
             {% endif %}
 
+            <!-- Mensagem específica para email já existente -->
+            {% if form.email.errors %}
+                <div class="alert alert-error">
+                    <strong>Email já cadastrado!</strong><br>
+                    Este email já está associado a uma conta existente.
+                    <a href="{% url 'account_login' %}" style="color: white; text-decoration: underline;">
+                        Faça login aqui
+                    </a> ou use a opção
+                    <a href="{% url 'account_reset_password' %}" style="color: white; text-decoration: underline;">
+                        recuperar senha
+                    </a> se esqueceu sua senha.
+                </div>
+            {% endif %}
+
             <!-- Username -->
             <div class="form-group">
                 <label for="id_username">Nome de Usuário</label>

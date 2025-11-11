@@ -331,11 +331,26 @@ ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 # mandatory = usuário precisa confirmar email antes de fazer login
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
+# Email é obrigatório no cadastro
+ACCOUNT_EMAIL_REQUIRED = True
+
+# Impedir que usuários logados acessem páginas de signup/login
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
+
+# Não pedir confirmação de email novamente para usuários já autenticados
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = LOGIN_REDIRECT_URL
+
 # Permitir usuários registrarem-se
 ACCOUNT_SIGNUP_ENABLED = True
 
 # Não permitir emails duplicados
 ACCOUNT_UNIQUE_EMAIL = True
+
+# Prevenir enumeração de usuários via email
+# False = mostra erro claro "email já existe" na página de cadastro
+# True = não revela se email existe (envia email em ambos os casos por segurança)
+# Configurando False para melhor UX - usuário vê erro imediato na tela
+ACCOUNT_PREVENT_ENUMERATION = False
 
 # Mensagem de confirmação de email
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3  # Link expira em 3 dias
