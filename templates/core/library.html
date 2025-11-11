@@ -18,7 +18,7 @@
         {% endif %}
 
         <div class="library-container theme-{{ selected_theme }}"
-             {% if profile and profile.custom_background %}
+             {% if profile and profile.custom_background and profile.is_premium_active %}
              style="background-image: url('{{ profile.custom_background.url }}');
                     background-size: {{ profile.background_style }};
                     background-position: center;
@@ -30,7 +30,7 @@
              {% endif %}>
 
             <!-- Overlay para opacidade -->
-            {% if profile and profile.custom_background %}
+            {% if profile and profile.custom_background and profile.is_premium_active %}
             <div class="library-bg-overlay"
                  style="position: absolute;
                         top: 0;

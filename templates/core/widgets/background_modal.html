@@ -1,7 +1,7 @@
 <!-- ====================================================
      MODAL: BACKGROUND CUSTOMIZADO (PREMIUM)
      ==================================================== -->
-<div class="modal fade" id="backgroundModal" tabindex="-1" aria-labelledby="backgroundModalLabel" aria-hidden="true">
+<div class="modal fade" id="backgroundModal" tabindex="-1" aria-labelledby="backgroundModalLabel" aria-hidden="true" data-user-is-premium="{% if user.is_authenticated and user.profile.is_premium_active %}true{% else %}false{% endif %}">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <!-- Header -->

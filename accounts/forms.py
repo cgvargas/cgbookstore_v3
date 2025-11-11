@@ -16,6 +16,50 @@ class UserRegisterForm(UserCreationForm):
 class UserProfileForm(forms.ModelForm):
     """Form para editar perfil do usuário."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # ✅ SEGURANÇA: Filtrar temas premium para usuários free
+        if self.instance and self.instance.pk:
+            if not self.instance.is_premium_active():
+                # Lista de temas premium (deve corresponder aos temas em user_profile.py)
+                premium_themes = [
+                    'scifi', 'horror', 'mystery', 'biography', 'poetry',
+                    'adventure', 'thriller', 'historical', 'selfhelp',
+                    'philosophy', 'dystopian', 'contemporary'
+                ]
+
+                # Filtrar choices para remover temas premium
+                from accounts.models.user_profile import THEME_CHOICES
+                free_choices = [
+                    choice for choice in THEME_CHOICES
+                    if choice[0] not in premium_themes
+                ]
+
+                # Atualizar opções do campo
+                self.fields['theme_preference'].choices = free_choices
+
+    def clean_theme_preference(self):
+        """✅ SEGURANÇA: Validar que usuários free não selecionem temas premium."""
+        theme = self.cleaned_data.get('theme_preference')
+
+        # Lista de temas premium
+        premium_themes = [
+            'scifi', 'horror', 'mystery', 'biography', 'poetry',
+            'adventure', 'thriller', 'historical', 'selfhelp',
+            'philosophy', 'dystopian', 'contemporary'
+        ]
+
+        # Verificar se é tema premium e se usuário não é premium
+        if theme in premium_themes:
+            if not self.instance.is_premium_active():
+                raise forms.ValidationError(
+                    "Este tema é exclusivo para membros Premium. "
+                    "Assine o plano Premium para desbloquear todos os temas!"
+                )
+
+        return theme
+
     class Meta:
         model = UserProfile
         fields = [

@@ -77,9 +77,27 @@
     // ============================================
 
     function setupEventListeners() {
-        // ✅ CORREÇÃO: Atualizar o estado do botão sempre que o modal for aberto
+        // ✅ CORREÇÃO: Verificar premium antes de abrir modal
         if (elements.modal) {
-            elements.modal.addEventListener('show.bs.modal', function() {
+            elements.modal.addEventListener('show.bs.modal', function(event) {
+                const isPremium = elements.modal.dataset.userIsPremium === 'true';
+
+                if (!isPremium) {
+                    // Bloquear abertura do modal para usuários free
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    // Mostrar alerta
+                    alert('🔒 Recurso Premium\n\nBackgrounds personalizados são exclusivos para membros Premium.\n\nAssine agora para desbloquear essa funcionalidade!');
+
+                    // Fechar modal se estiver aberto
+                    const modalInstance = bootstrap.Modal.getInstance(elements.modal);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+                    return false;
+                }
+
                 loadCurrentSettings();
             });
         }
