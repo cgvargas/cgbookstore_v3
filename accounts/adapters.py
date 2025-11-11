@@ -9,6 +9,8 @@ from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 import logging
 
 logger = logging.getLogger(__name__)
@@ -33,6 +35,60 @@ class CustomAccountAdapter(DefaultAccountAdapter):
         Útil para modo de manutenção ou registro por convite apenas.
         """
         return getattr(settings, 'ACCOUNT_ALLOW_REGISTRATION', True)
+
+    def send_mail(self, template_prefix, email, context):
+        """
+        Sobrescreve envio de email para usar formato HTML.
+
+        O allauth por padrão envia apenas texto simples. Este método
+        garante que emails sejam enviados em HTML com fallback para texto.
+
+        Args:
+            template_prefix: Prefixo do template (ex: 'account/email/email_confirmation')
+            email: Email do destinatário
+            context: Contexto para renderizar o template
+        """
+        # Renderizar subject (sempre .txt)
+        subject = render_to_string(f'{template_prefix}_subject.txt', context)
+        # Remove quebras de linha do subject
+        subject = ' '.join(subject.splitlines()).strip()
+        # Adicionar prefixo se configurado
+        subject_prefix = getattr(settings, 'ACCOUNT_EMAIL_SUBJECT_PREFIX', '')
+        if subject_prefix:
+            subject = subject_prefix + subject
+
+        # Renderizar corpo do email
+        # Tentar HTML primeiro, depois fallback para texto
+        try:
+            html_body = render_to_string(f'{template_prefix}_message.html', context)
+            text_body = render_to_string(f'{template_prefix}_message.txt', context)
+
+            # Criar email com HTML e alternativa texto
+            msg = EmailMultiAlternatives(
+                subject=subject,
+                body=text_body,  # Corpo em texto simples (fallback)
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL'),
+                to=[email]
+            )
+            msg.attach_alternative(html_body, "text/html")  # Versão HTML
+            msg.send()
+
+            logger.info(f"Email HTML enviado para {email}: {subject}")
+
+        except Exception as e:
+            # Fallback: enviar apenas texto simples
+            logger.warning(f"Falha ao enviar HTML, usando texto simples: {e}")
+            text_body = render_to_string(f'{template_prefix}_message.txt', context)
+
+            msg = EmailMultiAlternatives(
+                subject=subject,
+                body=text_body,
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL'),
+                to=[email]
+            )
+            msg.send()
+
+            logger.info(f"Email texto enviado para {email}: {subject}")
 
     def login(self, request, user):
         """
