@@ -1,4 +1,5 @@
 {% load static %}
+{% load email_tags %}
 
 <!-- CARD HERO DE PERFIL - Biblioteca Pessoal 2.0 -->
 <div class="profile-hero {{ profile.theme_preference }}">
@@ -70,9 +71,20 @@
             </button>
 
             {% if not profile.is_premium_active %}
-                <a href="{% url 'finance:subscription_checkout' %}" class="btn btn-warning">
-                    <i class="fas fa-crown"></i> Assinar Premium
-                </a>
+                {% is_email_verified user as email_is_verified %}
+                {% if not email_is_verified %}
+                    <a href="{% url 'finance:subscription_checkout' %}"
+                       class="btn btn-warning"
+                       data-bs-toggle="tooltip"
+                       data-bs-placement="top"
+                       title="⚠️ Você precisa verificar seu email antes de assinar">
+                        <i class="fas fa-crown"></i> Assinar Premium
+                    </a>
+                {% else %}
+                    <a href="{% url 'finance:subscription_checkout' %}" class="btn btn-warning">
+                        <i class="fas fa-crown"></i> Assinar Premium
+                    </a>
+                {% endif %}
             {% else %}
                 <span class="badge bg-warning text-dark p-2">
                     <i class="fas fa-crown"></i> Membro Premium

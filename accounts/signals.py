@@ -105,3 +105,63 @@ def save_user_profile(sender, instance, **kwargs):
             level=1,
             total_xp=0
         )
+
+
+# ✅ GAMIFICAÇÃO: Recompensa por verificação de email
+@receiver(post_save, sender='allauth.account.EmailAddress')
+def reward_email_verification(sender, instance, created, **kwargs):
+    """
+    Concede XP e notificação quando usuário verifica seu email.
+
+    Args:
+        sender: Model EmailAddress do allauth
+        instance: Instância do EmailAddress
+        created: Boolean se foi recém-criado
+        **kwargs: Argumentos adicionais
+    """
+    # Só executar se o email foi verificado (não na criação)
+    if not created and instance.verified:
+        try:
+            user = instance.user
+            profile = user.profile
+
+            # Verificar se já foi recompensado (evitar duplicatas)
+            # Usando um badge específico como flag
+            if 'email_verified' not in profile.badges:
+                # Conceder XP
+                old_level = profile.level
+                new_level, leveled_up = profile.add_xp(50)
+
+                # Adicionar badge
+                profile.award_badge('email_verified')
+
+                # Criar notificação de recompensa
+                from accounts.models.reading_notification import SystemNotification
+
+                if leveled_up:
+                    message = (
+                        f"🎉 Parabéns! Você verificou seu email e ganhou 50 XP! "
+                        f"Você subiu para o Nível {new_level}! Continue explorando a biblioteca."
+                    )
+                else:
+                    message = (
+                        "✅ Email verificado com sucesso! Você ganhou 50 XP "
+                        "e desbloqueou o badge 'Email Verificado'. "
+                        "Agora você pode assinar o Premium e aproveitar todos os recursos!"
+                    )
+
+                SystemNotification.objects.create(
+                    user=user,
+                    notification_type='system_upgrade',
+                    message=message,
+                    priority=2,  # Média prioridade
+                    action_url='/contas/edit/',
+                    action_text='Ver Perfil',
+                    is_read=False
+                )
+
+                logger.info(f"Recompensa de verificação de email concedida para {user.username}")
+
+        except Exception as e:
+            logger.error(f"Erro ao conceder recompensa de verificação de email: {e}")
+            # Não falhar por causa disso

@@ -13,6 +13,22 @@ mp_service = MercadoPagoService()
 
 @login_required
 def subscription_checkout(request):
+    # ✅ SEGURANÇA: Verificar se o email está confirmado antes de permitir assinatura
+    from allauth.account.models import EmailAddress
+
+    email_verified = EmailAddress.objects.filter(
+        user=request.user,
+        verified=True
+    ).exists()
+
+    if not email_verified:
+        messages.warning(
+            request,
+            '🔒 Para sua segurança, você precisa verificar seu email antes de assinar o Premium. '
+            'Enviamos um link de verificação para seu email.'
+        )
+        return redirect('account_email')  # Redireciona para página de gerenciamento de email
+
     payment_method = request.GET.get('method', 'pix')
     if request.method == 'POST':
         payment_method = request.POST.get('payment_method', 'pix')

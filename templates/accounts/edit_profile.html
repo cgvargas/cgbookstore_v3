@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load email_tags %}
 
 {% block title %}Editar Perfil - CGBookStore{% endblock %}
 
@@ -285,26 +286,51 @@
                     </div>
                 {% else %}
                     <!-- Usuário FREE - Mostrar call-to-action -->
-                    <div class="alert alert-info">
-                        <div class="d-flex align-items-start gap-3">
-                            <i class="fas fa-lock fa-2x"></i>
-                            <div>
-                                <h5 class="alert-heading mb-2">
-                                    <i class="fas fa-crown text-warning"></i>
-                                    Recurso Exclusivo Premium
-                                </h5>
-                                <p class="mb-3">
-                                    Personalize sua biblioteca com backgrounds únicos!
-                                    Torne sua experiência ainda mais imersiva.
-                                </p>
-                                <a href="{% url 'finance:subscription_checkout' %}"
-                                   class="btn btn-warning">
-                                    <i class="fas fa-star me-2"></i>
-                                    Assinar Premium
-                                </a>
+                    {% is_email_verified user as email_is_verified %}
+                    {% if not email_is_verified %}
+                        <!-- Email não verificado - Aviso especial -->
+                        <div class="alert alert-warning">
+                            <div class="d-flex align-items-start gap-3">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                <div>
+                                    <h5 class="alert-heading mb-2">
+                                        <i class="fas fa-envelope text-warning"></i>
+                                        Verifique seu email primeiro
+                                    </h5>
+                                    <p class="mb-3">
+                                        Para sua segurança, você precisa <strong>verificar seu email</strong>
+                                        antes de assinar o Premium. Enviamos um link de confirmação para você!
+                                    </p>
+                                    <a href="{% url 'account_email' %}" class="btn btn-warning">
+                                        <i class="fas fa-envelope-open-text me-2"></i>
+                                        Verificar Email Agora
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    {% else %}
+                        <!-- Email verificado - CTA normal -->
+                        <div class="alert alert-info">
+                            <div class="d-flex align-items-start gap-3">
+                                <i class="fas fa-lock fa-2x"></i>
+                                <div>
+                                    <h5 class="alert-heading mb-2">
+                                        <i class="fas fa-crown text-warning"></i>
+                                        Recurso Exclusivo Premium
+                                    </h5>
+                                    <p class="mb-3">
+                                        Personalize sua biblioteca com backgrounds únicos!
+                                        Torne sua experiência ainda mais imersiva.
+                                    </p>
+                                    <a href="{% url 'finance:subscription_checkout' %}"
+                                       class="btn btn-warning">
+                                        <i class="fas fa-star me-2"></i>
+                                        Assinar Premium
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
                 {% endif %}
             </div>
 
