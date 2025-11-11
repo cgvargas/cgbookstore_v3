@@ -270,14 +270,22 @@ SITE_URL = config('SITE_URL', default='http://localhost:8000')
 
 # Email Configuration
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@cgbookstore.com')
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 
-# SMTP Configuration (usado em produção)
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+# Determinar backend de email baseado no ambiente
+if config('USE_SENDGRID_API', default=False, cast=bool):
+    # Usar SendGrid Web API (para Render Free - bypass firewall)
+    EMAIL_BACKEND = 'cgbookstore.backends.sendgrid.SendGridBackend'
+    SENDGRID_API_KEY = config('EMAIL_HOST_PASSWORD', default='')  # Reutilizar mesma env var
+else:
+    # Usar backend padrão (console ou SMTP)
+    EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+
+    # SMTP Configuration (usado em produção se não usar SendGrid API)
+    EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+    EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+    EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
 # Configurações de Recomendações
 RECOMMENDATIONS_CONFIG = {
