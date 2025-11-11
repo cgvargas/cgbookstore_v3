@@ -1,0 +1,11 @@
+{% if show %}
+    {% if verified %}
+        <span class="badge badge-success" style="font-size: 0.75rem; vertical-align: middle;" title="Email verificado">
+            <i class="fas fa-check-circle"></i> Verificado
+        </span>
+    {% else %}
+        <span class="badge badge-warning" style="font-size: 0.75rem; vertical-align: middle;" title="Email não verificado - Clique para verificar">
+            <i class="fas fa-exclamation-circle"></i> Não verificado
+        </span>
+    {% endif %}
+{% endif %}
