@@ -1,0 +1,417 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load email_tags %}
+
+{% block title %}Gerenciar Emails - CGBookStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    .email-management-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .email-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .email-card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .email-card-header i {
+        font-size: 2rem;
+        color: #667eea;
+    }
+
+    .email-card-header h2 {
+        margin: 0;
+        color: #1a202c;
+    }
+
+    .email-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .email-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+        transition: all 0.2s;
+    }
+
+    .email-item:hover {
+        background: #e9ecef;
+        transform: translateX(4px);
+    }
+
+    .email-item.verified {
+        border-left-color: #28a745;
+        background: #d4edda;
+    }
+
+    .email-item.verified:hover {
+        background: #c3e6cb;
+    }
+
+    .email-info {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .email-address {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #2d3748;
+    }
+
+    .email-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .badge-verified {
+        background: #28a745;
+        color: white;
+    }
+
+    .badge-unverified {
+        background: #ffc107;
+        color: #000;
+    }
+
+    .badge-primary {
+        background: #667eea;
+        color: white;
+        margin-left: 0.5rem;
+    }
+
+    .email-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-email {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        border: none;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .btn-resend {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-resend:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+    }
+
+    .btn-remove {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-remove:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+    }
+
+    .btn-make-primary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-make-primary:hover {
+        background: #5a6268;
+    }
+
+    .add-email-form {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-top: 2rem;
+    }
+
+    .add-email-form h3 {
+        margin-bottom: 1rem;
+        color: #1a202c;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+
+    .form-control-custom:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .btn-add-email {
+        background: #667eea;
+        color: white;
+        padding: 0.75rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        width: 100%;
+    }
+
+    .btn-add-email:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #718096;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .info-box {
+        background: #e7f3ff;
+        border-left: 4px solid #2196F3;
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-box i {
+        color: #2196F3;
+        margin-right: 0.5rem;
+    }
+
+    .warning-box {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1.5rem;
+    }
+
+    .warning-box i {
+        color: #ffc107;
+        margin-right: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .email-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .email-actions {
+            width: 100%;
+        }
+
+        .btn-email {
+            flex: 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="email-management-container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Início</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'accounts:edit_profile' %}">Perfil</a></li>
+            <li class="breadcrumb-item active">Gerenciar Emails</li>
+        </ol>
+    </nav>
+
+    <!-- Card Principal -->
+    <div class="email-card">
+        <div class="email-card-header">
+            <i class="fas fa-envelope"></i>
+            <div>
+                <h2>Gerenciar Endereços de Email</h2>
+                <p class="text-muted mb-0">Gerencie seus emails e configure seu email principal</p>
+            </div>
+        </div>
+
+        {% is_email_verified user as is_verified %}
+
+        {% if not is_verified %}
+        <!-- Aviso: Email não verificado -->
+        <div class="warning-box">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Email não verificado!</strong>
+            <p class="mb-0 mt-1">
+                Verifique seu email para desbloquear recursos premium e garantir a segurança da sua conta.
+                <strong>Ganhe +50 XP</strong> ao verificar!
+            </p>
+        </div>
+        {% else %}
+        <!-- Info: Email verificado -->
+        <div class="info-box">
+            <i class="fas fa-check-circle"></i>
+            <strong>Email verificado com sucesso!</strong>
+            <p class="mb-0 mt-1">
+                Sua conta está protegida e você pode assinar o Premium quando quiser.
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- Lista de Emails -->
+        {% if emailaddresses %}
+            <ul class="email-list">
+                {% for emailaddress in emailaddresses %}
+                <li class="email-item {% if emailaddress.verified %}verified{% endif %}">
+                    <div class="email-info">
+                        <div>
+                            <div class="email-address">
+                                {{ emailaddress.email }}
+                            </div>
+                            <div class="mt-1">
+                                {% if emailaddress.verified %}
+                                    <span class="email-badge badge-verified">
+                                        <i class="fas fa-check-circle"></i>
+                                        Verificado
+                                    </span>
+                                {% else %}
+                                    <span class="email-badge badge-unverified">
+                                        <i class="fas fa-clock"></i>
+                                        Não Verificado
+                                    </span>
+                                {% endif %}
+
+                                {% if emailaddress.primary %}
+                                    <span class="email-badge badge-primary">
+                                        <i class="fas fa-star"></i>
+                                        Principal
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="email-actions">
+                        {% if not emailaddress.verified %}
+                            <form method="post" action="{% url 'account_email' %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action_send" value="{{ emailaddress.email }}">
+                                <button type="submit" class="btn-email btn-resend">
+                                    <i class="fas fa-paper-plane me-1"></i>
+                                    Reenviar
+                                </button>
+                            </form>
+                        {% endif %}
+
+                        {% if emailaddress.verified and not emailaddress.primary %}
+                            <form method="post" action="{% url 'account_email' %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action_primary" value="{{ emailaddress.email }}">
+                                <button type="submit" class="btn-email btn-make-primary">
+                                    <i class="fas fa-star me-1"></i>
+                                    Tornar Principal
+                                </button>
+                            </form>
+                        {% endif %}
+
+                        {% if not emailaddress.primary %}
+                            <form method="post" action="{% url 'account_email' %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action_remove" value="{{ emailaddress.email }}">
+                                <button type="submit" class="btn-email btn-remove"
+                                        onclick="return confirm('Tem certeza que deseja remover este email?');">
+                                    <i class="fas fa-trash me-1"></i>
+                                    Remover
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>Nenhum email cadastrado</p>
+            </div>
+        {% endif %}
+
+        <!-- Formulário: Adicionar Email -->
+        <div class="add-email-form">
+            <h3>
+                <i class="fas fa-plus-circle"></i>
+                Adicionar Novo Email
+            </h3>
+            <form method="post" action="{% url 'account_email' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <input type="email"
+                           name="email"
+                           class="form-control-custom"
+                           placeholder="Digite seu email"
+                           required>
+                </div>
+                <button type="submit" name="action_add" class="btn-add-email">
+                    <i class="fas fa-plus me-2"></i>
+                    Adicionar Email
+                </button>
+            </form>
+        </div>
+
+        <!-- Botão Voltar -->
+        <div class="mt-4 text-center">
+            <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Voltar ao Perfil
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
