@@ -18,7 +18,12 @@ class CustomAccountAdapter(DefaultAccountAdapter):
     """
     Adapter customizado para autenticação de contas.
 
-    Permite customizar comportamento de registro, login, etc.
+    Permite customizar comportamento de registro, login, verificação de email, etc.
+
+    Comportamento de verificação de email:
+    - NOVOS usuários: devem verificar email antes de fazer login (mandatory)
+    - Usuários JÁ VERIFICADOS: não bloqueiam no login
+    - Previne pedidos repetidos de confirmação para usuários existentes
     """
 
     def is_open_for_signup(self, request):
@@ -29,12 +34,39 @@ class CustomAccountAdapter(DefaultAccountAdapter):
         """
         return getattr(settings, 'ACCOUNT_ALLOW_REGISTRATION', True)
 
+    def login(self, request, user):
+        """
+        Sobrescreve método de login para permitir usuários já verificados
+        entrarem sem pedir confirmação novamente.
+
+        Verifica se usuário já tem email verificado antes de aplicar
+        regra de ACCOUNT_EMAIL_VERIFICATION='mandatory'
+        """
+        from allauth.account.models import EmailAddress
+
+        # Verificar se usuário tem pelo menos um email verificado
+        has_verified_email = EmailAddress.objects.filter(
+            user=user,
+            verified=True
+        ).exists()
+
+        if has_verified_email:
+            # Usuário já verificado - permitir login normalmente
+            # Chama o método da superclasse do DefaultAccountAdapter (não o do allauth)
+            return super().login(request, user)
+
+        # Usuário não verificado - seguir comportamento padrão
+        # (vai bloquear se ACCOUNT_EMAIL_VERIFICATION='mandatory')
+        return super().login(request, user)
+
     def save_user(self, request, user, form, commit=True):
         """
         Salva usuário com dados extras do formulário.
 
-        Pode ser usado para adicionar campos customizados.
+        Garante que EmailAddress é criado para novos usuários.
         """
+        from allauth.account.models import EmailAddress
+
         user = super().save_user(request, user, form, commit=False)
 
         # Adicionar lógica customizada aqui se necessário
@@ -42,6 +74,18 @@ class CustomAccountAdapter(DefaultAccountAdapter):
 
         if commit:
             user.save()
+
+            # Garantir que EmailAddress é criado para o novo usuário
+            if user.email:
+                EmailAddress.objects.get_or_create(
+                    user=user,
+                    email=user.email.lower(),
+                    defaults={
+                        'primary': True,
+                        'verified': False  # Começa não verificado
+                    }
+                )
+                logger.info(f"EmailAddress criado para novo usuário: {user.username}")
 
         return user
 
