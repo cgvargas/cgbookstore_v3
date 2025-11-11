@@ -8,6 +8,7 @@ e receba uma notificação de boas-vindas.
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
+from allauth.account.models import EmailAddress
 from .models import UserProfile
 import logging
 
@@ -108,7 +109,7 @@ def save_user_profile(sender, instance, **kwargs):
 
 
 # ✅ GAMIFICAÇÃO: Recompensa por verificação de email
-@receiver(post_save, sender='allauth.account.EmailAddress')
+@receiver(post_save, sender=EmailAddress)
 def reward_email_verification(sender, instance, created, **kwargs):
     """
     Concede XP e notificação quando usuário verifica seu email.
