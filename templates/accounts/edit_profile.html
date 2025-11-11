@@ -232,7 +232,7 @@
                         <div class="alert alert-info mt-2">
                             <i class="fas fa-info-circle"></i>
                             Temas marcados com 👑 são exclusivos para membros Premium.
-                            <a href="#premium-modal" data-bs-toggle="modal">Assine agora!</a>
+                            <a href="{% url 'finance:subscription_checkout' %}">Assine agora!</a>
                         </div>
                     {% endif %}
                 </div>
@@ -297,9 +297,8 @@
                                     Personalize sua biblioteca com backgrounds únicos!
                                     Torne sua experiência ainda mais imersiva.
                                 </p>
-                                <a href="#premium-modal"
-                                   class="btn btn-warning"
-                                   data-bs-toggle="modal">
+                                <a href="{% url 'finance:subscription_checkout' %}"
+                                   class="btn btn-warning">
                                     <i class="fas fa-star me-2"></i>
                                     Assinar Premium
                                 </a>
