@@ -444,24 +444,52 @@ label {
     border-color: var(--border-color);
 }
 
+/* ==========================================
+   ALERTAS - COMPATIBILIDADE COM TEMA ESCURO
+========================================== */
+.alert {
+    color: var(--text-primary) !important;
+}
+
 .alert-success {
-    background-color: var(--success-color);
-    border-color: var(--success-color);
+    background-color: rgba(6, 125, 98, 0.15) !important;
+    border-color: rgba(6, 125, 98, 0.3) !important;
 }
 
 .alert-warning {
-    background-color: var(--warning-color);
-    border-color: var(--warning-color);
+    background-color: rgba(240, 136, 4, 0.15) !important;
+    border-color: rgba(240, 136, 4, 0.3) !important;
 }
 
 .alert-danger {
-    background-color: var(--danger-color);
-    border-color: var(--danger-color);
+    background-color: rgba(196, 0, 0, 0.15) !important;
+    border-color: rgba(196, 0, 0, 0.3) !important;
 }
 
 .alert-info {
-    background-color: var(--info-color);
-    border-color: var(--info-color);
+    background-color: rgba(0, 115, 187, 0.15) !important;
+    border-color: rgba(0, 115, 187, 0.3) !important;
+}
+
+/* Tema escuro - fundo sólido escuro */
+[data-theme="dark"] .alert-success {
+    background-color: var(--card-bg) !important;
+    border-color: rgba(93, 211, 158, 0.5) !important;
+}
+
+[data-theme="dark"] .alert-warning {
+    background-color: var(--card-bg) !important;
+    border-color: rgba(255, 179, 71, 0.5) !important;
+}
+
+[data-theme="dark"] .alert-danger {
+    background-color: var(--card-bg) !important;
+    border-color: rgba(255, 107, 107, 0.5) !important;
+}
+
+[data-theme="dark"] .alert-info {
+    background-color: var(--card-bg) !important;
+    border-color: rgba(79, 195, 247, 0.5) !important;
 }
 
 /* ==========================================
