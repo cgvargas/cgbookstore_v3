@@ -156,7 +156,7 @@ def reward_email_verification(sender, instance, created, **kwargs):
                     notification_type='system_upgrade',
                     message=message,
                     priority=2,  # Média prioridade
-                    action_url='/contas/edit/',
+                    action_url='/profile/edit/',
                     action_text='Ver Perfil',
                     is_read=False
                 )
