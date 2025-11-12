@@ -232,12 +232,11 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         user = super().save_user(request, sociallogin, form)
 
         # Garantir que UserProfile existe (signal já deve ter criado)
-        try:
-            profile = user.userprofile
-        except Exception:
-            # Se por algum motivo não existe, criar
-            from accounts.models import UserProfile
-            profile = UserProfile.objects.create(user=user)
+        # Usar get_or_create para evitar IntegrityError
+        from accounts.models import UserProfile
+        profile, created = UserProfile.objects.get_or_create(user=user)
+
+        if created:
             logger.info(f"UserProfile criado manualmente para {user.username}")
 
         # Extrair dados do provider
