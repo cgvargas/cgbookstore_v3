@@ -4,13 +4,55 @@
 
 - [x] Credenciais OAuth já configuradas no Render (GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET)
 - [x] Templates já atualizados (botões descomentados)
-- [x] Código commitado e deployado
+- [x] Migration automática criada (0011_setup_google_oauth.py)
 
 ---
 
-## 📋 Passo a Passo
+## 🤖 MÉTODO AUTOMÁTICO (Recomendado para Render Free)
 
-### Opção 1: Via Render Shell (Recomendado) 🎯
+### ✨ Configuração Automática Durante Deploy
+
+**A partir de agora, o Google OAuth é configurado AUTOMATICAMENTE!**
+
+A migration `0011_setup_google_oauth.py` roda durante o deploy do Render e:
+- ✅ Lê as credenciais das variáveis de ambiente
+- ✅ Deleta SocialApps Google duplicados (se existirem)
+- ✅ Cria um novo SocialApp limpo
+- ✅ Vincula ao Site correto automaticamente
+
+### 📦 O que acontece no próximo deploy:
+
+1. **Render executa migrations**:
+   ```
+   python manage.py migrate
+   ```
+
+2. **Nossa migration customizada roda**:
+   - Busca `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`
+   - Cria/atualiza o SocialApp Google
+   - Mostra no log: "✅ Google OAuth configured successfully!"
+
+3. **Pronto!**
+   - Botões do Google aparecem automaticamente
+   - Login funciona imediatamente
+
+### 🔍 Como verificar se funcionou:
+
+**Nos logs do deploy do Render, procure por:**
+```
+✅ Google OAuth configured successfully!
+   - Provider: google
+   - Client ID: 1234567890-abc...
+   - Site: cgbookstore-v3.onrender.com
+```
+
+Se vir essa mensagem, está 100% configurado! 🎉
+
+---
+
+## 📋 Métodos Manuais (Opcionais)
+
+### Opção 1: Via Render Shell (Requer plano pago) 🎯
 
 1. **Acesse o Render Dashboard**
    - Vá em: https://dashboard.render.com/
@@ -29,13 +71,9 @@
    - Deve aparecer mensagem de sucesso: "✅ SETUP COMPLETE!"
    - Confirme que "Total Google SocialApps in database: 1"
 
-5. **Pronto!** 🎉
-   - Os botões de "Continuar com Google" já devem estar visíveis
-   - Teste acessando: https://cgbookstore-v3.onrender.com/accounts/login/
-
 ---
 
-### Opção 2: Via Django Admin (Alternativa) 🔧
+### Opção 2: Via Django Admin (Sempre disponível) 🔧
 
 Se preferir fazer manualmente pelo admin:
 
