@@ -11,6 +11,8 @@ from core.views import (
     ContactView,
     LibraryView,
     EventListView,
+    TermsView,
+    PrivacyView,
     # Views AJAX - Biblioteca Pessoal
     add_to_shelf,
     remove_from_shelf,
@@ -87,6 +89,8 @@ urlpatterns = [
     path('contato/', ContactView.as_view(), name='contact'),
     path('biblioteca/', LibraryView.as_view(), name='library'),
     path('eventos/', EventListView.as_view(), name='events'),
+    path('termos/', TermsView.as_view(), name='terms'),
+    path('privacidade/', PrivacyView.as_view(), name='privacy'),
 
     # ==========================================
     # APIs AJAX - BIBLIOTECA PESSOAL

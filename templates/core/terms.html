@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+
+{% block title %}Termos de Serviço - CG.BookStore{% endblock %}
+
+{% block extra_css %}
+<style>
+.legal-container {
+    max-width: 900px;
+    margin: 3rem auto;
+    padding: 0 2rem;
+}
+
+.legal-card {
+    background: var(--card-bg);
+    padding: 3rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+}
+
+.legal-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.legal-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.legal-subtitle {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.legal-section {
+    margin-bottom: 2.5rem;
+}
+
+.legal-section h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.legal-section h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.legal-section p {
+    color: var(--text-primary);
+    line-height: 1.8;
+    margin-bottom: 1rem;
+}
+
+.legal-section ul, .legal-section ol {
+    color: var(--text-primary);
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+.legal-section li {
+    margin-bottom: 0.5rem;
+}
+
+.highlight-box {
+    background: rgba(13, 110, 253, 0.1);
+    border-left: 4px solid var(--primary-color);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+}
+
+[data-theme="dark"] .highlight-box {
+    background: rgba(13, 110, 253, 0.15);
+}
+
+.legal-footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--border-color);
+}
+
+.btn-back {
+    display: inline-block;
+    padding: 12px 30px;
+    background: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+.btn-back:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="legal-container">
+    <div class="legal-card">
+        <div class="legal-header">
+            <h1 class="legal-title">Termos de Serviço</h1>
+            <p class="legal-subtitle">Última atualização: {{ current_date|date:"d/m/Y" }}</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>1. Aceitação dos Termos</h2>
+            <p>
+                Bem-vindo ao <strong>CG.BookStore</strong>! Ao acessar e usar nossa plataforma, você concorda em cumprir e estar vinculado aos seguintes Termos de Serviço. Se você não concordar com alguma parte destes termos, não use nossos serviços.
+            </p>
+        </div>
+
+        <div class="legal-section">
+            <h2>2. Descrição do Serviço</h2>
+            <p>
+                O CG.BookStore é uma plataforma de descoberta e catalogação de livros que oferece:
+            </p>
+            <ul>
+                <li>Catálogo de livros com informações detalhadas</li>
+                <li>Sistema de biblioteca pessoal para organizar suas leituras</li>
+                <li>Recursos de gamificação (níveis, XP, badges)</li>
+                <li>Recomendações personalizadas baseadas em suas preferências</li>
+                <li>Sistema de debates sobre livros</li>
+                <li>Funcionalidades premium para assinantes</li>
+            </ul>
+        </div>
+
+        <div class="legal-section">
+            <h2>3. Conta de Usuário</h2>
+
+            <h3>3.1 Registro</h3>
+            <p>
+                Para acessar recursos personalizados, você deve criar uma conta fornecendo informações precisas e completas. Você pode se registrar por:
+            </p>
+            <ul>
+                <li>Email e senha</li>
+                <li>Conta do Google</li>
+                <li>Conta do Facebook</li>
+            </ul>
+
+            <h3>3.2 Responsabilidade da Conta</h3>
+            <p>
+                Você é responsável por manter a confidencialidade de suas credenciais e por todas as atividades que ocorram em sua conta. Notifique-nos imediatamente sobre qualquer uso não autorizado.
+            </p>
+
+            <h3>3.3 Verificação de Email</h3>
+            <p>
+                Para acessar recursos premium, é necessário verificar seu endereço de email. A verificação garante a segurança de sua conta e permite recuperação de senha.
+            </p>
+        </div>
+
+        <div class="legal-section">
+            <h2>4. Plano Premium</h2>
+
+            <h3>4.1 Assinatura</h3>
+            <p>
+                O plano Premium oferece recursos adicionais mediante pagamento de assinatura mensal. Os recursos incluem:
+            </p>
+            <ul>
+                <li>Temas visuais exclusivos</li>
+                <li>Background personalizado para biblioteca</li>
+                <li>Acesso prioritário a novos recursos</li>
+                <li>Badges e recompensas exclusivas</li>
+            </ul>
+
+            <h3>4.2 Pagamento e Renovação</h3>
+            <p>
+                As assinaturas são cobradas mensalmente via Stripe. A renovação é automática até o cancelamento. Você pode cancelar a qualquer momento, e terá acesso aos recursos premium até o fim do período pago.
+            </p>
+
+            <h3>4.3 Reembolso</h3>
+            <p>
+                Não oferecemos reembolsos para assinaturas já processadas, exceto quando exigido por lei. Você pode cancelar a qualquer momento para evitar cobranças futuras.
+            </p>
+        </div>
+
+        <div class="legal-section">
+            <h2>5. Uso Aceitável</h2>
+
+            <div class="highlight-box">
+                <strong>Você concorda em NÃO:</strong>
+                <ul>
+                    <li>Usar a plataforma para atividades ilegais</li>
+                    <li>Tentar acessar sistemas sem autorização</li>
+                    <li>Distribuir vírus ou códigos maliciosos</li>
+                    <li>Fazer engenharia reversa do sistema</li>
+                    <li>Usar bots ou automação não autorizada</li>
+                    <li>Publicar conteúdo ofensivo, discriminatório ou ilegal</li>
+                    <li>Personificar outras pessoas ou entidades</li>
+                    <li>Compartilhar suas credenciais com terceiros</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="legal-section">
+            <h2>6. Conteúdo do Usuário</h2>
+
+            <h3>6.1 Propriedade</h3>
+            <p>
+                Você mantém todos os direitos sobre o conteúdo que compartilha (avaliações, comentários, debates). Ao publicar, você nos concede uma licença não exclusiva para usar, exibir e distribuir esse conteúdo na plataforma.
+            </p>
+
+            <h3>6.2 Moderação</h3>
+            <p>
+                Reservamo-nos o direito de remover qualquer conteúdo que viole estes termos ou seja considerado inadequado.
+            </p>
+        </div>
+
+        <div class="legal-section">
+            <h2>7. Propriedade Intelectual</h2>
+            <p>
+                Todo o conteúdo da plataforma (design, código, textos, imagens, logos) é propriedade do CG.BookStore ou de seus licenciadores. As informações de livros são obtidas de APIs públicas e pertencem aos seus respectivos proprietários.
+            </p>
+        </div>
+
+        <div class="legal-section">
+            <h2>8. Limitação de Responsabilidade</h2>
+            <p>
+                O CG.BookStore é fornecido "como está", sem garantias de qualquer tipo. Não nos responsabilizamos por:
+            </p>
+            <ul>
+                <li>Precisão das informações de livros (obtidas de terceiros)</li>
+                <li>Disponibilidade ininterrupta do serviço</li>
+                <li>Perda de dados ou conteúdo</li>
+                <li>Danos diretos ou indiretos resultantes do uso</li>
+            </ul>
+        </div>
+
+        <div class="legal-section">
+            <h2>9. Modificações do Serviço</h2>
+            <p>
+                Podemos modificar, suspender ou descontinuar qualquer parte do serviço a qualquer momento. Faremos esforços razoáveis para notificar os usuários sobre mudanças significativas.
+            </p>
+        </div>
+
+        <div class="legal-section">
+            <h2>10. Rescisão</h2>
+            <p>
+                Podemos suspender ou encerrar sua conta se você violar estes termos. Você pode encerrar sua conta a qualquer momento através das configurações de perfil ou entrando em contato conosco.
+            </p>
+        </div>
+
+        <div class="legal-section">
+            <h2>11. Lei Aplicável</h2>
+            <p>
+                Estes termos são regidos pelas leis do Brasil. Qualquer disputa será resolvida nos tribunais brasileiros competentes.
+            </p>
+        </div>
+
+        <div class="legal-section">
+            <h2>12. Contato</h2>
+            <p>
+                Para dúvidas sobre estes Termos de Serviço, entre em contato através da nossa <a href="{% url 'core:contact' %}">página de contato</a>.
+            </p>
+        </div>
+
+        <div class="legal-footer">
+            <p class="text-muted mb-3">
+                Ao continuar usando o CG.BookStore, você confirma que leu e concordou com estes Termos de Serviço.
+            </p>
+            <a href="{% url 'core:home' %}" class="btn-back">
+                <i class="fas fa-arrow-left me-2"></i>Voltar à Página Inicial
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

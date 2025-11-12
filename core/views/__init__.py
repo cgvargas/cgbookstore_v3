@@ -14,6 +14,8 @@ from .about_view import AboutView
 from .contact_view import ContactView
 from .library_view import LibraryView
 from .event_views import EventListView
+from .terms_view import TermsView
+from .privacy_view import PrivacyView
 
 # Views AJAX - Biblioteca Pessoal
 from .library_ajax_views import (
@@ -68,6 +70,8 @@ __all__ = [
     'ContactView',
     'LibraryView',
     'EventListView',
+    'TermsView',
+    'PrivacyView',
 
     # AJAX - Biblioteca
     'add_to_shelf',
