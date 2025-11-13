@@ -33,7 +33,12 @@ class MercadoPagoService:
                     "email": user.email
                 },
                 "external_reference": f"subscription_{subscription.id}",
-                "statement_descriptor": "CGBookStore Premium"
+                "statement_descriptor": "CGBookStore Premium",
+                "binary_mode": False,  # Permite status pendente (importante para PIX e boleto)
+                "payment_methods": {
+                    "installments": 1,  # Apenas pagamento à vista
+                    "default_installments": 1
+                }
             }
 
             # Adiciona URLs de retorno apenas se nao for localhost
@@ -45,6 +50,8 @@ class MercadoPagoService:
                 }
                 preference_data["auto_return"] = "approved"
                 preference_data["notification_url"] = f"{settings.SITE_URL}/finance/webhook/mercadopago/"
+
+            logger.info(f"Criando preferencia para usuario {user.username} - Metodo: {payment_method}")
             preference_response = self.sdk.preference().create(preference_data)
 
             # Verifica se a resposta foi bem sucedida
