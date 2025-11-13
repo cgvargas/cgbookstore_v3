@@ -60,10 +60,19 @@ class MercadoPagoService:
                 logger.error(f"Resposta invalida do Mercado Pago: {preference_response}")
                 return {"success": False, "error": "Credenciais do Mercado Pago invalidas ou nao configuradas. Verifique o arquivo .env"}
 
-            # Usa sandbox_init_point se disponivel (para credenciais de teste), senao usa init_point
+            # Determina qual URL usar baseado no tipo de credencial
             sandbox_url = preference.get("sandbox_init_point")
             production_url = preference.get("init_point")
-            init_point = sandbox_url or production_url
+
+            # Se a credencial começa com APP-, use produção. Se começa com TEST-, use sandbox.
+            is_production = settings.MERCADOPAGO_ACCESS_TOKEN.startswith('APP-')
+
+            if is_production:
+                init_point = production_url or sandbox_url
+                logger.info(f"PRODUÇÃO detectada - usando URL: {init_point}")
+            else:
+                init_point = sandbox_url or production_url
+                logger.info(f"TESTE detectado - usando URL: {init_point}")
 
             logger.info(f"URLs retornadas pelo MP - Sandbox: {sandbox_url}, Production: {production_url}")
 
@@ -124,9 +133,42 @@ class MercadoPagoService:
             # Mercado Pago envia o ID do recurso (payment ou merchant_order)
             resource_id = data.get("data", {}).get("id") or data.get("id")
 
+            # Para merchant_order, o ID pode vir na query string da URL do resource
+            if not resource_id and topic == "merchant_order":
+                resource_url = data.get("resource", "")
+                if resource_url:
+                    # Extrai ID da URL: https://api.mercadolibre.com/merchant_orders/35539737520
+                    resource_id = resource_url.split("/")[-1]
+                    logger.info(f"ID extraído de merchant_order URL: {resource_id}")
+
             if not resource_id:
                 logger.warning(f"Webhook sem resource_id: {data}")
                 return {"success": False, "error": "Resource ID não encontrado no webhook"}
+
+            # Para merchant_order, precisamos buscar os pagamentos associados
+            if topic == "merchant_order":
+                logger.info(f"Processando merchant_order {resource_id} - buscando pagamentos associados")
+                try:
+                    merchant_order_response = self.sdk.merchant_order().get(resource_id)
+                    if merchant_order_response["status"] == 200:
+                        merchant_order = merchant_order_response["response"]
+                        payments = merchant_order.get("payments", [])
+                        if payments:
+                            # Processa o primeiro pagamento encontrado
+                            payment_id = payments[0].get("id")
+                            if payment_id:
+                                logger.info(f"Pagamento {payment_id} encontrado em merchant_order {resource_id}")
+                                resource_id = payment_id
+                                topic = "payment"  # Muda topic para payment para processar normalmente
+                            else:
+                                logger.warning(f"Nenhum ID de pagamento em merchant_order {resource_id}")
+                                return {"success": True, "message": "Merchant order sem pagamentos"}
+                        else:
+                            logger.info(f"Merchant order {resource_id} ainda sem pagamentos")
+                            return {"success": True, "message": "Merchant order sem pagamentos"}
+                except Exception as e:
+                    logger.error(f"Erro ao buscar merchant_order {resource_id}: {str(e)}")
+                    return {"success": False, "error": str(e)}
 
             # Processa apenas notificações de pagamento
             if topic not in ["payment", "payments"]:
