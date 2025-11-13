@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento Aprovado</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7fa;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .header .icon {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .message {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .details-box {
+            background: #f8f9fa;
+            border-left: 4px solid #4CAF50;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+        .details-box h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 18px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #666;
+        }
+        .detail-value {
+            color: #333;
+            text-align: right;
+        }
+        .benefits {
+            margin: 25px 0;
+        }
+        .benefits h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            color: #555;
+        }
+        .benefit-item::before {
+            content: "✓";
+            color: #4CAF50;
+            font-weight: bold;
+            font-size: 20px;
+            margin-right: 12px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 25px 30px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                margin: 0;
+                border-radius: 0;
+            }
+            .header {
+                padding: 30px 20px;
+            }
+            .content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="icon">🎉</div>
+            <h1>Pagamento Aprovado!</h1>
+            <p style="margin: 10px 0 0; opacity: 0.95;">Bem-vindo ao CGBookStore Premium</p>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                Olá <strong>{{ user.get_full_name|default:user.username }}</strong>!
+            </div>
+
+            <div class="message">
+                <p>Temos uma ótima notícia! Seu pagamento foi aprovado com sucesso e sua assinatura Premium está ativa. 🚀</p>
+                <p>Agora você tem acesso total a todos os recursos exclusivos do CGBookStore!</p>
+            </div>
+
+            <div class="details-box">
+                <h3>📋 Detalhes da Assinatura</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value"><strong style="color: #4CAF50;">✓ Ativa</strong></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Valor:</span>
+                    <span class="detail-value">R$ {{ subscription.price }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Método de Pagamento:</span>
+                    <span class="detail-value">{{ payment_method }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Válida até:</span>
+                    <span class="detail-value">{{ expiration_date|date:"d/m/Y H:i" }}</span>
+                </div>
+            </div>
+
+            <div class="benefits">
+                <h3>✨ Recursos Premium Desbloqueados</h3>
+                <div class="benefit-item">Chatbot Literário com uso ilimitado</div>
+                <div class="benefit-item">Recomendações personalizadas de livros com IA</div>
+                <div class="benefit-item">Análise avançada de preferências literárias</div>
+                <div class="benefit-item">Experiência sem anúncios</div>
+                <div class="benefit-item">Suporte prioritário</div>
+            </div>
+
+            <center>
+                <a href="{{ site_url }}/core/library/" class="cta-button">
+                    Acessar Minha Biblioteca
+                </a>
+            </center>
+        </div>
+
+        <div class="footer">
+            <p><strong>CGBookStore</strong> - Sua plataforma literária completa</p>
+            <p>
+                <a href="{{ site_url }}">Página Inicial</a> •
+                <a href="{{ site_url }}/finance/subscription/status/">Minha Assinatura</a> •
+                <a href="{{ site_url }}/profile/">Perfil</a>
+            </p>
+            <p style="margin-top: 15px; color: #bbb; font-size: 12px;">
+                Se você não solicitou esta assinatura, entre em contato conosco imediatamente.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

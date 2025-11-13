@@ -9,6 +9,7 @@ app_name = 'finance'
 urlpatterns = [
     path('subscription/checkout/', views.subscription_checkout, name='subscription_checkout'),
     path('subscription/status/', views.subscription_status, name='subscription_status'),
+    path('subscription/history/', views.subscription_history, name='subscription_history'),
     path('subscription/cancel/', views.subscription_cancel, name='subscription_cancel'),
     path('subscription/success/', views.subscription_success, name='subscription_success'),
     path('subscription/failure/', views.subscription_failure, name='subscription_failure'),

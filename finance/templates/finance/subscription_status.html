@@ -259,6 +259,9 @@
                     <i class="fas fa-redo"></i> Renovar Assinatura
                 </a>
             {% endif %}
+            <a href="{% url 'finance:subscription_history' %}" class="btn-action btn-secondary-action">
+                <i class="fas fa-history"></i> Histórico de Pagamentos
+            </a>
             <a href="{% url 'core:home' %}" class="btn-action btn-secondary-action">
                 <i class="fas fa-home"></i> Voltar ao Início
             </a>
@@ -274,6 +277,9 @@
         <div class="actions-container">
             <a href="{% url 'finance:subscription_checkout' %}" class="btn-action btn-primary-action">
                 <i class="fas fa-star"></i> Assinar Agora
+            </a>
+            <a href="{% url 'finance:subscription_history' %}" class="btn-action btn-secondary-action">
+                <i class="fas fa-history"></i> Histórico de Pagamentos
             </a>
             <a href="{% url 'core:home' %}" class="btn-action btn-secondary-action">
                 <i class="fas fa-home"></i> Voltar ao Início

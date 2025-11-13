@@ -77,6 +77,24 @@ def subscription_pending(request):
     messages.info(request, 'Seu pagamento esta pendente. Aguarde a confirmacao.')
     return redirect('finance:subscription_status')
 
+@login_required
+def subscription_history(request):
+    """View para exibir histórico de transações do usuário"""
+    # Busca transações do usuário
+    transactions = Order.objects.none()  # Placeholder para pedidos futuros
+
+    # Busca logs de transações de assinatura
+    from .models import TransactionLog
+    subscription_logs = TransactionLog.objects.filter(
+        user=request.user,
+        transaction_type='subscription'
+    ).order_by('-created_at')
+
+    context = {
+        'subscription_logs': subscription_logs,
+    }
+    return render(request, 'finance/subscription_history.html', context)
+
 @csrf_exempt
 @require_http_methods(['POST'])
 def mercadopago_webhook(request):

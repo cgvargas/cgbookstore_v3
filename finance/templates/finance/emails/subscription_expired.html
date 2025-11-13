@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assinatura Expirada</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7fa;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #666 0%, #999 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .header .icon {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .message {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .expired-box {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .expired-box .status {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f44336;
+            margin-bottom: 10px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 16px;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 25px 30px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="icon">😢</div>
+            <h1>Sua Assinatura Expirou</h1>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                Olá <strong>{{ user.get_full_name|default:user.username }}</strong>!
+            </div>
+
+            <div class="expired-box">
+                <div class="status">❌ Assinatura Expirada</div>
+                <p style="color: #666; margin: 0;">
+                    Sua assinatura Premium encerrou em {{ subscription.expiration_date|date:"d/m/Y" }}
+                </p>
+            </div>
+
+            <div class="message">
+                <p>Sentiremos sua falta! 💔</p>
+                <p>Você ainda pode continuar usando o CGBookStore com acesso gratuito, mas alguns recursos Premium não estarão mais disponíveis:</p>
+                <ul style="color: #999; line-height: 1.8;">
+                    <li>Chatbot Literário (com limite de uso)</li>
+                    <li>Recomendações Personalizadas Avançadas</li>
+                    <li>Análises Detalhadas de Preferências</li>
+                    <li>Experiência sem anúncios</li>
+                </ul>
+            </div>
+
+            <div class="message">
+                <p><strong>Quer voltar a ter acesso completo?</strong></p>
+                <p>Reative sua assinatura agora e volte a aproveitar todos os benefícios Premium!</p>
+            </div>
+
+            <center>
+                <a href="{{ renewal_url }}" class="cta-button">
+                    ⭐ Reativar Assinatura Premium
+                </a>
+                <p style="margin-top: 20px; color: #666;">
+                    Por apenas <strong style="color: #4CAF50;">R$ 9,90/mês</strong>
+                </p>
+            </center>
+        </div>
+
+        <div class="footer">
+            <p><strong>CGBookStore</strong> - Sua plataforma literária completa</p>
+            <p>
+                <a href="{{ site_url }}">Página Inicial</a> •
+                <a href="{{ site_url }}/finance/subscription/checkout/">Assinar Premium</a>
+            </p>
+            <p style="margin-top: 15px; color: #bbb; font-size: 12px;">
+                Obrigado por ter feito parte do CGBookStore Premium!
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -79,12 +79,183 @@ class MercadoPagoService:
             logger.error(f"Erro ao criar preferencia: {str(e)}")
             return {"success": False, "error": f"Erro inesperado: {str(e)}"}
     
-    def process_webhook(self, data):
+    def get_payment_info(self, payment_id):
+        """
+        Busca informações detalhadas de um pagamento no Mercado Pago
+
+        Args:
+            payment_id: ID do pagamento no MP
+
+        Returns:
+            dict com success e payment_data ou error
+        """
         try:
-            topic = data.get("topic") or data.get("type")
-            return {"success": True, "message": f"Topico {topic} recebido"}
+            payment_response = self.sdk.payment().get(payment_id)
+
+            if payment_response["status"] != 200:
+                error_msg = payment_response.get("response", {}).get("message", "Erro ao buscar pagamento")
+                logger.error(f"Erro ao buscar pagamento {payment_id}: {error_msg}")
+                return {"success": False, "error": error_msg}
+
+            return {"success": True, "payment_data": payment_response["response"]}
         except Exception as e:
-            logger.error(f"Erro ao processar webhook: {str(e)}")
+            logger.error(f"Erro ao buscar pagamento {payment_id}: {str(e)}")
+            return {"success": False, "error": str(e)}
+
+    def process_webhook(self, data):
+        """
+        Processa webhooks do Mercado Pago e atualiza assinaturas
+
+        Args:
+            data: Dados do webhook recebido
+
+        Returns:
+            dict com success e detalhes do processamento
+        """
+        try:
+            # Identifica o tipo de notificação
+            topic = data.get("topic") or data.get("type")
+            logger.info(f"Webhook recebido - Topic: {topic}, Data: {data}")
+
+            # Mercado Pago envia o ID do recurso (payment ou merchant_order)
+            resource_id = data.get("data", {}).get("id") or data.get("id")
+
+            if not resource_id:
+                logger.warning(f"Webhook sem resource_id: {data}")
+                return {"success": False, "error": "Resource ID não encontrado no webhook"}
+
+            # Processa apenas notificações de pagamento
+            if topic not in ["payment", "payments"]:
+                logger.info(f"Topic '{topic}' ignorado (não é payment)")
+                return {"success": True, "message": f"Topic {topic} ignorado"}
+
+            # Busca informações do pagamento
+            payment_result = self.get_payment_info(resource_id)
+            if not payment_result["success"]:
+                return payment_result
+
+            payment_data = payment_result["payment_data"]
+
+            # Extrai informações importantes
+            payment_id = payment_data.get("id")
+            status = payment_data.get("status")
+            status_detail = payment_data.get("status_detail")
+            external_reference = payment_data.get("external_reference")
+            transaction_amount = payment_data.get("transaction_amount")
+            payment_method = payment_data.get("payment_method_id")
+            payer_email = payment_data.get("payer", {}).get("email")
+
+            logger.info(f"Pagamento {payment_id}: status={status}, external_ref={external_reference}, amount={transaction_amount}")
+
+            # Valida external_reference
+            if not external_reference or not external_reference.startswith("subscription_"):
+                logger.warning(f"External reference inválido: {external_reference}")
+                return {"success": False, "error": "External reference inválido"}
+
+            # Extrai ID da assinatura
+            try:
+                subscription_id = int(external_reference.replace("subscription_", ""))
+            except ValueError:
+                logger.error(f"Erro ao extrair subscription_id de: {external_reference}")
+                return {"success": False, "error": "Formato de external reference inválido"}
+
+            # Busca a assinatura
+            try:
+                subscription = Subscription.objects.get(id=subscription_id)
+            except Subscription.DoesNotExist:
+                logger.error(f"Assinatura {subscription_id} não encontrada")
+                return {"success": False, "error": f"Assinatura {subscription_id} não encontrada"}
+
+            # Cria log de transação
+            transaction_log = TransactionLog.objects.create(
+                transaction_type='subscription',
+                user=subscription.user,
+                subscription=subscription,
+                mp_payment_id=str(payment_id),
+                mp_status=status,
+                amount=Decimal(str(transaction_amount)) if transaction_amount else None,
+                payment_method=payment_method,
+                raw_data=payment_data
+            )
+            logger.info(f"TransactionLog criado: {transaction_log.id}")
+
+            # Processa baseado no status do pagamento
+            if status == "approved":
+                # Pagamento aprovado - ativa assinatura
+                logger.info(f"Pagamento {payment_id} aprovado - Ativando assinatura {subscription_id}")
+
+                subscription.mp_payment_id = str(payment_id)
+                subscription.status = 'ativa'
+                subscription.activate(duration_days=30)
+
+                # Envia email de confirmação (se configurado)
+                try:
+                    from .notifications import send_payment_confirmation_email
+                    send_payment_confirmation_email(subscription)
+                except ImportError:
+                    logger.warning("Módulo de notificações não encontrado - email não enviado")
+                except Exception as e:
+                    logger.error(f"Erro ao enviar email de confirmação: {str(e)}")
+
+                return {
+                    "success": True,
+                    "message": "Pagamento aprovado - Assinatura ativada",
+                    "subscription_id": subscription_id,
+                    "status": "activated"
+                }
+
+            elif status == "pending":
+                # Pagamento pendente
+                logger.info(f"Pagamento {payment_id} pendente - Atualizando assinatura {subscription_id}")
+                subscription.mp_payment_id = str(payment_id)
+                subscription.status = 'pendente'
+                subscription.save()
+
+                return {
+                    "success": True,
+                    "message": f"Pagamento pendente - Motivo: {status_detail}",
+                    "subscription_id": subscription_id,
+                    "status": "pending"
+                }
+
+            elif status in ["rejected", "cancelled"]:
+                # Pagamento rejeitado ou cancelado
+                logger.warning(f"Pagamento {payment_id} {status} - Subscription {subscription_id}")
+                subscription.mp_payment_id = str(payment_id)
+                subscription.status = 'cancelada'
+                subscription.save()
+
+                return {
+                    "success": True,
+                    "message": f"Pagamento {status} - Assinatura não ativada",
+                    "subscription_id": subscription_id,
+                    "status": status
+                }
+
+            elif status == "refunded":
+                # Pagamento reembolsado
+                logger.info(f"Pagamento {payment_id} reembolsado - Cancelando subscription {subscription_id}")
+                subscription.cancel()
+
+                return {
+                    "success": True,
+                    "message": "Pagamento reembolsado - Assinatura cancelada",
+                    "subscription_id": subscription_id,
+                    "status": "refunded"
+                }
+
+            else:
+                # Status desconhecido
+                logger.warning(f"Status desconhecido: {status} para pagamento {payment_id}")
+                return {
+                    "success": True,
+                    "message": f"Status {status} processado mas não mapeado",
+                    "subscription_id": subscription_id,
+                    "status": status
+                }
+
+        except Exception as e:
+            logger.error(f"Erro ao processar webhook: {str(e)}", exc_info=True)
             return {"success": False, "error": str(e)}
 
 

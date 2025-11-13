@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assinatura Expirando</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7fa;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #FF9800 0%, #FF5722 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .header .icon {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .message {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #FF9800;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+        .warning-box .days {
+            font-size: 36px;
+            font-weight: bold;
+            color: #FF5722;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .warning-box .days-label {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 16px;
+        }
+        .benefits {
+            margin: 25px 0;
+        }
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            color: #555;
+        }
+        .benefit-item::before {
+            content: "✓";
+            color: #4CAF50;
+            font-weight: bold;
+            font-size: 20px;
+            margin-right: 12px;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 25px 30px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="icon">⚠️</div>
+            <h1>Sua Assinatura Está Expirando</h1>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                Olá <strong>{{ user.get_full_name|default:user.username }}</strong>!
+            </div>
+
+            <div class="message">
+                <p>Queremos avisar que sua assinatura Premium do CGBookStore está próxima do vencimento.</p>
+            </div>
+
+            <div class="warning-box">
+                <div class="days">{{ days_remaining }}</div>
+                <div class="days-label">{% if days_remaining == 1 %}DIA RESTANTE{% else %}DIAS RESTANTES{% endif %}</div>
+                <p style="text-align: center; margin: 15px 0 0; color: #666;">
+                    Expira em: <strong>{{ expiration_date|date:"d/m/Y às H:i" }}</strong>
+                </p>
+            </div>
+
+            <div class="message">
+                <p><strong>Não perca o acesso aos seus recursos favoritos!</strong></p>
+                <p>Renove agora e continue aproveitando:</p>
+            </div>
+
+            <div class="benefits">
+                <div class="benefit-item">Chatbot Literário ilimitado</div>
+                <div class="benefit-item">Recomendações personalizadas com IA</div>
+                <div class="benefit-item">Análises avançadas de preferências</div>
+                <div class="benefit-item">Experiência sem anúncios</div>
+            </div>
+
+            <center>
+                <a href="{{ renewal_url }}" class="cta-button">
+                    🔄 Renovar Assinatura Agora
+                </a>
+                <p style="margin-top: 20px; color: #666;">
+                    Apenas <strong style="color: #4CAF50;">R$ 9,90/mês</strong>
+                </p>
+            </center>
+        </div>
+
+        <div class="footer">
+            <p><strong>CGBookStore</strong> - Sua plataforma literária completa</p>
+            <p>
+                <a href="{{ site_url }}">Página Inicial</a> •
+                <a href="{{ site_url }}/finance/subscription/status/">Minha Assinatura</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
