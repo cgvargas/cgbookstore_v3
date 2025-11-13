@@ -71,15 +71,19 @@ class MercadoPagoService:
             sandbox_url = preference.get("sandbox_init_point")
             production_url = preference.get("init_point")
 
+            # DEBUG: Mostra os primeiros caracteres do token para diagnóstico
+            token_prefix = settings.MERCADOPAGO_ACCESS_TOKEN[:20] if len(settings.MERCADOPAGO_ACCESS_TOKEN) > 20 else settings.MERCADOPAGO_ACCESS_TOKEN[:10]
+            logger.info(f"🔍 DEBUG: Token inicia com: {token_prefix}...")
+
             # Se a credencial começa com APP-, use produção. Se começa com TEST-, use sandbox.
             is_production = settings.MERCADOPAGO_ACCESS_TOKEN.startswith('APP-')
 
             if is_production:
                 init_point = production_url or sandbox_url
-                logger.info(f"PRODUÇÃO detectada - usando URL: {init_point}")
+                logger.info(f"✅ PRODUÇÃO detectada - usando URL: {init_point}")
             else:
                 init_point = sandbox_url or production_url
-                logger.info(f"TESTE detectado - usando URL: {init_point}")
+                logger.info(f"⚠️ TESTE detectado - usando URL: {init_point}")
 
             logger.info(f"URLs retornadas pelo MP - Sandbox: {sandbox_url}, Production: {production_url}")
 
