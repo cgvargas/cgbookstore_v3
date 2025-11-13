@@ -61,7 +61,11 @@ class MercadoPagoService:
                 return {"success": False, "error": "Credenciais do Mercado Pago invalidas ou nao configuradas. Verifique o arquivo .env"}
 
             # Usa sandbox_init_point se disponivel (para credenciais de teste), senao usa init_point
-            init_point = preference.get("sandbox_init_point") or preference.get("init_point")
+            sandbox_url = preference.get("sandbox_init_point")
+            production_url = preference.get("init_point")
+            init_point = sandbox_url or production_url
+
+            logger.info(f"URLs retornadas pelo MP - Sandbox: {sandbox_url}, Production: {production_url}")
 
             if not init_point:
                 logger.error(f"Nenhum init_point encontrado na resposta: {preference_response}")
@@ -70,7 +74,7 @@ class MercadoPagoService:
             subscription.mp_preference_id = preference["id"]
             subscription.save()
 
-            logger.info(f"Preferencia criada com sucesso: {preference['id']}")
+            logger.info(f"Preferencia criada com sucesso: {preference['id']} - Redirect URL: {init_point}")
             return {"success": True, "preference_id": preference["id"], "init_point": init_point, "subscription_id": subscription.id}
         except KeyError as e:
             logger.error(f"Erro ao acessar chave na resposta: {str(e)} - Response: {preference_response if 'preference_response' in locals() else 'N/A'}")

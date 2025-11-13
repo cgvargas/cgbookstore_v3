@@ -34,6 +34,9 @@ def subscription_checkout(request):
         payment_method = request.POST.get('payment_method', 'pix')
         result = mp_service.create_subscription_preference(request.user, payment_method)
         if result['success']:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"Redirecionando usuario {request.user.username} para MP: {result['init_point']}")
             return redirect(result['init_point'])
         else:
             messages.error(request, f"Erro ao processar pagamento: {result['error']}")
