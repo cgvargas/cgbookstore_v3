@@ -24,6 +24,7 @@ class Video(models.Model):
         ('review', 'Resenha'),
         ('tutorial', 'Tutorial'),
         ('discussion', 'Discussão'),
+        ('promo', 'Propaganda/Promocional'),
         ('other', 'Outro'),
     ]
 
@@ -149,7 +150,7 @@ class Video(models.Model):
         ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
-        """Gera slug automaticamente e extrai embed_code do YouTube"""
+        """Gera slug automaticamente e extrai embed_code do YouTube e Instagram"""
         if not self.slug:
             self.slug = slugify(self.title)
 
@@ -173,6 +174,23 @@ class Video(models.Model):
                 # Gerar thumbnail automaticamente para YouTube
                 self.thumbnail_url = f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
 
+        # Extrair código de embed do Instagram
+        elif self.platform == 'instagram' and self.video_url:
+            video_id = None
+
+            # Formatos de URL do Instagram:
+            # https://www.instagram.com/p/CODE/
+            # https://www.instagram.com/reel/CODE/
+            # https://instagram.com/p/CODE/
+            if 'instagram.com/p/' in self.video_url:
+                video_id = self.video_url.split('/p/')[1].split('/')[0].split('?')[0]
+            elif 'instagram.com/reel/' in self.video_url:
+                video_id = self.video_url.split('/reel/')[1].split('/')[0].split('?')[0]
+
+            # Salvar embed_code
+            if video_id:
+                self.embed_code = video_id
+
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -184,22 +202,31 @@ class Video(models.Model):
             return f"https://www.youtube.com/embed/{self.embed_code}"
         elif self.platform == 'vimeo' and self.embed_code:
             return f"https://player.vimeo.com/video/{self.embed_code}"
+        elif self.platform == 'instagram' and self.embed_code:
+            return f"https://www.instagram.com/p/{self.embed_code}/embed"
         return None
 
     def get_embed_html(self):
         """Retorna código HTML iframe para embed do vídeo"""
         if self.platform == 'youtube' and self.embed_code:
-            return f'''<iframe width="100%" height="100%" 
-                        src="https://www.youtube.com/embed/{self.embed_code}" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            return f'''<iframe width="100%" height="100%"
+                        src="https://www.youtube.com/embed/{self.embed_code}"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen>
                        </iframe>'''
         elif self.platform == 'vimeo' and self.embed_code:
-            return f'''<iframe width="100%" height="100%" 
-                        src="https://player.vimeo.com/video/{self.embed_code}" 
-                        frameborder="0" 
-                        allow="autoplay; fullscreen; picture-in-picture" 
+            return f'''<iframe width="100%" height="100%"
+                        src="https://player.vimeo.com/video/{self.embed_code}"
+                        frameborder="0"
+                        allow="autoplay; fullscreen; picture-in-picture"
                         allowfullscreen>
+                       </iframe>'''
+        elif self.platform == 'instagram' and self.embed_code:
+            return f'''<iframe width="100%" height="100%"
+                        src="https://www.instagram.com/p/{self.embed_code}/embed"
+                        frameborder="0"
+                        scrolling="no"
+                        allowtransparency="true">
                        </iframe>'''
         return None

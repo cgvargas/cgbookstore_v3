@@ -8,7 +8,7 @@ from .home_view import HomeView
 from .book_views import BookListView
 from .book_detail_view import BookDetailView
 from .author_views import AuthorListView, AuthorDetailView
-from .video_views import VideoListView
+from .video_views import VideoListView, InstagramVideoListView
 from .search_view import SearchView
 from .about_view import AboutView
 from .contact_view import ContactView
@@ -65,6 +65,7 @@ __all__ = [
     'AuthorListView',
     'AuthorDetailView',
     'VideoListView',
+    'InstagramVideoListView',
     'SearchView',
     'AboutView',
     'ContactView',
