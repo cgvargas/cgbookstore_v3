@@ -14,6 +14,7 @@ import json
 from .forms import UserRegisterForm, UserProfileForm
 from .models import UserProfile
 from .models.user_profile import THEME_CHOICES
+from finance.models import Subscription
 
 
 def register_view(request):
@@ -381,3 +382,26 @@ def remove_background(request):
 
     except Exception as e:
         return JsonResponse({'success': False, 'error': f'Erro ao remover background: {str(e)}'}, status=500)
+
+
+@login_required
+def account_settings(request):
+    """
+    Página centralizada de configurações da conta do usuário.
+    Mostra: Perfil, Assinatura, Pagamentos, Segurança, Preferências
+    """
+    # Busca perfil do usuário
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+    # Busca assinatura (se existir)
+    try:
+        subscription = Subscription.objects.get(user=request.user)
+    except Subscription.DoesNotExist:
+        subscription = None
+
+    context = {
+        'profile': profile,
+        'subscription': subscription,
+    }
+
+    return render(request, 'accounts/account_settings.html', context)

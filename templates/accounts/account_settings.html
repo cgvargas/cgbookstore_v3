@@ -1,0 +1,774 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Configurações da Conta - CGBookStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    .settings-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .settings-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .settings-header h1 {
+        color: var(--text-primary);
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .settings-header p {
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .settings-grid {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        gap: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .settings-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .settings-sidebar {
+            display: none;
+        }
+    }
+
+    /* Sidebar */
+    .settings-sidebar {
+        position: sticky;
+        top: 90px;
+        height: fit-content;
+    }
+
+    .settings-nav {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .settings-nav-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--text-primary);
+        transition: all 0.2s ease;
+    }
+
+    .settings-nav-item:hover {
+        background: var(--hover-bg);
+        color: var(--primary-color);
+    }
+
+    .settings-nav-item.active {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .settings-nav-item i {
+        width: 24px;
+        margin-right: 0.75rem;
+    }
+
+    /* Content Sections */
+    .settings-content {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .settings-section {
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .settings-section.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .section-header h2 {
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        margin: 0;
+        flex: 1;
+    }
+
+    .section-header i {
+        font-size: 1.8rem;
+        color: var(--primary-color);
+        margin-right: 1rem;
+    }
+
+    /* Profile Section */
+    .profile-overview {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        padding: 1.5rem;
+        background: var(--hover-bg);
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--primary-color);
+    }
+
+    .profile-info h3 {
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-info p {
+        color: var(--text-secondary);
+        margin: 0.25rem 0;
+    }
+
+    .profile-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .stat-card {
+        background: var(--hover-bg);
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .stat-card .value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .stat-card .label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+
+    /* Subscription Section */
+    .subscription-card {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .subscription-card.free {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    }
+
+    .subscription-status {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+
+    .subscription-status h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+    }
+
+    .subscription-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        font-weight: bold;
+    }
+
+    .subscription-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .detail-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 8px;
+    }
+
+    .detail-item .label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin-bottom: 0.25rem;
+    }
+
+    .detail-item .value {
+        font-size: 1.1rem;
+        font-weight: bold;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-secondary {
+        background: var(--hover-bg);
+        color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+        background: var(--border-color);
+    }
+
+    .btn-danger {
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #dc2626;
+    }
+
+    /* Info Cards */
+    .info-card {
+        padding: 1.5rem;
+        background: var(--hover-bg);
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .info-card h4 {
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-card p {
+        color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    /* Alert */
+    .alert-warning {
+        background: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        color: #92400e;
+    }
+
+    .alert-danger {
+        background: #fee2e2;
+        border-left: 4px solid #ef4444;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        color: #991b1b;
+    }
+
+    /* Mobile Tabs */
+    .mobile-tabs {
+        display: none;
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        overflow-x: auto;
+    }
+
+    @media (max-width: 768px) {
+        .mobile-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+    }
+
+    .mobile-tab {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        background: var(--hover-bg);
+        color: var(--text-primary);
+        border: none;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+
+    .mobile-tab.active {
+        background: var(--primary-color);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <!-- Header -->
+    <div class="settings-header">
+        <h1><i class="fas fa-cog me-2"></i>Configurações da Conta</h1>
+        <p>Gerencie suas informações pessoais, assinatura e preferências</p>
+    </div>
+
+    <!-- Mobile Tabs -->
+    <div class="mobile-tabs">
+        <button class="mobile-tab active" data-section="profile">
+            <i class="fas fa-user"></i> Perfil
+        </button>
+        <button class="mobile-tab" data-section="subscription">
+            <i class="fas fa-crown"></i> Assinatura
+        </button>
+        <button class="mobile-tab" data-section="payment">
+            <i class="fas fa-credit-card"></i> Pagamentos
+        </button>
+        <button class="mobile-tab" data-section="security">
+            <i class="fas fa-shield-alt"></i> Segurança
+        </button>
+        <button class="mobile-tab" data-section="preferences">
+            <i class="fas fa-sliders-h"></i> Preferências
+        </button>
+    </div>
+
+    <div class="settings-grid">
+        <!-- Sidebar Navigation -->
+        <aside class="settings-sidebar">
+            <nav class="settings-nav">
+                <a href="#profile" class="settings-nav-item active" data-section="profile">
+                    <i class="fas fa-user"></i>
+                    <span>Perfil</span>
+                </a>
+                <a href="#subscription" class="settings-nav-item" data-section="subscription">
+                    <i class="fas fa-crown"></i>
+                    <span>Assinatura</span>
+                </a>
+                <a href="#payment" class="settings-nav-item" data-section="payment">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Pagamentos</span>
+                </a>
+                <a href="#security" class="settings-nav-item" data-section="security">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Segurança</span>
+                </a>
+                <a href="#preferences" class="settings-nav-item" data-section="preferences">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>Preferências</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="settings-content">
+            <!-- Profile Section -->
+            <section id="profile" class="settings-section active">
+                <div class="section-header">
+                    <i class="fas fa-user"></i>
+                    <h2>Informações do Perfil</h2>
+                </div>
+
+                <div class="profile-overview">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" alt="{{ user.username }}" class="profile-avatar">
+                    {% else %}
+                        <img src="{% static 'img/default-avatar.png' %}" alt="{{ user.username }}" class="profile-avatar">
+                    {% endif %}
+                    <div class="profile-info">
+                        <h3>{{ user.get_full_name|default:user.username }}</h3>
+                        <p><i class="fas fa-envelope me-2"></i>{{ user.email }}</p>
+                        <p><i class="fas fa-calendar me-2"></i>Membro desde {{ user.date_joined|date:"d/m/Y" }}</p>
+                        {% if profile.is_premium_active %}
+                        <p><i class="fas fa-crown me-2 text-warning"></i><strong class="text-warning">Membro Premium</strong></p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="stat-card">
+                        <div class="value">{{ profile.level }}</div>
+                        <div class="label">Nível</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">{{ profile.points }}</div>
+                        <div class="label">Pontos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">{{ profile.books_read }}</div>
+                        <div class="label">Livros Lidos</div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="{% url 'accounts:edit_profile' %}" class="btn-action btn-primary">
+                        <i class="fas fa-edit"></i> Editar Perfil
+                    </a>
+                    <a href="{% url 'core:library' %}" class="btn-action btn-secondary">
+                        <i class="fas fa-book-reader"></i> Minha Biblioteca
+                    </a>
+                </div>
+            </section>
+
+            <!-- Subscription Section -->
+            <section id="subscription" class="settings-section">
+                <div class="section-header">
+                    <i class="fas fa-crown"></i>
+                    <h2>Gerenciar Assinatura</h2>
+                </div>
+
+                {% if subscription and subscription.status == 'ativa' %}
+                <div class="subscription-card">
+                    <div class="subscription-status">
+                        <h3>
+                            <i class="fas fa-crown"></i>
+                            Assinatura Premium
+                        </h3>
+                        <span class="subscription-badge">
+                            <i class="fas fa-check-circle"></i> Ativa
+                        </span>
+                    </div>
+
+                    <div class="subscription-details">
+                        <div class="detail-item">
+                            <div class="label">Plano</div>
+                            <div class="value">Premium Mensal</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">Valor</div>
+                            <div class="value">R$ {{ subscription.price }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">Data de Início</div>
+                            <div class="value">{{ subscription.start_date|date:"d/m/Y" }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">Próxima Renovação</div>
+                            <div class="value">{{ subscription.end_date|date:"d/m/Y" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <a href="{% url 'finance:subscription_status' %}" class="btn-action btn-primary">
+                            <i class="fas fa-info-circle"></i> Detalhes da Assinatura
+                        </a>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h4><i class="fas fa-star text-warning"></i> Benefícios Premium</h4>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-secondary);">
+                        <li>Acesso ilimitado a todos os livros</li>
+                        <li>12 temas visuais exclusivos</li>
+                        <li>Background personalizado na biblioteca</li>
+                        <li>Sistema de recomendação com IA</li>
+                        <li>Sem anúncios</li>
+                    </ul>
+                </div>
+
+                {% elif subscription and subscription.status == 'pendente' %}
+                <div class="alert-warning">
+                    <i class="fas fa-clock me-2"></i>
+                    <strong>Pagamento Pendente:</strong> Aguardando confirmação do pagamento.
+                </div>
+
+                <div class="info-card">
+                    <h4><i class="fas fa-info-circle"></i> Status do Pagamento</h4>
+                    <p>Seu pagamento está sendo processado. Assim que for aprovado, sua assinatura será ativada automaticamente.</p>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="{% url 'finance:subscription_status' %}" class="btn-action btn-primary">
+                        <i class="fas fa-eye"></i> Ver Status
+                    </a>
+                </div>
+
+                {% else %}
+                <div class="subscription-card free">
+                    <div class="subscription-status">
+                        <h3><i class="fas fa-user"></i> Conta Gratuita</h3>
+                    </div>
+                    <p style="margin: 1rem 0;">Você está usando a versão gratuita do CGBookStore.</p>
+                    <p style="margin: 0;">Faça upgrade para Premium e desbloqueie recursos exclusivos!</p>
+
+                    <div class="action-buttons">
+                        <a href="{% url 'finance:subscription_checkout' %}" class="btn-action btn-primary">
+                            <i class="fas fa-crown"></i> Assinar Premium - R$ 9,90/mês
+                        </a>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h4><i class="fas fa-gift text-warning"></i> Por que ser Premium?</h4>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-secondary);">
+                        <li>Acesso ilimitado a todos os livros da plataforma</li>
+                        <li>12 temas visuais exclusivos para personalizar sua experiência</li>
+                        <li>Background personalizado na sua biblioteca</li>
+                        <li>Sistema de recomendação com IA</li>
+                        <li>Suporte prioritário</li>
+                        <li>Sem anúncios</li>
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if subscription and subscription.status == 'ativa' %}
+                <div class="alert-danger">
+                    <h4 style="margin-bottom: 0.5rem;"><i class="fas fa-exclamation-triangle me-2"></i>Cancelar Assinatura</h4>
+                    <p style="margin-bottom: 1rem;">Ao cancelar, você perderá o acesso aos benefícios Premium no final do período atual ({{ subscription.end_date|date:"d/m/Y" }}).</p>
+                    <button class="btn-action btn-danger" onclick="confirmCancellation()">
+                        <i class="fas fa-times-circle"></i> Cancelar Assinatura
+                    </button>
+                </div>
+                {% endif %}
+            </section>
+
+            <!-- Payment Section -->
+            <section id="payment" class="settings-section">
+                <div class="section-header">
+                    <i class="fas fa-credit-card"></i>
+                    <h2>Histórico de Pagamentos</h2>
+                </div>
+
+                {% if subscription %}
+                <div class="info-card">
+                    <h4><i class="fas fa-receipt"></i> Última Transação</h4>
+                    <p><strong>Data:</strong> {{ subscription.start_date|date:"d/m/Y H:i" }}</p>
+                    <p><strong>Valor:</strong> R$ {{ subscription.price }}</p>
+                    <p><strong>Método:</strong>
+                        {% if subscription.payment_method == 'pix' %}
+                            <i class="fas fa-qrcode"></i> PIX
+                        {% elif subscription.payment_method == 'credit_card' %}
+                            <i class="fas fa-credit-card"></i> Cartão de Crédito
+                        {% else %}
+                            {{ subscription.payment_method|capfirst }}
+                        {% endif %}
+                    </p>
+                    <p><strong>Status:</strong>
+                        <span class="badge bg-success">{{ subscription.get_status_display }}</span>
+                    </p>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="{% url 'finance:subscription_history' %}" class="btn-action btn-primary">
+                        <i class="fas fa-history"></i> Ver Histórico Completo
+                    </a>
+                </div>
+                {% else %}
+                <div class="info-card">
+                    <h4><i class="fas fa-info-circle"></i> Nenhum Pagamento</h4>
+                    <p>Você ainda não realizou nenhum pagamento.</p>
+                </div>
+                {% endif %}
+            </section>
+
+            <!-- Security Section -->
+            <section id="security" class="settings-section">
+                <div class="section-header">
+                    <i class="fas fa-shield-alt"></i>
+                    <h2>Segurança</h2>
+                </div>
+
+                <div class="info-card">
+                    <h4><i class="fas fa-key"></i> Senha</h4>
+                    <p>Última alteração: {% if user.last_login %}{{ user.last_login|date:"d/m/Y" }}{% else %}Nunca{% endif %}</p>
+                    <p style="margin-top: 0.5rem;">Recomendamos trocar sua senha regularmente.</p>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="{% url 'account_change_password' %}" class="btn-action btn-primary">
+                        <i class="fas fa-lock"></i> Alterar Senha
+                    </a>
+                </div>
+
+                <div class="info-card">
+                    <h4><i class="fas fa-envelope"></i> Email</h4>
+                    <p>Email atual: <strong>{{ user.email }}</strong></p>
+                    <p style="margin-top: 0.5rem;">
+                        Status:
+                        {% if user.emailaddress_set.first.verified %}
+                            <span class="badge bg-success"><i class="fas fa-check"></i> Verificado</span>
+                        {% else %}
+                            <span class="badge bg-warning"><i class="fas fa-exclamation-triangle"></i> Não Verificado</span>
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h4><i class="fas fa-sign-in-alt"></i> Sessões Ativas</h4>
+                    <p>Última atividade: {{ user.last_login|date:"d/m/Y H:i" }}</p>
+                    <p style="margin-top: 0.5rem;">Você está conectado de: <strong>{{ request.META.REMOTE_ADDR }}</strong></p>
+                </div>
+            </section>
+
+            <!-- Preferences Section -->
+            <section id="preferences" class="settings-section">
+                <div class="section-header">
+                    <i class="fas fa-sliders-h"></i>
+                    <h2>Preferências</h2>
+                </div>
+
+                <div class="info-card">
+                    <h4><i class="fas fa-palette"></i> Tema Visual</h4>
+                    <p>Tema atual: <strong>{{ profile.get_theme_preference_display }}</strong></p>
+                    <div class="action-buttons" style="margin-top: 1rem;">
+                        <a href="{% url 'accounts:edit_profile' %}#themes" class="btn-action btn-primary">
+                            <i class="fas fa-paint-brush"></i> Personalizar Tema
+                        </a>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h4><i class="fas fa-bell"></i> Notificações</h4>
+                    <p>Você receberá notificações sobre:</p>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-secondary);">
+                        <li>Novos livros adicionados</li>
+                        <li>Atualizações de assinatura</li>
+                        <li>Conquistas desbloqueadas</li>
+                        <li>Novos debates</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h4><i class="fas fa-book-reader"></i> Leitura</h4>
+                    <p>Preferências de leitura e visualização da biblioteca.</p>
+                    <div class="action-buttons" style="margin-top: 1rem;">
+                        <a href="{% url 'core:library' %}" class="btn-action btn-secondary">
+                            <i class="fas fa-cog"></i> Configurar Biblioteca
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<script>
+// Navigation Handler
+document.addEventListener('DOMContentLoaded', function() {
+    const navItems = document.querySelectorAll('.settings-nav-item');
+    const mobileTabs = document.querySelectorAll('.mobile-tab');
+    const sections = document.querySelectorAll('.settings-section');
+
+    function showSection(sectionId) {
+        // Hide all sections
+        sections.forEach(section => section.classList.remove('active'));
+
+        // Show selected section
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        }
+
+        // Update nav items
+        navItems.forEach(item => item.classList.remove('active'));
+        const activeNav = document.querySelector(`[data-section="${sectionId}"]`);
+        if (activeNav) {
+            activeNav.classList.add('active');
+        }
+
+        // Update mobile tabs
+        mobileTabs.forEach(tab => tab.classList.remove('active'));
+        const activeTab = document.querySelector(`.mobile-tab[data-section="${sectionId}"]`);
+        if (activeTab) {
+            activeTab.classList.add('active');
+        }
+
+        // Update URL hash
+        history.pushState(null, null, `#${sectionId}`);
+    }
+
+    // Desktop navigation
+    navItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const sectionId = this.getAttribute('data-section');
+            showSection(sectionId);
+        });
+    });
+
+    // Mobile tabs
+    mobileTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const sectionId = this.getAttribute('data-section');
+            showSection(sectionId);
+        });
+    });
+
+    // Handle hash on load
+    const hash = window.location.hash.slice(1);
+    if (hash && document.getElementById(hash)) {
+        showSection(hash);
+    }
+});
+
+// Cancellation Confirmation
+function confirmCancellation() {
+    if (confirm('Tem certeza que deseja cancelar sua assinatura Premium?\n\nVocê perderá o acesso aos benefícios Premium no final do período atual.')) {
+        // TODO: Implement cancellation logic
+        alert('Funcionalidade em desenvolvimento. Entre em contato com o suporte para cancelar sua assinatura.');
+    }
+}
+</script>
+{% endblock %}

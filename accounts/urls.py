@@ -5,6 +5,9 @@ from . import views
 app_name = 'accounts'
 
 urlpatterns = [
+    # URL DE CONFIGURAÇÕES DA CONTA
+    path('settings/', views.account_settings, name='account_settings'),
+
     # URLs DO PERFIL
     path('edit/', views.edit_profile, name='edit_profile'),
     path('upload-avatar/', views.upload_avatar, name='upload_avatar'),
