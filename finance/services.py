@@ -75,8 +75,8 @@ class MercadoPagoService:
             token_prefix = settings.MERCADOPAGO_ACCESS_TOKEN[:20] if len(settings.MERCADOPAGO_ACCESS_TOKEN) > 20 else settings.MERCADOPAGO_ACCESS_TOKEN[:10]
             logger.info(f"🔍 DEBUG: Token inicia com: {token_prefix}...")
 
-            # Se a credencial começa com APP-, use produção. Se começa com TEST-, use sandbox.
-            is_production = settings.MERCADOPAGO_ACCESS_TOKEN.startswith('APP-')
+            # Se a credencial começa com APP- ou APP_USR-, use produção. Se começa com TEST-, use sandbox.
+            is_production = settings.MERCADOPAGO_ACCESS_TOKEN.startswith('APP-') or settings.MERCADOPAGO_ACCESS_TOKEN.startswith('APP_USR-')
 
             if is_production:
                 init_point = production_url or sandbox_url
