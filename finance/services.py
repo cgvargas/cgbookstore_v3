@@ -141,8 +141,15 @@ class MercadoPagoService:
             topic = data.get("topic") or data.get("type")
             logger.info(f"Webhook recebido - Topic: {topic}, Data: {data}")
 
-            # Mercado Pago envia o ID do recurso (payment ou merchant_order)
-            resource_id = data.get("data", {}).get("id") or data.get("id")
+            # Mercado Pago envia o ID do recurso em formatos diferentes:
+            # Formato 1: {'data': {'id': '123'}, 'topic': 'payment'}
+            # Formato 2: {'resource': '123', 'topic': 'payment'}
+            # Formato 3: {'id': '123', 'topic': 'payment'}
+            resource_id = (
+                data.get("data", {}).get("id") or  # Formato 1
+                data.get("resource") or             # Formato 2
+                data.get("id")                      # Formato 3
+            )
 
             # Para merchant_order, o ID pode vir na query string da URL do resource
             if not resource_id and topic == "merchant_order":
@@ -236,6 +243,16 @@ class MercadoPagoService:
             )
             logger.info(f"TransactionLog criado: {transaction_log.id}")
 
+            # Atualiza método de pagamento real usado na assinatura
+            payment_method_map = {
+                'pix': 'pix',
+                'credit_card': 'credit_card',
+                'debit_card': 'debit_card',
+                'ticket': 'boleto',
+                'boleto': 'boleto'
+            }
+            subscription.payment_method = payment_method_map.get(payment_method, payment_method)
+
             # Processa baseado no status do pagamento
             if status == "approved":
                 # Pagamento aprovado - ativa assinatura
@@ -253,6 +270,20 @@ class MercadoPagoService:
                     logger.warning("Módulo de notificações não encontrado - email não enviado")
                 except Exception as e:
                     logger.error(f"Erro ao enviar email de confirmação: {str(e)}")
+
+                # Cria notificação no sistema (sininho)
+                try:
+                    from accounts.models import Notification
+                    Notification.objects.create(
+                        user=subscription.user,
+                        notification_type='system',
+                        title='🎉 Premium Ativado!',
+                        message=f'Seu pagamento de R$ {subscription.price} foi aprovado. Aproveite todos os benefícios Premium por 30 dias!',
+                        link='/finance/subscription/status/'
+                    )
+                    logger.info(f"Notificação de premium criada para {subscription.user.username}")
+                except Exception as e:
+                    logger.warning(f"Erro ao criar notificação: {str(e)}")
 
                 return {
                     "success": True,
