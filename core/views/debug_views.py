@@ -102,6 +102,33 @@ def video_debug_view(request):
             'error': str(e)
         }
 
+    # Teste 6: Simular save() de um vídeo
+    try:
+        from core.models import Video
+        from core.utils.video_utils import extract_video_thumbnail
+
+        # Simular criação de vídeo
+        test_url_yt = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+        embed_code, thumbnail_url = extract_video_thumbnail('youtube', test_url_yt)
+
+        results['tests']['simulate_save'] = {
+            'status': 'OK',
+            'youtube_test': {
+                'url': test_url_yt,
+                'embed_code_extracted': embed_code,
+                'thumbnail_extracted': thumbnail_url,
+                'would_save_thumbnail': bool(thumbnail_url and not ""),  # Simula: not self.thumbnail_url quando está vazio
+                'would_save_if_exists': bool(thumbnail_url and not "http://old.url"),  # Simula: quando já tem valor
+            }
+        }
+
+    except Exception as e:
+        results['tests']['simulate_save'] = {
+            'status': 'ERRO',
+            'error': str(e)
+        }
+
     # Python version
     results['python_version'] = sys.version
 

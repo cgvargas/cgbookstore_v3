@@ -169,16 +169,18 @@ class Video(models.Model):
                     self.video_url
                 )
 
-                # Atualizar embed_code se foi extraído
-                if embed_code and not self.embed_code:
+                # Atualizar embed_code se foi extraído e está vazio
+                if embed_code and (not self.embed_code or self.embed_code.strip() == ''):
                     self.embed_code = embed_code
                     logger.info(f"Embed code extraído para {self.platform}: {embed_code}")
 
-                # Atualizar thumbnail_url se foi extraído
-                # Só sobrescreve se estiver vazio (permite edição manual)
-                if thumbnail_url and not self.thumbnail_url:
+                # Atualizar thumbnail_url se foi extraído e está vazio
+                # Aceita tanto None quanto string vazia
+                if thumbnail_url and (not self.thumbnail_url or self.thumbnail_url.strip() == ''):
                     self.thumbnail_url = thumbnail_url
                     logger.info(f"Thumbnail extraída para {self.platform}: {thumbnail_url}")
+                elif not thumbnail_url:
+                    logger.warning(f"Não foi possível extrair thumbnail para {self.platform}: {self.video_url}")
 
             except Exception as e:
                 logger.error(f"Erro ao extrair informações do vídeo ({self.platform}): {e}")
