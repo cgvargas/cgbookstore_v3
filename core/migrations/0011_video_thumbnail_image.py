@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0005_author_instagram_author_photo_author_twitter_and_more'),
+        ('core', '0010_banner_model'),
     ]
 
     operations = [
