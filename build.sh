@@ -25,6 +25,10 @@ python manage.py migrate --no-input --verbosity 2
 echo 'Verifying database setup...'
 python manage.py showmigrations
 
+# Create Supabase buckets
+echo 'Creating Supabase Storage buckets...'
+python manage.py create_supabase_buckets || echo 'Bucket creation completed with warnings'
+
 # PRIMEIRO: Limpar SocialApps duplicados com limpeza forçada
 echo 'Cleaning up SocialApps...'
 python manage.py cleanup_socialapps || echo 'SocialApps cleanup completed'
