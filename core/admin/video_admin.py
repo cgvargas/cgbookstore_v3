@@ -79,11 +79,24 @@ class VideoAdmin(admin.ModelAdmin):
                 'platform',
                 'video_url',
                 'embed_code',
+                'duration'
+            )
+        }),
+        ('Thumbnail', {
+            'fields': (
+                'thumbnail_image',
                 'thumbnail_url',
                 'thumbnail_preview_large',
-                'duration'
             ),
-            'description': 'A thumbnail é extraída automaticamente ao salvar. Para Instagram, tenta múltiplas estratégias. Você pode editar manualmente se necessário.'
+            'description': (
+                '<strong>Como adicionar thumbnail:</strong><br>'
+                '<strong>Opção 1 (Upload Manual):</strong> Envie uma imagem do seu computador usando o campo "Upload de Thumbnail" '
+                '(recomendado para Instagram).<br>'
+                '<strong>Opção 2 (Automático):</strong> Deixe vazio e a thumbnail será extraída automaticamente da URL do vídeo '
+                '(funciona melhor para YouTube e Vimeo).<br>'
+                '<strong>Opção 3 (URL Manual):</strong> Cole a URL de uma imagem externa no campo "URL da Thumbnail".<br>'
+                '<em>Nota: O upload manual tem prioridade sobre a extração automática.</em>'
+            )
         }),
         ('Relacionamentos', {
             'fields': (

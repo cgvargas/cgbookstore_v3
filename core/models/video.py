@@ -3,6 +3,7 @@ Model Video - Representa vídeos (YouTube, entrevistas, book trailers, resenhas)
 """
 from django.db import models
 from django.utils.text import slugify
+from django.conf import settings
 from core.utils.video_utils import extract_video_thumbnail
 import logging
 
@@ -86,6 +87,14 @@ class Video(models.Model):
         help_text="URL da imagem de preview (gerada automaticamente para YouTube, Instagram, Vimeo e TikTok quando possível)"
     )
 
+    thumbnail_image = models.ImageField(
+        upload_to='video_thumbnails/',
+        blank=True,
+        null=True,
+        verbose_name="Upload de Thumbnail",
+        help_text="Envie uma imagem local para usar como thumbnail (recomendado para Instagram). Sobrescreve a URL automática."
+    )
+
     # Relacionamentos
     related_book = models.ForeignKey(
         'core.Book',
@@ -156,34 +165,64 @@ class Video(models.Model):
         """
         Gera slug automaticamente e extrai embed_code e thumbnail_url
         para diferentes plataformas (YouTube, Instagram, Vimeo, TikTok).
+        Se thumbnail_image for fornecida, faz upload para Supabase.
         """
         if not self.slug:
             self.slug = slugify(self.title)
 
-        # Extrair embed_code e thumbnail automaticamente baseado na plataforma
-        if self.video_url and self.platform:
+        # PRIORIDADE 1: Upload manual de imagem (Supabase)
+        if self.thumbnail_image and getattr(settings, 'USE_SUPABASE_STORAGE', False):
             try:
-                # Usar utilitário para extrair informações do vídeo
-                embed_code, thumbnail_url = extract_video_thumbnail(
-                    self.platform,
-                    self.video_url
+                # Salvar primeiro para ter ID
+                if not self.pk:
+                    super().save(*args, **kwargs)
+
+                # Fazer upload para Supabase
+                from core.utils.supabase_storage import SupabaseStorage
+                storage = SupabaseStorage(use_service_key=True)
+
+                # Upload da imagem
+                uploaded_url = storage.upload_video_thumbnail(
+                    self.thumbnail_image.file,
+                    str(self.pk)
                 )
 
-                # Atualizar embed_code se foi extraído e está vazio
-                if embed_code and (not self.embed_code or self.embed_code.strip() == ''):
-                    self.embed_code = embed_code
-                    logger.info(f"Embed code extraído para {self.platform}: {embed_code}")
-
-                # Atualizar thumbnail_url se foi extraído e está vazio
-                # Aceita tanto None quanto string vazia
-                if thumbnail_url and (not self.thumbnail_url or self.thumbnail_url.strip() == ''):
-                    self.thumbnail_url = thumbnail_url
-                    logger.info(f"Thumbnail extraída para {self.platform}: {thumbnail_url}")
-                elif not thumbnail_url:
-                    logger.warning(f"Não foi possível extrair thumbnail para {self.platform}: {self.video_url}")
+                if uploaded_url:
+                    self.thumbnail_url = uploaded_url
+                    logger.info(f"Thumbnail enviada para Supabase: {uploaded_url}")
+                    # Limpar o campo de imagem para não duplicar no banco
+                    self.thumbnail_image = None
+                else:
+                    logger.error("Falha no upload da thumbnail para Supabase")
 
             except Exception as e:
-                logger.error(f"Erro ao extrair informações do vídeo ({self.platform}): {e}")
+                logger.error(f"Erro ao fazer upload da thumbnail: {e}")
+
+        # PRIORIDADE 2: Extração automática (se não houver upload manual)
+        elif self.video_url and self.platform:
+            # Só tenta extrair se NÃO houver thumbnail_url já preenchida
+            if not self.thumbnail_url or self.thumbnail_url.strip() == '':
+                try:
+                    # Usar utilitário para extrair informações do vídeo
+                    embed_code, thumbnail_url = extract_video_thumbnail(
+                        self.platform,
+                        self.video_url
+                    )
+
+                    # Atualizar embed_code se foi extraído e está vazio
+                    if embed_code and (not self.embed_code or self.embed_code.strip() == ''):
+                        self.embed_code = embed_code
+                        logger.info(f"Embed code extraído para {self.platform}: {embed_code}")
+
+                    # Atualizar thumbnail_url se foi extraído
+                    if thumbnail_url:
+                        self.thumbnail_url = thumbnail_url
+                        logger.info(f"Thumbnail extraída para {self.platform}: {thumbnail_url}")
+                    else:
+                        logger.warning(f"Não foi possível extrair thumbnail para {self.platform}: {self.video_url}")
+
+                except Exception as e:
+                    logger.error(f"Erro ao extrair informações do vídeo ({self.platform}): {e}")
 
         super().save(*args, **kwargs)
 

@@ -41,13 +41,15 @@ class SupabaseStorage:
         self.BOOK_COVERS_BUCKET = "book-covers"
         self.USER_AVATARS_BUCKET = "user-avatars"
         self.AUTHOR_PHOTOS_BUCKET = "author-photos"
+        self.VIDEO_THUMBNAILS_BUCKET = "video-thumbnails"
 
     def create_buckets(self):
         """Cria os buckets necessários se não existirem"""
         buckets_to_create = [
             self.BOOK_COVERS_BUCKET,
             self.USER_AVATARS_BUCKET,
-            self.AUTHOR_PHOTOS_BUCKET
+            self.AUTHOR_PHOTOS_BUCKET,
+            self.VIDEO_THUMBNAILS_BUCKET
         ]
 
         try:
@@ -124,6 +126,11 @@ class SupabaseStorage:
         """Upload específico para fotos de autores"""
         folder = f"authors/{author_id}"
         return self.upload_file(file, self.AUTHOR_PHOTOS_BUCKET, folder)
+
+    def upload_video_thumbnail(self, file: BinaryIO, video_id: str) -> Optional[str]:
+        """Upload específico para thumbnails de vídeos"""
+        folder = f"videos/{video_id}"
+        return self.upload_file(file, self.VIDEO_THUMBNAILS_BUCKET, folder)
 
     def delete_file(self, bucket: str, path: str) -> bool:
         """
