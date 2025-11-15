@@ -70,6 +70,9 @@ from core.views.gamification_api_views import (
     get_achievement_details,
 )
 
+# DEBUG - Views temporárias
+from core.views.debug_views import video_debug_view
+
 app_name = 'core'
 
 urlpatterns = [
@@ -168,4 +171,9 @@ urlpatterns = [
     # ==========================================
     path('api/banner/<int:banner_id>/view/', track_banner_view, name='track_banner_view'),
     path('api/banner/<int:banner_id>/click/', track_banner_click, name='track_banner_click'),
+
+    # ==========================================
+    # DEBUG - TEMPORÁRIO
+    # ==========================================
+    path('debug/video-module/', video_debug_view, name='debug_video_module'),
 ]
