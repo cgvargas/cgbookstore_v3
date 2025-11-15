@@ -2,6 +2,7 @@
 Admin para Video
 """
 from django.contrib import admin
+from django.utils.html import format_html
 from core.models import Video
 
 
@@ -10,6 +11,7 @@ class VideoAdmin(admin.ModelAdmin):
     """Administração de Vídeos."""
 
     list_display = [
+        'thumbnail_preview',
         'title',
         'platform',
         'video_type',
@@ -33,12 +35,35 @@ class VideoAdmin(admin.ModelAdmin):
         'related_author__name'
     ]
     prepopulated_fields = {'slug': ('title',)}
-    readonly_fields = ['created_at', 'updated_at']
+    readonly_fields = ['thumbnail_preview_large', 'created_at', 'updated_at']
     list_editable = ['featured', 'active']
     date_hierarchy = 'created_at'
 
     # Autocomplete
     autocomplete_fields = ['related_book', 'related_author']
+
+    def thumbnail_preview(self, obj):
+        """Preview pequeno da thumbnail na lista."""
+        if obj.thumbnail_url:
+            return format_html(
+                '<img src="{}" style="width: 80px; height: 45px; object-fit: cover; border-radius: 4px;" />',
+                obj.thumbnail_url
+            )
+        return format_html('<span style="color: #999;">Sem thumbnail</span>')
+    thumbnail_preview.short_description = 'Preview'
+
+    def thumbnail_preview_large(self, obj):
+        """Preview grande da thumbnail no formulário de edição."""
+        if obj.thumbnail_url:
+            return format_html(
+                '<div style="margin: 10px 0;">'
+                '<img src="{}" style="max-width: 400px; max-height: 225px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />'
+                '<p style="margin-top: 8px; color: #666; font-size: 12px;">Preview da Thumbnail</p>'
+                '</div>',
+                obj.thumbnail_url
+            )
+        return format_html('<p style="color: #999;">Nenhuma thumbnail disponível</p>')
+    thumbnail_preview_large.short_description = 'Preview da Thumbnail'
 
     fieldsets = (
         ('Informações Básicas', {
@@ -55,8 +80,10 @@ class VideoAdmin(admin.ModelAdmin):
                 'video_url',
                 'embed_code',
                 'thumbnail_url',
+                'thumbnail_preview_large',
                 'duration'
-            )
+            ),
+            'description': 'A thumbnail é extraída automaticamente ao salvar. Para Instagram, tenta múltiplas estratégias. Você pode editar manualmente se necessário.'
         }),
         ('Relacionamentos', {
             'fields': (

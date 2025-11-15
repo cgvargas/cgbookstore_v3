@@ -3,6 +3,10 @@ Model Video - Representa vídeos (YouTube, entrevistas, book trailers, resenhas)
 """
 from django.db import models
 from django.utils.text import slugify
+from core.utils.video_utils import extract_video_thumbnail
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Video(models.Model):
@@ -79,7 +83,7 @@ class Video(models.Model):
     thumbnail_url = models.URLField(
         blank=True,
         verbose_name="URL da Thumbnail",
-        help_text="URL da imagem de preview (gerada automaticamente para YouTube)"
+        help_text="URL da imagem de preview (gerada automaticamente para YouTube, Instagram, Vimeo e TikTok quando possível)"
     )
 
     # Relacionamentos
@@ -149,29 +153,35 @@ class Video(models.Model):
         ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
-        """Gera slug automaticamente e extrai embed_code do YouTube"""
+        """
+        Gera slug automaticamente e extrai embed_code e thumbnail_url
+        para diferentes plataformas (YouTube, Instagram, Vimeo, TikTok).
+        """
         if not self.slug:
             self.slug = slugify(self.title)
 
-        # Extrair código de embed do YouTube
-        if self.platform == 'youtube' and self.video_url:
-            # Limpar embed_code e thumbnail_url para reprocessar
-            video_id = None
+        # Extrair embed_code e thumbnail automaticamente baseado na plataforma
+        if self.video_url and self.platform:
+            try:
+                # Usar utilitário para extrair informações do vídeo
+                embed_code, thumbnail_url = extract_video_thumbnail(
+                    self.platform,
+                    self.video_url
+                )
 
-            # Tentar extrair ID de diferentes formatos de URL
-            if 'youtube.com/watch?v=' in self.video_url:
-                video_id = self.video_url.split('watch?v=')[1].split('&')[0]
-            elif 'youtu.be/' in self.video_url:
-                video_id = self.video_url.split('youtu.be/')[1].split('?')[0]
-            elif 'youtube.com/shorts/' in self.video_url:
-                # YouTube Shorts
-                video_id = self.video_url.split('shorts/')[1].split('?')[0]
+                # Atualizar embed_code se foi extraído
+                if embed_code and not self.embed_code:
+                    self.embed_code = embed_code
+                    logger.info(f"Embed code extraído para {self.platform}: {embed_code}")
 
-            # Salvar embed_code
-            if video_id:
-                self.embed_code = video_id
-                # Gerar thumbnail automaticamente para YouTube
-                self.thumbnail_url = f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
+                # Atualizar thumbnail_url se foi extraído
+                # Só sobrescreve se estiver vazio (permite edição manual)
+                if thumbnail_url and not self.thumbnail_url:
+                    self.thumbnail_url = thumbnail_url
+                    logger.info(f"Thumbnail extraída para {self.platform}: {thumbnail_url}")
+
+            except Exception as e:
+                logger.error(f"Erro ao extrair informações do vídeo ({self.platform}): {e}")
 
         super().save(*args, **kwargs)
 
