@@ -7,6 +7,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
 from core.models import Section, SectionItem, Book, Author, Video
+from core.admin.widgets import OpacitySliderWidget
+from django.db import models
 
 
 class SectionItemAdminForm(forms.ModelForm):
@@ -215,6 +217,11 @@ class SectionItemInline(admin.TabularInline):
 class SectionAdmin(admin.ModelAdmin):
     """Administração de Seções da Home."""
 
+    formfield_overrides = {
+        models.FloatField: {"widget": OpacitySliderWidget},
+    }
+    """Administração de Seções da Home."""
+
     list_display = [
         'title',
         'content_type',
@@ -258,6 +265,7 @@ class SectionAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
             'fields': (
                 'background_color',
+                'container_opacity',
                 'css_class'
             )
         }),

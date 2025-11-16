@@ -424,3 +424,36 @@
         display: none; /* Oculta descrição em telas muito pequenas */
     }
 }
+
+/* ============================================
+   GRADIENT TRANSPARENTE ESTILO CRUNCHYROLL
+   Fade para transparente na parte inferior
+   ============================================ */
+
+.banner-gradient-fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(
+        to top,
+        var(--body-bg) 0%,
+        rgba(var(--body-bg-rgb, 255, 255, 255), 0.95) 10%,
+        rgba(var(--body-bg-rgb, 255, 255, 255), 0.7) 30%,
+        transparent 100%
+    );
+    z-index: 3;
+    pointer-events: none;
+}
+
+/* Versão dark mode */
+[data-theme="dark"] .banner-gradient-fade {
+    background: linear-gradient(
+        to top,
+        rgb(18, 18, 18) 0%,
+        rgba(18, 18, 18, 0.95) 10%,
+        rgba(18, 18, 18, 0.7) 30%,
+        transparent 100%
+    );
+}

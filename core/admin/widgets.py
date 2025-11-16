@@ -1,143 +1,94 @@
 """
-Widgets customizados para o admin de Section
-core/admin/widgets.py
+Widgets personalizados para o admin do Django
+CG.BookStore v3
 """
+
 from django import forms
-from django.contrib.contenttypes.models import ContentType
-from core.models import Book, Author, Video
+from django.utils.safestring import mark_safe
 
 
-class ContentObjectWidget(forms.Widget):
+class OpacitySliderWidget(forms.NumberInput):
     """
-    Widget customizado que muda dinamicamente baseado no content_type selecionado.
-    Exibe um select com os objetos disponíveis ao invés de campo numérico.
+    Widget de slider para controlar opacidade de 0-100%
+    Converte automaticamente de porcentagem (0-100) para decimal (0.0-1.0)
     """
-    template_name = 'admin/widgets/content_object_widget.html'
 
     def __init__(self, attrs=None):
-        super().__init__(attrs)
-        self.choices = []
+        default_attrs = {'class': 'opacity-slider-input', 'type': 'range', 'min': '0', 'max': '100', 'step': '1'}
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs)
 
-    def get_context(self, name, value, attrs):
-        context = super().get_context(name, value, attrs)
-
-        # Adicionar choices ao contexto
-        context['widget']['choices'] = self.choices
-
-        return context
+    def format_value(self, value):
+        """Converte valor decimal (0.0-1.0) para porcentagem (0-100)"""
+        if value is None or value == '':
+            return 100  # Padrão: 100% opaco
+        try:
+            return int(float(value) * 100)
+        except (ValueError, TypeError):
+            return 100
 
     def value_from_datadict(self, data, files, name):
-        return data.get(name)
+        """Converte valor de porcentagem (0-100) para decimal (0.0-1.0)"""
+        value = data.get(name)
+        if value is None or value == '':
+            return 1.0
+        try:
+            return float(value) / 100.0
+        except (ValueError, TypeError):
+            return 1.0
 
+    def render(self, name, value, attrs=None, renderer=None):
+        """Renderiza o widget com HTML customizado"""
+        if value is None:
+            value = 1.0
 
-class SectionItemForm(forms.ModelForm):
-    """
-    Form customizado para SectionItem que adiciona campo de seleção dinâmica.
-    """
+        percentage = self.format_value(value)
+        final_attrs = self.build_attrs(self.attrs, attrs)
+        final_attrs['name'] = name
+        final_attrs['id'] = final_attrs.get('id', f'id_{name}')
+        final_attrs['value'] = percentage
 
-    # Campo auxiliar para seleção visual
-    content_object_select = forms.ChoiceField(
-        label='Selecionar Item',
-        required=False,
-        help_text='Selecione o item da lista ou digite o ID manualmente no campo "Id do objeto"'
-    )
+        html = f'''
+        <div class="opacity-slider-container" style="max-width: 400px;">
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 8px;">
+                <label for="{final_attrs['id']}" style="margin: 0; min-width: 120px; font-weight: 600;">
+                    Opacidade: <span id="{final_attrs['id']}_value" style="color: #0066cc;">{percentage}%</span>
+                </label>
+                <input
+                    type="range"
+                    id="{final_attrs['id']}"
+                    name="{name}"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value="{percentage}"
+                    style="flex: 1; height: 6px; cursor: pointer;"
+                    oninput="document.getElementById('{final_attrs['id']}_value').textContent = this.value + '%'; document.getElementById('{final_attrs['id']}_preview').style.opacity = this.value / 100;"
+                />
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #666; margin-bottom: 10px;">
+                <span>0% (Transparente)</span>
+                <span>100% (Opaco)</span>
+            </div>
+            <div id="{final_attrs['id']}_preview"
+                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        height: 60px;
+                        border-radius: 8px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-weight: 600;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                        opacity: {percentage / 100};">
+                Preview da Opacidade
+            </div>
+            <p class="help" style="margin-top: 8px; font-size: 12px; color: #666;">
+                Arraste o controle para ajustar a transparência do container da seção.
+                0% = Totalmente transparente, 100% = Totalmente opaco.
+            </p>
+        </div>
+        '''
 
-    class Meta:
-        from core.models import SectionItem
-        model = SectionItem
-        fields = '__all__'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Preparar choices baseado no content_type da seção pai
-        instance = kwargs.get('instance')
-
-        if instance and instance.pk:
-            # Modo edição
-            content_type = instance.content_type
-            self._populate_choices(content_type)
-
-            # Pré-selecionar o valor atual
-            if instance.object_id:
-                self.fields['content_object_select'].initial = instance.object_id
-
-        # Adicionar classe CSS para estilização
-        self.fields['object_id'].widget.attrs.update({
-            'class': 'vIntegerField',
-            'min': '1',
-            'placeholder': 'Digite o ID ou selecione acima'
-        })
-
-    def _populate_choices(self, content_type):
-        """Popula as choices baseado no tipo de conteúdo."""
-        choices = [('', '---------')]
-
-        if not content_type:
-            self.fields['content_object_select'].choices = choices
-            return
-
-        model_class = content_type.model_class()
-
-        if model_class == Book:
-            books = Book.objects.filter(slug__isnull=False).exclude(slug='').order_by('title')
-            choices.extend([
-                (book.id, f'{book.title} - {book.author.name if book.author else "Sem autor"}')
-                for book in books[:100]  # Limitar a 100 para performance
-            ])
-
-        elif model_class == Author:
-            authors = Author.objects.order_by('name')
-            choices.extend([
-                (author.id, author.name)
-                for author in authors[:100]
-            ])
-
-        elif model_class == Video:
-            videos = Video.objects.order_by('title')
-            choices.extend([
-                (video.id, f'{video.title} ({video.get_platform_display()})')
-                for video in videos[:100]
-            ])
-
-        self.fields['content_object_select'].choices = choices
-
-    def clean(self):
-        """Validação customizada."""
-        cleaned_data = super().clean()
-
-        # Se o select foi usado, sobrescrever object_id
-        content_object_select = cleaned_data.get('content_object_select')
-        if content_object_select:
-            cleaned_data['object_id'] = int(content_object_select)
-
-        object_id = cleaned_data.get('object_id')
-        content_type = cleaned_data.get('content_type')
-
-        # Validar object_id
-        if object_id is not None:
-            if object_id <= 0:
-                raise forms.ValidationError({
-                    'object_id': 'O ID do objeto deve ser maior que 0.'
-                })
-
-            # Validar se o objeto existe
-            if content_type:
-                model_class = content_type.model_class()
-                try:
-                    obj = model_class.objects.get(pk=object_id)
-
-                    # Validação específica para Book (verificar slug)
-                    if model_class == Book:
-                        if not obj.slug or obj.slug == '':
-                            raise forms.ValidationError({
-                                'object_id': f'O livro "{obj.title}" não possui slug válido. '
-                                             f'Edite o livro e salve para gerar o slug automaticamente.'
-                            })
-
-                except model_class.DoesNotExist:
-                    raise forms.ValidationError({
-                        'object_id': f'{content_type.model} com ID {object_id} não encontrado.'
-                    })
-
-        return cleaned_data
+        return mark_safe(html)
