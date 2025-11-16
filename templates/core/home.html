@@ -154,10 +154,11 @@
 
 {% block content %}
 <div class="container-fluid px-0">
-    <!-- Banner Carousel -->
+    <!-- Banner Carousel como Background -->
     {% include 'core/widgets/banner_carousel.html' %}
 
-    <div class="container">
+    <!-- Container com margem negativa para sobrepor o banner -->
+    <div class="container" style="position: relative; margin-top: -400px; z-index: 10;">
         <!-- Premium CTA Widget -->
         <div class="mb-5">
             {% include 'finance/widgets/premium_cta.html' %}
