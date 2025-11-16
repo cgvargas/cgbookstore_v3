@@ -55,13 +55,6 @@
         font-size: 0.9rem;
     }
 
-    /* Seção de Boas-Vindas */
-    .bg-light {
-        background-color: var(--card-bg) !important;
-        color: var(--text-primary);
-        border: 1px solid var(--border-color);
-    }
-
     /* Cards de Vídeo */
     .video-card {
         background: var(--card-bg);
@@ -143,21 +136,13 @@
     <!-- Banner Carousel -->
     {% include 'core/widgets/banner_carousel.html' %}
 
-    <!-- Seção de Boas-Vindas -->
     <div class="container">
-        <div class="p-5 mb-4 bg-light rounded-3 text-center">
-            <div class="container-fluid py-5">
-                <h1 class="display-5 fw-bold">Sua Aventura Literária Começa Aqui</h1>
-                <p class="fs-4">Explore milhares de títulos, descubra novos autores e mergulhe em histórias fascinantes com nosso assistente literário inteligente.</p>
-                <a href="{% url 'core:book_list' %}" class="btn btn-primary btn-lg">Ver Catálogo Completo</a>
-            </div>
-        </div>
-
         <!-- Premium CTA Widget -->
         <div class="mb-5">
             {% include 'finance/widgets/premium_cta.html' %}
         </div>
     </div>
+
 
     <!-- Seções Dinâmicas -->
     {% for section in sections %}
