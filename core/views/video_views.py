@@ -8,7 +8,7 @@ from core.models import Video
 
 
 class VideoListView(ListView):
-    """Lista todos os vídeos do YouTube"""
+    """Lista todos os vídeos (YouTube, Instagram, Vimeo, TikTok)"""
     model = Video
     template_name = 'core/video_list.html'
     context_object_name = 'videos'
@@ -17,6 +17,11 @@ class VideoListView(ListView):
     def get_queryset(self):
         """Retorna vídeos ativos ordenados por data de criação"""
         queryset = Video.objects.filter(active=True).order_by('-created_at')
+
+        # Filtro por plataforma (Instagram, YouTube, Vimeo, TikTok)
+        platform = self.kwargs.get('platform')
+        if platform:
+            queryset = queryset.filter(platform=platform)
 
         # Busca por título ou descrição
         search = self.request.GET.get('q')
@@ -37,8 +42,18 @@ class VideoListView(ListView):
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('q', '')
         context['selected_video_type'] = self.request.GET.get('video_type', '')
+        context['platform'] = self.kwargs.get('platform', '')
 
         # Tipos de vídeo disponíveis para filtro
         context['video_types'] = Video.VIDEO_TYPE_CHOICES
+
+        # Plataformas disponíveis
+        context['platforms'] = Video.PLATFORM_CHOICES
+
+        # Nome amigável da plataforma
+        platform = self.kwargs.get('platform')
+        if platform:
+            platform_dict = dict(Video.PLATFORM_CHOICES)
+            context['platform_name'] = platform_dict.get(platform, platform.capitalize())
 
         return context

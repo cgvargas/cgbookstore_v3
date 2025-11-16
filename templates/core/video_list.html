@@ -1,7 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Vídeos YouTube - CG.BookStore{% endblock %}
+{% block title %}
+    {% if platform_name %}
+        Vídeos {{ platform_name }} - CG.BookStore
+    {% else %}
+        Vídeos - CG.BookStore
+    {% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="container my-5">
@@ -9,7 +15,17 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="mb-1">
-                <i class="fab fa-youtube text-danger me-2"></i>Vídeos YouTube
+                {% if platform == 'youtube' %}
+                    <i class="fab fa-youtube text-danger me-2"></i>Vídeos YouTube
+                {% elif platform == 'instagram' %}
+                    <i class="fab fa-instagram text-danger me-2"></i>Nossos Vídeos no Instagram
+                {% elif platform == 'vimeo' %}
+                    <i class="fab fa-vimeo text-primary me-2"></i>Vídeos Vimeo
+                {% elif platform == 'tiktok' %}
+                    <i class="fab fa-tiktok me-2"></i>Vídeos TikTok
+                {% else %}
+                    <i class="fas fa-video me-2"></i>Nossos Vídeos
+                {% endif %}
             </h1>
             <p class="text-muted mb-0">Confira nossa seleção de vídeos sobre literatura, resenhas e dicas de leitura</p>
         </div>
@@ -18,9 +34,9 @@
     <!-- Barra de Busca e Filtros -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="get" action="{% url 'core:video_list' %}" class="row g-3">
+            <form method="get" action="" class="row g-3">
                 <!-- Campo de Busca -->
-                <div class="col-md-7">
+                <div class="col-md-5">
                     <div class="input-group">
                         <span class="input-group-text">
                             <i class="fas fa-search"></i>
@@ -44,6 +60,20 @@
                     </select>
                 </div>
 
+                <!-- Filtro por Plataforma (apenas se não filtrado por URL) -->
+                {% if not platform %}
+                <div class="col-md-2">
+                    <a href="{% url 'core:video_list_by_platform' 'youtube' %}" class="btn btn-outline-danger w-100 {% if platform == 'youtube' %}active{% endif %}">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                </div>
+                <div class="col-md-2">
+                    <a href="{% url 'core:video_list_by_platform' 'instagram' %}" class="btn btn-outline-danger w-100 {% if platform == 'instagram' %}active{% endif %}">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+                {% endif %}
+
                 <!-- Botão Buscar -->
                 <div class="col-md-2">
                     <button type="submit" class="btn btn-primary w-100">
@@ -65,9 +95,15 @@
                     <i class="fas fa-tag"></i> {{ selected_video_type|title }}
                 </span>
                 {% endif %}
+                {% if platform %}
+                <a href="{% url 'core:video_list_by_platform' platform %}" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-times"></i> Limpar filtros
+                </a>
+                {% else %}
                 <a href="{% url 'core:video_list' %}" class="btn btn-sm btn-outline-danger">
                     <i class="fas fa-times"></i> Limpar filtros
                 </a>
+                {% endif %}
             </div>
             {% endif %}
         </div>
@@ -77,7 +113,18 @@
     {% if videos %}
     <div class="mb-3">
         <span class="badge bg-danger fs-6">
-            <i class="fab fa-youtube"></i> {{ page_obj.paginator.count }} vídeo{{ page_obj.paginator.count|pluralize }} encontrado{{ page_obj.paginator.count|pluralize }}
+            {% if platform == 'youtube' %}
+                <i class="fab fa-youtube"></i>
+            {% elif platform == 'instagram' %}
+                <i class="fab fa-instagram"></i>
+            {% elif platform == 'vimeo' %}
+                <i class="fab fa-vimeo"></i>
+            {% elif platform == 'tiktok' %}
+                <i class="fab fa-tiktok"></i>
+            {% else %}
+                <i class="fas fa-video"></i>
+            {% endif %}
+            {{ page_obj.paginator.count }} vídeo{{ page_obj.paginator.count|pluralize }} encontrado{{ page_obj.paginator.count|pluralize }}
         </span>
     </div>
     {% endif %}
@@ -96,7 +143,17 @@
                              alt="{{ video.title }}"
                              loading="lazy">
                         <div class="play-button-overlay">
-                            <i class="fab fa-youtube"></i>
+                            {% if video.platform == 'youtube' %}
+                                <i class="fab fa-youtube"></i>
+                            {% elif video.platform == 'instagram' %}
+                                <i class="fab fa-instagram"></i>
+                            {% elif video.platform == 'vimeo' %}
+                                <i class="fab fa-vimeo"></i>
+                            {% elif video.platform == 'tiktok' %}
+                                <i class="fab fa-tiktok"></i>
+                            {% else %}
+                                <i class="fas fa-play"></i>
+                            {% endif %}
                         </div>
 
                         <!-- Badge de Duração -->
@@ -155,7 +212,17 @@
                         <!-- Botão de Assistir -->
                         <a href="{{ video.video_url }}" target="_blank" rel="noopener noreferrer"
                            class="btn btn-danger btn-sm w-100 mt-3">
-                            <i class="fab fa-youtube me-1"></i>Assistir no YouTube
+                            {% if video.platform == 'youtube' %}
+                                <i class="fab fa-youtube me-1"></i>Assistir no YouTube
+                            {% elif video.platform == 'instagram' %}
+                                <i class="fab fa-instagram me-1"></i>Ver no Instagram
+                            {% elif video.platform == 'vimeo' %}
+                                <i class="fab fa-vimeo me-1"></i>Assistir no Vimeo
+                            {% elif video.platform == 'tiktok' %}
+                                <i class="fab fa-tiktok me-1"></i>Ver no TikTok
+                            {% else %}
+                                <i class="fas fa-play me-1"></i>Assistir Vídeo
+                            {% endif %}
                         </a>
                     </div>
                 </div>
@@ -208,15 +275,31 @@
     {% else %}
     <!-- Mensagem quando não há resultados -->
     <div class="alert alert-info text-center">
-        <i class="fab fa-youtube fa-3x mb-3 text-danger"></i>
+        {% if platform == 'youtube' %}
+            <i class="fab fa-youtube fa-3x mb-3 text-danger"></i>
+        {% elif platform == 'instagram' %}
+            <i class="fab fa-instagram fa-3x mb-3 text-danger"></i>
+        {% elif platform == 'vimeo' %}
+            <i class="fab fa-vimeo fa-3x mb-3 text-primary"></i>
+        {% elif platform == 'tiktok' %}
+            <i class="fab fa-tiktok fa-3x mb-3"></i>
+        {% else %}
+            <i class="fas fa-video fa-3x mb-3 text-danger"></i>
+        {% endif %}
         <h4>Nenhum vídeo encontrado</h4>
-        {% if search_query or selected_category %}
+        {% if search_query or selected_video_type %}
         <p>Não encontramos vídeos com os filtros aplicados.</p>
-        <a href="{% url 'core:video_list' %}" class="btn btn-danger">
-            <i class="fab fa-youtube me-1"></i>Ver todos os vídeos
+        {% if platform %}
+        <a href="{% url 'core:video_list_by_platform' platform %}" class="btn btn-danger">
+            <i class="fas fa-video me-1"></i>Ver todos os vídeos
         </a>
         {% else %}
-        <p>Ainda não há vídeos cadastrados no catálogo.</p>
+        <a href="{% url 'core:video_list' %}" class="btn btn-danger">
+            <i class="fas fa-video me-1"></i>Ver todos os vídeos
+        </a>
+        {% endif %}
+        {% else %}
+        <p>Ainda não há vídeos {% if platform_name %}do {{ platform_name }}{% endif %} cadastrados no catálogo.</p>
         {% endif %}
     </div>
     {% endif %}

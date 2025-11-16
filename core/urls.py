@@ -85,6 +85,7 @@ urlpatterns = [
     path('autores/', AuthorListView.as_view(), name='author_list'),
     path('autores/<slug:slug>/', AuthorDetailView.as_view(), name='author_detail'),
     path('videos/', VideoListView.as_view(), name='video_list'),
+    path('videos/<str:platform>/', VideoListView.as_view(), name='video_list_by_platform'),
     path('buscar/', SearchView.as_view(), name='search'),
     path('sobre/', AboutView.as_view(), name='about'),
     path('contato/', ContactView.as_view(), name='contact'),
