@@ -428,6 +428,7 @@
 /* ============================================
    GRADIENT TRANSPARENTE ESTILO CRUNCHYROLL
    Fade para transparente na parte inferior
+   APENAS NO DARK MODE
    ============================================ */
 
 .banner-gradient-fade {
@@ -436,18 +437,12 @@
     left: 0;
     width: 100%;
     height: 40%;
-    background: linear-gradient(
-        to top,
-        var(--body-bg) 0%,
-        rgba(var(--body-bg-rgb, 255, 255, 255), 0.95) 10%,
-        rgba(var(--body-bg-rgb, 255, 255, 255), 0.7) 30%,
-        transparent 100%
-    );
+    background: transparent; /* Sem gradient no tema light */
     z-index: 3;
     pointer-events: none;
 }
 
-/* Versão dark mode */
+/* Versão dark mode - COM GRADIENT */
 [data-theme="dark"] .banner-gradient-fade {
     background: linear-gradient(
         to top,

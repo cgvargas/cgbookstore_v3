@@ -170,8 +170,8 @@
 
     <!-- Seções Dinâmicas -->
     {% for section in sections %}
-    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} {% if section.container_opacity != 1.0 or section.background_color %}has-custom-opacity{% endif %}"
-             style="{% if section.background_color %}--section-bg-color: {{ section.background_color }};{% endif %} {% if section.container_opacity %}--section-opacity: {{ section.container_opacity|floatformat:2 }};{% endif %}">
+    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} {% if section.container_opacity < 1.0 or section.background_color %}has-custom-opacity{% endif %}"
+             style="{% if section.background_color %}--section-bg-color: {{ section.background_color }};{% endif %}--section-opacity: {{ section.container_opacity|default:1.0|floatformat:2 }};">
         <div class="container">
             <!-- Cabeçalho da Seção -->
             <div class="carousel-header">
