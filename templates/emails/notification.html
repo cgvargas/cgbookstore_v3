@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ notification_title|default:"Nova Notificação" }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .content h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        .notification-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .button:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+        }
+        .meta-info {
+            color: #6c757d;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 CGBookStore</h1>
+            <p>Notificação</p>
+        </div>
+
+        <div class="content">
+            <h2>{{ notification_emoji|default:"🔔" }} {{ notification_title|default:"Nova Notificação" }}</h2>
+
+            <p>Olá, <strong>{{ user.username }}</strong>!</p>
+
+            <p>{{ notification_message|default:"Você tem uma nova notificação." }}</p>
+
+            {% if notification_details %}
+            <div class="notification-box">
+                {{ notification_details|safe }}
+            </div>
+            {% endif %}
+
+            {% if action_url %}
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ action_url }}" class="button">
+                    {{ action_text|default:"Ver Detalhes" }}
+                </a>
+            </div>
+            {% endif %}
+
+            {% if author %}
+            <div class="meta-info">
+                <p><strong>De:</strong> {{ author }}</p>
+            </div>
+            {% endif %}
+
+            {% if timestamp %}
+            <div class="meta-info">
+                <p><strong>Data:</strong> {{ timestamp }}</p>
+            </div>
+            {% endif %}
+
+            {% if action_url %}
+            <p style="margin-top: 30px; color: #6c757d; font-size: 14px;">
+                Se o botão acima não funcionar, copie e cole o seguinte link no seu navegador:
+            </p>
+            <p style="word-break: break-all; background-color: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 12px;">
+                {{ action_url }}
+            </p>
+            {% endif %}
+        </div>
+
+        <div class="footer">
+            <p><strong>Equipe CGBookStore</strong></p>
+            <p>© {% now "Y" %} CGBookStore. Todos os direitos reservados.</p>
+            <p style="margin-top: 10px; color: #868e96;">
+                Você está recebendo este email porque está cadastrado na CGBookStore.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
