@@ -126,22 +126,22 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
+                    <li class="nav-item mx-2">
                         <a class="nav-link" href="{% url 'core:home' %}">
                             Início
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item mx-2">
                         <a class="nav-link" href="{% url 'core:book_list' %}">
                             Catálogo
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item mx-2">
                         <a class="nav-link" href="{% url 'core:about' %}">
                             Sobre
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item mx-2">
                         <a class="nav-link" href="{% url 'core:contact' %}">
                             Contato
                         </a>
@@ -154,8 +154,8 @@
                     </li>
                     {% endif %}
                     {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'core:library' %}">
+                    <li class="nav-item mx-2">
+                        <a class="nav-link" href="{% url 'core:library' %}" style="color: #ff6600; font-weight: 600;">
                             <i class="fas fa-book-reader me-1"></i>Minha Biblioteca
                         </a>
                     </li>
@@ -290,7 +290,7 @@
     </nav>
 
     <!-- Conteúdo Principal -->
-    <main class="py-4">
+    <main style="padding-top: 0;">
         {% block content %}
         {% endblock %}
     </main>

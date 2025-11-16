@@ -8,49 +8,42 @@
         <div class="banner-slides">
             {% for banner in banners %}
             <div class="banner-slide {% if forloop.first %}active{% endif %}" data-banner-id="{{ banner.id }}">
-                {% if banner.link_url %}
-                <a href="{{ banner.link_url }}"
-                   {% if banner.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
-                   class="banner-link"
-                   onclick="trackBannerClick({{ banner.id }})">
-                {% endif %}
+                <div class="banner-image-wrapper">
+                    <img src="{{ banner.image.url }}"
+                         alt="{{ banner.title }}"
+                         class="banner-image">
 
-                    <div class="banner-image-wrapper">
-                        <img src="{{ banner.image.url }}"
-                             alt="{{ banner.title }}"
-                             class="banner-image">
+                    <!-- Overlay com gradiente para melhor legibilidade do texto -->
+                    <div class="banner-overlay"></div>
 
-                        <!-- Overlay com gradiente para melhor legibilidade do texto -->
-                        <div class="banner-overlay"></div>
+                    <!-- Gradient Fade Transparente (Estilo Crunchyroll) -->
+                    <div class="banner-gradient-fade"></div>
 
-                        <!-- Gradient Fade Transparente (Estilo Crunchyroll) -->
-                        <div class="banner-gradient-fade"></div>
+                    <!-- Conteúdo do Banner -->
+                    <div class="banner-content">
+                        <div class="container">
+                            <h2 class="banner-title">{{ banner.title }}</h2>
 
-                        <!-- Conteúdo do Banner -->
-                        <div class="banner-content">
-                            <div class="container">
-                                <h2 class="banner-title">{{ banner.title }}</h2>
+                            {% if banner.subtitle %}
+                            <p class="banner-subtitle">{{ banner.subtitle }}</p>
+                            {% endif %}
 
-                                {% if banner.subtitle %}
-                                <p class="banner-subtitle">{{ banner.subtitle }}</p>
-                                {% endif %}
+                            {% if banner.description %}
+                            <p class="banner-description">{{ banner.description }}</p>
+                            {% endif %}
 
-                                {% if banner.description %}
-                                <p class="banner-description">{{ banner.description }}</p>
-                                {% endif %}
-
-                                {% if banner.link_url and banner.link_text %}
-                                <button class="banner-cta-button">
-                                    {{ banner.link_text }} <i class="fas fa-arrow-right ms-2"></i>
-                                </button>
-                                {% endif %}
-                            </div>
+                            {% if banner.link_url and banner.link_text %}
+                            <a href="{{ banner.link_url }}"
+                               {% if banner.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+                               class="banner-cta-button"
+                               onclick="trackBannerClick({{ banner.id }})"
+                               style="display: inline-block; text-decoration: none;">
+                                {{ banner.link_text }} <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                            {% endif %}
                         </div>
                     </div>
-
-                {% if banner.link_url %}
-                </a>
-                {% endif %}
+                </div>
             </div>
             {% endfor %}
         </div>
