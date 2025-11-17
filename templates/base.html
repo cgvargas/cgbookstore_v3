@@ -65,8 +65,57 @@
         footer {
             background-color: #343a40;
             color: white;
-            padding: 2rem 0;
+            padding: 3rem 0 1rem 0;
             margin-top: auto;
+        }
+
+        footer h5 {
+            color: #fff;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        footer a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: #fff;
+        }
+
+        footer .social-links a {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        footer .social-links a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+
+        footer .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        footer .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+
+        footer .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1.5rem;
+            margin-top: 2rem;
         }
 
         /* Estilos do Theme Switcher */
@@ -295,14 +344,67 @@
 
     <!-- Footer -->
     <footer class="mt-5">
-        <div class="container text-center">
-            <p class="mb-0">
-                &copy; 2025 CG.BookStore. Todos os direitos reservados.
-            </p>
-            <p class="mb-0">
-                <a href="{% url 'core:about' %}" class="text-white text-decoration-none">Sobre</a> |
-                <a href="{% url 'core:contact' %}" class="text-white text-decoration-none">Contato</a>
-            </p>
+        <div class="container">
+            <div class="row">
+                <!-- Coluna 1: Sobre -->
+                <div class="col-md-4 mb-4">
+                    <h5><i class="fas fa-book-open me-2"></i>CG.BookStore</h5>
+                    <p class="text-white-50">
+                        Sua biblioteca digital completa. Descubra, leia e compartilhe os melhores livros com uma comunidade apaixonada por leitura.
+                    </p>
+                    <div class="social-links mt-3">
+                        <a href="https://www.instagram.com/cgbookstore" target="_blank" rel="noopener noreferrer" title="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://www.facebook.com/cgbookstore" target="_blank" rel="noopener noreferrer" title="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Coluna 2: Links Úteis -->
+                <div class="col-md-4 mb-4">
+                    <h5>Links Úteis</h5>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'core:home' %}"><i class="fas fa-home me-2"></i>Início</a></li>
+                        <li><a href="{% url 'core:book_list' %}"><i class="fas fa-book me-2"></i>Catálogo</a></li>
+                        {% if user.is_authenticated %}
+                        <li><a href="{% url 'core:library' %}"><i class="fas fa-book-reader me-2"></i>Minha Biblioteca</a></li>
+                        <li><a href="{% url 'accounts:profile_edit' %}"><i class="fas fa-user-edit me-2"></i>Meu Perfil</a></li>
+                        {% else %}
+                        <li><a href="{% url 'account_login' %}"><i class="fas fa-sign-in-alt me-2"></i>Entrar</a></li>
+                        <li><a href="{% url 'account_signup' %}"><i class="fas fa-user-plus me-2"></i>Cadastrar</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'finance:subscription_checkout' %}"><i class="fas fa-crown me-2"></i>Premium</a></li>
+                    </ul>
+                </div>
+
+                <!-- Coluna 3: Contato e Informações -->
+                <div class="col-md-4 mb-4">
+                    <h5>Contato</h5>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'core:about' %}"><i class="fas fa-info-circle me-2"></i>Sobre Nós</a></li>
+                        <li><a href="{% url 'core:contact' %}"><i class="fas fa-envelope me-2"></i>Fale Conosco</a></li>
+                        <li>
+                            <i class="fas fa-envelope me-2"></i>
+                            <a href="mailto:contato@cgbookstore.com">contato@cgbookstore.com</a>
+                        </li>
+                        <li class="text-white-50 mt-3">
+                            <i class="fas fa-clock me-2"></i>
+                            Atendimento: Seg-Sex, 9h-18h
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div class="row footer-bottom">
+                <div class="col-12 text-center">
+                    <p class="mb-0 text-white-50">
+                        &copy; {% now "Y" %} CG.BookStore. Todos os direitos reservados.
+                    </p>
+                </div>
+            </div>
         </div>
     </footer>
 
