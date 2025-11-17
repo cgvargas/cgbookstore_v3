@@ -79,21 +79,21 @@ class EnhancedGeminiRecommendationEngine:
                 top_k=40,
             )
 
-            # Adicionar timeout de 20 segundos
+            # Adicionar timeout de 40 segundos (aumentado para Render)
             import signal
 
             def timeout_handler(signum, frame):
-                raise TimeoutError("Gemini API timeout após 20 segundos")
+                raise TimeoutError("Gemini API timeout após 40 segundos")
 
-            # Configurar alarme de 20 segundos
+            # Configurar alarme de 40 segundos
             signal.signal(signal.SIGALRM, timeout_handler)
-            signal.alarm(20)
+            signal.alarm(40)
 
             try:
                 response = self.model.generate_content(
                     prompt,
                     generation_config=generation_config,
-                    request_options={'timeout': 20}
+                    request_options={'timeout': 40}
                 )
             finally:
                 # Cancelar alarme
