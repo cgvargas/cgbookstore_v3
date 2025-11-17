@@ -71,7 +71,33 @@ class EnhancedGeminiRecommendationEngine:
             prompt = self._build_enhanced_prompt(user, user_history, known_books, requested_books)
 
             logger.info(f"Calling Gemini AI for {user.username} (requesting {requested_books} books)...")
-            response = self.model.generate_content(prompt)
+
+            # Configurar timeout para evitar requisições travadas
+            generation_config = genai.GenerationConfig(
+                temperature=0.7,
+                top_p=0.95,
+                top_k=40,
+            )
+
+            # Adicionar timeout de 40 segundos (aumentado para Render)
+            import signal
+
+            def timeout_handler(signum, frame):
+                raise TimeoutError("Gemini API timeout após 40 segundos")
+
+            # Configurar alarme de 40 segundos
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(40)
+
+            try:
+                response = self.model.generate_content(
+                    prompt,
+                    generation_config=generation_config,
+                    request_options={'timeout': 40}
+                )
+            finally:
+                # Cancelar alarme
+                signal.alarm(0)
 
             # PASSO 2: Parse das recomendações da IA
             ai_recommendations = self._parse_ai_recommendations(response.text)
@@ -138,6 +164,9 @@ class EnhancedGeminiRecommendationEngine:
 
             return enriched_recommendations
 
+        except TimeoutError as e:
+            logger.error(f"Timeout calling Gemini AI: {e}")
+            return []
         except Exception as e:
             logger.error(f"Error in enhanced recommendations: {e}", exc_info=True)
             return []

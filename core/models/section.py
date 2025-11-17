@@ -2,6 +2,7 @@
 Model Section - Representa seções dinâmicas da home
 """
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Section(models.Model):
@@ -78,6 +79,13 @@ class Section(models.Model):
         max_length=100,
         blank=True,
         verbose_name="Classe CSS Personalizada"
+    )
+
+    container_opacity = models.FloatField(
+        default=1.0,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        verbose_name="Opacidade do Container",
+        help_text="Transparência do container (0.0 = totalmente transparente, 1.0 = totalmente opaco)"
     )
 
     # Configurações de exibição

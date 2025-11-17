@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django_ratelimit.decorators import ratelimit
 from django.utils import timezone
 from django.conf import settings
+from django.core.cache import cache
 from .algorithms import (
     CollaborativeFilteringAlgorithm,
     ContentBasedFilteringAlgorithm,
@@ -60,6 +61,17 @@ def get_recommendations_simple(request):
     - limit: número de recomendações (default: 10, max: 50)
     """
     try:
+        # Verificar saúde do Redis (apenas log, não bloqueia)
+        try:
+            cache.set('redis_health_check', 'ok', timeout=10)
+            redis_status = cache.get('redis_health_check')
+            if redis_status == 'ok':
+                logger.debug("✓ Redis is healthy")
+            else:
+                logger.warning("⚠ Redis cache not working properly (will run without cache)")
+        except Exception as e:
+            logger.warning(f"⚠ Redis unavailable: {e} (will run without cache)")
+
         # Obter parâmetros
         algorithm = request.GET.get('algorithm', 'hybrid')
         limit = int(request.GET.get('limit', 10))
@@ -120,11 +132,43 @@ def get_recommendations_simple(request):
             } for interaction in user_history]
 
             # Gerar recomendações potencializadas com Google Books
-            enhanced_recommendations = engine.generate_enhanced_recommendations(
-                request.user,
-                history_data,
-                n=limit
-            )
+            # Com fallback para recomendações personalizadas em caso de erro
+            try:
+                enhanced_recommendations = engine.generate_enhanced_recommendations(
+                    request.user,
+                    history_data,
+                    n=limit
+                )
+            except Exception as e:
+                logger.error(f"Gemini AI failed: {e}. Falling back to preference_hybrid")
+                # FALLBACK: Se IA falhar, usar recomendações personalizadas
+                fallback_engine = PreferenceWeightedHybrid()
+                fallback_recs = fallback_engine.recommend(request.user, n=limit)
+
+                # Formatar como resposta normal de algoritmo
+                books_data = []
+                for rec in fallback_recs:
+                    book = rec['book']
+                    author_name = str(book.author) if book.author else 'Autor desconhecido'
+                    books_data.append({
+                        'id': book.id,
+                        'slug': book.slug,
+                        'title': book.title,
+                        'author': author_name,
+                        'cover_image': book.cover_image.url if book.cover_image else None,
+                        'description': rec.get('reason', ''),
+                        'score': rec['score'],
+                        'reason': rec.get('reason', 'Recomendado para você'),
+                        'source': 'local_db'  # Banco local
+                    })
+
+                return JsonResponse({
+                    'algorithm': 'preference_hybrid',  # Indica que usou fallback
+                    'count': len(books_data),
+                    'recommendations': books_data,
+                    'fallback': True,  # Indica que foi fallback
+                    'fallback_reason': str(e)
+                })
 
             # Formatar resposta (livros do Google Books com imagens e descrições)
             books_data = []

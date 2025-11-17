@@ -1,5 +1,11 @@
 {% load static %}
 
+<!--
+    Seção de Recomendações Personalizadas
+    Versão: 2.1 (Timeouts corrigidos: 30s IA, 10s outros)
+    Última atualização: 2025-01-17
+    Hash: 8285116469456800a37717f6d04b1420
+-->
 <!-- Seção de Recomendações Personalizadas -->
 <section class="recommendations-section my-5" id="recommendations-for-you">
     <div class="container">
@@ -163,9 +169,12 @@ function loadRecommendations(algorithm) {
         </div>
     `;
 
-    // Fazer request para a API com timeout de 5 segundos
+    // Fazer request para a API com timeout adequado:
+    // - 30 segundos para IA (primeira chamada pode ser lenta)
+    // - 10 segundos para outros algoritmos
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutDuration = algorithm === 'ai' ? 30000 : 10000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
 
     fetch(`/recommendations/api/recommendations/?algorithm=${algorithm}&limit=6`, {
         credentials: 'same-origin',
