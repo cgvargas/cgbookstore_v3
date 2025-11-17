@@ -163,9 +163,12 @@ function loadRecommendations(algorithm) {
         </div>
     `;
 
-    // Fazer request para a API com timeout de 5 segundos
+    // Fazer request para a API com timeout adequado:
+    // - 30 segundos para IA (primeira chamada pode ser lenta)
+    // - 10 segundos para outros algoritmos
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutDuration = algorithm === 'ai' ? 30000 : 10000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
 
     fetch(`/recommendations/api/recommendations/?algorithm=${algorithm}&limit=6`, {
         credentials: 'same-origin',

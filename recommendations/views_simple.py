@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django_ratelimit.decorators import ratelimit
 from django.utils import timezone
 from django.conf import settings
+from django.core.cache import cache
 from .algorithms import (
     CollaborativeFilteringAlgorithm,
     ContentBasedFilteringAlgorithm,
@@ -60,6 +61,17 @@ def get_recommendations_simple(request):
     - limit: número de recomendações (default: 10, max: 50)
     """
     try:
+        # Verificar saúde do Redis (apenas log, não bloqueia)
+        try:
+            cache.set('redis_health_check', 'ok', timeout=10)
+            redis_status = cache.get('redis_health_check')
+            if redis_status == 'ok':
+                logger.debug("✓ Redis is healthy")
+            else:
+                logger.warning("⚠ Redis cache not working properly (will run without cache)")
+        except Exception as e:
+            logger.warning(f"⚠ Redis unavailable: {e} (will run without cache)")
+
         # Obter parâmetros
         algorithm = request.GET.get('algorithm', 'hybrid')
         limit = int(request.GET.get('limit', 10))

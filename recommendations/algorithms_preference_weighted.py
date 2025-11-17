@@ -11,6 +11,7 @@ Resultado: Recomendações MUITO mais precisas e personalizadas.
 """
 
 import numpy as np
+import hashlib
 from django.core.cache import cache
 from django.conf import settings
 from django.db.models import Count, Q
@@ -26,6 +27,35 @@ from .preference_analyzer import UserPreferenceAnalyzer, ShelfWeightConfig
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def get_user_shelves_hash(user):
+    """
+    Gera hash único baseado no estado atual das prateleiras do usuário.
+
+    O hash muda quando:
+    - Usuário adiciona/remove livros de qualquer prateleira
+    - Usuário move livros entre prateleiras
+
+    Returns:
+        String com hash MD5 de 8 caracteres
+    """
+    # Buscar todos os livros nas prateleiras, ordenados para consistência
+    shelf_items = BookShelf.objects.filter(user=user).order_by('shelf_type', 'book_id')
+
+    # Criar string com estado atual: "shelf_type:book_id,shelf_type:book_id,..."
+    shelf_state = ','.join([
+        f"{item.shelf_type}:{item.book_id}"
+        for item in shelf_items
+    ])
+
+    # Se usuário não tem livros, usar string vazia
+    if not shelf_state:
+        shelf_state = f"empty_user_{user.id}"
+
+    # Gerar hash MD5 e pegar primeiros 8 caracteres
+    hash_object = hashlib.md5(shelf_state.encode())
+    return hash_object.hexdigest()[:8]
 
 
 def get_user_shelf_book_ids(user):
@@ -63,11 +93,16 @@ class PreferenceWeightedCollaborative(CollaborativeFilteringAlgorithm):
         MUDANÇA: Ao invés de tratar todos os livros igualmente,
         dá mais peso a livros de prateleiras importantes.
         """
-        cache_key = f'pref_collab:similar_users:{user.id}'
+        # Cache key inclui hash das prateleiras
+        shelves_hash = get_user_shelves_hash(user)
+        cache_key = f'pref_collab:similar_users:{user.id}:{shelves_hash}'
         cached_result = cache.get(cache_key)
 
         if cached_result is not None:
+            logger.debug(f"✓ Cache hit for similar_users (shelves_hash={shelves_hash})")
             return cached_result
+
+        logger.debug(f"❌ Cache miss for similar_users (shelves_hash={shelves_hash})")
 
         # Usar analisador de preferências
         analyzer = UserPreferenceAnalyzer(user)
@@ -380,12 +415,16 @@ class PreferenceWeightedHybrid:
         """
         logger.info(f"🎯 PREF-HYBRID START: User={user.username}, n={n}")
 
-        cache_key = f'pref_hybrid_rec:{user.id}:{n}'
+        # Cache key inclui hash das prateleiras para invalidar quando usuário adiciona/remove livros
+        shelves_hash = get_user_shelves_hash(user)
+        cache_key = f'pref_hybrid_rec:{user.id}:{n}:{shelves_hash}'
         cached_result = cache.get(cache_key)
 
         if cached_result is not None:
-            logger.info(f"✓ Cache hit for pref-hybrid:{user.username}")
+            logger.info(f"✓ Cache hit for pref-hybrid:{user.username} (shelves_hash={shelves_hash})")
             return cached_result
+
+        logger.info(f"❌ Cache miss for pref-hybrid:{user.username} (shelves_hash={shelves_hash})")
 
         # Análise de preferências
         analyzer = UserPreferenceAnalyzer(user)
