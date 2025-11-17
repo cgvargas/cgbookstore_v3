@@ -13,11 +13,8 @@ pip install -r requirements.txt
 echo 'Collecting static files...'
 python manage.py collectstatic --no-input
 
-# Create migrations
-echo 'Checking for new migrations...'
-python manage.py makemigrations --no-input
-
-# Run migrations with verbose output
+# Skip makemigrations (migrations already in repo)
+# Apenas rodar migrations existentes
 echo 'Running database migrations...'
 python manage.py migrate --no-input --verbosity 2
 
