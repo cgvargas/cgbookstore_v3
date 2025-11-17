@@ -342,66 +342,88 @@
         {% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="mt-5">
+    <!-- Footer Elegante e Moderno -->
+    <footer class="mt-5" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; padding: 3rem 0 1rem; border-top: 3px solid #ff6600;">
         <div class="container">
             <div class="row">
-                <!-- Coluna 1: Sobre -->
+                <!-- Sobre a CG.BookStore -->
                 <div class="col-md-4 mb-4">
-                    <h5><i class="fas fa-book-open me-2"></i>CG.BookStore</h5>
-                    <p class="text-white-50">
-                        Sua biblioteca digital completa. Descubra, leia e compartilhe os melhores livros com uma comunidade apaixonada por leitura.
+                    <h5 class="mb-3" style="color: #ff6600; font-weight: 600;">
+                        <i class="fas fa-book-open me-2"></i>CG.BookStore
+                    </h5>
+                    <p class="text-muted small">
+                        Sua plataforma completa de leitura digital. Descubra, leia e compartilhe suas histórias favoritas.
                     </p>
-                    <div class="social-links mt-3">
-                        <a href="https://www.instagram.com/cgbookstore" target="_blank" rel="noopener noreferrer" title="Instagram">
+                    <div class="mt-3">
+                        <a href="https://www.facebook.com/cgbookstore" target="_blank" rel="noopener noreferrer" class="text-white me-3" style="font-size: 1.5rem; transition: color 0.3s;">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="https://twitter.com/cgbookstore" target="_blank" rel="noopener noreferrer" class="text-white me-3" style="font-size: 1.5rem; transition: color 0.3s;">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="https://www.instagram.com/cgbookstore" target="_blank" rel="noopener noreferrer" class="text-white me-3" style="font-size: 1.5rem; transition: color 0.3s;">
                             <i class="fab fa-instagram"></i>
                         </a>
-                        <a href="https://www.facebook.com/cgbookstore" target="_blank" rel="noopener noreferrer" title="Facebook">
-                            <i class="fab fa-facebook-f"></i>
+                        <a href="https://www.youtube.com/cgbookstore" target="_blank" rel="noopener noreferrer" class="text-white" style="font-size: 1.5rem; transition: color 0.3s;">
+                            <i class="fab fa-youtube"></i>
                         </a>
                     </div>
                 </div>
 
-                <!-- Coluna 2: Links Úteis -->
+                <!-- Links Rápidos -->
                 <div class="col-md-4 mb-4">
-                    <h5>Links Úteis</h5>
-                    <ul class="footer-links">
-                        <li><a href="{% url 'core:home' %}"><i class="fas fa-home me-2"></i>Início</a></li>
-                        <li><a href="{% url 'core:book_list' %}"><i class="fas fa-book me-2"></i>Catálogo</a></li>
-                        {% if user.is_authenticated %}
-                        <li><a href="{% url 'core:library' %}"><i class="fas fa-book-reader me-2"></i>Minha Biblioteca</a></li>
-                        <li><a href="{% url 'accounts:profile_edit' %}"><i class="fas fa-user-edit me-2"></i>Meu Perfil</a></li>
-                        {% else %}
-                        <li><a href="{% url 'account_login' %}"><i class="fas fa-sign-in-alt me-2"></i>Entrar</a></li>
-                        <li><a href="{% url 'account_signup' %}"><i class="fas fa-user-plus me-2"></i>Cadastrar</a></li>
-                        {% endif %}
-                        <li><a href="{% url 'finance:subscription_checkout' %}"><i class="fas fa-crown me-2"></i>Premium</a></li>
+                    <h5 class="mb-3" style="color: #ff6600; font-weight: 600;">Links Rápidos</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="{% url 'core:home' %}" class="text-white-50 text-decoration-none" style="transition: color 0.3s;">
+                                <i class="fas fa-chevron-right me-2" style="font-size: 0.8rem;"></i>Início
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'core:book_list' %}" class="text-white-50 text-decoration-none" style="transition: color 0.3s;">
+                                <i class="fas fa-chevron-right me-2" style="font-size: 0.8rem;"></i>Catálogo
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'core:about' %}" class="text-white-50 text-decoration-none" style="transition: color 0.3s;">
+                                <i class="fas fa-chevron-right me-2" style="font-size: 0.8rem;"></i>Sobre Nós
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'core:contact' %}" class="text-white-50 text-decoration-none" style="transition: color 0.3s;">
+                                <i class="fas fa-chevron-right me-2" style="font-size: 0.8rem;"></i>Contato
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
-                <!-- Coluna 3: Contato e Informações -->
+                <!-- Contato -->
                 <div class="col-md-4 mb-4">
-                    <h5>Contato</h5>
-                    <ul class="footer-links">
-                        <li><a href="{% url 'core:about' %}"><i class="fas fa-info-circle me-2"></i>Sobre Nós</a></li>
-                        <li><a href="{% url 'core:contact' %}"><i class="fas fa-envelope me-2"></i>Fale Conosco</a></li>
-                        <li>
-                            <i class="fas fa-envelope me-2"></i>
-                            <a href="mailto:contato@cgbookstore.com">contato@cgbookstore.com</a>
+                    <h5 class="mb-3" style="color: #ff6600; font-weight: 600;">Contato</h5>
+                    <ul class="list-unstyled text-white-50 small">
+                        <li class="mb-2">
+                            <i class="fas fa-envelope me-2" style="color: #ff6600;"></i>
+                            contato@cgbookstore.com
                         </li>
-                        <li class="text-white-50 mt-3">
-                            <i class="fas fa-clock me-2"></i>
-                            Atendimento: Seg-Sex, 9h-18h
+                        <li class="mb-2">
+                            <i class="fas fa-phone me-2" style="color: #ff6600;"></i>
+                            +55 (11) 1234-5678
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2" style="color: #ff6600;"></i>
+                            São Paulo, Brasil
                         </li>
                     </ul>
                 </div>
             </div>
 
             <!-- Copyright -->
-            <div class="row footer-bottom">
+            <div class="row mt-4 pt-3" style="border-top: 1px solid rgba(255, 255, 255, 0.1);">
                 <div class="col-12 text-center">
-                    <p class="mb-0 text-white-50">
+                    <p class="mb-0 text-white-50 small">
                         &copy; {% now "Y" %} CG.BookStore. Todos os direitos reservados.
+                        <span class="mx-2">|</span>
+                        Desenvolvido com <i class="fas fa-heart" style="color: #ff6600;"></i> para leitores apaixonados.
                     </p>
                 </div>
             </div>

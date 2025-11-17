@@ -46,7 +46,7 @@
 .swiper-slide .book-card {
     height: 100%;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 1px solid var(--border-color);
+    border: none;
     border-radius: var(--border-radius);
     overflow: hidden;
     background: var(--card-bg);
@@ -55,15 +55,15 @@
 .swiper-slide .book-card:hover {
     transform: translateY(-5px);
     box-shadow: var(--shadow-lg);
-    border-color: var(--border-hover);
 }
 
-/* Imagem de Capa */
+/* Imagem de Capa - Proporção 2:3 (padrão de capas de livros) */
 .swiper-slide .book-cover {
     width: 100%;
-    height: 300px;
-    object-fit: cover;
-    border-bottom: 1px solid var(--border-color);
+    aspect-ratio: 2 / 3;
+    object-fit: contain;
+    object-position: center;
+    background: var(--body-bg);
 }
 
 /* Corpo do Card */
@@ -178,7 +178,7 @@
 /* ===== VÍDEOS NAS SEÇÕES ===== */
 .video-card {
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: none;
     border-radius: 8px;
     overflow: hidden;
     transition: all 0.3s ease;
@@ -189,7 +189,6 @@
 .video-card:hover {
     transform: translateY(-5px);
     box-shadow: var(--shadow-lg);
-    border-color: var(--border-hover);
 }
 
 .video-link {
