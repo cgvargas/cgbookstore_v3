@@ -55,13 +55,6 @@
         font-size: 0.9rem;
     }
 
-    /* Seção de Boas-Vindas */
-    .bg-light {
-        background-color: var(--card-bg) !important;
-        color: var(--text-primary);
-        border: 1px solid var(--border-color);
-    }
-
     /* Cards de Vídeo */
     .video-card {
         background: var(--card-bg);
@@ -84,11 +77,12 @@
         background-color: var(--body-bg);
     }
 
-    /* Cards de Livros - Informações Compactas */
+    /* Cards de Livros - Informações Compactas - ESPAÇOS REDUZIDOS */
     .book-info-compact {
         font-size: 0.85rem;
-        gap: 0.5rem;
+        gap: 0.25rem;
         flex-wrap: wrap;
+        margin-top: 0.25rem;
     }
 
     .price-tag-compact {
@@ -112,6 +106,22 @@
     .rating-compact-home small {
         font-size: 0.7rem;
     }
+
+    /* Link do card de livro - Card inteiro clicável */
+    .book-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        height: 100%;
+    }
+
+    .book-card-link:hover {
+        color: inherit;
+    }
+
+    .book-card-link .book-card {
+        cursor: pointer;
+    }
 </style>
 {% endblock %}
 
@@ -126,27 +136,23 @@
     <!-- Banner Carousel -->
     {% include 'core/widgets/banner_carousel.html' %}
 
-    <!-- Seção de Boas-Vindas -->
     <div class="container">
-        <div class="p-5 mb-4 bg-light rounded-3 text-center">
-            <div class="container-fluid py-5">
-                <h1 class="display-5 fw-bold">Sua Aventura Literária Começa Aqui</h1>
-                <p class="fs-4">Explore milhares de títulos, descubra novos autores e mergulhe em histórias fascinantes com nosso assistente literário inteligente.</p>
-                <a href="{% url 'core:book_list' %}" class="btn btn-primary btn-lg">Ver Catálogo Completo</a>
-            </div>
-        </div>
-
         <!-- Premium CTA Widget -->
         <div class="mb-5">
             {% include 'finance/widgets/premium_cta.html' %}
         </div>
     </div>
 
+
     <!-- Seções Dinâmicas -->
     {% for section in sections %}
-    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %}"
-             {% if section.background_color %}style="background-color: {{ section.background_color }};"{% endif %}>
-        <div class="container">
+    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative"
+             style="{% if section.background_color %}--section-bg-color: {{ section.background_color }};{% endif %} {% if section.container_opacity %}--section-bg-opacity: {{ section.container_opacity|floatformat:2 }};{% endif %}">
+        <!-- Background com opacidade controlada -->
+        {% if section.background_color or section.container_opacity < 1.0 %}
+        <div class="section-background" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: {% if section.background_color %}{{ section.background_color }}{% else %}transparent{% endif %}; opacity: {% if section.container_opacity %}{{ section.container_opacity|floatformat:2 }}{% else %}1.0{% endif %}; z-index: -1; pointer-events: none;"></div>
+        {% endif %}
+        <div class="container position-relative">
             <!-- Cabeçalho da Seção -->
             <div class="carousel-header">
                 <h2>
@@ -155,7 +161,11 @@
                     {% elif section.content_type == 'authors' %}
                         <i class="fas fa-user-edit text-success me-2"></i>
                     {% elif section.content_type == 'videos' %}
-                        <i class="fas fa-video text-danger me-2"></i>
+                        {% if 'instagram' in section.title|lower %}
+                            <i class="fab fa-instagram text-danger me-2"></i>
+                        {% else %}
+                            <i class="fas fa-video text-danger me-2"></i>
+                        {% endif %}
                     {% endif %}
                     {{ section.title }}
                 </h2>
@@ -178,8 +188,56 @@
                             {% with obj=item.content_object %}
                             <div class="swiper-slide">
                                 {% if section.content_type == 'books' %}
-                                    <!-- Card de Livro -->
-                                    <div class="card book-card">
+                                    <!-- Card de Livro - MELHORADO: Card inteiro clicável -->
+                                    {% if obj.slug %}
+                                    <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
+                                        <div class="card book-card h-100">
+                                            {% if obj.cover_image %}
+                                                <img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">
+                                            {% else %}
+                                                <img src="{% static 'images/no-cover-placeholder.svg' %}"
+                                                     class="book-cover" alt="Sem capa">
+                                            {% endif %}
+                                            <div class="card-body">
+                                                <h5 class="card-title mb-1">{{ item.get_display_title|truncatewords:8 }}</h5>
+                                                {% if obj.author %}
+                                                    <p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>
+                                                {% endif %}
+
+                                                <!-- Preço e Avaliação em uma linha compacta - ESPAÇOS REDUZIDOS -->
+                                                <div class="d-flex justify-content-between align-items-center book-info-compact">
+                                                    <span class="price-tag-compact">
+                                                        {% if obj.price %}
+                                                            R$ {{ obj.price|floatformat:2 }}
+                                                        {% else %}
+                                                            <span class="text-muted small">Consulte</span>
+                                                        {% endif %}
+                                                    </span>
+
+                                                    {% if obj.average_rating %}
+                                                    <div class="rating-compact-home">
+                                                        <span class="stars-small-home">
+                                                            {% for i in 5|range %}
+                                                                {% if i < obj.average_rating %}
+                                                                    <i class="fas fa-star text-warning"></i>
+                                                                {% else %}
+                                                                    <i class="far fa-star text-muted"></i>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </span>
+                                                        {% if obj.reviews_count %}
+                                                            <small class="text-muted ms-1">({{ obj.reviews_count }})</small>
+                                                        {% endif %}
+                                                    </div>
+                                                    {% else %}
+                                                        <span class="text-muted small">Sem avaliações</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    {% else %}
+                                    <div class="card book-card h-100">
                                         {% if obj.cover_image %}
                                             <img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">
                                         {% else %}
@@ -187,48 +245,13 @@
                                                  class="book-cover" alt="Sem capa">
                                         {% endif %}
                                         <div class="card-body">
-                                            <h5 class="card-title">{{ item.get_display_title|truncatewords:8 }}</h5>
+                                            <h5 class="card-title mb-1">{{ item.get_display_title|truncatewords:8 }}</h5>
                                             {% if obj.author %}
-                                                <p class="card-text text-muted small mb-2">{{ obj.author.name }}</p>
-                                            {% endif %}
-
-                                            <!-- Preço e Avaliação em uma linha compacta -->
-                                            <div class="d-flex justify-content-between align-items-center mb-2 book-info-compact">
-                                                <span class="price-tag-compact">
-                                                    {% if obj.price %}
-                                                        R$ {{ obj.price|floatformat:2 }}
-                                                    {% else %}
-                                                        <span class="text-muted small">Consulte</span>
-                                                    {% endif %}
-                                                </span>
-
-                                                {% if obj.average_rating %}
-                                                <div class="rating-compact-home">
-                                                    <span class="stars-small-home">
-                                                        {% for i in 5|range %}
-                                                            {% if i < obj.average_rating %}
-                                                                <i class="fas fa-star text-warning"></i>
-                                                            {% else %}
-                                                                <i class="far fa-star text-muted"></i>
-                                                            {% endif %}
-                                                        {% endfor %}
-                                                    </span>
-                                                    {% if obj.reviews_count %}
-                                                        <small class="text-muted ms-1">({{ obj.reviews_count }})</small>
-                                                    {% endif %}
-                                                </div>
-                                                {% else %}
-                                                    <span class="text-muted small">Sem avaliações</span>
-                                                {% endif %}
-                                            </div>
-
-                                            {% if obj.slug %}
-                                            <a href="{% url 'core:book_detail' obj.slug %}" class="btn btn-sm btn-outline-primary w-100">
-                                                Ver Detalhes
-                                            </a>
+                                                <p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>
                                             {% endif %}
                                         </div>
                                     </div>
+                                    {% endif %}
 
                                 {% elif section.content_type == 'authors' %}
                                     <!-- Card de Autor -->
@@ -312,7 +335,55 @@
                         {% with obj=item.content_object %}
                         <div class="col-md-3">
                             {% if section.content_type == 'books' %}
-                                <!-- Card de Livro -->
+                                <!-- Card de Livro - MELHORADO: Card inteiro clicável -->
+                                {% if obj.slug %}
+                                <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
+                                    <div class="card book-card h-100">
+                                        {% if obj.cover_image %}
+                                            <img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">
+                                        {% else %}
+                                            <img src="{% static 'images/no-cover-placeholder.svg' %}"
+                                                 class="book-cover" alt="Sem capa">
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <h5 class="card-title mb-1">{{ item.get_display_title }}</h5>
+                                            {% if obj.author %}
+                                                <p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>
+                                            {% endif %}
+
+                                            <!-- Preço e Avaliação em uma linha compacta - ESPAÇOS REDUZIDOS -->
+                                            <div class="d-flex justify-content-between align-items-center book-info-compact">
+                                                <span class="price-tag-compact">
+                                                    {% if obj.price %}
+                                                        R$ {{ obj.price|floatformat:2 }}
+                                                    {% else %}
+                                                        <span class="text-muted small">Consulte</span>
+                                                    {% endif %}
+                                                </span>
+
+                                                {% if obj.average_rating %}
+                                                <div class="rating-compact-home">
+                                                    <span class="stars-small-home">
+                                                        {% for i in 5|range %}
+                                                            {% if i < obj.average_rating %}
+                                                                <i class="fas fa-star text-warning"></i>
+                                                            {% else %}
+                                                                <i class="far fa-star text-muted"></i>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </span>
+                                                    {% if obj.reviews_count %}
+                                                        <small class="text-muted ms-1">({{ obj.reviews_count }})</small>
+                                                    {% endif %}
+                                                </div>
+                                                {% else %}
+                                                    <span class="text-muted small">Sem avaliações</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                                {% else %}
                                 <div class="card book-card h-100">
                                     {% if obj.cover_image %}
                                         <img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">
@@ -321,48 +392,13 @@
                                              class="book-cover" alt="Sem capa">
                                     {% endif %}
                                     <div class="card-body">
-                                        <h5 class="card-title">{{ item.get_display_title }}</h5>
+                                        <h5 class="card-title mb-1">{{ item.get_display_title }}</h5>
                                         {% if obj.author %}
-                                            <p class="card-text text-muted small mb-2">{{ obj.author.name }}</p>
-                                        {% endif %}
-
-                                        <!-- Preço e Avaliação em uma linha compacta -->
-                                        <div class="d-flex justify-content-between align-items-center mb-2 book-info-compact">
-                                            <span class="price-tag-compact">
-                                                {% if obj.price %}
-                                                    R$ {{ obj.price|floatformat:2 }}
-                                                {% else %}
-                                                    <span class="text-muted small">Consulte</span>
-                                                {% endif %}
-                                            </span>
-
-                                            {% if obj.average_rating %}
-                                            <div class="rating-compact-home">
-                                                <span class="stars-small-home">
-                                                    {% for i in 5|range %}
-                                                        {% if i < obj.average_rating %}
-                                                            <i class="fas fa-star text-warning"></i>
-                                                        {% else %}
-                                                            <i class="far fa-star text-muted"></i>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                </span>
-                                                {% if obj.reviews_count %}
-                                                    <small class="text-muted ms-1">({{ obj.reviews_count }})</small>
-                                                {% endif %}
-                                            </div>
-                                            {% else %}
-                                                <span class="text-muted small">Sem avaliações</span>
-                                            {% endif %}
-                                        </div>
-
-                                        {% if obj.slug %}
-                                        <a href="{% url 'core:book_detail' obj.slug %}" class="btn btn-sm btn-outline-primary w-100">
-                                            Ver Detalhes
-                                        </a>
+                                            <p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>
                                         {% endif %}
                                     </div>
                                 </div>
+                                {% endif %}
 
                             {% elif section.content_type == 'authors' %}
                                 <!-- Card de Autor - CORRIGIDO -->
