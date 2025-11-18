@@ -135,7 +135,7 @@
     {% include 'core/widgets/banner_carousel.html' %}
 
     <!-- Container com margem negativa para sobrepor o banner -->
-    <div class="container" style="position: relative; margin-top: -400px; z-index: 100;">
+    <div class="container" style="position: relative; margin-top: -700px; z-index: 1000;">
         <!-- Premium CTA Widget -->
         <div class="mb-5">
             {% include 'finance/widgets/premium_cta.html' %}
@@ -144,7 +144,7 @@
 
     <!-- Seções Dinâmicas -->
     {% for section in sections %}
-    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %}" style="position: relative; z-index: 100; {% if section.background_color %}background-color: {{ section.background_color }};{% endif %}"
+    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %}" style="position: relative; z-index: 1000; {% if section.background_color %}background-color: {{ section.background_color }};{% endif %}"
         <div class="container">
             <!-- Cabeçalho da Seção -->
             <div class="carousel-header">
