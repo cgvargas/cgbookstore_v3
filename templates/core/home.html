@@ -11,6 +11,16 @@
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         background: var(--card-bg);
         border-color: var(--border-color);
+        min-height: 380px;
+        max-height: 380px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .author-card .card-body {
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
 
     .author-card:hover {
