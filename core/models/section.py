@@ -74,6 +74,12 @@ class Section(models.Model):
         help_text="Ex: #f8f9fa, transparent"
     )
 
+    container_opacity = models.FloatField(
+        default=1.0,
+        verbose_name="Opacidade do Fundo",
+        help_text="Opacidade do fundo da seção (0.0 a 1.0). 1.0 = opaco, 0.0 = transparente"
+    )
+
     css_class = models.CharField(
         max_length=100,
         blank=True,

@@ -120,6 +120,30 @@
     .rating-compact-home small {
         font-size: 0.7rem;
     }
+
+    /* Sistema de opacidade de seção com ::before */
+    section.has-custom-opacity {
+        position: relative;
+        background: transparent !important;
+    }
+
+    section.has-custom-opacity::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--section-bg-color, var(--card-bg));
+        opacity: var(--section-opacity, 1.0);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    section.has-custom-opacity > .container {
+        position: relative;
+        z-index: 1;
+    }
 </style>
 {% endblock %}
 
@@ -144,7 +168,7 @@
 
     <!-- Seções Dinâmicas -->
     {% for section in sections %}
-    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %}" style="position: relative; z-index: 1000; {% if section.background_color %}background-color: {{ section.background_color }};{% endif %}"
+    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} {% if section.container_opacity < 1.0 or section.background_color %}has-custom-opacity{% endif %}" style="position: relative; z-index: 1000; {% if section.background_color %}--section-bg-color: {{ section.background_color }};{% endif %}--section-opacity: {{ section.container_opacity|default:1.0|floatformat:2 }};"
         <div class="container">
             <!-- Cabeçalho da Seção -->
             <div class="carousel-header">
@@ -468,7 +492,7 @@
     // Inicializar todos os carrosseis Swiper
     document.querySelectorAll('.books-swiper').forEach((swiperEl) => {
         new Swiper(swiperEl, {
-            slidesPerView: 1,
+            slidesPerView: 2,
             spaceBetween: 10,
             navigation: {
                 nextEl: swiperEl.querySelector('.swiper-button-next'),
@@ -480,20 +504,20 @@
             },
             breakpoints: {
                 640: {
-                    slidesPerView: 2,
+                    slidesPerView: 3,
                     spaceBetween: 10,
                 },
                 768: {
-                    slidesPerView: 3,
-                    spaceBetween: 15,
+                    slidesPerView: 4,
+                    spaceBetween: 12,
                 },
                 1024: {
-                    slidesPerView: 4,
-                    spaceBetween: 15,
+                    slidesPerView: 6,
+                    spaceBetween: 12,
                 },
                 1280: {
-                    slidesPerView: 5,
-                    spaceBetween: 15,
+                    slidesPerView: 7,
+                    spaceBetween: 12,
                 },
             },
         });
