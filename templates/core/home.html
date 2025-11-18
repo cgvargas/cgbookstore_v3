@@ -6,17 +6,34 @@
 <link rel="stylesheet" href="{% static 'css/carousel.css' %}">
 <link rel="stylesheet" href="{% static 'css/banner-carousel.css' %}">
 <style>
-    /* Estilos para cards de autores */
+    /* Estilos para cards de autores - Altura Padronizada */
     .author-card {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         background: var(--card-bg);
-        border-color: var(--border-color);
+        border: none;
+        min-height: 320px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
     }
 
     .author-card:hover {
         transform: translateY(-5px);
         box-shadow: var(--shadow-lg);
-        border-color: var(--border-hover);
+    }
+
+    .author-card .card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .author-card .card-text {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .author-photo {
@@ -25,7 +42,7 @@
         object-fit: cover;
         border-radius: 50%;
         margin: 20px auto 15px;
-        border: 4px solid var(--border-color);
+        border: none;
         box-shadow: var(--shadow-md);
     }
 
@@ -40,7 +57,7 @@
         justify-content: center;
         font-size: 3rem;
         color: white;
-        border: 4px solid var(--border-color);
+        border: none;
         box-shadow: var(--shadow-md);
     }
 
@@ -58,11 +75,9 @@
     /* Cards de Vídeo */
     .video-card {
         background: var(--card-bg);
-        border-color: var(--border-color);
     }
 
     .video-card:hover {
-        border-color: var(--border-hover);
         box-shadow: var(--shadow-md);
     }
 
@@ -122,6 +137,30 @@
     .book-card-link .book-card {
         cursor: pointer;
     }
+
+    /* Sistema de opacidade de seção com ::before */
+    section.has-custom-opacity {
+        position: relative;
+        background: transparent !important;
+    }
+
+    section.has-custom-opacity::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--section-bg-color, var(--card-bg));
+        opacity: var(--section-opacity, 1.0);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    section.has-custom-opacity > .container {
+        position: relative;
+        z-index: 1;
+    }
 </style>
 {% endblock %}
 
@@ -133,10 +172,11 @@
 
 {% block content %}
 <div class="container-fluid px-0">
-    <!-- Banner Carousel -->
+    <!-- Banner Carousel como Background -->
     {% include 'core/widgets/banner_carousel.html' %}
 
-    <div class="container">
+    <!-- Container com margem negativa para sobrepor o banner -->
+    <div class="container" style="position: relative; margin-top: -700px; z-index: 1000;">
         <!-- Premium CTA Widget -->
         <div class="mb-5">
             {% include 'finance/widgets/premium_cta.html' %}
@@ -146,13 +186,8 @@
 
     <!-- Seções Dinâmicas -->
     {% for section in sections %}
-    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative"
-             style="{% if section.background_color %}--section-bg-color: {{ section.background_color }};{% endif %} {% if section.container_opacity %}--section-bg-opacity: {{ section.container_opacity|floatformat:2 }};{% endif %}">
-        <!-- Background com opacidade controlada -->
-        {% if section.background_color or section.container_opacity < 1.0 %}
-        <div class="section-background" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: {% if section.background_color %}{{ section.background_color }}{% else %}transparent{% endif %}; opacity: {% if section.container_opacity %}{{ section.container_opacity|floatformat:2 }}{% else %}1.0{% endif %}; z-index: -1; pointer-events: none;"></div>
-        {% endif %}
-        <div class="container position-relative">
+    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} {% if section.container_opacity < 1.0 or section.background_color %}has-custom-opacity{% endif %}" style="position: relative; z-index: 1000; {% if section.background_color %}--section-bg-color: {{ section.background_color }};{% endif %}--section-opacity: {{ section.container_opacity|default:1.0|floatformat:2 }};">
+        <div class="container">
             <!-- Cabeçalho da Seção -->
             <div class="carousel-header">
                 <h2>
@@ -505,8 +540,8 @@
     // Inicializar todos os carrosseis Swiper
     document.querySelectorAll('.books-swiper').forEach((swiperEl) => {
         new Swiper(swiperEl, {
-            slidesPerView: 1,
-            spaceBetween: 20,
+            slidesPerView: 2,
+            spaceBetween: 10,
             navigation: {
                 nextEl: swiperEl.querySelector('.swiper-button-next'),
                 prevEl: swiperEl.querySelector('.swiper-button-prev'),
@@ -517,20 +552,20 @@
             },
             breakpoints: {
                 640: {
-                    slidesPerView: 2,
-                    spaceBetween: 20,
+                    slidesPerView: 3,
+                    spaceBetween: 10,
                 },
                 768: {
-                    slidesPerView: 3,
-                    spaceBetween: 30,
+                    slidesPerView: 4,
+                    spaceBetween: 12,
                 },
                 1024: {
-                    slidesPerView: 4,
-                    spaceBetween: 30,
+                    slidesPerView: 6,
+                    spaceBetween: 12,
                 },
                 1280: {
-                    slidesPerView: 5,
-                    spaceBetween: 30,
+                    slidesPerView: 7,
+                    spaceBetween: 12,
                 },
             },
         });

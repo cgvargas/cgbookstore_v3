@@ -1,0 +1,30 @@
+📚 CGBookStore - Notificação
+
+Olá, {{ user.username }}!
+
+{{ notification_title|default:"Nova Notificação" }}
+
+{{ notification_message|default:"Você tem uma nova notificação." }}
+
+{% if notification_details %}
+Detalhes:
+{{ notification_details|striptags }}
+{% endif %}
+
+{% if author %}
+De: {{ author }}
+{% endif %}
+
+{% if timestamp %}
+Data: {{ timestamp }}
+{% endif %}
+
+{% if action_url %}
+Link: {{ action_url }}
+{% endif %}
+
+---
+Equipe CGBookStore
+© {% now "Y" %} CGBookStore. Todos os direitos reservados.
+
+Você está recebendo este email porque está cadastrado na CGBookStore.
