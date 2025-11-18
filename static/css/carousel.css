@@ -49,7 +49,7 @@
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     overflow: hidden;
-    background: var(--card-bg);
+    background: transparent;
 }
 
 .swiper-slide .book-card:hover {
@@ -72,7 +72,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
-    background: var(--card-bg);
+    background: transparent;
 }
 
 .swiper-slide .card-title {

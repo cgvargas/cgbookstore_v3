@@ -20,6 +20,7 @@
     margin-bottom: 3rem;
     position: relative;
     overflow: hidden;
+    z-index: 0;
 }
 
 .banner-carousel {
@@ -443,7 +444,7 @@
         rgba(var(--body-bg-rgb, 255, 255, 255), 0.7) 30%,
         transparent 100%
     );
-    z-index: 3;
+    z-index: 1;
     pointer-events: none;
 }
 
