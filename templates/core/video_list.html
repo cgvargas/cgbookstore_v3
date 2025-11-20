@@ -60,19 +60,22 @@
                     </select>
                 </div>
 
+                <!-- Filtro por Plataforma removido - funcionalidade desativada -->
+                {% comment %}
                 <!-- Filtro por Plataforma (apenas se não filtrado por URL) -->
                 {% if not platform %}
                 <div class="col-md-2">
-                    <a href="{% url 'core:video_list_by_platform' 'youtube' %}" class="btn btn-outline-danger w-100 {% if platform == 'youtube' %}active{% endif %}">
+                    <a href="{% url 'core:video_list' %}?platform=youtube" class="btn btn-outline-danger w-100">
                         <i class="fab fa-youtube"></i>
                     </a>
                 </div>
                 <div class="col-md-2">
-                    <a href="{% url 'core:video_list_by_platform' 'instagram' %}" class="btn btn-outline-danger w-100 {% if platform == 'instagram' %}active{% endif %}">
+                    <a href="{% url 'core:video_list' %}?platform=instagram" class="btn btn-outline-danger w-100">
                         <i class="fab fa-instagram"></i>
                     </a>
                 </div>
                 {% endif %}
+                {% endcomment %}
 
                 <!-- Botão Buscar -->
                 <div class="col-md-2">
@@ -95,15 +98,9 @@
                     <i class="fas fa-tag"></i> {{ selected_video_type|title }}
                 </span>
                 {% endif %}
-                {% if platform %}
-                <a href="{% url 'core:video_list_by_platform' platform %}" class="btn btn-sm btn-outline-danger">
-                    <i class="fas fa-times"></i> Limpar filtros
-                </a>
-                {% else %}
                 <a href="{% url 'core:video_list' %}" class="btn btn-sm btn-outline-danger">
                     <i class="fas fa-times"></i> Limpar filtros
                 </a>
-                {% endif %}
             </div>
             {% endif %}
         </div>
@@ -289,15 +286,9 @@
         <h4>Nenhum vídeo encontrado</h4>
         {% if search_query or selected_video_type %}
         <p>Não encontramos vídeos com os filtros aplicados.</p>
-        {% if platform %}
-        <a href="{% url 'core:video_list_by_platform' platform %}" class="btn btn-danger">
-            <i class="fas fa-video me-1"></i>Ver todos os vídeos
-        </a>
-        {% else %}
         <a href="{% url 'core:video_list' %}" class="btn btn-danger">
             <i class="fas fa-video me-1"></i>Ver todos os vídeos
         </a>
-        {% endif %}
         {% else %}
         <p>Ainda não há vídeos {% if platform_name %}do {{ platform_name }}{% endif %} cadastrados no catálogo.</p>
         {% endif %}

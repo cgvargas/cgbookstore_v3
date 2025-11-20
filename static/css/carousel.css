@@ -5,8 +5,9 @@
 
 .books-carousel-section {
     margin: 3rem 0;
-    background: var(--card-bg);
+    /* Background removido - controlado pelo admin via container_opacity */
     padding: 2rem 0;
+    position: relative; /* Necessário para z-index funcionar */
 }
 
 .carousel-header {

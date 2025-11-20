@@ -44,6 +44,7 @@ class SupabaseMediaStorage(Storage):
         self.bucket_mapping = {
             'books/covers/': self._supabase.BOOK_COVERS_BUCKET,
             'authors/photos/': self._supabase.AUTHOR_PHOTOS_BUCKET,
+            'banners/home/': self._supabase.BOOK_COVERS_BUCKET,  # Banners usam mesmo bucket
             'events/': self._supabase.BOOK_COVERS_BUCKET,  # Usando mesmo bucket
             'users/': self._supabase.USER_AVATARS_BUCKET,
         }
