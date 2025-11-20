@@ -189,10 +189,8 @@
     {% for section in sections %}
     <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative {% if forloop.first %}section-overlap-banner{% endif %}"
              style="{% if section.background_color %}--section-bg-color: {{ section.background_color }};{% endif %} {% if section.container_opacity %}--section-bg-opacity: {{ section.container_opacity|floatformat:2 }};{% endif %}">
-        <!-- Background com opacidade controlada -->
-        {% if section.background_color or section.container_opacity != 1.0 %}
-        <div class="section-background" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: {% if section.background_color %}{{ section.background_color }}{% else %}var(--body-bg){% endif %}; opacity: {{ section.container_opacity|floatformat:2 }}; z-index: -1; pointer-events: none;"></div>
-        {% endif %}
+        <!-- Background com opacidade controlada (sempre renderizado) -->
+        <div class="section-background" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: {% if section.background_color %}{{ section.background_color }}{% else %}var(--card-bg){% endif %}; opacity: {{ section.container_opacity|default:1.0|floatformat:2 }}; z-index: -1; pointer-events: none;"></div>
         <div class="container position-relative">
             <!-- Cabeçalho da Seção -->
             <div class="carousel-header">
