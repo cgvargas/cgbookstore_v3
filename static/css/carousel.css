@@ -5,9 +5,20 @@
 
 .books-carousel-section {
     margin: 3rem 0;
-    background: var(--card-bg); /* Background padrão restaurado */
+    /* Background controlado por div separada no template */
     padding: 2rem 0;
     position: relative; /* Necessário para z-index funcionar */
+}
+
+/* Background da seção (permite transparência sem afetar conteúdo) */
+.section-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0; /* Fica atrás do conteúdo */
+    pointer-events: none; /* Não interfere em cliques */
 }
 
 .carousel-header {

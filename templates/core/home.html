@@ -187,9 +187,11 @@
 
     <!-- Seções Dinâmicas -->
     {% for section in sections %}
-    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative {% if forloop.first %}section-overlap-banner{% endif %}"
-             {% if section.background_color or section.container_opacity < 1.0 %}style="{% if section.background_color %}background-color: {{ section.background_color }};{% endif %}{% if section.container_opacity < 1.0 %} opacity: {{ section.container_opacity|floatformat:2 }};{% endif %}"{% endif %}>
-        <div class="container position-relative">
+    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative {% if forloop.first %}section-overlap-banner{% endif %}">
+        <!-- Background com opacidade controlada (não afeta conteúdo) -->
+        <div class="section-background" style="background-color: {% if section.background_color %}{{ section.background_color }}{% else %}var(--card-bg){% endif %}; opacity: {{ section.container_opacity|default:1.0|floatformat:2 }};"></div>
+
+        <div class="container position-relative" style="z-index: 1;">
             <!-- Cabeçalho da Seção -->
             <div class="carousel-header">
                 <h2>
