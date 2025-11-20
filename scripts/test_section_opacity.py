@@ -3,7 +3,12 @@ Script para testar valores de transparência das seções.
 Execute: python scripts/test_section_opacity.py
 """
 import os
+import sys
 import django
+
+# Adicionar diretório raiz do projeto ao PYTHONPATH
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, BASE_DIR)
 
 # Setup Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cgbookstore.settings')
