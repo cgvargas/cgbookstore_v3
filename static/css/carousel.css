@@ -5,7 +5,7 @@
 
 .books-carousel-section {
     margin: 3rem 0;
-    /* Background removido - controlado pelo admin via container_opacity */
+    background: var(--card-bg); /* Background padrão restaurado */
     padding: 2rem 0;
     position: relative; /* Necessário para z-index funcionar */
 }
