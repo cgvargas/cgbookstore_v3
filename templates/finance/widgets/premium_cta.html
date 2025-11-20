@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const premiumWidget = document.getElementById('premiumCtaSidebar');
     if (!premiumWidget) return;
 
-    // Verificar se foi fechado (expira em 7 dias)
+    // Verificar se foi fechado (expira em 2 dias)
     const closedUntil = localStorage.getItem('premiumWidgetClosedUntil');
     if (closedUntil && new Date().getTime() < parseInt(closedUntil)) {
         premiumWidget.style.display = 'none';
@@ -279,9 +279,9 @@ function closePremiumWidget() {
     // Adicionar animação de saída
     premiumWidget.classList.add('hidden');
 
-    // Salvar no localStorage (7 dias)
-    const sevenDays = 7 * 24 * 60 * 60 * 1000; // 7 dias em ms
-    const closedUntil = new Date().getTime() + sevenDays;
+    // Salvar no localStorage (2 dias)
+    const twoDays = 2 * 24 * 60 * 60 * 1000; // 2 dias em ms
+    const closedUntil = new Date().getTime() + twoDays;
     localStorage.setItem('premiumWidgetClosedUntil', closedUntil.toString());
 
     // Remover do DOM após animação
@@ -290,6 +290,6 @@ function closePremiumWidget() {
     }, 300);
 }
 
-// Reabrir o widget automaticamente após 7 dias (feito através do localStorage)
+// Reabrir o widget automaticamente após 2 dias (feito através do localStorage)
 </script>
 {% endif %}
