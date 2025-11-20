@@ -258,8 +258,10 @@ class SectionAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
             'fields': (
                 'background_color',
+                'container_opacity',
                 'css_class'
-            )
+            ),
+            'description': 'Controle de transparência (0.0 = totalmente transparente, 1.0 = totalmente opaco) - útil para efeito Crunchyroll'
         }),
         ('Timestamps', {
             'classes': ('collapse',),

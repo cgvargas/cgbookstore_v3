@@ -185,14 +185,6 @@
     <!-- Banner Carousel -->
     {% include 'core/widgets/banner_carousel.html' %}
 
-    <div class="container">
-        <!-- Premium CTA Widget -->
-        <div class="mb-5">
-            {% include 'finance/widgets/premium_cta.html' %}
-        </div>
-    </div>
-
-
     <!-- Seções Dinâmicas -->
     {% for section in sections %}
     <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative {% if forloop.first %}section-overlap-banner{% endif %}"
@@ -542,6 +534,10 @@
     {% include 'recommendations/recommendations_section.html' %}
 
 </div>
+
+<!-- Premium CTA Widget - Lateral Flutuante -->
+{% include 'finance/widgets/premium_cta.html' %}
+
 {% endblock %}
 
 {% block extra_js %}
