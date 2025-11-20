@@ -73,6 +73,12 @@ class Banner(models.Model):
         help_text="Desmarque para ocultar este banner"
     )
 
+    height = models.PositiveIntegerField(
+        default=700,
+        verbose_name="Altura do Banner (px)",
+        help_text="Altura do banner em pixels (padrão: 700px, estilo Crunchyroll: 700-900px)"
+    )
+
     # Período de exibição
     start_date = models.DateTimeField(
         null=True,

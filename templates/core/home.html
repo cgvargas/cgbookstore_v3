@@ -6,6 +6,45 @@
 <link rel="stylesheet" href="{% static 'css/carousel.css' %}">
 <link rel="stylesheet" href="{% static 'css/banner-carousel.css' %}">
 <style>
+    /* ============================================
+       EFEITO CRUNCHYROLL - Seções sobre o Banner
+       ============================================ */
+    .section-overlap-banner {
+        margin-top: -200px; /* Sobe sobre o banner */
+        z-index: 10; /* Acima do banner */
+        position: relative;
+    }
+
+    /* Garantir que o container da seção tenha fundo quando necessário */
+    .section-overlap-banner .container {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Ajustar padding top para acomodar a sobreposição */
+    .section-overlap-banner {
+        padding-top: 2rem;
+    }
+
+    /* Responsividade do efeito de sobreposição */
+    @media (max-width: 992px) {
+        .section-overlap-banner {
+            margin-top: -150px; /* Menos sobreposição em tablets */
+        }
+    }
+
+    @media (max-width: 768px) {
+        .section-overlap-banner {
+            margin-top: -100px; /* Menos sobreposição em mobile */
+        }
+    }
+
+    @media (max-width: 576px) {
+        .section-overlap-banner {
+            margin-top: -80px; /* Mínima sobreposição em mobile pequeno */
+        }
+    }
+
     /* Estilos para cards de autores */
     .author-card {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -156,7 +195,7 @@
 
     <!-- Seções Dinâmicas -->
     {% for section in sections %}
-    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative"
+    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative {% if forloop.first %}section-overlap-banner{% endif %}"
              style="{% if section.background_color %}--section-bg-color: {{ section.background_color }};{% endif %} {% if section.container_opacity %}--section-bg-opacity: {{ section.container_opacity|floatformat:2 }};{% endif %}">
         <!-- Background com opacidade controlada -->
         {% if section.background_color or section.container_opacity < 1.0 %}

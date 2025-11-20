@@ -17,16 +17,16 @@
 
 .banner-carousel-container {
     width: 100%;
-    margin-bottom: 3rem;
+    margin-bottom: 0; /* Removido para permitir sobreposição */
     position: relative;
     overflow: hidden;
-    z-index: 0;
+    z-index: 1; /* Banner fica atrás das seções */
 }
 
 .banner-carousel {
     position: relative;
     width: 100%;
-    height: 600px;
+    height: 700px; /* Aumentado de 600px para 700px - estilo Crunchyroll */
     background: var(--card-bg);
 }
 
@@ -301,7 +301,7 @@
 /* Tablets */
 @media (max-width: 992px) {
     .banner-carousel {
-        height: 500px;
+        height: 600px; /* Aumentado de 500px para 600px */
     }
 
     .banner-title {
@@ -334,7 +334,7 @@
 /* Mobile */
 @media (max-width: 768px) {
     .banner-carousel {
-        height: 400px;
+        height: 500px; /* Aumentado de 400px para 500px */
     }
 
     .banner-content {
@@ -409,7 +409,7 @@
 /* Mobile pequeno */
 @media (max-width: 576px) {
     .banner-carousel {
-        height: 350px;
+        height: 450px; /* Aumentado de 350px para 450px */
     }
 
     .banner-title {
@@ -429,6 +429,7 @@
 /* ============================================
    GRADIENT TRANSPARENTE ESTILO CRUNCHYROLL
    Fade para transparente na parte inferior
+   Permite que as seções flutuem sobre o banner
    ============================================ */
 
 .banner-gradient-fade {
@@ -436,15 +437,16 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 40%;
+    height: 50%; /* Aumentado de 40% para 50% - fade mais suave */
     background: linear-gradient(
         to top,
         var(--body-bg) 0%,
-        rgba(var(--body-bg-rgb, 255, 255, 255), 0.95) 10%,
-        rgba(var(--body-bg-rgb, 255, 255, 255), 0.7) 30%,
+        rgba(var(--body-bg-rgb, 255, 255, 255), 0.98) 5%,
+        rgba(var(--body-bg-rgb, 255, 255, 255), 0.85) 20%,
+        rgba(var(--body-bg-rgb, 255, 255, 255), 0.5) 40%,
         transparent 100%
     );
-    z-index: 1;
+    z-index: 3; /* Acima do overlay mas abaixo do conteúdo */
     pointer-events: none;
 }
 
@@ -453,8 +455,9 @@
     background: linear-gradient(
         to top,
         rgb(18, 18, 18) 0%,
-        rgba(18, 18, 18, 0.95) 10%,
-        rgba(18, 18, 18, 0.7) 30%,
+        rgba(18, 18, 18, 0.98) 5%,
+        rgba(18, 18, 18, 0.85) 20%,
+        rgba(18, 18, 18, 0.5) 40%,
         transparent 100%
     );
 }

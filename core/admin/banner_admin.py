@@ -68,8 +68,10 @@ class BannerAdmin(admin.ModelAdmin):
         ('Configurações de Exibição', {
             'fields': (
                 'order',
-                'active'
-            )
+                'active',
+                'height'
+            ),
+            'description': 'Controle a ordem, status e altura do banner (estilo Crunchyroll: 700-900px)'
         }),
         ('Período de Exibição', {
             'fields': (

@@ -3,7 +3,7 @@
 <!-- Banner Carousel Widget -->
 {% if banners %}
 <div id="homeBannerCarousel" class="banner-carousel-container" data-aos="fade-in">
-    <div class="banner-carousel">
+    <div class="banner-carousel" style="height: {{ banners.first.height|default:700 }}px;">
         <!-- Slides dos Banners -->
         <div class="banner-slides">
             {% for banner in banners %}
