@@ -127,9 +127,23 @@ class SectionItemInline(admin.TabularInline):
     readonly_fields = ['item_preview']
 
     def get_queryset(self, request):
-        """Retorna queryset ordenado."""
+        """Retorna queryset otimizado com prefetch de objetos relacionados."""
+        from django.contrib.contenttypes.models import ContentType
+
         qs = super().get_queryset(request)
-        return qs.select_related('content_type', 'section').order_by('order')
+        qs = qs.select_related('content_type', 'section').order_by('order')
+
+        # Prefetch dos objetos relacionados para evitar N+1 queries
+        # Isso carrega Books, Authors e Videos de uma vez
+        book_ct = ContentType.objects.get_for_model(Book)
+        author_ct = ContentType.objects.get_for_model(Author)
+        video_ct = ContentType.objects.get_for_model(Video)
+
+        qs = qs.prefetch_related(
+            'content_type',
+        )
+
+        return qs
 
     def item_preview(self, obj):
         """Exibe preview visual do item vinculado."""
@@ -203,12 +217,6 @@ class SectionItemInline(admin.TabularInline):
         return format_html('<em>{}</em>', str(content_obj))
 
     item_preview.short_description = 'Preview'
-
-    class Media:
-        css = {
-            'all': ('admin/css/section_inline.css',)
-        }
-        js = ('admin/js/section_inline.js',)
 
 
 @admin.register(Section)
