@@ -294,7 +294,7 @@ else:
 # Configurações de Recomendações
 RECOMMENDATIONS_CONFIG = {
     'MIN_INTERACTIONS': 5,  # Mínimo de interações para gerar recomendações personalizadas
-    'CACHE_TIMEOUT': 3600,  # Cache de 1 hora para recomendações
+    'CACHE_TIMEOUT': 21600,  # Cache de 6 horas para recomendações (evita recálculo pesado)
     'SIMILARITY_CACHE_TIMEOUT': 86400,  # Cache de 24 horas para similaridade
     'MAX_RECOMMENDATIONS': 10,  # Número máximo de recomendações retornadas
     'HYBRID_WEIGHTS': {

@@ -79,6 +79,18 @@ def get_recommendations_simple(request):
 
         logger.info(f"Generating {algorithm} recommendations for {request.user.username}")
 
+        # Verificar cache da view (evita recalcular quando usuário recarrega página)
+        from .algorithms_preference_weighted import get_user_shelves_hash
+        shelves_hash = get_user_shelves_hash(request.user)
+        view_cache_key = f'view_recs:{request.user.id}:{algorithm}:{limit}:{shelves_hash}'
+        cached_response = cache.get(view_cache_key)
+
+        if cached_response is not None:
+            logger.info(f"✓ View cache hit for {request.user.username} (shelves_hash={shelves_hash})")
+            return JsonResponse(cached_response)
+
+        logger.info(f"❌ View cache miss - generating recommendations (shelves_hash={shelves_hash})")
+
         # Selecionar algoritmo (usando versões OTIMIZADAS com filtro rigoroso)
         if algorithm == 'collaborative':
             engine = OptimizedCollaborativeFiltering()
@@ -228,11 +240,17 @@ def get_recommendations_simple(request):
             }
             books_data.append(book_data)
 
-        return JsonResponse({
+        response_data = {
             'algorithm': algorithm,
             'count': len(books_data),
             'recommendations': books_data
-        })
+        }
+
+        # Salvar no cache da view (6 horas - mesmo timeout das recomendações)
+        cache.set(view_cache_key, response_data, timeout=settings.RECOMMENDATIONS_CONFIG['CACHE_TIMEOUT'])
+        logger.info(f"✓ Cached view response for {request.user.username}")
+
+        return JsonResponse(response_data)
 
     except Exception as e:
         logger.error(f"Error generating recommendations: {e}", exc_info=True)
