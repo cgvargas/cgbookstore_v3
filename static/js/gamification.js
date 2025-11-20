@@ -266,8 +266,20 @@ class AchievementModal {
 class GamificationAPI {
     /**
      * Obtém o CSRF token para requisições POST
+     * Prioridade: cookie > input hidden
      */
     static getCSRFToken() {
+        // Método 1: Ler do cookie (padrão Django)
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+
+        if (cookieValue) {
+            return cookieValue;
+        }
+
+        // Método 2: Fallback para input hidden
         return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
     }
 

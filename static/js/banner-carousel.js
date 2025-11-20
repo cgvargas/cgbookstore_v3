@@ -156,8 +156,20 @@ class BannerCarousel {
 
     /**
      * Obtém CSRF token para requisições POST
+     * Prioridade: cookie > input hidden
      */
     getCsrfToken() {
+        // Método 1: Ler do cookie (padrão Django)
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+
+        if (cookieValue) {
+            return cookieValue;
+        }
+
+        // Método 2: Fallback para input hidden
         const token = document.querySelector('[name=csrfmiddlewaretoken]');
         return token ? token.value : '';
     }
@@ -180,8 +192,20 @@ function trackBannerClick(bannerId) {
 
 /**
  * Função auxiliar para obter CSRF token
+ * Prioridade: cookie > input hidden
  */
 function getCsrfToken() {
+    // Método 1: Ler do cookie (padrão Django)
+    const cookieValue = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+
+    if (cookieValue) {
+        return cookieValue;
+    }
+
+    // Método 2: Fallback para input hidden
     const token = document.querySelector('[name=csrfmiddlewaretoken]');
     return token ? token.value : '';
 }
