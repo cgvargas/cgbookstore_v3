@@ -79,25 +79,34 @@ class EnhancedGeminiRecommendationEngine:
                 top_k=40,
             )
 
-            # Adicionar timeout de 40 segundos (aumentado para Render)
-            import signal
+            # Adicionar timeout de 40 segundos (multiplataforma - funciona no Windows)
+            import threading
 
-            def timeout_handler(signum, frame):
-                raise TimeoutError("Gemini API timeout após 40 segundos")
+            timeout_occurred = [False]  # Lista mutável para compartilhar estado
 
-            # Configurar alarme de 40 segundos
-            signal.signal(signal.SIGALRM, timeout_handler)
-            signal.alarm(40)
+            def timeout_handler():
+                timeout_occurred[0] = True
+                logger.warning("Gemini API timeout após 40 segundos")
+
+            # Timer de 40 segundos (multiplataforma)
+            timer = threading.Timer(40.0, timeout_handler)
+            timer.start()
 
             try:
+                if timeout_occurred[0]:
+                    raise TimeoutError("Gemini API timeout antes da chamada")
+
                 response = self.model.generate_content(
                     prompt,
                     generation_config=generation_config,
                     request_options={'timeout': 40}
                 )
+
+                if timeout_occurred[0]:
+                    raise TimeoutError("Gemini API timeout após 40 segundos")
             finally:
-                # Cancelar alarme
-                signal.alarm(0)
+                # Cancelar timer
+                timer.cancel()
 
             # PASSO 2: Parse das recomendações da IA
             ai_recommendations = self._parse_ai_recommendations(response.text)
