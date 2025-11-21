@@ -15,15 +15,25 @@ Lógica:
 - Lendo têm peso médio (interesse atual, mas ainda não confirmado)
 - Quero Ler têm peso baixo (interesse declarado, pode mudar)
 - Abandonados são usados apenas para EXCLUSÃO
+
+Otimizações:
+- Cache Redis para análise de preferências (evita recálculo)
+- Cache invalidado automaticamente quando prateleiras mudam
 """
 
 from django.db.models import Q, Count, Avg
+from django.core.cache import cache
+from django.conf import settings
 from accounts.models import BookShelf
 from core.models import Book
 import logging
+import hashlib
 from collections import defaultdict
 
 logger = logging.getLogger(__name__)
+
+# Tempo de cache para análise de preferências (2 horas)
+PREFERENCE_CACHE_TIMEOUT = 7200
 
 
 class ShelfWeightConfig:
@@ -68,6 +78,21 @@ class ShelfWeightConfig:
         return descriptions.get(shelf_type, 'Desconhecido')
 
 
+def _get_user_shelves_hash(user):
+    """
+    Gera hash único baseado no estado atual das prateleiras do usuário.
+    Usado para invalidar cache quando prateleiras mudam.
+    """
+    shelf_items = BookShelf.objects.filter(user=user).order_by('shelf_type', 'book_id')
+    shelf_state = ','.join([
+        f"{item.shelf_type}:{item.book_id}"
+        for item in shelf_items
+    ])
+    if not shelf_state:
+        shelf_state = f"empty_user_{user.id}"
+    return hashlib.md5(shelf_state.encode()).hexdigest()[:8]
+
+
 class UserPreferenceAnalyzer:
     """
     Analisa as preferências do usuário baseado em suas prateleiras.
@@ -77,11 +102,17 @@ class UserPreferenceAnalyzer:
     - Autores favoritos
     - Categorias preferidas
     - Padrões de leitura
+
+    Otimizações:
+    - Cache em memória (por instância)
+    - Cache Redis (persistente, 2 horas)
+    - Hash de prateleiras para invalidação automática
     """
 
     def __init__(self, user):
         self.user = user
-        self._cache = {}
+        self._cache = {}  # Cache em memória (por requisição)
+        self._shelves_hash = _get_user_shelves_hash(user)
 
     def get_weighted_books(self):
         """
@@ -137,6 +168,7 @@ class UserPreferenceAnalyzer:
     def get_top_genres(self, n=5):
         """
         Retorna top N gêneros baseados em pesos das prateleiras.
+        Usa cache Redis para evitar recálculos.
 
         Args:
             n: Número de gêneros a retornar
@@ -144,6 +176,13 @@ class UserPreferenceAnalyzer:
         Returns:
             list: [{'genre': str, 'weight': float, 'count': int}]
         """
+        # Verificar cache Redis
+        cache_key = f'pref_genres:{self.user.id}:{self._shelves_hash}'
+        cached = cache.get(cache_key)
+        if cached is not None:
+            logger.debug(f"✓ Cache hit for genres [{self.user.username}]")
+            return cached[:n]
+
         weighted_books = self.get_weighted_books()
 
         genre_weights = defaultdict(lambda: {'weight': 0.0, 'count': 0})
@@ -166,6 +205,9 @@ class UserPreferenceAnalyzer:
 
         top_genres.sort(key=lambda x: x['weight'], reverse=True)
 
+        # Salvar no cache Redis
+        cache.set(cache_key, top_genres, PREFERENCE_CACHE_TIMEOUT)
+
         genre_list = ', '.join([f"{g['genre']} ({g['weight']:.2f})" for g in top_genres[:3]])
         logger.info(
             f"🎯 Top Genres [{self.user.username}]: {genre_list}"
@@ -176,6 +218,7 @@ class UserPreferenceAnalyzer:
     def get_top_authors(self, n=5):
         """
         Retorna top N autores baseados em pesos das prateleiras.
+        Usa cache Redis para evitar recálculos.
 
         Args:
             n: Número de autores a retornar
@@ -183,6 +226,13 @@ class UserPreferenceAnalyzer:
         Returns:
             list: [{'author': str, 'weight': float, 'count': int}]
         """
+        # Verificar cache Redis
+        cache_key = f'pref_authors:{self.user.id}:{self._shelves_hash}'
+        cached = cache.get(cache_key)
+        if cached is not None:
+            logger.debug(f"✓ Cache hit for authors [{self.user.username}]")
+            return cached[:n]
+
         weighted_books = self.get_weighted_books()
 
         author_weights = defaultdict(lambda: {'weight': 0.0, 'count': 0})
@@ -204,6 +254,9 @@ class UserPreferenceAnalyzer:
         ]
 
         top_authors.sort(key=lambda x: x['weight'], reverse=True)
+
+        # Salvar no cache Redis
+        cache.set(cache_key, top_authors, PREFERENCE_CACHE_TIMEOUT)
 
         author_list = ', '.join([f"{a['author']} ({a['weight']:.2f})" for a in top_authors[:3]])
         logger.info(
