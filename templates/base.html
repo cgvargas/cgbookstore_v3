@@ -34,7 +34,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            padding-top: 70px; /* Compensar altura do navbar fixo */
+            padding-top: 74px; /* Compensar altura do navbar fixo (56px) + linha decorativa (4px) + margem */
         }
 
         main {
@@ -109,6 +109,182 @@
         #themeSwitcherBtn:hover {
             background-color: rgba(255, 255, 255, 0.1);
             border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Linha Decorativa Laranja */
+        .decorative-line {
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b35, #f7931e, #ff6b35);
+            width: 100%;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .decorative-line-navbar {
+            position: fixed;
+            top: 56px; /* Altura do navbar */
+            left: 0;
+            right: 0;
+        }
+
+        .decorative-line-footer {
+            margin-bottom: 0;
+        }
+
+        /* Footer Melhorado */
+        .footer-modern {
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            color: #e4e4e4;
+            padding: 0;
+        }
+
+        .footer-main {
+            padding: 3rem 0 2rem;
+        }
+
+        .footer-brand {
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-brand-logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-brand-logo i {
+            color: #ff6b35;
+        }
+
+        .footer-brand-description {
+            color: #a0a0a0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            max-width: 300px;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .footer-social a {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer-social a:hover {
+            background: #ff6b35;
+            transform: translateY(-3px);
+        }
+
+        .footer-section-title {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .footer-section-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 40px;
+            height: 2px;
+            background: #ff6b35;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-links a {
+            color: #a0a0a0;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-links a:hover {
+            color: #ff6b35;
+            padding-left: 5px;
+        }
+
+        .footer-links a i {
+            font-size: 0.8rem;
+            color: #ff6b35;
+        }
+
+        .footer-bottom {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1.5rem 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-bottom-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .footer-copyright {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .footer-credit {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .footer-credit i.fa-heart {
+            color: #e74c3c;
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @media (max-width: 768px) {
+            .footer-bottom-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-brand-description {
+                max-width: 100%;
+            }
         }
     </style>
 </head>
@@ -286,6 +462,8 @@
             </div>
         </div>
     </nav>
+    <!-- Linha Decorativa Laranja após o Navbar -->
+    <div class="decorative-line decorative-line-navbar"></div>
 
     <!-- Conteúdo Principal -->
     <main class="py-4">
@@ -293,16 +471,91 @@
         {% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="mt-5">
-        <div class="container text-center">
-            <p class="mb-0">
-                &copy; 2025 CG.BookStore. Todos os direitos reservados.
-            </p>
-            <p class="mb-0">
-                <a href="{% url 'core:about' %}" class="text-white text-decoration-none">Sobre</a> |
-                <a href="{% url 'core:contact' %}" class="text-white text-decoration-none">Contato</a>
-            </p>
+    <!-- Footer Melhorado -->
+    <footer class="footer-modern mt-5">
+        <!-- Linha Decorativa Laranja antes do Footer -->
+        <div class="decorative-line decorative-line-footer"></div>
+
+        <!-- Conteúdo Principal do Footer -->
+        <div class="footer-main">
+            <div class="container">
+                <div class="row">
+                    <!-- Coluna 1: Logo e Descrição -->
+                    <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                        <div class="footer-brand">
+                            <a href="{% url 'core:home' %}" class="footer-brand-logo">
+                                <i class="fas fa-book-open"></i>
+                                CG BookStore
+                            </a>
+                            <p class="footer-brand-description">
+                                Conectando leitores a histórias incríveis. Sua biblioteca digital para descobrir, organizar e compartilhar experiências literárias únicas.
+                            </p>
+                            <div class="footer-social">
+                                <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                                <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                                <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+                                <a href="#" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coluna 2: Explorando -->
+                    <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
+                        <h5 class="footer-section-title">Explorando</h5>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'core:book_list' %}"><i class="fas fa-chevron-right"></i>Catálogo</a></li>
+                            <li><a href="{% url 'core:book_list' %}?order=newest"><i class="fas fa-chevron-right"></i>Novos Lançamentos</a></li>
+                            <li><a href="{% url 'core:book_list' %}?order=popular"><i class="fas fa-chevron-right"></i>Mais Vendidos</a></li>
+                            <li><a href="{% url 'core:book_list' %}?order=rating"><i class="fas fa-chevron-right"></i>Recomendados</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Coluna 3: Links Úteis -->
+                    <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
+                        <h5 class="footer-section-title">Links Úteis</h5>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'core:about' %}"><i class="fas fa-chevron-right"></i>Sobre Nós</a></li>
+                            <li><a href="{% url 'core:contact' %}"><i class="fas fa-chevron-right"></i>FAQ</a></li>
+                            <li><a href="{% url 'core:contact' %}"><i class="fas fa-chevron-right"></i>Contato</a></li>
+                            <li><a href="{% url 'finance:subscription_checkout' %}"><i class="fas fa-chevron-right"></i>Planos</a></li>
+                            <li><a href="{% url 'debates:list' %}"><i class="fas fa-chevron-right"></i>Blog Literário</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Coluna 4: Legal -->
+                    <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
+                        <h5 class="footer-section-title">Legal</h5>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'core:about' %}"><i class="fas fa-chevron-right"></i>Privacidade</a></li>
+                            <li><a href="{% url 'core:about' %}"><i class="fas fa-chevron-right"></i>Termos de Uso</a></li>
+                            <li><a href="{% url 'core:about' %}"><i class="fas fa-chevron-right"></i>Cookies</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Coluna 5: Contato Rápido -->
+                    <div class="col-lg-2 col-md-6">
+                        <h5 class="footer-section-title">Contato</h5>
+                        <ul class="footer-links">
+                            <li><a href="mailto:contato@cgbookstore.com"><i class="fas fa-envelope"></i>contato@cgbookstore.com</a></li>
+                            <li><a href="#"><i class="fas fa-map-marker-alt"></i>São Paulo, SP - Brasil</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rodapé Inferior -->
+        <div class="footer-bottom">
+            <div class="container">
+                <div class="footer-bottom-content">
+                    <p class="footer-copyright">
+                        &copy; {% now "Y" %} CGVargas Informática. Todos os direitos reservados.
+                    </p>
+                    <p class="footer-credit">
+                        Desenvolvido com <i class="fas fa-heart"></i> por CGVargas Team
+                    </p>
+                </div>
+            </div>
         </div>
     </footer>
 
