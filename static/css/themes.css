@@ -573,6 +573,135 @@ i.fas, i.far, i.fab {
 }
 
 /* ==========================================
+   NAVBAR E FOOTER - TEMA CLARO/ESCURO
+========================================== */
+
+/* Tema Claro - Navbar branco com texto azul */
+:root:not([data-theme="dark"]) .navbar.bg-dark,
+[data-theme="light"] .navbar.bg-dark {
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+:root:not([data-theme="dark"]) .navbar-dark .navbar-brand,
+:root:not([data-theme="dark"]) .navbar-dark .nav-link,
+[data-theme="light"] .navbar-dark .navbar-brand,
+[data-theme="light"] .navbar-dark .nav-link {
+    color: #1a1a2e !important;
+}
+
+:root:not([data-theme="dark"]) .navbar-dark .nav-link:hover,
+[data-theme="light"] .navbar-dark .nav-link:hover {
+    color: #ff6b35 !important;
+}
+
+:root:not([data-theme="dark"]) #themeSwitcherBtn,
+[data-theme="light"] #themeSwitcherBtn {
+    color: #1a1a2e !important;
+    border-color: rgba(26, 26, 46, 0.3) !important;
+}
+
+:root:not([data-theme="dark"]) #themeSwitcherBtn i,
+[data-theme="light"] #themeSwitcherBtn i {
+    color: #1a1a2e !important;
+}
+
+:root:not([data-theme="dark"]) #themeSwitcherBtn:hover,
+[data-theme="light"] #themeSwitcherBtn:hover {
+    background-color: rgba(26, 26, 46, 0.1) !important;
+}
+
+/* Tema Claro - Footer branco com texto azul */
+:root:not([data-theme="dark"]) .footer-modern,
+[data-theme="light"] .footer-modern {
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%) !important;
+    color: #1a1a2e !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+:root:not([data-theme="dark"]) .footer-brand-logo,
+:root:not([data-theme="dark"]) .footer-section-title,
+[data-theme="light"] .footer-brand-logo,
+[data-theme="light"] .footer-section-title {
+    color: #1a1a2e !important;
+}
+
+:root:not([data-theme="dark"]) .footer-brand-description,
+:root:not([data-theme="dark"]) .footer-links a,
+:root:not([data-theme="dark"]) .footer-contact-item,
+[data-theme="light"] .footer-brand-description,
+[data-theme="light"] .footer-links a,
+[data-theme="light"] .footer-contact-item {
+    color: #4a4a6a !important;
+}
+
+:root:not([data-theme="dark"]) .footer-links a:hover,
+[data-theme="light"] .footer-links a:hover {
+    color: #ff6b35 !important;
+}
+
+:root:not([data-theme="dark"]) .footer-social a,
+[data-theme="light"] .footer-social a {
+    background: rgba(26, 26, 46, 0.1) !important;
+    color: #1a1a2e !important;
+}
+
+:root:not([data-theme="dark"]) .footer-social a:hover,
+[data-theme="light"] .footer-social a:hover {
+    background: #ff6b35 !important;
+    color: #fff !important;
+}
+
+:root:not([data-theme="dark"]) .footer-bottom,
+[data-theme="light"] .footer-bottom {
+    background: rgba(26, 26, 46, 0.05) !important;
+    color: #4a4a6a !important;
+}
+
+:root:not([data-theme="dark"]) .footer-bottom a,
+[data-theme="light"] .footer-bottom a {
+    color: #4a4a6a !important;
+}
+
+:root:not([data-theme="dark"]) .footer-bottom a:hover,
+[data-theme="light"] .footer-bottom a:hover {
+    color: #ff6b35 !important;
+}
+
+/* Tema Escuro - Manter gradiente azul escuro (já definido no base.html) */
+[data-theme="dark"] .navbar.bg-dark {
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%) !important;
+}
+
+[data-theme="dark"] .footer-modern {
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%) !important;
+}
+
+/* ==========================================
+   BANNER - AJUSTES TEMA CLARO
+========================================== */
+
+/* Títulos do banner sempre brancos (overlay garante legibilidade) */
+.banner-title,
+.banner-subtitle,
+.banner-description {
+    color: #fff !important;
+}
+
+/* Reduzir opacidade do gradiente no tema claro */
+:root:not([data-theme="dark"]) .banner-gradient-fade,
+[data-theme="light"] .banner-gradient-fade {
+    background: linear-gradient(
+        to top,
+        var(--body-bg) 0%,
+        rgba(245, 245, 245, 0.9) 5%,
+        rgba(245, 245, 245, 0.6) 20%,
+        rgba(245, 245, 245, 0.3) 40%,
+        transparent 100%
+    ) !important;
+}
+
+/* ==========================================
    TRANSIÇÕES
 ========================================== */
 * {
