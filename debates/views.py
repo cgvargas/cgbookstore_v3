@@ -91,9 +91,18 @@ def topic_detail(request, slug):
         else:
             post.user_vote = None
 
+    # Verificar se usuário já tem posts neste tópico
+    user_has_posts = False
+    if request.user.is_authenticated:
+        user_has_posts = topic.posts.filter(
+            author=request.user,
+            is_deleted=False
+        ).exists()
+
     context = {
         'topic': topic,
         'posts': posts,
+        'user_has_posts': user_has_posts,
     }
     return render(request, 'debates/detail.html', context)
 
@@ -148,6 +157,27 @@ def create_post(request, topic_slug):
     parent = None
     if parent_id:
         parent = get_object_or_404(DebatePost, id=parent_id, topic=topic)
+
+    # Verificar limite de posts para usuários não-premium
+    if hasattr(request.user, 'profile'):
+        is_premium = request.user.profile.is_premium_active()
+    else:
+        is_premium = False
+
+    if not is_premium:
+        # Contar posts do usuário neste tópico
+        user_posts_count = topic.posts.filter(
+            author=request.user,
+            is_deleted=False
+        ).count()
+
+        # Limite de 5 posts por tópico para não-premium
+        MAX_POSTS_FREE = 5
+        if user_posts_count >= MAX_POSTS_FREE:
+            return JsonResponse({
+                'success': False,
+                'error': f'Usuários não-premium podem fazer no máximo {MAX_POSTS_FREE} posts por debate. Assine o plano premium para participar ilimitadamente!'
+            }, status=403)
 
     post = DebatePost.objects.create(
         topic=topic,
