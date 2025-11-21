@@ -191,10 +191,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
+    cursor: pointer !important;
     transition: all 0.3s ease;
-    z-index: 10;
+    z-index: 100;
     font-size: 1.5rem;
+    pointer-events: auto !important;
 }
 
 .banner-control:hover {
@@ -265,10 +266,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
+    cursor: pointer !important;
     transition: all 0.3s ease;
-    z-index: 10;
+    z-index: 100;
     font-size: 1.2rem;
+    pointer-events: auto !important;
 }
 
 .banner-autoplay-toggle:hover {
