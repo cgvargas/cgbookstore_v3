@@ -254,7 +254,7 @@
 
 .banner-autoplay-toggle {
     position: absolute;
-    bottom: 2rem;
+    bottom: 10rem;
     left: 2rem;
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
@@ -394,7 +394,7 @@
     .banner-autoplay-toggle {
         width: 40px;
         height: 40px;
-        bottom: 1rem;
+        bottom: 7rem;
         left: 1rem;
         font-size: 1rem;
     }
