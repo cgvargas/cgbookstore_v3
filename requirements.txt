@@ -52,6 +52,9 @@ django-ratelimit==4.1.0
 
 # ========== MONITORING E DEBUG ==========
 django-debug-toolbar==6.1.0
+django-extensions==3.2.3
+Werkzeug==3.0.1
+pyOpenSSL==24.0.0
 
 # ========== MACHINE LEARNING E IA ==========
 scikit-learn==1.7.2
