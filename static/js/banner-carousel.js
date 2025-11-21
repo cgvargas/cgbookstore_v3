@@ -58,6 +58,13 @@ class BannerCarousel {
             }
         });
 
+        // Botão de play/pause
+        if (this.autoplayButton) {
+            this.autoplayButton.addEventListener('click', () => {
+                this.toggleAutoplay();
+            });
+        }
+
         // Suporte a teclado
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft') {
