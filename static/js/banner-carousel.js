@@ -217,7 +217,46 @@ function getCsrfToken() {
     return token ? token.value : '';
 }
 
+// Criar objeto global imediatamente (para onclick funcionar)
+window.bannerCarousel = {
+    _instance: null,
+    _ready: false,
+
+    _ensureReady() {
+        if (!this._ready && document.readyState !== 'loading') {
+            this._instance = new BannerCarousel();
+            this._ready = true;
+        }
+        return this._ready;
+    },
+
+    prev() {
+        if (this._ensureReady() && this._instance) {
+            this._instance.prev();
+        }
+    },
+
+    next() {
+        if (this._ensureReady() && this._instance) {
+            this._instance.next();
+        }
+    },
+
+    goTo(index) {
+        if (this._ensureReady() && this._instance) {
+            this._instance.goTo(index);
+        }
+    },
+
+    toggleAutoplay() {
+        if (this._ensureReady() && this._instance) {
+            this._instance.toggleAutoplay();
+        }
+    }
+};
+
 // Inicializar carousel quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', function() {
-    window.bannerCarousel = new BannerCarousel();
+    window.bannerCarousel._instance = new BannerCarousel();
+    window.bannerCarousel._ready = true;
 });
