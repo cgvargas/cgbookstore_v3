@@ -149,17 +149,19 @@
 }
 
 .banner-cta-button {
+    display: inline-block;
     padding: 1rem 2.5rem;
     font-size: 1.1rem;
     font-weight: 600;
-    background: linear-gradient(135deg, var(--theme-color) 0%, var(--theme-color-dark, #4a5568) 100%);
-    color: #fff;
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    color: #fff !important;
     border: none;
     border-radius: 50px;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     animation: fadeInUp 0.8s ease-out 0.8s both;
+    text-decoration: none !important;
 }
 
 .banner-cta-button:hover {

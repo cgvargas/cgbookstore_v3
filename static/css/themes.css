@@ -702,6 +702,53 @@ i.fas, i.far, i.fab {
 }
 
 /* ==========================================
+   LINKS "VER TODOS" - COR LARANJA
+========================================== */
+.view-all-link,
+.carousel-header .view-all-link {
+    color: #ff6b35 !important;
+    font-weight: 600;
+}
+
+.view-all-link:hover,
+.carousel-header .view-all-link:hover {
+    color: #f7931e !important;
+    text-decoration: underline !important;
+}
+
+/* ==========================================
+   NAVBAR BRAND - DESTAQUE
+========================================== */
+.navbar-brand {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.navbar-brand i {
+    color: #ff6b35 !important;
+    font-size: 1.3rem;
+}
+
+.navbar-brand:hover {
+    transform: scale(1.02);
+}
+
+/* Tema claro - brand azul escuro */
+:root:not([data-theme="dark"]) .navbar-brand,
+[data-theme="light"] .navbar-brand {
+    color: #1a1a2e !important;
+    text-shadow: none;
+}
+
+/* Tema escuro - brand branco */
+[data-theme="dark"] .navbar-brand {
+    color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ==========================================
    TRANSIÇÕES
 ========================================== */
 * {

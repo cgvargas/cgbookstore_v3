@@ -8,13 +8,6 @@
         <div class="banner-slides">
             {% for banner in banners %}
             <div class="banner-slide {% if forloop.first %}active{% endif %}" data-banner-id="{{ banner.id }}">
-                {% if banner.link_url %}
-                <a href="{{ banner.link_url }}"
-                   {% if banner.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
-                   class="banner-link"
-                   onclick="trackBannerClick({{ banner.id }})">
-                {% endif %}
-
                     <div class="banner-image-wrapper">
                         <img src="{{ banner.image.url }}"
                              alt="{{ banner.title }}"
@@ -40,17 +33,16 @@
                                 {% endif %}
 
                                 {% if banner.link_url and banner.link_text %}
-                                <button class="banner-cta-button">
+                                <a href="{{ banner.link_url }}"
+                                   {% if banner.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+                                   class="banner-cta-button"
+                                   onclick="trackBannerClick({{ banner.id }})">
                                     {{ banner.link_text }} <i class="fas fa-arrow-right ms-2"></i>
-                                </button>
+                                </a>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
-
-                {% if banner.link_url %}
-                </a>
-                {% endif %}
             </div>
             {% endfor %}
         </div>
