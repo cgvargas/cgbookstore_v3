@@ -38,11 +38,16 @@ O arquivo `cgbookstore/settings.py` foi atualizado para:
 3. Vá em **Project Settings** > **Database**
 4. Role até **Connection String**
 5. Selecione a aba **URI**
-6. Escolha o modo: **Session** (recomendado para migrations)
+6. **IMPORTANTE**: Copie a connection string **DIRETA** (não pooler)
 
 A connection string terá o formato:
 ```
-postgresql://postgres.[PROJECT-REF]:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres
+postgresql://postgres:[YOUR-PASSWORD]@db.XXXXXXXXXX.supabase.co:5432/postgres
+```
+
+**Exemplo real:**
+```
+postgresql://postgres:SuaSenha123@db.uomjbcuowfgcwhsejatn.supabase.co:5432/postgres
 ```
 
 #### Passo 2: Configurar no Render
@@ -51,16 +56,20 @@ postgresql://postgres.[PROJECT-REF]:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supab
 2. Selecione seu serviço web
 3. Vá em **Environment**
 4. Adicione/edite a variável `DATABASE_URL` com a connection string do Supabase
-5. **Importante**: Substitua `[YOUR-PASSWORD]` pela sua senha real do banco
+5. **Importante**:
+   - Substitua `[YOUR-PASSWORD]` pela sua senha real do banco
+   - Use a conexão DIRETA (`db.*.supabase.co`) - **NÃO use pooler!**
+   - Porta: `5432`
 
-### 3. Diferença entre Session Mode e Transaction Mode
+### 3. Conexão Direta vs Pooler
 
-| Modo | Porta | Uso Recomendado |
-|------|-------|-----------------|
-| **Session** | 6543 | Migrations, long-running queries, conexões persistentes |
-| **Transaction** | 5432 | Aplicações serverless, conexões rápidas |
+| Tipo | Host | Porta | Uso Recomendado |
+|------|------|-------|-----------------|
+| **Direta** | `db.XXXXXXXXXX.supabase.co` | 5432 | ✅ **Render, migrations, deploy** |
+| **Pooler (Session)** | `aws-0-us-east-1.pooler.supabase.co` | 6543 | ❌ Pode causar erro "Tenant not found" |
+| **Pooler (Transaction)** | `aws-0-us-east-1.pooler.supabase.com` | 5432 | ❌ Apenas serverless |
 
-**Para o Render, use o modo Session (porta 6543)**.
+**⚠️ Para o Render, use SEMPRE a conexão DIRETA!**
 
 ### 4. Verificação da Configuração
 

@@ -114,30 +114,31 @@ if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
     db_options = {
         'connect_timeout': 10,
         'options': '-c statement_timeout=30000',  # 30s timeout para queries
+        'client_encoding': 'UTF8',
     }
 
-    # Forçar IPv4 para compatibilidade com Supabase no Render
-    # O Render pode ter problemas com resolução IPv6 em alguns casos
-    # Isso força a conexão a usar apenas endereços IPv4
-    db_options['client_encoding'] = 'UTF8'
-
-    # Verificar se estamos usando o pooler do Supabase
+    # Verificar se estamos usando Supabase
     db_host = DATABASES['default'].get('HOST', '')
-    if 'pooler.supabase.com' in db_host or 'supabase.com' in db_host:
-        logger.info(f"🔄 Detectado Supabase pooler: {db_host}")
-        # Para o pooler do Supabase, precisamos de configurações específicas
-        # pgbouncer_mode é importante para compatibilidade
+    if 'supabase.co' in db_host:
+        # SSL é obrigatório para Supabase
         db_options['sslmode'] = 'require'
 
-        # Adicionar parâmetro para preferir IPv4
-        # Isso ajuda a evitar problemas de conexão IPv6 no Render
+        # Forçar IPv4 para compatibilidade com Render
+        # O Render pode ter problemas com resolução IPv6
         import socket
         try:
-            # Tentar forçar resolução IPv4
             socket.setdefaulttimeout(10)
             logger.info("✅ Configurado timeout de socket para IPv4")
         except Exception as e:
             logger.warning(f"⚠️ Não foi possível configurar timeout de socket: {e}")
+
+        # Identificar tipo de conexão
+        if 'pooler.supabase.com' in db_host:
+            logger.warning(f"⚠️ ATENÇÃO: Detectado Supabase POOLER: {db_host}")
+            logger.warning("⚠️ Para Render, recomenda-se usar conexão DIRETA (db.*.supabase.co)")
+            logger.warning("⚠️ Pooler pode causar erro 'Tenant or user not found'")
+        else:
+            logger.info(f"✅ Detectado Supabase conexão DIRETA: {db_host}")
 
     DATABASES['default']['OPTIONS'] = db_options
     logger.info(f"✅ Configurações PostgreSQL aplicadas: {list(db_options.keys())}")
