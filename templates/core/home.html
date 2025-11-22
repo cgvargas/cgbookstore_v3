@@ -9,21 +9,10 @@
     /* ============================================
        BANNER ENCOSTADO NA LINHA DECORATIVA
        ============================================ */
-    /* Remove completamente todos os espaços do main na home */
-    main.py-4 {
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-
-    /* Container-fluid absolutamente sem espaços */
-    .container-fluid.px-0 {
-        margin-top: 60px !important; /* Navbar (56px) + linha decorativa (4px) */
-        padding: 0 !important;
-    }
-
-    /* Banner container sem espaços */
+    /* Banner fora do main - encosta perfeitamente na linha */
     .banner-carousel-container {
-        margin: 0 !important;
+        margin-top: 60px !important; /* Navbar (56px) + linha decorativa (4px) */
+        margin-bottom: 0 !important;
         padding: 0 !important;
     }
 
@@ -201,11 +190,13 @@
 
 {% include 'recommendations/recommendations_section.html' %}
 
+{% block banner %}
+<!-- Banner Carousel (fora do main para encostar na linha) -->
+{% include 'core/widgets/banner_carousel.html' %}
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-0">
-    <!-- Banner Carousel -->
-    {% include 'core/widgets/banner_carousel.html' %}
-
     <!-- Seções Dinâmicas (usando estrutura de dicts para performance) -->
     {% for section in sections %}
     <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative {% if forloop.first %}section-overlap-banner{% endif %}">
