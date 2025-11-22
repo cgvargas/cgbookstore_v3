@@ -110,10 +110,74 @@ DATABASES = {
 
 # Adicionar opções de timeout ao banco de dados (apenas para PostgreSQL)
 if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
-    DATABASES['default']['OPTIONS'] = {
+    # Configuração base para PostgreSQL
+    db_options = {
         'connect_timeout': 10,
-        'options': '-c statement_timeout=30000'  # 30s timeout para queries
+        'options': '-c statement_timeout=30000',  # 30s timeout para queries
+        'client_encoding': 'UTF8',
     }
+
+    # Verificar se estamos usando Supabase
+    db_host = DATABASES['default'].get('HOST', '')
+    if 'supabase.co' in db_host:
+        # SSL é obrigatório para Supabase
+        db_options['sslmode'] = 'require'
+
+        # SOLUÇÃO para Render FREE (sem IPv6):
+        # Opção 1: Usuário configura DATABASE_IPV4 com o IP fixo
+        # Opção 2: Tentamos resolver DNS para IPv4 (pode falhar no build do Render)
+
+        manual_ipv4 = config('DATABASE_IPV4', default='')
+        if manual_ipv4:
+            # Usuário configurou IP manualmente - RECOMENDADO para Render
+            logger.info(f"✅ Usando IP IPv4 configurado manualmente: {manual_ipv4}")
+            DATABASES['default']['HOST'] = manual_ipv4
+            db_options['hostaddr'] = manual_ipv4
+        else:
+            # Tentar resolver DNS para IPv4 automaticamente
+            import socket
+            try:
+                logger.info(f"🔍 Tentando resolver {db_host} para IPv4...")
+
+                # Usar getaddrinfo com AI_ADDRCONFIG para melhor compatibilidade
+                addr_info = socket.getaddrinfo(
+                    db_host,
+                    None,
+                    socket.AF_INET,  # Apenas IPv4
+                    socket.SOCK_STREAM,
+                    0,  # protocol
+                    socket.AI_ADDRCONFIG  # Usar apenas se IPv4 está configurado
+                )
+
+                if addr_info:
+                    ipv4_address = addr_info[0][4][0]
+                    logger.info(f"✅ Resolvido {db_host} -> {ipv4_address} (IPv4)")
+
+                    DATABASES['default']['HOST'] = ipv4_address
+                    db_options['hostaddr'] = ipv4_address
+                else:
+                    logger.warning(f"⚠️ DNS não retornou IPv4 para {db_host}")
+                    logger.warning("⚠️ SOLUÇÃO: Configure DATABASE_IPV4 com o IP fixo")
+
+            except (socket.gaierror, OSError) as e:
+                logger.error(f"❌ Falha ao resolver DNS: {e}")
+                logger.error("⚠️ SOLUÇÃO RECOMENDADA para Render FREE:")
+                logger.error("⚠️ 1. Execute: nslookup db.uomjbcuowfgcwhsejatn.supabase.co")
+                logger.error("⚠️ 2. Pegue o IP IPv4 (ex: 44.XXX.XXX.XXX)")
+                logger.error("⚠️ 3. Configure variável: DATABASE_IPV4=44.XXX.XXX.XXX")
+            except Exception as e:
+                logger.error(f"❌ Erro inesperado: {e}")
+
+        # Identificar tipo de conexão
+        if 'pooler.supabase.com' in db_host:
+            logger.info(f"✅ Detectado Supabase POOLER (Transaction mode): {db_host}")
+            logger.info("ℹ️ Pooler é necessário para Render FREE (conexão direta só tem IPv6)")
+        else:
+            logger.info(f"✅ Detectado Supabase conexão DIRETA: {db_host}")
+            logger.info("ℹ️ Conexão direta requer IPv4 configurado em DATABASE_IPV4")
+
+    DATABASES['default']['OPTIONS'] = db_options
+    logger.info(f"✅ Configurações PostgreSQL aplicadas: {list(db_options.keys())}")
 
 
 # ==============================================================================
