@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 import json
 import logging
 import uuid
@@ -255,13 +256,98 @@ def check_service(request):
     Returns JSON:
     {
         "available": true/false,
-        "message": "status message"
+        "message": "status message",
+        "details": {
+            "api_key_configured": bool,
+            "model_name": str,
+            "can_initialize": bool,
+            "error": str (if any)
+        }
     }
     """
+    from django.conf import settings
+
     chat_service = get_chat_service()
     available = chat_service.is_available()
 
+    # Informações detalhadas de diagnóstico
+    details = {
+        'api_key_configured': bool(settings.GEMINI_API_KEY),
+        'model_name': chat_service.model_name,
+        'can_initialize': False,
+        'error': None
+    }
+
+    # Tentar inicializar o modelo para verificar se está tudo OK
+    if available:
+        try:
+            model = chat_service.model
+            if model:
+                details['can_initialize'] = True
+            else:
+                details['error'] = 'Modelo não pôde ser inicializado'
+        except Exception as e:
+            details['error'] = str(e)
+            available = False
+
     return JsonResponse({
         'available': available,
-        'message': 'Serviço disponível' if available else 'Serviço indisponível - verifique configuração da API Key'
+        'message': 'Serviço disponível e operacional' if available else 'Serviço indisponível - verifique configuração da API Key',
+        'details': details
     })
+
+
+class DiagnosticView(LoginRequiredMixin, TemplateView):
+    """
+    Página de diagnóstico do chatbot.
+    Mostra informações detalhadas sobre o status da API Gemini.
+    """
+    template_name = 'chatbot_literario/diagnostic.html'
+    login_url = '/accounts/login/'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        chat_service = get_chat_service()
+
+        # Informações de configuração
+        context['api_key_configured'] = bool(settings.GEMINI_API_KEY)
+        if settings.GEMINI_API_KEY:
+            key = settings.GEMINI_API_KEY
+            context['api_key_masked'] = key[:8] + '*' * (len(key) - 12) + key[-4:] if len(key) > 12 else '*' * len(key)
+        else:
+            context['api_key_masked'] = 'Não configurada'
+
+        context['model_name'] = chat_service.model_name
+
+        # Status do serviço
+        context['service_available'] = chat_service.is_available()
+
+        # Tentar inicializar modelo
+        context['model_initialized'] = False
+        context['initialization_error'] = None
+
+        if context['service_available']:
+            try:
+                model = chat_service.model
+                context['model_initialized'] = model is not None
+                if not model:
+                    context['initialization_error'] = 'Modelo retornou None'
+            except Exception as e:
+                context['initialization_error'] = str(e)
+
+        # Estatísticas de uso
+        if self.request.user.is_authenticated:
+            total_messages = ChatConversation.objects.filter(user=self.request.user).count()
+            user_messages = ChatConversation.objects.filter(user=self.request.user, role='user').count()
+            bot_messages = ChatConversation.objects.filter(user=self.request.user, role='assistant').count()
+
+            context['stats'] = {
+                'total_messages': total_messages,
+                'user_messages': user_messages,
+                'bot_messages': bot_messages,
+            }
+        else:
+            context['stats'] = None
+
+        return context

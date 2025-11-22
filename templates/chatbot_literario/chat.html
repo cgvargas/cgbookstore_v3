@@ -275,6 +275,9 @@
                     <span class="status-indicator {% if not service_available %}offline{% endif %}" id="statusIndicator"></span>
                     <small id="statusText">{% if service_available %}Online{% else %}Offline{% endif %}</small>
                 </div>
+                <a href="{% url 'chatbot_literario:diagnostic' %}" class="chat-btn clear-btn" title="Diagnóstico" style="text-decoration: none;">
+                    <i class="fas fa-stethoscope"></i>
+                </a>
                 <button class="chat-btn clear-btn" onclick="clearHistory()" title="Limpar conversa">
                     <i class="fas fa-trash-alt"></i>
                 </button>
