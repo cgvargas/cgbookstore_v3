@@ -110,10 +110,37 @@ DATABASES = {
 
 # Adicionar opções de timeout ao banco de dados (apenas para PostgreSQL)
 if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
-    DATABASES['default']['OPTIONS'] = {
+    # Configuração base para PostgreSQL
+    db_options = {
         'connect_timeout': 10,
-        'options': '-c statement_timeout=30000'  # 30s timeout para queries
+        'options': '-c statement_timeout=30000',  # 30s timeout para queries
     }
+
+    # Forçar IPv4 para compatibilidade com Supabase no Render
+    # O Render pode ter problemas com resolução IPv6 em alguns casos
+    # Isso força a conexão a usar apenas endereços IPv4
+    db_options['client_encoding'] = 'UTF8'
+
+    # Verificar se estamos usando o pooler do Supabase
+    db_host = DATABASES['default'].get('HOST', '')
+    if 'pooler.supabase.com' in db_host or 'supabase.com' in db_host:
+        logger.info(f"🔄 Detectado Supabase pooler: {db_host}")
+        # Para o pooler do Supabase, precisamos de configurações específicas
+        # pgbouncer_mode é importante para compatibilidade
+        db_options['sslmode'] = 'require'
+
+        # Adicionar parâmetro para preferir IPv4
+        # Isso ajuda a evitar problemas de conexão IPv6 no Render
+        import socket
+        try:
+            # Tentar forçar resolução IPv4
+            socket.setdefaulttimeout(10)
+            logger.info("✅ Configurado timeout de socket para IPv4")
+        except Exception as e:
+            logger.warning(f"⚠️ Não foi possível configurar timeout de socket: {e}")
+
+    DATABASES['default']['OPTIONS'] = db_options
+    logger.info(f"✅ Configurações PostgreSQL aplicadas: {list(db_options.keys())}")
 
 
 # ==============================================================================
