@@ -564,12 +564,28 @@ python manage.py test_gemini --message "Recomende um romance brasileiro"
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Script carregado!');
+
     // Toggle de tema claro/escuro
     const themeToggle = document.getElementById('themeToggle');
     const container = document.querySelector('.diagnostic-container');
     const body = document.body;
+
+    console.log('Elementos encontrados:', {
+        themeToggle: !!themeToggle,
+        container: !!container,
+        body: !!body
+    });
+
+    if (!themeToggle || !container) {
+        console.error('Elementos não encontrados!');
+        return;
+    }
 
     // Carregar tema salvo
     const savedTheme = localStorage.getItem('diagnostic-theme') || 'light';
@@ -627,5 +643,6 @@ python manage.py test_gemini --message "Recomende um romance brasileiro"
             icon.classList.add('fa-moon');
         }
     }
+});
 </script>
 {% endblock %}
