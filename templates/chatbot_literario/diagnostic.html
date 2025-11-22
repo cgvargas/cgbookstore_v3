@@ -10,62 +10,8 @@
 {% block content %}
 <style>
     /* ========================================
-       TEMA ESCURO - DIAGNÓSTICO CHATBOT
-       Forçado com !important para sobrescrever tudo
+       ESTILOS BASE - TEMA CLARO
        ======================================== */
-
-    [data-theme="dark"] .diagnostic-card {
-        background: #1a1d1f !important;
-        color: #f5f5f5 !important;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5) !important;
-    }
-
-    [data-theme="dark"] .diagnostic-header {
-        border-bottom-color: #3a3d40 !important;
-    }
-
-    [data-theme="dark"] .diagnostic-header h2 {
-        color: #f5f5f5 !important;
-    }
-
-    [data-theme="dark"] .info-item {
-        background: #1a1d20 !important;
-        border-left-color: #5dc3d1 !important;
-    }
-
-    [data-theme="dark"] .info-label {
-        color: #cccccc !important;
-    }
-
-    [data-theme="dark"] .info-value {
-        color: #f5f5f5 !important;
-    }
-
-    [data-theme="dark"] .info-value code {
-        background: #232628 !important;
-        color: #cccccc !important;
-    }
-
-    [data-theme="dark"] .btn-secondary-custom {
-        background: #1a1d20 !important;
-        color: #f5f5f5 !important;
-    }
-
-    [data-theme="dark"] .btn-secondary-custom:hover {
-        background: #232628 !important;
-    }
-
-    [data-theme="dark"] .code-block {
-        background: #232628 !important;
-        color: #cccccc !important;
-    }
-
-    [data-theme="dark"] .alert-custom p,
-    [data-theme="dark"] .alert-custom strong {
-        color: white !important;
-    }
-
-    /* Tema claro - valores padrão */
     .diagnostic-container {
         max-width: 1000px;
         margin: 2rem auto;
@@ -248,6 +194,62 @@
         gap: 1rem;
         margin-top: 1.5rem;
         flex-wrap: wrap;
+    }
+
+    /* ========================================
+       TEMA ESCURO - COM MÁXIMA ESPECIFICIDADE
+       COLOCADO DEPOIS PARA TER PRIORIDADE NA CASCATA
+       ======================================== */
+
+    html[data-theme="dark"] .diagnostic-card {
+        background: #1a1d1f !important;
+        color: #f5f5f5 !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    html[data-theme="dark"] .diagnostic-header {
+        border-bottom-color: #3a3d40 !important;
+    }
+
+    html[data-theme="dark"] .diagnostic-header h2 {
+        color: #f5f5f5 !important;
+    }
+
+    html[data-theme="dark"] .info-item {
+        background: #1a1d20 !important;
+        border-left-color: #5dc3d1 !important;
+    }
+
+    html[data-theme="dark"] .info-label {
+        color: #cccccc !important;
+    }
+
+    html[data-theme="dark"] .info-value {
+        color: #f5f5f5 !important;
+    }
+
+    html[data-theme="dark"] .info-value code {
+        background: #232628 !important;
+        color: #cccccc !important;
+    }
+
+    html[data-theme="dark"] .btn-secondary-custom {
+        background: #1a1d20 !important;
+        color: #f5f5f5 !important;
+    }
+
+    html[data-theme="dark"] .btn-secondary-custom:hover {
+        background: #232628 !important;
+    }
+
+    html[data-theme="dark"] .code-block {
+        background: #232628 !important;
+        color: #cccccc !important;
+    }
+
+    html[data-theme="dark"] .alert-custom p,
+    html[data-theme="dark"] .alert-custom strong {
+        color: white !important;
     }
 </style>
 
