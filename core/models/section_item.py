@@ -77,26 +77,37 @@ class SectionItem(models.Model):
         unique_together = ['section', 'content_type', 'object_id']
 
     def __str__(self):
-        return f"{self.section.title} - {self.content_object}"
+        return f"{self.section.title} - {self.get_content_object()}"
+
+    def get_content_object(self):
+        """
+        Retorna o objeto de conteúdo, usando cache pré-carregado se disponível.
+        Evita queries N+1 quando usado com HomeView otimizada.
+        """
+        # Usar objeto pré-carregado se disponível (setado pela HomeView)
+        if hasattr(self, '_prefetched_content_object'):
+            return self._prefetched_content_object
+        # Fallback para GenericForeignKey padrão
+        return self.content_object
 
     def get_display_title(self):
         """Retorna título customizado ou título original"""
         if self.custom_title:
             return self.custom_title
 
-        obj = self.content_object
+        obj = self.get_content_object()
         if hasattr(obj, 'title'):
             return obj.title
         elif hasattr(obj, 'name'):
             return obj.name
-        return str(obj)
+        return str(obj) if obj else ''
 
     def get_display_description(self):
         """Retorna descrição customizada ou descrição original"""
         if self.custom_description:
             return self.custom_description
 
-        obj = self.content_object
+        obj = self.get_content_object()
         if hasattr(obj, 'description'):
             return obj.description
         elif hasattr(obj, 'bio'):

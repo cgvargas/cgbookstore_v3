@@ -185,7 +185,7 @@
     <!-- Banner Carousel -->
     {% include 'core/widgets/banner_carousel.html' %}
 
-    <!-- Seções Dinâmicas -->
+    <!-- Seções Dinâmicas (usando estrutura de dicts para performance) -->
     {% for section in sections %}
     <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative {% if forloop.first %}section-overlap-banner{% endif %}">
         <!-- Background com opacidade controlada (não afeta conteúdo) -->
@@ -223,114 +223,64 @@
                 <!-- Layout Carrossel (Swiper) -->
                 <div class="swiper books-swiper">
                     <div class="swiper-wrapper">
-                        {% for item in section.get_items %}
-                            {% with obj=item.content_object %}
+                        {% for item in section.items %}
+                            {% with obj=item.obj display_title=item.display_title %}
                             <div class="swiper-slide">
                                 {% if section.content_type == 'books' %}
-                                    <!-- Card de Livro - MELHORADO: Card inteiro clicável -->
+                                    <!-- Card de Livro -->
                                     {% if obj.slug %}
                                     <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
                                         <div class="card book-card h-100">
                                             {% if obj.cover_image %}
                                                 <img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">
                                             {% else %}
-                                                <img src="{% static 'images/no-cover-placeholder.svg' %}"
-                                                     class="book-cover" alt="Sem capa">
+                                                <img src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover" alt="Sem capa">
                                             {% endif %}
                                             <div class="card-body">
-                                                <h5 class="card-title mb-1">{{ item.get_display_title|truncatewords:8 }}</h5>
+                                                <h5 class="card-title mb-1">{{ display_title|truncatewords:8 }}</h5>
                                                 {% if obj.author %}
                                                     <p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>
                                                 {% endif %}
-
-                                                <!-- Preço e Avaliação em uma linha compacta - ESPAÇOS REDUZIDOS -->
                                                 <div class="d-flex justify-content-between align-items-center book-info-compact">
                                                     <span class="price-tag-compact">
-                                                        {% if obj.price %}
-                                                            R$ {{ obj.price|floatformat:2 }}
-                                                        {% else %}
-                                                            <span class="text-muted small">Consulte</span>
-                                                        {% endif %}
+                                                        {% if obj.price %}R$ {{ obj.price|floatformat:2 }}{% else %}<span class="text-muted small">Consulte</span>{% endif %}
                                                     </span>
-
                                                     {% if obj.average_rating %}
                                                     <div class="rating-compact-home">
                                                         <span class="stars-small-home">
                                                             {% for i in 5|range %}
-                                                                {% if i < obj.average_rating %}
-                                                                    <i class="fas fa-star text-warning"></i>
-                                                                {% else %}
-                                                                    <i class="far fa-star text-muted"></i>
-                                                                {% endif %}
+                                                                {% if i < obj.average_rating %}<i class="fas fa-star text-warning"></i>{% else %}<i class="far fa-star text-muted"></i>{% endif %}
                                                             {% endfor %}
                                                         </span>
-                                                        {% if obj.reviews_count %}
-                                                            <small class="text-muted ms-1">({{ obj.reviews_count }})</small>
-                                                        {% endif %}
                                                     </div>
-                                                    {% else %}
-                                                        <span class="text-muted small">Sem avaliações</span>
-                                                    {% endif %}
+                                                    {% else %}<span class="text-muted small">Sem avaliações</span>{% endif %}
                                                 </div>
                                             </div>
                                         </div>
                                     </a>
                                     {% else %}
                                     <div class="card book-card h-100">
-                                        {% if obj.cover_image %}
-                                            <img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">
-                                        {% else %}
-                                            <img src="{% static 'images/no-cover-placeholder.svg' %}"
-                                                 class="book-cover" alt="Sem capa">
-                                        {% endif %}
+                                        {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">{% else %}<img src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover" alt="Sem capa">{% endif %}
                                         <div class="card-body">
-                                            <h5 class="card-title mb-1">{{ item.get_display_title|truncatewords:8 }}</h5>
-                                            {% if obj.author %}
-                                                <p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>
-                                            {% endif %}
+                                            <h5 class="card-title mb-1">{{ display_title|truncatewords:8 }}</h5>
+                                            {% if obj.author %}<p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>{% endif %}
                                         </div>
                                     </div>
                                     {% endif %}
 
                                 {% elif section.content_type == 'authors' %}
                                     <!-- Card de Autor -->
-                                    {% if obj.slug %}
-                                    <a href="{% url 'core:author_detail' obj.slug %}" class="text-decoration-none">
-                                    {% else %}
-                                    <div class="text-decoration-none">
-                                    {% endif %}
+                                    {% if obj.slug %}<a href="{% url 'core:author_detail' obj.slug %}" class="text-decoration-none">{% else %}<div class="text-decoration-none">{% endif %}
                                         <div class="card author-card text-center h-100">
                                             <div class="card-body">
-                                                {% if obj.photo %}
-                                                    <img src="{{ obj.photo.url }}" class="author-photo" alt="{{ obj.name }}">
-                                                {% else %}
-                                                    <div class="author-placeholder">
-                                                        <i class="fas fa-user"></i>
-                                                    </div>
-                                                {% endif %}
-                                                <h5 class="card-title">{{ item.get_display_title }}</h5>
-                                                {% if obj.bio %}
-                                                    <p class="card-text text-muted small">{{ obj.bio|truncatewords:15 }}</p>
-                                                {% endif %}
-
-                                                <!-- Redes Sociais (se disponíveis) -->
+                                                {% if obj.photo %}<img src="{{ obj.photo.url }}" class="author-photo" alt="{{ obj.name }}">{% else %}<div class="author-placeholder"><i class="fas fa-user"></i></div>{% endif %}
+                                                <h5 class="card-title">{{ display_title }}</h5>
+                                                {% if obj.bio %}<p class="card-text text-muted small">{{ obj.bio|truncatewords:15 }}</p>{% endif %}
                                                 {% if obj.twitter or obj.instagram or obj.website %}
                                                     <div class="mt-3 social-links-home">
-                                                        {% if obj.website %}
-                                                            <span class="social-icon-home" title="Website">
-                                                                <i class="fas fa-globe"></i>
-                                                            </span>
-                                                        {% endif %}
-                                                        {% if obj.twitter %}
-                                                            <span class="social-icon-home" title="Twitter">
-                                                                <i class="fab fa-twitter"></i>
-                                                            </span>
-                                                        {% endif %}
-                                                        {% if obj.instagram %}
-                                                            <span class="social-icon-home" title="Instagram">
-                                                                <i class="fab fa-instagram"></i>
-                                                            </span>
-                                                        {% endif %}
+                                                        {% if obj.website %}<span class="social-icon-home" title="Website"><i class="fas fa-globe"></i></span>{% endif %}
+                                                        {% if obj.twitter %}<span class="social-icon-home" title="Twitter"><i class="fab fa-twitter"></i></span>{% endif %}
+                                                        {% if obj.instagram %}<span class="social-icon-home" title="Instagram"><i class="fab fa-instagram"></i></span>{% endif %}
                                                     </div>
                                                 {% endif %}
                                             </div>
@@ -338,22 +288,14 @@
                                     {% if obj.slug %}</a>{% else %}</div>{% endif %}
 
                                 {% elif section.content_type == 'videos' %}
-                                    <!-- Card de Vídeo - Apenas Thumbnail -->
+                                    <!-- Card de Vídeo -->
                                     <div class="card video-card h-100">
                                         <a href="{{ obj.video_url }}" target="_blank" class="video-link">
-                                            {% if obj.thumbnail_url %}
-                                                <img src="{{ obj.thumbnail_url }}" class="video-thumbnail" alt="{{ obj.title }}">
-                                            {% else %}
-                                                <div class="video-placeholder">
-                                                    <i class="fas fa-video"></i>
-                                                </div>
-                                            {% endif %}
-                                            <div class="play-overlay">
-                                                <i class="fas fa-play-circle"></i>
-                                            </div>
+                                            {% if obj.thumbnail_url %}<img src="{{ obj.thumbnail_url }}" class="video-thumbnail" alt="{{ obj.title }}">{% else %}<div class="video-placeholder"><i class="fas fa-video"></i></div>{% endif %}
+                                            <div class="play-overlay"><i class="fas fa-play-circle"></i></div>
                                         </a>
                                         <div class="card-body p-3">
-                                            <h5 class="card-title mb-0">{{ item.get_display_title|truncatewords:8 }}</h5>
+                                            <h5 class="card-title mb-0">{{ display_title|truncatewords:8 }}</h5>
                                         </div>
                                     </div>
                                 {% endif %}
@@ -361,7 +303,6 @@
                             {% endwith %}
                         {% endfor %}
                     </div>
-                    <!-- Navegação do Swiper -->
                     <div class="swiper-button-prev"></div>
                     <div class="swiper-button-next"></div>
                     <div class="swiper-pagination"></div>
@@ -370,111 +311,41 @@
             {% elif section.layout == 'grid' %}
                 <!-- Layout Grid -->
                 <div class="row g-4">
-                    {% for item in section.get_items %}
-                        {% with obj=item.content_object %}
+                    {% for item in section.items %}
+                        {% with obj=item.obj display_title=item.display_title %}
                         <div class="col-md-3">
                             {% if section.content_type == 'books' %}
-                                <!-- Card de Livro - MELHORADO: Card inteiro clicável -->
                                 {% if obj.slug %}
                                 <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
                                     <div class="card book-card h-100">
-                                        {% if obj.cover_image %}
-                                            <img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">
-                                        {% else %}
-                                            <img src="{% static 'images/no-cover-placeholder.svg' %}"
-                                                 class="book-cover" alt="Sem capa">
-                                        {% endif %}
+                                        {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">{% else %}<img src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover" alt="Sem capa">{% endif %}
                                         <div class="card-body">
-                                            <h5 class="card-title mb-1">{{ item.get_display_title }}</h5>
-                                            {% if obj.author %}
-                                                <p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>
-                                            {% endif %}
-
-                                            <!-- Preço e Avaliação em uma linha compacta - ESPAÇOS REDUZIDOS -->
+                                            <h5 class="card-title mb-1">{{ display_title }}</h5>
+                                            {% if obj.author %}<p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>{% endif %}
                                             <div class="d-flex justify-content-between align-items-center book-info-compact">
-                                                <span class="price-tag-compact">
-                                                    {% if obj.price %}
-                                                        R$ {{ obj.price|floatformat:2 }}
-                                                    {% else %}
-                                                        <span class="text-muted small">Consulte</span>
-                                                    {% endif %}
-                                                </span>
-
+                                                <span class="price-tag-compact">{% if obj.price %}R$ {{ obj.price|floatformat:2 }}{% else %}<span class="text-muted small">Consulte</span>{% endif %}</span>
                                                 {% if obj.average_rating %}
-                                                <div class="rating-compact-home">
-                                                    <span class="stars-small-home">
-                                                        {% for i in 5|range %}
-                                                            {% if i < obj.average_rating %}
-                                                                <i class="fas fa-star text-warning"></i>
-                                                            {% else %}
-                                                                <i class="far fa-star text-muted"></i>
-                                                            {% endif %}
-                                                        {% endfor %}
-                                                    </span>
-                                                    {% if obj.reviews_count %}
-                                                        <small class="text-muted ms-1">({{ obj.reviews_count }})</small>
-                                                    {% endif %}
-                                                </div>
-                                                {% else %}
-                                                    <span class="text-muted small">Sem avaliações</span>
-                                                {% endif %}
+                                                <div class="rating-compact-home"><span class="stars-small-home">{% for i in 5|range %}{% if i < obj.average_rating %}<i class="fas fa-star text-warning"></i>{% else %}<i class="far fa-star text-muted"></i>{% endif %}{% endfor %}</span></div>
+                                                {% else %}<span class="text-muted small">Sem avaliações</span>{% endif %}
                                             </div>
                                         </div>
                                     </div>
                                 </a>
                                 {% else %}
                                 <div class="card book-card h-100">
-                                    {% if obj.cover_image %}
-                                        <img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">
-                                    {% else %}
-                                        <img src="{% static 'images/no-cover-placeholder.svg' %}"
-                                             class="book-cover" alt="Sem capa">
-                                    {% endif %}
+                                    {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">{% else %}<img src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover" alt="Sem capa">{% endif %}
                                     <div class="card-body">
-                                        <h5 class="card-title mb-1">{{ item.get_display_title }}</h5>
-                                        {% if obj.author %}
-                                            <p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>
-                                        {% endif %}
+                                        <h5 class="card-title mb-1">{{ display_title }}</h5>
+                                        {% if obj.author %}<p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>{% endif %}
                                     </div>
                                 </div>
                                 {% endif %}
-
                             {% elif section.content_type == 'authors' %}
-                                <!-- Card de Autor - CORRIGIDO -->
                                 <div class="card author-card text-center h-100">
                                     <div class="card-body">
-                                        {% if obj.photo %}
-                                            <img src="{{ obj.photo.url }}" class="author-photo" alt="{{ obj.name }}">
-                                        {% else %}
-                                            <div class="author-placeholder">
-                                                <i class="fas fa-user"></i>
-                                            </div>
-                                        {% endif %}
-                                        <h5 class="card-title">{{ item.get_display_title }}</h5>
-                                        {% if obj.bio %}
-                                            <p class="card-text text-muted small">{{ obj.bio|truncatewords:15 }}</p>
-                                        {% endif %}
-
-                                        <!-- Redes Sociais -->
-                                        {% if obj.twitter or obj.instagram or obj.website %}
-                                            <div class="mt-3">
-                                                {% if obj.website %}
-                                                    <a href="{{ obj.website }}" target="_blank" class="btn btn-sm btn-outline-secondary me-1">
-                                                        <i class="fas fa-globe"></i>
-                                                    </a>
-                                                {% endif %}
-                                                {% if obj.twitter %}
-                                                    <a href="https://twitter.com/{{ obj.twitter }}" target="_blank" class="btn btn-sm btn-outline-info me-1">
-                                                        <i class="fab fa-twitter"></i>
-                                                    </a>
-                                                {% endif %}
-                                                {% if obj.instagram %}
-                                                    <a href="https://instagram.com/{{ obj.instagram }}" target="_blank" class="btn btn-sm btn-outline-danger">
-                                                        <i class="fab fa-instagram"></i>
-                                                    </a>
-                                                {% endif %}
-                                            </div>
-                                        {% endif %}
+                                        {% if obj.photo %}<img src="{{ obj.photo.url }}" class="author-photo" alt="{{ obj.name }}">{% else %}<div class="author-placeholder"><i class="fas fa-user"></i></div>{% endif %}
+                                        <h5 class="card-title">{{ display_title }}</h5>
+                                        {% if obj.bio %}<p class="card-text text-muted small">{{ obj.bio|truncatewords:15 }}</p>{% endif %}
                                     </div>
                                 </div>
                             {% endif %}
@@ -486,24 +357,16 @@
             {% elif section.layout == 'list' %}
                 <!-- Layout Lista -->
                 <div class="list-group">
-                    {% for item in section.get_items %}
-                        {% with obj=item.content_object %}
+                    {% for item in section.items %}
+                        {% with obj=item.obj display_title=item.display_title %}
                         {% if section.content_type == 'books' %}
-                            {% if obj.slug %}
-                            <a href="{% url 'core:book_detail' obj.slug %}" class="list-group-item list-group-item-action">
-                            {% else %}
-                            <div class="list-group-item">
-                            {% endif %}
+                            {% if obj.slug %}<a href="{% url 'core:book_detail' obj.slug %}" class="list-group-item list-group-item-action">{% else %}<div class="list-group-item">{% endif %}
                                 <div class="d-flex w-100 justify-content-between align-items-center">
                                     <div class="d-flex align-items-center">
-                                        {% if obj.cover_image %}
-                                            <img src="{{ obj.cover_image.url }}" style="width: 50px; height: 70px; object-fit: cover;" class="me-3" alt="{{ obj.title }}">
-                                        {% endif %}
+                                        {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" style="width: 50px; height: 70px; object-fit: cover;" class="me-3" alt="{{ obj.title }}">{% endif %}
                                         <div>
-                                            <h5 class="mb-1">{{ item.get_display_title }}</h5>
-                                            {% if obj.author %}
-                                                <p class="mb-1 text-muted small">{{ obj.author.name }}</p>
-                                            {% endif %}
+                                            <h5 class="mb-1">{{ display_title }}</h5>
+                                            {% if obj.author %}<p class="mb-1 text-muted small">{{ obj.author.name }}</p>{% endif %}
                                         </div>
                                     </div>
                                     <span class="badge bg-primary rounded-pill">R$ {{ obj.price }}</span>
