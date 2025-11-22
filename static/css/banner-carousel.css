@@ -465,3 +465,36 @@
         transparent 100%
     );
 }
+
+/* ============================================
+   GRADIENTE DE OPACIDADE NO TOPO DO BANNER
+   Suaviza transição com navbar/linha decorativa
+   ============================================ */
+
+.banner-top-fade {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px; /* Altura do fade */
+    background: linear-gradient(
+        to bottom,
+        var(--body-bg) 0%,
+        rgba(var(--body-bg-rgb, 255, 255, 255), 0.8) 20%,
+        rgba(var(--body-bg-rgb, 255, 255, 255), 0.4) 50%,
+        transparent 100%
+    );
+    z-index: 2; /* Acima do overlay mas abaixo do conteúdo */
+    pointer-events: none;
+}
+
+/* Versão dark mode */
+[data-theme="dark"] .banner-top-fade {
+    background: linear-gradient(
+        to bottom,
+        rgb(18, 18, 18) 0%,
+        rgba(18, 18, 18, 0.8) 20%,
+        rgba(18, 18, 18, 0.4) 50%,
+        transparent 100%
+    );
+}
