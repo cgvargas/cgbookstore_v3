@@ -7,16 +7,6 @@
 <link rel="stylesheet" href="{% static 'css/banner-carousel.css' %}">
 <style>
     /* ============================================
-       BANNER ENCOSTADO NA LINHA DECORATIVA
-       ============================================ */
-    /* Banner fora do main - encosta perfeitamente na linha */
-    .banner-carousel-container {
-        margin-top: 60px !important; /* Navbar (56px) + linha decorativa (4px) */
-        margin-bottom: 0 !important;
-        padding: 0 !important;
-    }
-
-    /* ============================================
        EFEITO CRUNCHYROLL - Seções sobre o Banner
        ============================================ */
     .section-overlap-banner {
@@ -190,13 +180,11 @@
 
 {% include 'recommendations/recommendations_section.html' %}
 
-{% block banner %}
-<!-- Banner Carousel (fora do main para encostar na linha) -->
-{% include 'core/widgets/banner_carousel.html' %}
-{% endblock %}
-
 {% block content %}
 <div class="container-fluid px-0">
+    <!-- Banner Carousel -->
+    {% include 'core/widgets/banner_carousel.html' %}
+
     <!-- Seções Dinâmicas (usando estrutura de dicts para performance) -->
     {% for section in sections %}
     <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative {% if forloop.first %}section-overlap-banner{% endif %}">
