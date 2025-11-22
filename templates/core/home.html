@@ -9,14 +9,22 @@
     /* ============================================
        BANNER ENCOSTADO NA LINHA DECORATIVA
        ============================================ */
-    /* Remove completamente o padding do main na home */
+    /* Remove completamente todos os espaços do main na home */
     main.py-4 {
-        padding-top: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
-    /* Container-fluid sem padding para banner encostar */
+    /* Container-fluid absolutamente sem espaços */
     .container-fluid.px-0 {
-        margin-top: 60px; /* Compensa linha decorativa fixa */
+        margin-top: 60px !important; /* Navbar (56px) + linha decorativa (4px) */
+        padding: 0 !important;
+    }
+
+    /* Banner container sem espaços */
+    .banner-carousel-container {
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     /* ============================================

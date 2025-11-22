@@ -17,7 +17,8 @@
 
 .banner-carousel-container {
     width: 100%;
-    margin-bottom: 0; /* Removido para permitir sobreposição */
+    margin: 0;
+    padding: 0; /* Removido para permitir sobreposição */
     position: relative;
     overflow: hidden;
     z-index: 1; /* Banner fica atrás das seções */
