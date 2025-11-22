@@ -13,32 +13,9 @@
         transition: all 0.3s ease;
     }
 
-    .diagnostic-container[data-theme="dark"] {
+    html[data-theme="dark"] .diagnostic-container {
         background-color: transparent;
         color: #eee;
-    }
-
-    /* Botão de toggle de tema */
-    .theme-toggle {
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        z-index: 1000;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        color: white;
-        font-size: 1.2rem;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        transition: all 0.3s ease;
-    }
-
-    .theme-toggle:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
     }
 
     .diagnostic-card {
@@ -50,7 +27,7 @@
         transition: all 0.3s ease;
     }
 
-    .diagnostic-container[data-theme="dark"] .diagnostic-card {
+    html[data-theme="dark"] .diagnostic-card {
         background: #16213e !important;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
         color: #eee !important;
@@ -65,7 +42,7 @@
         border-bottom: 2px solid #e2e8f0;
     }
 
-    .diagnostic-container[data-theme="dark"] .diagnostic-header {
+    html[data-theme="dark"] .diagnostic-header {
         border-bottom-color: #394867;
     }
 
@@ -74,7 +51,7 @@
         color: #1e293b;
     }
 
-    .diagnostic-container[data-theme="dark"] .diagnostic-header h2 {
+    html[data-theme="dark"] .diagnostic-header h2 {
         color: #eee;
     }
 
@@ -118,7 +95,7 @@
         transition: all 0.3s ease;
     }
 
-    .diagnostic-container[data-theme="dark"] .info-item {
+    html[data-theme="dark"] .info-item {
         background: #0f3460 !important;
         border-left-color: #667eea !important;
     }
@@ -130,7 +107,7 @@
         font-weight: 500;
     }
 
-    .diagnostic-container[data-theme="dark"] .info-label {
+    html[data-theme="dark"] .info-label {
         color: #94a3b8;
     }
 
@@ -141,7 +118,7 @@
         word-break: break-all;
     }
 
-    .diagnostic-container[data-theme="dark"] .info-value {
+    html[data-theme="dark"] .info-value {
         color: #e2e8f0;
     }
 
@@ -152,7 +129,7 @@
         font-size: 0.875rem;
     }
 
-    .diagnostic-container[data-theme="dark"] .info-value code {
+    html[data-theme="dark"] .info-value code {
         background: #1e293b;
         color: #94a3b8;
     }
@@ -192,7 +169,7 @@
         transition: all 0.2s;
     }
 
-    .diagnostic-container[data-theme="dark"] .btn-secondary-custom {
+    html[data-theme="dark"] .btn-secondary-custom {
         background: #0f3460;
         color: #94a3b8;
     }
@@ -202,7 +179,7 @@
         color: #1e293b;
     }
 
-    .diagnostic-container[data-theme="dark"] .btn-secondary-custom:hover {
+    html[data-theme="dark"] .btn-secondary-custom:hover {
         background: #16213e;
         color: #e2e8f0;
     }
@@ -223,7 +200,7 @@
         color: #1e40af;
     }
 
-    .diagnostic-container[data-theme="dark"] .alert-info {
+    html[data-theme="dark"] .alert-info {
         background: #1e3a5f !important;
         color: #93c5fd !important;
     }
@@ -234,7 +211,7 @@
         color: #065f46;
     }
 
-    .diagnostic-container[data-theme="dark"] .alert-success {
+    html[data-theme="dark"] .alert-success {
         background: #064e3b !important;
         color: #6ee7b7 !important;
     }
@@ -245,7 +222,7 @@
         color: #92400e;
     }
 
-    .diagnostic-container[data-theme="dark"] .alert-warning {
+    html[data-theme="dark"] .alert-warning {
         background: #78350f !important;
         color: #fcd34d !important;
     }
@@ -256,7 +233,7 @@
         color: #991b1b;
     }
 
-    .diagnostic-container[data-theme="dark"] .alert-danger {
+    html[data-theme="dark"] .alert-danger {
         background: #7f1d1d !important;
         color: #fca5a5 !important;
     }
@@ -299,7 +276,7 @@
         transition: all 0.3s ease;
     }
 
-    .diagnostic-container[data-theme="dark"] .code-block {
+    html[data-theme="dark"] .code-block {
         background: #0f3460;
         color: #94a3b8;
     }
@@ -310,41 +287,41 @@
     }
 
     /* Textos gerais em tema escuro */
-    .diagnostic-container[data-theme="dark"] p,
-    .diagnostic-container[data-theme="dark"] li,
-    .diagnostic-container[data-theme="dark"] div {
+    html[data-theme="dark"] p,
+    html[data-theme="dark"] li,
+    html[data-theme="dark"] div {
         color: #e2e8f0 !important;
     }
 
-    .diagnostic-container[data-theme="dark"] h3,
-    .diagnostic-container[data-theme="dark"] h4 {
+    html[data-theme="dark"] h3,
+    html[data-theme="dark"] h4 {
         color: #eee !important;
     }
 
-    .diagnostic-container[data-theme="dark"] strong {
+    html[data-theme="dark"] strong {
         color: #fff !important;
     }
 
-    .diagnostic-container[data-theme="dark"] a {
+    html[data-theme="dark"] a {
         color: #93c5fd !important;
     }
 
-    .diagnostic-container[data-theme="dark"] a:hover {
+    html[data-theme="dark"] a:hover {
         color: #60a5fa !important;
     }
 
     /* Status badges em tema escuro - manter cores originais para visibilidade */
-    .diagnostic-container[data-theme="dark"] .status-badge.success {
+    html[data-theme="dark"] .status-badge.success {
         background: #064e3b !important;
         color: #6ee7b7 !important;
     }
 
-    .diagnostic-container[data-theme="dark"] .status-badge.error {
+    html[data-theme="dark"] .status-badge.error {
         background: #7f1d1d !important;
         color: #fca5a5 !important;
     }
 
-    .diagnostic-container[data-theme="dark"] .status-badge.warning {
+    html[data-theme="dark"] .status-badge.warning {
         background: #78350f !important;
         color: #fcd34d !important;
     }
@@ -352,12 +329,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- Botão de Toggle Tema -->
-<button class="theme-toggle" id="themeToggle" title="Alternar tema">
-    <i class="fas fa-moon"></i>
-</button>
-
-<div class="diagnostic-container" data-theme="light">
+<div class="diagnostic-container">
     <!-- Header -->
     <div class="diagnostic-card">
         <div class="diagnostic-header">
@@ -564,85 +536,4 @@ python manage.py test_gemini --message "Recomende um romance brasileiro"
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Script carregado!');
-
-    // Toggle de tema claro/escuro
-    const themeToggle = document.getElementById('themeToggle');
-    const container = document.querySelector('.diagnostic-container');
-    const body = document.body;
-
-    console.log('Elementos encontrados:', {
-        themeToggle: !!themeToggle,
-        container: !!container,
-        body: !!body
-    });
-
-    if (!themeToggle || !container) {
-        console.error('Elementos não encontrados!');
-        return;
-    }
-
-    // Carregar tema salvo
-    const savedTheme = localStorage.getItem('diagnostic-theme') || 'light';
-    console.log('Tema salvo:', savedTheme);
-
-    container.setAttribute('data-theme', savedTheme);
-    body.setAttribute('data-theme', savedTheme);
-
-    // Adicionar classe também para maior especificidade
-    if (savedTheme === 'dark') {
-        container.classList.add('theme-dark');
-        body.classList.add('theme-dark');
-    }
-
-    updateToggleIcon(savedTheme);
-
-    // Alternar tema
-    themeToggle.addEventListener('click', function() {
-        const currentTheme = container.getAttribute('data-theme');
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-
-        console.log('Alternando de', currentTheme, 'para', newTheme);
-
-        container.setAttribute('data-theme', newTheme);
-        body.setAttribute('data-theme', newTheme);
-
-        // Remover/adicionar classes
-        if (newTheme === 'dark') {
-            container.classList.add('theme-dark');
-            body.classList.add('theme-dark');
-            container.classList.remove('theme-light');
-            body.classList.remove('theme-light');
-        } else {
-            container.classList.add('theme-light');
-            body.classList.add('theme-light');
-            container.classList.remove('theme-dark');
-            body.classList.remove('theme-dark');
-        }
-
-        localStorage.setItem('diagnostic-theme', newTheme);
-        updateToggleIcon(newTheme);
-
-        console.log('Container classes:', container.className);
-        console.log('Container data-theme:', container.getAttribute('data-theme'));
-    });
-
-    // Atualizar ícone do botão
-    function updateToggleIcon(theme) {
-        const icon = themeToggle.querySelector('i');
-        if (theme === 'dark') {
-            icon.classList.remove('fa-moon');
-            icon.classList.add('fa-sun');
-        } else {
-            icon.classList.remove('fa-sun');
-            icon.classList.add('fa-moon');
-        }
-    }
-});
-</script>
 {% endblock %}
