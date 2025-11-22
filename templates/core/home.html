@@ -7,6 +7,19 @@
 <link rel="stylesheet" href="{% static 'css/banner-carousel.css' %}">
 <style>
     /* ============================================
+       BANNER ENCOSTADO NA LINHA DECORATIVA
+       ============================================ */
+    /* Remove completamente o padding do main na home */
+    main.py-4 {
+        padding-top: 0 !important;
+    }
+
+    /* Container-fluid sem padding para banner encostar */
+    .container-fluid.px-0 {
+        margin-top: 60px; /* Compensa linha decorativa fixa */
+    }
+
+    /* ============================================
        EFEITO CRUNCHYROLL - Seções sobre o Banner
        ============================================ */
     .section-overlap-banner {
