@@ -128,7 +128,7 @@ class ReadingNotification(BaseNotification):
             notification_type='deadline_warning',
             message=message,
             priority=cls.PRIORITY_LEVELS['deadline_warning'],
-            action_url=f'/book/{reading_progress.book.id}/',
+            action_url=reading_progress.book.get_absolute_url(),
             action_text='Continuar Lendo'
         )
 
@@ -170,7 +170,7 @@ class ReadingNotification(BaseNotification):
             notification_type='deadline_passed',
             message=message,
             priority=cls.PRIORITY_LEVELS['deadline_passed'],
-            action_url=f'/book/{reading_progress.book.id}/',
+            action_url=reading_progress.book.get_absolute_url(),
             action_text='Atualizar Prazo'
         )
 
@@ -227,7 +227,7 @@ class ReadingNotification(BaseNotification):
             notification_type='book_completed',
             message=message,
             priority=cls.PRIORITY_LEVELS['book_completed'],
-            action_url=f'/book/{reading_progress.book.id}/#reviews',
+            action_url=reading_progress.book.get_absolute_url() + '#reviews',
             action_text='Avaliar Livro'
         )
 
@@ -380,7 +380,7 @@ class SystemNotification(BaseNotification):
                     notification_type='book_launch',
                     message=message,
                     priority=cls.PRIORITY_LEVELS['book_launch'],
-                    action_url=f'/book/{book.id}/',
+                    action_url=book.get_absolute_url(),
                     action_text='Ver Livro',
                     extra_data={'book_id': book.id}
                 )

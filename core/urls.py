@@ -3,6 +3,7 @@ from core.views import (
     HomeView,
     BookListView,
     BookDetailView,
+    BookRedirectView,
     AuthorListView,
     AuthorDetailView,
     VideoListView,
@@ -87,6 +88,8 @@ urlpatterns = [
     path('contato/', ContactView.as_view(), name='contact'),
     path('biblioteca/', LibraryView.as_view(), name='library'),
     path('eventos/', EventListView.as_view(), name='events'),
+    # Redirecionamento para URLs antigas (compatibilidade)
+    path('book/<int:book_id>/', BookRedirectView.as_view(), name='book_redirect'),
 
     # ==========================================
     # APIs AJAX - BIBLIOTECA PESSOAL
