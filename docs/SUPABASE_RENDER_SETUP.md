@@ -1,33 +1,59 @@
 # Configuração Supabase + Render - Guia de Resolução de Problemas
 
-## Problema: "Tenant or user not found" no Render
+## Problema: Erros de Conexão no Render com Supabase
 
-Este erro geralmente ocorre quando há problemas de conexão entre o Render e o Supabase, especialmente relacionados a IPv4/IPv6.
+Este guia resolve dois erros principais de conexão entre Render e Supabase.
 
-### Sintomas
+### Erro 1: "Network is unreachable" (IPv6)
 
+**Sintoma:**
 ```
-django.db.utils.OperationalError: connection failed: connection to server at "44.208.221.186",
-port 5432 failed: FATAL: Tenant or user not found
+connection to server at "2600:1f1e:75b:4b00:...", port 5432 failed: Network is unreachable
 ```
 
-### Causas Comuns
+**Causa:** O Render **não suporta IPv6**, mas o Supabase retorna endereços IPv6 no DNS. O psycopg tenta conectar via IPv6 primeiro e falha.
 
-1. **Formato incorreto da DATABASE_URL**
-2. **Problemas de resolução IPv4/IPv6**
+**Solução:** O `settings.py` agora resolve o hostname para IPv4 **antes** da conexão, forçando uso exclusivo de IPv4.
+
+### Erro 2: "Tenant or user not found"
+
+**Sintoma:**
+```
+django.db.utils.OperationalError: connection failed: FATAL: Tenant or user not found
+```
+
+**Causa:** Uso do pooler do Supabase ao invés da conexão direta.
+
+### Causas Comuns de Falha de Conexão
+
+1. **✅ Render não suporta IPv6** (resolvido automaticamente)
+2. **Formato incorreto da DATABASE_URL**
 3. **Uso do pooler incorreto**
 4. **Credenciais inválidas**
 
 ## Solução Implementada
 
-### 1. Configuração Automática de IPv4
+### 1. Forçamento Automático de IPv4
 
-O arquivo `cgbookstore/settings.py` foi atualizado para:
+O arquivo `cgbookstore/settings.py` implementa uma solução robusta:
 
-- ✅ Detectar automaticamente quando está usando Supabase
-- ✅ Forçar uso de IPv4 para evitar conflitos
-- ✅ Configurar corretamente SSL para Supabase
-- ✅ Adicionar timeouts apropriados
+**Como funciona:**
+1. ✅ Detecta automaticamente quando está usando Supabase
+2. ✅ **Resolve o hostname DNS para IPv4 ANTES da conexão**
+   - Usa `socket.getaddrinfo()` com filtro `AF_INET` (apenas IPv4)
+   - Substitui o hostname pelo IP IPv4 resolvido
+3. ✅ Adiciona `hostaddr` para garantir que psycopg use o IP diretamente
+4. ✅ Configura SSL obrigatório para Supabase
+5. ✅ Adiciona timeouts apropriados
+
+**Logs esperados:**
+```
+🔍 Resolvendo db.uomjbcuowfgcwhsejatn.supabase.co para IPv4...
+✅ Resolvido db.uomjbcuowfgcwhsejatn.supabase.co -> 44.XXX.XXX.XXX (IPv4)
+✅ Forçado conexão IPv4: 44.XXX.XXX.XXX
+✅ Detectado Supabase conexão DIRETA: db.uomjbcuowfgcwhsejatn.supabase.co
+✅ Configurações PostgreSQL aplicadas: [...]
+```
 
 ### 2. Como Configurar a DATABASE_URL no Render
 

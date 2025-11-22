@@ -123,14 +123,41 @@ if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
         # SSL é obrigatório para Supabase
         db_options['sslmode'] = 'require'
 
-        # Forçar IPv4 para compatibilidade com Render
-        # O Render pode ter problemas com resolução IPv6
+        # CRÍTICO: Forçar IPv4 resolvendo DNS antes da conexão
+        # O Render NÃO suporta IPv6, mas o Supabase retorna endereços IPv6 no DNS
+        # Precisamos resolver o hostname para IPv4 ANTES do psycopg tentar conectar
         import socket
         try:
-            socket.setdefaulttimeout(10)
-            logger.info("✅ Configurado timeout de socket para IPv4")
+            # Resolver hostname para IPv4 apenas (AF_INET = IPv4)
+            logger.info(f"🔍 Resolvendo {db_host} para IPv4...")
+            addr_info = socket.getaddrinfo(
+                db_host,
+                None,
+                socket.AF_INET,  # Apenas IPv4
+                socket.SOCK_STREAM
+            )
+
+            if addr_info:
+                # Pegar o primeiro IP IPv4 resolvido
+                ipv4_address = addr_info[0][4][0]
+                logger.info(f"✅ Resolvido {db_host} -> {ipv4_address} (IPv4)")
+
+                # Substituir HOST pelo IP IPv4
+                DATABASES['default']['HOST'] = ipv4_address
+
+                # Adicionar hostaddr para forçar uso do IP
+                # Isso garante que psycopg use o IP ao invés de resolver DNS novamente
+                db_options['hostaddr'] = ipv4_address
+
+                logger.info(f"✅ Forçado conexão IPv4: {ipv4_address}")
+            else:
+                logger.warning(f"⚠️ Não foi possível resolver {db_host} para IPv4")
+
+        except socket.gaierror as e:
+            logger.error(f"❌ Erro ao resolver DNS para IPv4: {e}")
+            logger.warning("⚠️ Continuando com hostname original (pode falhar em IPv6)")
         except Exception as e:
-            logger.warning(f"⚠️ Não foi possível configurar timeout de socket: {e}")
+            logger.error(f"❌ Erro inesperado ao configurar IPv4: {e}")
 
         # Identificar tipo de conexão
         if 'pooler.supabase.com' in db_host:
