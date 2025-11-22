@@ -37,7 +37,9 @@ class GeminiChatService:
 
     def __init__(self):
         self.api_key = settings.GEMINI_API_KEY
-        self.model_name = 'gemini-1.5-flash'
+        # Usar gemini-pro que é o modelo estável e disponível
+        # Alternativas: 'gemini-1.5-pro', 'gemini-1.5-flash-latest'
+        self.model_name = 'gemini-1.5-pro'
         self.request_timeout = 30
         self._model = None
         self._system_prompt = self._build_system_prompt()
