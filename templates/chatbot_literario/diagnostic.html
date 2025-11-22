@@ -223,10 +223,20 @@
         color: #1e40af;
     }
 
+    .diagnostic-container[data-theme="dark"] .alert-info {
+        background: #1e3a5f;
+        color: #93c5fd;
+    }
+
     .alert-success {
         background: #d1fae5;
         border-left: 4px solid #10b981;
         color: #065f46;
+    }
+
+    .diagnostic-container[data-theme="dark"] .alert-success {
+        background: #064e3b;
+        color: #6ee7b7;
     }
 
     .alert-warning {
@@ -235,10 +245,20 @@
         color: #92400e;
     }
 
+    .diagnostic-container[data-theme="dark"] .alert-warning {
+        background: #78350f;
+        color: #fcd34d;
+    }
+
     .alert-danger {
         background: #fee2e2;
         border-left: 4px solid #ef4444;
         color: #991b1b;
+    }
+
+    .diagnostic-container[data-theme="dark"] .alert-danger {
+        background: #7f1d1d;
+        color: #fca5a5;
     }
 
     .stats-grid {
@@ -287,6 +307,46 @@
     /* Ajustes para body em tema escuro */
     body[data-theme="dark"] {
         background-color: #1a1a2e;
+    }
+
+    /* Textos gerais em tema escuro */
+    .diagnostic-container[data-theme="dark"] p,
+    .diagnostic-container[data-theme="dark"] li,
+    .diagnostic-container[data-theme="dark"] div {
+        color: #e2e8f0;
+    }
+
+    .diagnostic-container[data-theme="dark"] h3,
+    .diagnostic-container[data-theme="dark"] h4 {
+        color: #eee;
+    }
+
+    .diagnostic-container[data-theme="dark"] strong {
+        color: #fff;
+    }
+
+    .diagnostic-container[data-theme="dark"] a {
+        color: #93c5fd;
+    }
+
+    .diagnostic-container[data-theme="dark"] a:hover {
+        color: #60a5fa;
+    }
+
+    /* Status badges em tema escuro - manter cores originais para visibilidade */
+    .diagnostic-container[data-theme="dark"] .status-badge.success {
+        background: #064e3b;
+        color: #6ee7b7;
+    }
+
+    .diagnostic-container[data-theme="dark"] .status-badge.error {
+        background: #7f1d1d;
+        color: #fca5a5;
+    }
+
+    .diagnostic-container[data-theme="dark"] .status-badge.warning {
+        background: #78350f;
+        color: #fcd34d;
     }
 </style>
 {% endblock %}
