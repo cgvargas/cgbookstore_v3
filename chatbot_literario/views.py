@@ -1,5 +1,5 @@
 from django.views.generic import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
@@ -297,13 +297,18 @@ def check_service(request):
     })
 
 
-class DiagnosticView(LoginRequiredMixin, TemplateView):
+class DiagnosticView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     """
     Página de diagnóstico do chatbot.
     Mostra informações detalhadas sobre o status da API Gemini.
+    ACESSO RESTRITO: Apenas superusuários podem acessar esta página.
     """
     template_name = 'chatbot_literario/diagnostic.html'
     login_url = '/accounts/login/'
+
+    def test_func(self):
+        """Verifica se o usuário é superuser."""
+        return self.request.user.is_superuser
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -5,10 +5,40 @@
 
 {% block extra_css %}
 <style>
+    /* Container principal com suporte a tema */
     .diagnostic-container {
         max-width: 1000px;
         margin: 2rem auto;
         padding: 0 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .diagnostic-container[data-theme="dark"] {
+        background-color: transparent;
+        color: #eee;
+    }
+
+    /* Botão de toggle de tema */
+    .theme-toggle {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        z-index: 1000;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
     }
 
     .diagnostic-card {
@@ -17,6 +47,13 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         padding: 2rem;
         margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .diagnostic-container[data-theme="dark"] .diagnostic-card {
+        background: #16213e;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        color: #eee;
     }
 
     .diagnostic-header {
@@ -28,9 +65,17 @@
         border-bottom: 2px solid #e2e8f0;
     }
 
+    .diagnostic-container[data-theme="dark"] .diagnostic-header {
+        border-bottom-color: #394867;
+    }
+
     .diagnostic-header h2 {
         margin: 0;
         color: #1e293b;
+    }
+
+    .diagnostic-container[data-theme="dark"] .diagnostic-header h2 {
+        color: #eee;
     }
 
     .status-badge {
@@ -70,6 +115,12 @@
         background: #f8fafc;
         border-radius: 8px;
         border-left: 4px solid #667eea;
+        transition: all 0.3s ease;
+    }
+
+    .diagnostic-container[data-theme="dark"] .info-item {
+        background: #0f3460;
+        border-left-color: #667eea;
     }
 
     .info-label {
@@ -79,6 +130,10 @@
         font-weight: 500;
     }
 
+    .diagnostic-container[data-theme="dark"] .info-label {
+        color: #94a3b8;
+    }
+
     .info-value {
         font-size: 1.125rem;
         color: #1e293b;
@@ -86,11 +141,20 @@
         word-break: break-all;
     }
 
+    .diagnostic-container[data-theme="dark"] .info-value {
+        color: #e2e8f0;
+    }
+
     .info-value code {
         background: #e2e8f0;
         padding: 0.25rem 0.5rem;
         border-radius: 4px;
         font-size: 0.875rem;
+    }
+
+    .diagnostic-container[data-theme="dark"] .info-value code {
+        background: #1e293b;
+        color: #94a3b8;
     }
 
     .action-buttons {
@@ -125,11 +189,22 @@
     .btn-secondary-custom {
         background: #f1f5f9;
         color: #475569;
+        transition: all 0.2s;
+    }
+
+    .diagnostic-container[data-theme="dark"] .btn-secondary-custom {
+        background: #0f3460;
+        color: #94a3b8;
     }
 
     .btn-secondary-custom:hover {
         background: #e2e8f0;
         color: #1e293b;
+    }
+
+    .diagnostic-container[data-theme="dark"] .btn-secondary-custom:hover {
+        background: #16213e;
+        color: #e2e8f0;
     }
 
     .alert-custom {
@@ -139,6 +214,7 @@
         display: flex;
         align-items: flex-start;
         gap: 0.75rem;
+        transition: all 0.3s ease;
     }
 
     .alert-info {
@@ -200,12 +276,28 @@
         font-size: 0.875rem;
         overflow-x: auto;
         margin-top: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .diagnostic-container[data-theme="dark"] .code-block {
+        background: #0f3460;
+        color: #94a3b8;
+    }
+
+    /* Ajustes para body em tema escuro */
+    body[data-theme="dark"] {
+        background-color: #1a1a2e;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="diagnostic-container">
+<!-- Botão de Toggle Tema -->
+<button class="theme-toggle" id="themeToggle" title="Alternar tema">
+    <i class="fas fa-moon"></i>
+</button>
+
+<div class="diagnostic-container" data-theme="light">
     <!-- Header -->
     <div class="diagnostic-card">
         <div class="diagnostic-header">
@@ -412,4 +504,40 @@ python manage.py test_gemini --message "Recomende um romance brasileiro"
         </div>
     </div>
 </div>
+
+<script>
+    // Toggle de tema claro/escuro
+    const themeToggle = document.getElementById('themeToggle');
+    const container = document.querySelector('.diagnostic-container');
+    const body = document.body;
+
+    // Carregar tema salvo
+    const savedTheme = localStorage.getItem('diagnostic-theme') || 'light';
+    container.setAttribute('data-theme', savedTheme);
+    body.setAttribute('data-theme', savedTheme);
+    updateToggleIcon(savedTheme);
+
+    // Alternar tema
+    themeToggle.addEventListener('click', function() {
+        const currentTheme = container.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+        container.setAttribute('data-theme', newTheme);
+        body.setAttribute('data-theme', newTheme);
+        localStorage.setItem('diagnostic-theme', newTheme);
+        updateToggleIcon(newTheme);
+    });
+
+    // Atualizar ícone do botão
+    function updateToggleIcon(theme) {
+        const icon = themeToggle.querySelector('i');
+        if (theme === 'dark') {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        } else {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
+    }
+</script>
 {% endblock %}
