@@ -4,6 +4,41 @@ import django.core.validators
 from django.db import migrations, models
 
 
+def add_container_opacity_if_not_exists(apps, schema_editor):
+    """
+    Adiciona o campo container_opacity apenas se ele não existir.
+    Isso resolve o problema quando a coluna já existe no banco de dados.
+    """
+    from django.db import connection
+
+    with connection.cursor() as cursor:
+        # Verificar se a coluna já existe
+        cursor.execute("""
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name='core_section' AND column_name='container_opacity';
+        """)
+
+        if not cursor.fetchone():
+            # Coluna não existe, criar com ALTER TABLE
+            cursor.execute("""
+                ALTER TABLE core_section
+                ADD COLUMN container_opacity DOUBLE PRECISION DEFAULT 1.0 NOT NULL
+                CHECK (container_opacity >= 0.0 AND container_opacity <= 1.0);
+            """)
+            print("✅ Coluna container_opacity criada com sucesso")
+        else:
+            print("ℹ️  Coluna container_opacity já existe, pulando criação")
+
+
+def reverse_add_container_opacity(apps, schema_editor):
+    """Remove o campo container_opacity se a migration for revertida"""
+    from django.db import connection
+
+    with connection.cursor() as cursor:
+        cursor.execute("ALTER TABLE core_section DROP COLUMN IF EXISTS container_opacity;")
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -11,9 +46,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='section',
-            name='container_opacity',
-            field=models.FloatField(default=1.0, help_text='Transparência do container (0.0 = totalmente transparente, 1.0 = totalmente opaco)', validators=[django.core.validators.MinValueValidator(0.0), django.core.validators.MaxValueValidator(1.0)], verbose_name='Opacidade do Container'),
+        migrations.RunPython(
+            add_container_opacity_if_not_exists,
+            reverse_add_container_opacity
         ),
     ]
