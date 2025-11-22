@@ -5,32 +5,21 @@
 
 {% block extra_css %}
 <style>
-    /* Container principal com suporte a tema */
+    /* Container principal */
     .diagnostic-container {
         max-width: 1000px;
         margin: 2rem auto;
         padding: 0 1rem;
-        transition: all 0.3s ease;
-    }
-
-    html[data-theme="dark"] .diagnostic-container {
-        background-color: transparent;
-        color: #eee;
     }
 
     .diagnostic-card {
-        background: white;
+        background: var(--card-bg);
+        color: var(--text-primary);
         border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: var(--shadow-md);
         padding: 2rem;
         margin-bottom: 1.5rem;
         transition: all 0.3s ease;
-    }
-
-    html[data-theme="dark"] .diagnostic-card {
-        background: #16213e !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-        color: #eee !important;
     }
 
     .diagnostic-header {
@@ -39,20 +28,12 @@
         gap: 1rem;
         margin-bottom: 1.5rem;
         padding-bottom: 1rem;
-        border-bottom: 2px solid #e2e8f0;
-    }
-
-    html[data-theme="dark"] .diagnostic-header {
-        border-bottom-color: #394867;
+        border-bottom: 2px solid var(--border-color);
     }
 
     .diagnostic-header h2 {
         margin: 0;
-        color: #1e293b;
-    }
-
-    html[data-theme="dark"] .diagnostic-header h2 {
-        color: #eee;
+        color: var(--text-primary);
     }
 
     .status-badge {
@@ -66,18 +47,18 @@
     }
 
     .status-badge.success {
-        background: #d1fae5;
-        color: #065f46;
+        background: var(--success-color);
+        color: white;
     }
 
     .status-badge.error {
-        background: #fee2e2;
-        color: #991b1b;
+        background: var(--danger-color);
+        color: white;
     }
 
     .status-badge.warning {
-        background: #fef3c7;
-        color: #92400e;
+        background: var(--warning-color);
+        color: white;
     }
 
     .info-grid {
@@ -89,49 +70,32 @@
 
     .info-item {
         padding: 1rem;
-        background: #f8fafc;
+        background: var(--sidebar-bg);
         border-radius: 8px;
-        border-left: 4px solid #667eea;
+        border-left: 4px solid var(--primary-color);
         transition: all 0.3s ease;
-    }
-
-    html[data-theme="dark"] .info-item {
-        background: #0f3460 !important;
-        border-left-color: #667eea !important;
     }
 
     .info-label {
         font-size: 0.875rem;
-        color: #64748b;
+        color: var(--text-secondary);
         margin-bottom: 0.5rem;
         font-weight: 500;
     }
 
-    html[data-theme="dark"] .info-label {
-        color: #94a3b8;
-    }
-
     .info-value {
         font-size: 1.125rem;
-        color: #1e293b;
+        color: var(--text-primary);
         font-weight: 600;
         word-break: break-all;
     }
 
-    html[data-theme="dark"] .info-value {
-        color: #e2e8f0;
-    }
-
     .info-value code {
-        background: #e2e8f0;
+        background: var(--sidebar-stats-bg);
+        color: var(--text-secondary);
         padding: 0.25rem 0.5rem;
         border-radius: 4px;
         font-size: 0.875rem;
-    }
-
-    html[data-theme="dark"] .info-value code {
-        background: #1e293b;
-        color: #94a3b8;
     }
 
     .action-buttons {
@@ -164,24 +128,14 @@
     }
 
     .btn-secondary-custom {
-        background: #f1f5f9;
-        color: #475569;
+        background: var(--sidebar-bg);
+        color: var(--text-primary);
         transition: all 0.2s;
     }
 
-    html[data-theme="dark"] .btn-secondary-custom {
-        background: #0f3460;
-        color: #94a3b8;
-    }
-
     .btn-secondary-custom:hover {
-        background: #e2e8f0;
-        color: #1e293b;
-    }
-
-    html[data-theme="dark"] .btn-secondary-custom:hover {
-        background: #16213e;
-        color: #e2e8f0;
+        background: var(--sidebar-stats-bg);
+        color: var(--text-primary);
     }
 
     .alert-custom {
@@ -195,47 +149,27 @@
     }
 
     .alert-info {
-        background: #dbeafe;
-        border-left: 4px solid #3b82f6;
-        color: #1e40af;
-    }
-
-    html[data-theme="dark"] .alert-info {
-        background: #1e3a5f !important;
-        color: #93c5fd !important;
+        background: var(--info-color);
+        border-left: 4px solid var(--info-color);
+        color: white;
     }
 
     .alert-success {
-        background: #d1fae5;
-        border-left: 4px solid #10b981;
-        color: #065f46;
-    }
-
-    html[data-theme="dark"] .alert-success {
-        background: #064e3b !important;
-        color: #6ee7b7 !important;
+        background: var(--success-color);
+        border-left: 4px solid var(--success-color);
+        color: white;
     }
 
     .alert-warning {
-        background: #fef3c7;
-        border-left: 4px solid #f59e0b;
-        color: #92400e;
-    }
-
-    html[data-theme="dark"] .alert-warning {
-        background: #78350f !important;
-        color: #fcd34d !important;
+        background: var(--warning-color);
+        border-left: 4px solid var(--warning-color);
+        color: white;
     }
 
     .alert-danger {
-        background: #fee2e2;
-        border-left: 4px solid #ef4444;
-        color: #991b1b;
-    }
-
-    html[data-theme="dark"] .alert-danger {
-        background: #7f1d1d !important;
-        color: #fca5a5 !important;
+        background: var(--danger-color);
+        border-left: 4px solid var(--danger-color);
+        color: white;
     }
 
     .stats-grid {
@@ -265,68 +199,20 @@
     }
 
     .code-block {
-        background: #1e293b;
-        color: #e2e8f0;
+        background: var(--sidebar-stats-bg);
+        color: var(--text-primary);
         padding: 1rem;
         border-radius: 8px;
         font-family: 'Courier New', monospace;
         font-size: 0.875rem;
         overflow-x: auto;
         margin-top: 0.5rem;
-        transition: all 0.3s ease;
-    }
-
-    html[data-theme="dark"] .code-block {
-        background: #0f3460;
-        color: #94a3b8;
-    }
-
-    /* Ajustes para body em tema escuro */
-    body[data-theme="dark"] {
-        background-color: #1a1a2e;
-    }
-
-    /* Textos gerais em tema escuro */
-    html[data-theme="dark"] p,
-    html[data-theme="dark"] li,
-    html[data-theme="dark"] div {
-        color: #e2e8f0 !important;
-    }
-
-    html[data-theme="dark"] h3,
-    html[data-theme="dark"] h4 {
-        color: #eee !important;
-    }
-
-    html[data-theme="dark"] strong {
-        color: #fff !important;
-    }
-
-    html[data-theme="dark"] a {
-        color: #93c5fd !important;
-    }
-
-    html[data-theme="dark"] a:hover {
-        color: #60a5fa !important;
-    }
-
-    /* Status badges em tema escuro - manter cores originais para visibilidade */
-    html[data-theme="dark"] .status-badge.success {
-        background: #064e3b !important;
-        color: #6ee7b7 !important;
-    }
-
-    html[data-theme="dark"] .status-badge.error {
-        background: #7f1d1d !important;
-        color: #fca5a5 !important;
-    }
-
-    html[data-theme="dark"] .status-badge.warning {
-        background: #78350f !important;
-        color: #fcd34d !important;
     }
 </style>
 {% endblock %}
+
+
+
 
 {% block content %}
 <div class="diagnostic-container">
