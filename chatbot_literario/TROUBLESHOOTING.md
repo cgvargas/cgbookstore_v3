@@ -133,6 +133,80 @@ print(settings.GEMINI_API_KEY)
 
 ---
 
+## ❌ Problema: "404 models/gemini-1.5-flash is not found for API version v1beta"
+
+### Sintoma
+Ao executar `python manage.py test_gemini`, você vê:
+```
+✅ API Key configured: AIzaSyBZ***************************Pvu4
+✅ Serviço inicializado
+✅ Serviço disponível
+❌ Erro ao testar chamada de API
+ERROR: 404 models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent.
+```
+
+### Causa
+O modelo `gemini-1.5-flash` não está disponível na API v1beta do Google Gemini. A API suporta apenas modelos específicos como `gemini-1.5-pro`.
+
+### ✅ Solução
+
+**Este problema já foi corrigido na versão mais recente do código!**
+
+Se você ainda encontrar este erro, atualize seu código:
+
+```bash
+# Puxar a correção mais recente
+git pull origin claude/claude-md-miakpd81q0f8rkob-01Sem7nU9FQwRPXw3zErpnx1
+
+# Testar novamente
+python manage.py test_gemini
+```
+
+**Se precisar corrigir manualmente:**
+
+Edite `chatbot_literario/gemini_service.py` linha 40-42:
+
+```python
+# ❌ Errado
+self.model_name = 'gemini-1.5-flash'
+
+# ✅ Correto
+# Usar gemini-pro que é o modelo estável e disponível
+# Alternativas: 'gemini-1.5-pro', 'gemini-1.5-flash-latest'
+self.model_name = 'gemini-1.5-pro'
+```
+
+### Modelos Disponíveis
+
+| Modelo | Status | Descrição |
+|--------|--------|-----------|
+| `gemini-1.5-pro` | ✅ Recomendado | Modelo estável e mais capaz |
+| `gemini-1.5-flash-latest` | ✅ Funciona | Versão mais recente do Flash |
+| `gemini-pro` | ✅ Funciona | Modelo anterior (legado) |
+| `gemini-1.5-flash` | ❌ Não existe | Não disponível na v1beta |
+
+### Resultado Esperado Após a Correção
+
+```
+🔍 Teste da API Google Gemini
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ API Key configured: AIzaSyBZ***************************Pvu4
+✅ Serviço inicializado
+✅ Serviço disponível
+✅ Modelo configurado: gemini-1.5-pro
+
+📤 Enviando mensagem de teste...
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Resposta recebida com sucesso!
+
+Resposta do chatbot:
+Olá! Que ótimo te ver por aqui! 😊  Para te recomendar o livro perfeito...
+```
+
+---
+
 ## 🚀 Teste Rápido sem Banco de Dados
 
 Se você só quer testar o Gemini **sem conectar ao banco**, crie este arquivo de teste:
