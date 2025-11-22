@@ -170,10 +170,11 @@ if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
 
         # Identificar tipo de conexão
         if 'pooler.supabase.com' in db_host:
-            logger.warning(f"⚠️ ATENÇÃO: Detectado Supabase POOLER: {db_host}")
-            logger.warning("⚠️ Para Render, use conexão DIRETA (db.*.supabase.co)")
+            logger.info(f"✅ Detectado Supabase POOLER (Transaction mode): {db_host}")
+            logger.info("ℹ️ Pooler é necessário para Render FREE (conexão direta só tem IPv6)")
         else:
-            logger.info(f"✅ Detectado Supabase conexão DIRETA")
+            logger.info(f"✅ Detectado Supabase conexão DIRETA: {db_host}")
+            logger.info("ℹ️ Conexão direta requer IPv4 configurado em DATABASE_IPV4")
 
     DATABASES['default']['OPTIONS'] = db_options
     logger.info(f"✅ Configurações PostgreSQL aplicadas: {list(db_options.keys())}")

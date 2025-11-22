@@ -57,44 +57,38 @@ O arquivo `cgbookstore/settings.py` implementa uma solução robusta:
 
 ### 2. Como Configurar a DATABASE_URL no Render
 
-#### Passo 1: Obter a Connection String no Supabase
+⚠️ **IMPORTANTE para Render FREE**: A conexão direta do Supabase (db.*.supabase.co) **NÃO tem IPv4**, apenas IPv6. Por isso, **use o Transaction Pooler** que tem IPv4.
+
+#### Passo 1: Obter a Connection Pooling String no Supabase
 
 1. Acesse o [Supabase Dashboard](https://app.supabase.com)
 2. Selecione seu projeto
 3. Vá em **Project Settings** > **Database**
-4. Role até **Connection String**
-5. Selecione a aba **URI**
-6. **IMPORTANTE**: Copie a connection string **DIRETA** (não pooler)
+4. Role até **Connection Pooling** (não "Connection String"!)
+5. Copie a connection string do modo **Transaction**
 
 A connection string terá o formato:
 ```
-postgresql://postgres:[YOUR-PASSWORD]@db.XXXXXXXXXX.supabase.co:5432/postgres
+postgresql://postgres.[PROJECT-REF]:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true
 ```
 
 **Exemplo real:**
 ```
-postgresql://postgres:SuaSenha123@db.uomjbcuowfgcwhsejatn.supabase.co:5432/postgres
+postgresql://postgres.uomjbcuowfgcwhsejatn:SuaSenha@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true
 ```
 
-#### Passo 2: Descobrir o IP IPv4 do Supabase
+#### Passo 2: Descobrir o IP IPv4 do Pooler
 
-O Render FREE **não suporta IPv6**, então precisamos do IP IPv4 do Supabase.
-
-**No seu computador local**, execute:
-```bash
-nslookup db.uomjbcuowfgcwhsejatn.supabase.co
-```
-
-Ou no Linux/Mac:
-```bash
-dig +short db.uomjbcuowfgcwhsejatn.supabase.co A
+**No seu computador (Windows PowerShell)**, execute:
+```powershell
+nslookup -type=A aws-0-us-east-1.pooler.supabase.com 8.8.8.8
 ```
 
 Você verá algo como:
 ```
-44.208.221.186
-52.45.94.125
-44.216.29.125
+Addresses:  52.45.94.125
+           44.208.221.186
+           44.216.29.125
 ```
 
 **Copie QUALQUER UM desses IPs IPv4** (formato XX.XX.XX.XX).
@@ -108,29 +102,35 @@ Você verá algo como:
 
 **Variável 1: DATABASE_URL**
 ```
-postgresql://postgres:SuaSenha@db.uomjbcuowfgcwhsejatn.supabase.co:5432/postgres
+postgresql://postgres.uomjbcuowfgcwhsejatn:SuaSenha@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true
 ```
 - Substitua `SuaSenha` pela sua senha real do Supabase
-- Use a conexão DIRETA (`db.*.supabase.co`) - **NÃO use pooler!**
-- Porta: `5432`
+- Use o **POOLER** (`aws-0-us-east-1.pooler.supabase.com`)
+- Porta: `6543` (Transaction mode)
+- Mantenha `?pgbouncer=true` no final
 
 **Variável 2: DATABASE_IPV4** ⭐ **OBRIGATÓRIA para Render FREE**
 ```
 44.208.221.186
 ```
-- Use o IP IPv4 que você descobriu no Passo 2
+- Use um dos IPs IPv4 que você descobriu no Passo 2
 - **Sem** protocolo, **sem** porta, apenas o IP
 - Exemplo: `44.208.221.186`
 
 ### 3. Conexão Direta vs Pooler
 
-| Tipo | Host | Porta | Uso Recomendado |
-|------|------|-------|-----------------|
-| **Direta** | `db.XXXXXXXXXX.supabase.co` | 5432 | ✅ **Render, migrations, deploy** |
-| **Pooler (Session)** | `aws-0-us-east-1.pooler.supabase.co` | 6543 | ❌ Pode causar erro "Tenant not found" |
-| **Pooler (Transaction)** | `aws-0-us-east-1.pooler.supabase.com` | 5432 | ❌ Apenas serverless |
+| Tipo | Host | Porta | IPv4? | Uso Recomendado |
+|------|------|-------|-------|-----------------|
+| **Direta** | `db.XXXXXXXXXX.supabase.co` | 5432 | ❌ **Apenas IPv6** | Render PAID (com IPv6) |
+| **Pooler (Transaction)** | `aws-0-us-east-1.pooler.supabase.com` | 6543 | ✅ **Tem IPv4** | ✅ **Render FREE** (recomendado) |
+| **Pooler (Session)** | `aws-0-us-east-1.pooler.supabase.co` | 5432 | ⚠️ Variável | Long-running queries |
 
-**⚠️ Para o Render, use SEMPRE a conexão DIRETA!**
+**⚠️ Para o Render FREE, use SEMPRE o Transaction Pooler (porta 6543)!**
+
+**Explicação:**
+- **Conexão Direta**: Ideal, mas Supabase só oferece IPv6, e Render FREE não suporta IPv6
+- **Transaction Pooler**: Tem IPv4, funciona perfeitamente no Render FREE
+- **Session Pooler**: Pode ou não ter IPv4, menos confiável
 
 ### 4. Verificação da Configuração
 
