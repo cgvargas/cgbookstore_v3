@@ -573,8 +573,17 @@ python manage.py test_gemini --message "Recomende um romance brasileiro"
 
     // Carregar tema salvo
     const savedTheme = localStorage.getItem('diagnostic-theme') || 'light';
+    console.log('Tema salvo:', savedTheme);
+
     container.setAttribute('data-theme', savedTheme);
     body.setAttribute('data-theme', savedTheme);
+
+    // Adicionar classe também para maior especificidade
+    if (savedTheme === 'dark') {
+        container.classList.add('theme-dark');
+        body.classList.add('theme-dark');
+    }
+
     updateToggleIcon(savedTheme);
 
     // Alternar tema
@@ -582,10 +591,29 @@ python manage.py test_gemini --message "Recomende um romance brasileiro"
         const currentTheme = container.getAttribute('data-theme');
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
 
+        console.log('Alternando de', currentTheme, 'para', newTheme);
+
         container.setAttribute('data-theme', newTheme);
         body.setAttribute('data-theme', newTheme);
+
+        // Remover/adicionar classes
+        if (newTheme === 'dark') {
+            container.classList.add('theme-dark');
+            body.classList.add('theme-dark');
+            container.classList.remove('theme-light');
+            body.classList.remove('theme-light');
+        } else {
+            container.classList.add('theme-light');
+            body.classList.add('theme-light');
+            container.classList.remove('theme-dark');
+            body.classList.remove('theme-dark');
+        }
+
         localStorage.setItem('diagnostic-theme', newTheme);
         updateToggleIcon(newTheme);
+
+        console.log('Container classes:', container.className);
+        console.log('Container data-theme:', container.getAttribute('data-theme'));
     });
 
     // Atualizar ícone do botão
