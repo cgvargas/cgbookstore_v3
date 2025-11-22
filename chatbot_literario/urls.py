@@ -1,9 +1,15 @@
 from django.urls import path
 from . import views
 
-app_name = 'chatbot_literario' # O namespace pode ser diferente, mas 'chatbot' é usado no base.html
+app_name = 'chatbot_literario'  # Namespace para URLs
 
 urlpatterns = [
-    # URL da página do chatbot -> http://localhost:8000/chatbot/
+    # Página principal do chatbot
     path('', views.ChatbotView.as_view(), name='chat'),
+
+    # API Endpoints
+    path('api/send/', views.send_message, name='send_message'),
+    path('api/history/', views.get_history, name='get_history'),
+    path('api/clear/', views.clear_history, name='clear_history'),
+    path('api/check/', views.check_service, name='check_service'),
 ]
