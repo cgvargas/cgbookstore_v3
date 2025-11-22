@@ -46,8 +46,32 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(
-            add_container_opacity_if_not_exists,
-            reverse_add_container_opacity
+        # Separa as operações de STATE (Django) e DATABASE (SQL)
+        # Isso garante que o Django saiba que o campo existe (evita criar migration 0013)
+        # mas só cria no banco se não existir (evita DuplicateColumn)
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                # STATE: Diz ao Django que o campo existe
+                migrations.AddField(
+                    model_name='section',
+                    name='container_opacity',
+                    field=models.FloatField(
+                        default=1.0,
+                        help_text='Transparência do container (0.0 = totalmente transparente, 1.0 = totalmente opaco)',
+                        validators=[
+                            django.core.validators.MinValueValidator(0.0),
+                            django.core.validators.MaxValueValidator(1.0)
+                        ],
+                        verbose_name='Opacidade do Container'
+                    ),
+                ),
+            ],
+            database_operations=[
+                # DATABASE: Só cria se não existir
+                migrations.RunPython(
+                    add_container_opacity_if_not_exists,
+                    reverse_add_container_opacity
+                ),
+            ],
         ),
     ]
