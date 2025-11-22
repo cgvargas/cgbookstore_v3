@@ -1,10 +1,16 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Assistente Literário - CG.BookStore{% endblock %}
+{% block title %}Dbit - Assistente Literário{% endblock %}
 
 {% block extra_css %}
 <style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    /* Tema Claro */
     .chat-container {
         max-width: 900px;
         margin: 2rem auto;
@@ -12,10 +18,11 @@
         border-radius: 15px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         overflow: hidden;
+        transition: background 0.3s, box-shadow 0.3s;
     }
 
     .chat-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--primary-gradient);
         color: white;
         padding: 1.5rem;
         display: flex;
@@ -31,24 +38,6 @@
         gap: 0.5rem;
     }
 
-    .status-indicator {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #4ade80;
-        animation: pulse 2s infinite;
-    }
-
-    .status-indicator.offline {
-        background: #ef4444;
-        animation: none;
-    }
-
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-    }
-
     .chat-messages {
         height: 500px;
         overflow-y: auto;
@@ -57,6 +46,7 @@
         display: flex;
         flex-direction: column;
         gap: 1rem;
+        transition: background 0.3s;
     }
 
     .message {
@@ -88,12 +78,12 @@
     }
 
     .message.user .message-avatar {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--primary-gradient);
         color: white;
     }
 
     .message.assistant .message-avatar {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        background: var(--secondary-gradient);
         color: white;
     }
 
@@ -104,16 +94,13 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         line-height: 1.6;
         white-space: pre-wrap;
+        color: #1e293b;
+        transition: background 0.3s, color 0.3s;
     }
 
     .message.user .message-content {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--primary-gradient);
         color: white;
-    }
-
-    .message.assistant .message-content {
-        background: white;
-        color: #1e293b;
     }
 
     .message-time {
@@ -122,17 +109,13 @@
         margin-top: 0.25rem;
     }
 
-    .message.user .message-time {
-        text-align: right;
-        color: rgba(255, 255, 255, 0.7);
-    }
-
     .chat-input-container {
         padding: 1rem 1.5rem;
         background: white;
         border-top: 1px solid #e2e8f0;
         display: flex;
         gap: 0.75rem;
+        transition: background 0.3s, border-color 0.3s;
     }
 
     .chat-input {
@@ -142,6 +125,8 @@
         padding: 0.75rem 1.25rem;
         font-size: 0.95rem;
         transition: all 0.2s;
+        background: white;
+        color: #1e293b;
     }
 
     .chat-input:focus {
@@ -151,7 +136,7 @@
     }
 
     .chat-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--primary-gradient);
         color: white;
         border: none;
         border-radius: 25px;
@@ -175,25 +160,63 @@
         transform: none;
     }
 
+    .icon-btn {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .icon-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
     .clear-btn {
         background: #ef4444;
-        padding: 0.5rem 1rem;
-        font-size: 0.875rem;
     }
 
     .clear-btn:hover {
         box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
     }
 
-    .typing-indicator {
-        display: none;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
+    .welcome-message {
+        text-align: center;
+        padding: 2rem;
+        color: #64748b;
     }
 
-    .typing-indicator.active {
+    .welcome-message i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #4ade80;
+        animation: pulse 2s infinite;
+    }
+
+    .status-indicator.offline {
+        background: #ef4444;
+        animation: none;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .typing-indicator {
         display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0;
     }
 
     .typing-dot {
@@ -212,21 +235,6 @@
         30% { transform: translateY(-10px); }
     }
 
-    .welcome-message {
-        text-align: center;
-        padding: 2rem;
-        color: #64748b;
-    }
-
-    .welcome-message i {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
     .error-message {
         background: #fee2e2;
         border: 1px solid #fecaca;
@@ -241,7 +249,55 @@
         display: block;
     }
 
-    /* Scrollbar customização */
+    /* Tema Escuro */
+    [data-theme="dark"] .chat-container {
+        background: #1e293b;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    [data-theme="dark"] .chat-messages {
+        background: #0f172a;
+    }
+
+    [data-theme="dark"] .message-content {
+        background: #334155;
+        color: #e2e8f0;
+    }
+
+    [data-theme="dark"] .message.assistant .message-content {
+        background: #334155;
+        color: #e2e8f0;
+    }
+
+    [data-theme="dark"] .message-time {
+        color: #64748b;
+    }
+
+    [data-theme="dark"] .chat-input-container {
+        background: #1e293b;
+        border-top-color: #334155;
+    }
+
+    [data-theme="dark"] .chat-input {
+        background: #334155;
+        border-color: #475569;
+        color: #e2e8f0;
+    }
+
+    [data-theme="dark"] .chat-input:focus {
+        border-color: #667eea;
+        background: #475569;
+    }
+
+    [data-theme="dark"] .welcome-message {
+        color: #94a3b8;
+    }
+
+    [data-theme="dark"] .typing-dot {
+        background: #64748b;
+    }
+
+    /* Scrollbar */
     .chat-messages::-webkit-scrollbar {
         width: 8px;
     }
@@ -250,32 +306,68 @@
         background: #f1f5f9;
     }
 
+    [data-theme="dark"] .chat-messages::-webkit-scrollbar-track {
+        background: #0f172a;
+    }
+
     .chat-messages::-webkit-scrollbar-thumb {
         background: #cbd5e1;
         border-radius: 4px;
     }
 
+    [data-theme="dark"] .chat-messages::-webkit-scrollbar-thumb {
+        background: #475569;
+    }
+
     .chat-messages::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
+    }
+
+    /* Logo Dbit */
+    .dbit-logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 700;
+        font-size: 1.75rem;
+        letter-spacing: -0.02em;
+    }
+
+    .dbit-logo .logo-d {
+        background: white;
+        color: #667eea;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container mt-4 mb-5">
-    <div class="chat-container">
+    <div class="chat-container" data-theme="light">
         <!-- Header -->
         <div class="chat-header">
             <h2>
-                <i class="fas fa-robot"></i>
-                Assistente Literário
+                <span class="dbit-logo">
+                    <span class="logo-d">D</span>
+                    bit
+                </span>
             </h2>
-            <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
                 <div class="d-flex align-items-center gap-2">
                     <span class="status-indicator {% if not service_available %}offline{% endif %}" id="statusIndicator"></span>
                     <small id="statusText">{% if service_available %}Online{% else %}Offline{% endif %}</small>
                 </div>
-                <a href="{% url 'chatbot_literario:diagnostic' %}" class="chat-btn clear-btn" title="Diagnóstico" style="text-decoration: none;">
+                <button class="chat-btn icon-btn" onclick="toggleTheme()" title="Alternar tema">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+                <a href="{% url 'chatbot_literario:diagnostic' %}" class="chat-btn icon-btn" title="Diagnóstico" style="text-decoration: none;">
                     <i class="fas fa-stethoscope"></i>
                 </a>
                 <button class="chat-btn clear-btn" onclick="clearHistory()" title="Limpar conversa">
@@ -290,20 +382,20 @@
         <!-- Messages Area -->
         <div class="chat-messages" id="chatMessages">
             <div class="welcome-message" id="welcomeMessage">
-                <i class="fas fa-book-reader"></i>
-                <h4>Olá! Sou seu assistente literário 📚</h4>
-                <p>Estou aqui para ajudar você a descobrir seu próximo livro favorito!</p>
-                <p class="text-muted small">Digite uma mensagem abaixo para começar nossa conversa...</p>
+                <i class="fas fa-robot"></i>
+                <h4>Olá! Sou o Dbit 🤖</h4>
+                <p>Seu assistente literário inteligente!</p>
+                <p class="text-muted small">Digite uma mensagem abaixo para começar nossa conversa sobre livros...</p>
             </div>
 
-            <!-- Typing indicator template -->
+            <!-- Typing indicator -->
             <div class="message assistant" id="typingMessage" style="display: none;">
                 <div class="message-avatar">
                     <i class="fas fa-robot"></i>
                 </div>
                 <div>
                     <div class="message-content">
-                        <div class="typing-indicator" id="typingIndicator">
+                        <div class="typing-indicator">
                             <div class="typing-dot"></div>
                             <div class="typing-dot"></div>
                             <div class="typing-dot"></div>
@@ -319,7 +411,7 @@
                 type="text"
                 class="chat-input"
                 id="messageInput"
-                placeholder="Digite sua mensagem aqui..."
+                placeholder="Pergunte sobre livros, autores, recomendações..."
                 {% if not service_available %}disabled{% endif %}
             >
             <button
@@ -340,6 +432,30 @@
 const SESSION_ID = "{{ session_id }}";
 let isProcessing = false;
 
+// Tema
+function toggleTheme() {
+    const container = document.querySelector('.chat-container');
+    const icon = document.getElementById('themeIcon');
+    const currentTheme = container.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+    container.setAttribute('data-theme', newTheme);
+    icon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+
+    // Salvar preferência
+    localStorage.setItem('dbit-theme', newTheme);
+}
+
+// Carregar tema salvo
+function loadTheme() {
+    const savedTheme = localStorage.getItem('dbit-theme') || 'light';
+    const container = document.querySelector('.chat-container');
+    const icon = document.getElementById('themeIcon');
+
+    container.setAttribute('data-theme', savedTheme);
+    icon.className = savedTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+}
+
 // Formatar timestamp
 function formatTime(timestamp) {
     const date = new Date(timestamp);
@@ -352,7 +468,6 @@ function addMessage(role, content, timestamp = null) {
     const welcomeMessage = document.getElementById('welcomeMessage');
     const typingMessage = document.getElementById('typingMessage');
 
-    // Esconder mensagem de boas-vindas
     if (welcomeMessage) {
         welcomeMessage.style.display = 'none';
     }
@@ -371,28 +486,19 @@ function addMessage(role, content, timestamp = null) {
         </div>
     `;
 
-    // Inserir antes do typing indicator
     chatMessages.insertBefore(messageDiv, typingMessage);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Mostrar indicador de digitação
+// Mostrar/esconder typing
 function showTyping() {
-    const typingMessage = document.getElementById('typingMessage');
-    const typingIndicator = document.getElementById('typingIndicator');
-    typingMessage.style.display = 'flex';
-    typingIndicator.classList.add('active');
-
+    document.getElementById('typingMessage').style.display = 'flex';
     const chatMessages = document.getElementById('chatMessages');
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Esconder indicador de digitação
 function hideTyping() {
-    const typingMessage = document.getElementById('typingMessage');
-    const typingIndicator = document.getElementById('typingIndicator');
-    typingMessage.style.display = 'none';
-    typingIndicator.classList.remove('active');
+    document.getElementById('typingMessage').style.display = 'none';
 }
 
 // Mostrar erro
@@ -416,11 +522,8 @@ async function sendMessage() {
     const sendButton = document.getElementById('sendButton');
     sendButton.disabled = true;
 
-    // Adicionar mensagem do usuário
     addMessage('user', message);
     input.value = '';
-
-    // Mostrar digitação
     showTyping();
 
     try {
@@ -481,13 +584,12 @@ async function clearHistory() {
 
             chatMessages.innerHTML = `
                 <div class="welcome-message" id="welcomeMessage">
-                    <i class="fas fa-book-reader"></i>
-                    <h4>Histórico limpo! Vamos começar de novo? 📚</h4>
+                    <i class="fas fa-robot"></i>
+                    <h4>Histórico limpo! Vamos começar de novo? 🤖</h4>
                     <p>Digite uma mensagem abaixo para iniciar uma nova conversa...</p>
                 </div>
             `;
 
-            // Re-adicionar typing indicator
             chatMessages.appendChild(typingMessage);
         }
     } catch (error) {
@@ -496,7 +598,7 @@ async function clearHistory() {
     }
 }
 
-// Carregar histórico ao abrir página
+// Carregar histórico
 async function loadHistory() {
     try {
         const response = await fetch("{% url 'chatbot_literario:get_history' %}?session_id=" + SESSION_ID);
@@ -520,11 +622,10 @@ document.getElementById('messageInput').addEventListener('keypress', function(e)
     }
 });
 
-// Carregar histórico ao iniciar
+// Inicialização
 document.addEventListener('DOMContentLoaded', function() {
+    loadTheme();
     loadHistory();
-
-    // Focar no input
     document.getElementById('messageInput').focus();
 
     // Verificar status do serviço
@@ -540,7 +641,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 indicator.classList.add('offline');
                 statusText.textContent = 'Offline';
-                showError('Serviço temporariamente indisponível - configure GEMINI_API_KEY');
+                showError('Serviço temporariamente indisponível');
             }
         });
 });

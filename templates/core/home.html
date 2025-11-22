@@ -185,6 +185,15 @@
     <!-- Banner Carousel -->
     {% include 'core/widgets/banner_carousel.html' %}
 
+    <!-- Widget Dbit -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-12">
+                {% include 'chatbot_literario/_dbit_widget.html' %}
+            </div>
+        </div>
+    </div>
+
     <!-- Seções Dinâmicas (usando estrutura de dicts para performance) -->
     {% for section in sections %}
     <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative {% if forloop.first %}section-overlap-banner{% endif %}">

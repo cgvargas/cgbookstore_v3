@@ -1,0 +1,140 @@
+{% load static %}
+
+<style>
+    .dbit-widget-compact {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 1rem;
+        color: white;
+        margin-top: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s;
+    }
+
+    .dbit-widget-compact:hover {
+        transform: translateY(-2px);
+    }
+
+    .dbit-widget-compact::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 150%;
+        height: 150%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: pulse-compact 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse-compact {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.05); opacity: 0.7; }
+    }
+
+    .dbit-widget-compact-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .dbit-widget-compact-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .dbit-widget-compact-logo {
+        background: white;
+        color: #667eea;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 1.1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        flex-shrink: 0;
+    }
+
+    .dbit-widget-compact-title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .dbit-widget-compact-text {
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+        opacity: 0.95;
+        line-height: 1.4;
+    }
+
+    .dbit-widget-compact-btn {
+        background: white;
+        color: #667eea;
+        border: none;
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+        font-size: 0.85rem;
+        width: 100%;
+    }
+
+    .dbit-widget-compact-btn:hover {
+        background: #f8fafc;
+        color: #667eea;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .dbit-widget-compact-status {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        font-size: 0.7rem;
+        opacity: 0.9;
+    }
+
+    .dbit-widget-compact-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #4ade80;
+        animation: pulse 2s infinite;
+    }
+</style>
+
+<div class="dbit-widget-compact">
+    <div class="dbit-widget-compact-content">
+        <div class="dbit-widget-compact-header">
+            <div class="dbit-widget-compact-logo">D</div>
+            <h4 class="dbit-widget-compact-title">Dbit</h4>
+        </div>
+
+        <p class="dbit-widget-compact-text">
+            🤖 Precisa de uma recomendação? Converse com nosso assistente de IA!
+        </p>
+
+        <a href="{% url 'chatbot_literario:chat' %}" class="dbit-widget-compact-btn">
+            <i class="fas fa-comments"></i>
+            Conversar
+        </a>
+
+        <div class="dbit-widget-compact-status">
+            <span class="dbit-widget-compact-dot"></span>
+            Online
+        </div>
+    </div>
+</div>

@@ -1,0 +1,228 @@
+{% load static %}
+
+<style>
+    .dbit-widget {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 1.5rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .dbit-widget:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+    }
+
+    .dbit-widget::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: pulse-bg 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse-bg {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .dbit-widget-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .dbit-widget-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .dbit-widget-logo {
+        background: white;
+        color: #667eea;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        flex-shrink: 0;
+    }
+
+    .dbit-widget-title {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    .dbit-widget-subtitle {
+        margin: 0;
+        font-size: 0.875rem;
+        opacity: 0.9;
+    }
+
+    .dbit-widget-description {
+        margin: 1rem 0;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        opacity: 0.95;
+    }
+
+    .dbit-widget-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .dbit-widget-btn {
+        background: white;
+        color: #667eea;
+        border: none;
+        border-radius: 25px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+        font-size: 0.95rem;
+    }
+
+    .dbit-widget-btn:hover {
+        background: #f8fafc;
+        color: #667eea;
+        text-decoration: none;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .dbit-widget-btn.secondary {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        backdrop-filter: blur(10px);
+    }
+
+    .dbit-widget-btn.secondary:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+
+    .dbit-widget-features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .dbit-widget-feature {
+        text-align: center;
+        padding: 0.5rem;
+    }
+
+    .dbit-widget-feature i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .dbit-widget-feature span {
+        font-size: 0.75rem;
+        display: block;
+        opacity: 0.9;
+    }
+
+    .dbit-widget-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .dbit-widget-status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4ade80;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    /* Responsivo */
+    @media (max-width: 768px) {
+        .dbit-widget-features {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+<div class="dbit-widget">
+    <div class="dbit-widget-content">
+        <div class="dbit-widget-header">
+            <div class="dbit-widget-logo">D</div>
+            <div>
+                <h3 class="dbit-widget-title">Dbit</h3>
+                <p class="dbit-widget-subtitle">Assistente Literário Inteligente</p>
+            </div>
+        </div>
+
+        <p class="dbit-widget-description">
+            🤖 Converse com nosso assistente de IA sobre livros, receba recomendações personalizadas e descubra seu próximo livro favorito!
+        </p>
+
+        <div class="dbit-widget-features">
+            <div class="dbit-widget-feature">
+                <i class="fas fa-book-reader"></i>
+                <span>Recomendações</span>
+            </div>
+            <div class="dbit-widget-feature">
+                <i class="fas fa-comments"></i>
+                <span>Conversas</span>
+            </div>
+            <div class="dbit-widget-feature">
+                <i class="fas fa-sparkles"></i>
+                <span>IA Avançada</span>
+            </div>
+        </div>
+
+        <div class="dbit-widget-actions">
+            <a href="{% url 'chatbot_literario:chat' %}" class="dbit-widget-btn">
+                <i class="fas fa-comments"></i>
+                Conversar Agora
+            </a>
+            <a href="{% url 'chatbot_literario:diagnostic' %}" class="dbit-widget-btn secondary">
+                <i class="fas fa-info-circle"></i>
+                Saiba Mais
+            </a>
+        </div>
+
+        <div class="dbit-widget-status">
+            <span class="dbit-widget-status-dot"></span>
+            Online 24/7
+        </div>
+    </div>
+</div>
