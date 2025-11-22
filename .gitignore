@@ -37,3 +37,18 @@ db.sqlite3
 Thumbs.db
 # Arquivos de backup
 *.backup
+
+# Diretórios organizacionais
+/backups/*.json
+/backups/temp/
+/temp/
+/config/ssl/*.crt
+/config/ssl/*.key
+
+# Scripts de teste e desenvolvimento
+/tests/check_*.py
+/tests/test_*.py
+
+# Arquivos temporários
+nul
+*.tmp
