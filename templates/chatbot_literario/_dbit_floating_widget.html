@@ -1,0 +1,267 @@
+{% load static %}
+
+<style>
+    /* Widget Flutuante Dbit - Fixo no canto inferior direito */
+    .dbit-floating-widget {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+    }
+
+    /* Botão principal com imagem do Dbit */
+    .dbit-float-button {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        border: 3px solid white;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .dbit-float-button:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
+    }
+
+    .dbit-float-button:active {
+        transform: translateY(-2px) scale(1);
+    }
+
+    /* Imagem do Dbit */
+    .dbit-float-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    /* Fallback icon se não houver imagem */
+    .dbit-float-icon {
+        font-size: 2rem;
+        color: white;
+        font-weight: 900;
+    }
+
+    /* Pulse animation para chamar atenção */
+    .dbit-float-button::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: rgba(102, 126, 234, 0.4);
+        animation: dbit-pulse 2s infinite;
+        z-index: -1;
+    }
+
+    @keyframes dbit-pulse {
+        0% {
+            width: 100%;
+            height: 100%;
+            opacity: 1;
+        }
+        100% {
+            width: 140%;
+            height: 140%;
+            opacity: 0;
+        }
+    }
+
+    /* Badge de notificação (opcional) */
+    .dbit-float-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #ef4444;
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: 2px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    /* Tooltip/Label */
+    .dbit-float-label {
+        background: white;
+        color: #667eea;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        white-space: nowrap;
+        opacity: 0;
+        transform: translateX(10px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+    }
+
+    .dbit-floating-widget:hover .dbit-float-label {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    /* Status online indicator */
+    .dbit-float-status {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 18px;
+        height: 18px;
+        background: #4ade80;
+        border: 3px solid white;
+        border-radius: 50%;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        animation: dbit-status-pulse 2s infinite;
+    }
+
+    @keyframes dbit-status-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+
+    /* Responsivo para mobile */
+    @media (max-width: 768px) {
+        .dbit-floating-widget {
+            bottom: 15px;
+            right: 15px;
+        }
+
+        .dbit-float-button {
+            width: 60px;
+            height: 60px;
+        }
+
+        .dbit-float-icon {
+            font-size: 1.75rem;
+        }
+
+        .dbit-float-label {
+            display: none; /* Esconde o label em mobile para economia de espaço */
+        }
+
+        .dbit-float-badge {
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+        }
+    }
+
+    /* Animação de entrada */
+    @keyframes dbit-float-in {
+        from {
+            transform: translateY(100px) scale(0);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+    }
+
+    .dbit-floating-widget {
+        animation: dbit-float-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    /* Hover effect no label */
+    .dbit-float-label::before {
+        content: '💬';
+        margin-right: 6px;
+    }
+</style>
+
+<!-- Widget Flutuante do Dbit -->
+<div class="dbit-floating-widget">
+    <!-- Label/Tooltip -->
+    <div class="dbit-float-label">
+        Conversar com Dbit
+    </div>
+
+    <!-- Botão Principal -->
+    <a href="{% url 'chatbot_literario:chat' %}" class="dbit-float-button" title="Conversar com Dbit - Assistente Literário IA">
+        <!-- Imagem do Dbit (SUBSTITUIR COM SUA IMAGEM) -->
+        {% comment %}
+        <img src="{% static 'images/dbit-avatar.png' %}" alt="Dbit" class="dbit-float-image">
+        {% endcomment %}
+
+        <!-- Fallback: Letra D (remover quando adicionar a imagem) -->
+        <span class="dbit-float-icon">D</span>
+
+        <!-- Status Online -->
+        <span class="dbit-float-status"></span>
+
+        <!-- Badge de Notificação (opcional - descomentar se quiser mostrar) -->
+        {% comment %}
+        <span class="dbit-float-badge">1</span>
+        {% endcomment %}
+    </a>
+</div>
+
+<script>
+// Opcional: Adicionar comportamento de clique personalizado
+document.addEventListener('DOMContentLoaded', function() {
+    const floatButton = document.querySelector('.dbit-float-button');
+
+    // Adicionar ripple effect no clique
+    floatButton.addEventListener('click', function(e) {
+        const ripple = document.createElement('span');
+        ripple.style.cssText = `
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            width: 100px;
+            height: 100px;
+            margin-left: -50px;
+            margin-top: -50px;
+            animation: ripple 0.6s;
+            pointer-events: none;
+        `;
+        ripple.style.left = e.offsetX + 'px';
+        ripple.style.top = e.offsetY + 'px';
+
+        this.appendChild(ripple);
+
+        setTimeout(() => ripple.remove(), 600);
+    });
+
+    // Criar animação de ripple
+    if (!document.getElementById('dbit-ripple-style')) {
+        const style = document.createElement('style');
+        style.id = 'dbit-ripple-style';
+        style.textContent = `
+            @keyframes ripple {
+                from {
+                    transform: scale(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+});
+</script>
