@@ -123,49 +123,57 @@ if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
         # SSL é obrigatório para Supabase
         db_options['sslmode'] = 'require'
 
-        # CRÍTICO: Forçar IPv4 resolvendo DNS antes da conexão
-        # O Render NÃO suporta IPv6, mas o Supabase retorna endereços IPv6 no DNS
-        # Precisamos resolver o hostname para IPv4 ANTES do psycopg tentar conectar
-        import socket
-        try:
-            # Resolver hostname para IPv4 apenas (AF_INET = IPv4)
-            logger.info(f"🔍 Resolvendo {db_host} para IPv4...")
-            addr_info = socket.getaddrinfo(
-                db_host,
-                None,
-                socket.AF_INET,  # Apenas IPv4
-                socket.SOCK_STREAM
-            )
+        # SOLUÇÃO para Render FREE (sem IPv6):
+        # Opção 1: Usuário configura DATABASE_IPV4 com o IP fixo
+        # Opção 2: Tentamos resolver DNS para IPv4 (pode falhar no build do Render)
 
-            if addr_info:
-                # Pegar o primeiro IP IPv4 resolvido
-                ipv4_address = addr_info[0][4][0]
-                logger.info(f"✅ Resolvido {db_host} -> {ipv4_address} (IPv4)")
+        manual_ipv4 = config('DATABASE_IPV4', default='')
+        if manual_ipv4:
+            # Usuário configurou IP manualmente - RECOMENDADO para Render
+            logger.info(f"✅ Usando IP IPv4 configurado manualmente: {manual_ipv4}")
+            DATABASES['default']['HOST'] = manual_ipv4
+            db_options['hostaddr'] = manual_ipv4
+        else:
+            # Tentar resolver DNS para IPv4 automaticamente
+            import socket
+            try:
+                logger.info(f"🔍 Tentando resolver {db_host} para IPv4...")
 
-                # Substituir HOST pelo IP IPv4
-                DATABASES['default']['HOST'] = ipv4_address
+                # Usar getaddrinfo com AI_ADDRCONFIG para melhor compatibilidade
+                addr_info = socket.getaddrinfo(
+                    db_host,
+                    None,
+                    socket.AF_INET,  # Apenas IPv4
+                    socket.SOCK_STREAM,
+                    0,  # protocol
+                    socket.AI_ADDRCONFIG  # Usar apenas se IPv4 está configurado
+                )
 
-                # Adicionar hostaddr para forçar uso do IP
-                # Isso garante que psycopg use o IP ao invés de resolver DNS novamente
-                db_options['hostaddr'] = ipv4_address
+                if addr_info:
+                    ipv4_address = addr_info[0][4][0]
+                    logger.info(f"✅ Resolvido {db_host} -> {ipv4_address} (IPv4)")
 
-                logger.info(f"✅ Forçado conexão IPv4: {ipv4_address}")
-            else:
-                logger.warning(f"⚠️ Não foi possível resolver {db_host} para IPv4")
+                    DATABASES['default']['HOST'] = ipv4_address
+                    db_options['hostaddr'] = ipv4_address
+                else:
+                    logger.warning(f"⚠️ DNS não retornou IPv4 para {db_host}")
+                    logger.warning("⚠️ SOLUÇÃO: Configure DATABASE_IPV4 com o IP fixo")
 
-        except socket.gaierror as e:
-            logger.error(f"❌ Erro ao resolver DNS para IPv4: {e}")
-            logger.warning("⚠️ Continuando com hostname original (pode falhar em IPv6)")
-        except Exception as e:
-            logger.error(f"❌ Erro inesperado ao configurar IPv4: {e}")
+            except (socket.gaierror, OSError) as e:
+                logger.error(f"❌ Falha ao resolver DNS: {e}")
+                logger.error("⚠️ SOLUÇÃO RECOMENDADA para Render FREE:")
+                logger.error("⚠️ 1. Execute: nslookup db.uomjbcuowfgcwhsejatn.supabase.co")
+                logger.error("⚠️ 2. Pegue o IP IPv4 (ex: 44.XXX.XXX.XXX)")
+                logger.error("⚠️ 3. Configure variável: DATABASE_IPV4=44.XXX.XXX.XXX")
+            except Exception as e:
+                logger.error(f"❌ Erro inesperado: {e}")
 
         # Identificar tipo de conexão
         if 'pooler.supabase.com' in db_host:
             logger.warning(f"⚠️ ATENÇÃO: Detectado Supabase POOLER: {db_host}")
-            logger.warning("⚠️ Para Render, recomenda-se usar conexão DIRETA (db.*.supabase.co)")
-            logger.warning("⚠️ Pooler pode causar erro 'Tenant or user not found'")
+            logger.warning("⚠️ Para Render, use conexão DIRETA (db.*.supabase.co)")
         else:
-            logger.info(f"✅ Detectado Supabase conexão DIRETA: {db_host}")
+            logger.info(f"✅ Detectado Supabase conexão DIRETA")
 
     DATABASES['default']['OPTIONS'] = db_options
     logger.info(f"✅ Configurações PostgreSQL aplicadas: {list(db_options.keys())}")

@@ -76,16 +76,51 @@ postgresql://postgres:[YOUR-PASSWORD]@db.XXXXXXXXXX.supabase.co:5432/postgres
 postgresql://postgres:SuaSenha123@db.uomjbcuowfgcwhsejatn.supabase.co:5432/postgres
 ```
 
-#### Passo 2: Configurar no Render
+#### Passo 2: Descobrir o IP IPv4 do Supabase
+
+O Render FREE **não suporta IPv6**, então precisamos do IP IPv4 do Supabase.
+
+**No seu computador local**, execute:
+```bash
+nslookup db.uomjbcuowfgcwhsejatn.supabase.co
+```
+
+Ou no Linux/Mac:
+```bash
+dig +short db.uomjbcuowfgcwhsejatn.supabase.co A
+```
+
+Você verá algo como:
+```
+44.208.221.186
+52.45.94.125
+44.216.29.125
+```
+
+**Copie QUALQUER UM desses IPs IPv4** (formato XX.XX.XX.XX).
+
+#### Passo 3: Configurar no Render
 
 1. Acesse o [Render Dashboard](https://dashboard.render.com)
 2. Selecione seu serviço web
 3. Vá em **Environment**
-4. Adicione/edite a variável `DATABASE_URL` com a connection string do Supabase
-5. **Importante**:
-   - Substitua `[YOUR-PASSWORD]` pela sua senha real do banco
-   - Use a conexão DIRETA (`db.*.supabase.co`) - **NÃO use pooler!**
-   - Porta: `5432`
+4. Configure **DUAS** variáveis:
+
+**Variável 1: DATABASE_URL**
+```
+postgresql://postgres:SuaSenha@db.uomjbcuowfgcwhsejatn.supabase.co:5432/postgres
+```
+- Substitua `SuaSenha` pela sua senha real do Supabase
+- Use a conexão DIRETA (`db.*.supabase.co`) - **NÃO use pooler!**
+- Porta: `5432`
+
+**Variável 2: DATABASE_IPV4** ⭐ **OBRIGATÓRIA para Render FREE**
+```
+44.208.221.186
+```
+- Use o IP IPv4 que você descobriu no Passo 2
+- **Sem** protocolo, **sem** porta, apenas o IP
+- Exemplo: `44.208.221.186`
 
 ### 3. Conexão Direta vs Pooler
 
