@@ -28,13 +28,18 @@ def create_user_profile(sender, instance, created, **kwargs):
         **kwargs: Argumentos adicionais do signal
     """
     if created:
-        # Criar UserProfile
-        UserProfile.objects.create(
+        # Criar UserProfile (usando get_or_create para evitar duplicatas)
+        profile, profile_created = UserProfile.objects.get_or_create(
             user=instance,
-            theme_preference='fantasy',  # Tema padrão
-            level=1,
-            total_xp=0
+            defaults={
+                'theme_preference': 'fantasy',  # Tema padrão
+                'level': 1,
+                'total_xp': 0
+            }
         )
+
+        if not profile_created:
+            logger.warning(f"UserProfile já existia para {instance.username} (ID: {instance.id})")
 
         # Criar notificação de boas-vindas
         try:
@@ -98,10 +103,14 @@ def save_user_profile(sender, instance, **kwargs):
     try:
         instance.profile.save()
     except UserProfile.DoesNotExist:
-        # Fallback: criar profile se não existir
-        UserProfile.objects.create(
+        # Fallback: criar profile se não existir (usando get_or_create)
+        profile, created = UserProfile.objects.get_or_create(
             user=instance,
-            theme_preference='fantasy',
-            level=1,
-            total_xp=0
+            defaults={
+                'theme_preference': 'fantasy',
+                'level': 1,
+                'total_xp': 0
+            }
         )
+        if created:
+            logger.info(f"UserProfile criado via fallback para {instance.username}")
