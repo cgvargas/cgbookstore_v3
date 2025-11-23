@@ -58,7 +58,7 @@ def diagnosticar():
 
     # 3. Verificar usuários sem perfil
     print("\n3️⃣ Verificando usuários sem UserProfile...")
-    users_without_profile = User.objects.filter(userprofile__isnull=True)
+    users_without_profile = User.objects.filter(profile__isnull=True)
     count = users_without_profile.count()
 
     if count > 0:
@@ -146,7 +146,7 @@ def criar_perfis_faltantes():
     print("🔧 CRIANDO PERFIS FALTANTES")
     print("=" * 70)
 
-    users_without_profile = User.objects.filter(userprofile__isnull=True)
+    users_without_profile = User.objects.filter(profile__isnull=True)
     count = users_without_profile.count()
 
     if count == 0:

@@ -44,7 +44,7 @@ else:
     print('   ✅ Nenhuma duplicata encontrada')
 
 # Verificar usuários sem profile
-users_without_profile = User.objects.filter(userprofile__isnull=True)
+users_without_profile = User.objects.filter(profile__isnull=True)
 if users_without_profile.exists():
     print(f'\n⚠️ {users_without_profile.count()} usuários SEM perfil:')
     for u in users_without_profile[:10]:
