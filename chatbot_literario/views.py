@@ -92,17 +92,28 @@ class SendMessageAPIView(APIView):
             previous_messages = session.messages.exclude(id=user_message.id).order_by('created_at')[:10]
             conversation_history = []
 
+            # Obter nome do usuário (first_name ou username)
+            user_name = request.user.first_name or request.user.username
+
             # Se for a primeira mensagem da sessão, adicionar contexto do usuário
             if session.get_messages_count() == 1:  # Apenas a mensagem atual
-                # Obter nome do usuário (first_name ou username)
-                user_name = request.user.first_name or request.user.username
                 conversation_history.append({
                     "role": "user",
-                    "parts": [f"Meu nome é {user_name}"]
+                    "parts": [f"[INSTRUÇÃO DO SISTEMA] O usuário com quem você está conversando se chama {user_name}. USE SEMPRE esse nome em suas respostas. Exemplo: 'Olá, {user_name}!', '{user_name}, aqui vão 3 sugestões...'. NUNCA esqueça de usar o nome!"]
                 })
                 conversation_history.append({
                     "role": "model",
-                    "parts": [f"Olá, {user_name}! Prazer em te conhecer! 📚 Como posso te ajudar hoje?"]
+                    "parts": [f"Entendido! Vou sempre chamar o usuário de {user_name} em todas as minhas respostas. Olá, {user_name}! Prazer em te conhecer! 📚 Como posso te ajudar hoje?"]
+                })
+            else:
+                # Se não for a primeira mensagem, relembrar o nome no início do histórico
+                conversation_history.append({
+                    "role": "user",
+                    "parts": [f"[LEMBRETE] Continue chamando o usuário de {user_name}."]
+                })
+                conversation_history.append({
+                    "role": "model",
+                    "parts": [f"Entendido, continuarei usando o nome {user_name}!"]
                 })
 
             # Adicionar histórico de mensagens anteriores
