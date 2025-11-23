@@ -95,27 +95,6 @@ class SendMessageAPIView(APIView):
             # Obter nome do usuário (first_name ou username)
             user_name = request.user.first_name or request.user.username
 
-            # Se for a primeira mensagem da sessão, adicionar contexto do usuário
-            if session.get_messages_count() == 1:  # Apenas a mensagem atual
-                conversation_history.append({
-                    "role": "user",
-                    "parts": [f"[INSTRUÇÃO DO SISTEMA] O usuário com quem você está conversando se chama {user_name}. USE SEMPRE esse nome em suas respostas. Exemplo: 'Olá, {user_name}!', '{user_name}, aqui vão 3 sugestões...'. NUNCA esqueça de usar o nome!"]
-                })
-                conversation_history.append({
-                    "role": "model",
-                    "parts": [f"Entendido! Vou sempre chamar o usuário de {user_name} em todas as minhas respostas. Olá, {user_name}! Prazer em te conhecer! 📚 Como posso te ajudar hoje?"]
-                })
-            else:
-                # Se não for a primeira mensagem, relembrar o nome no início do histórico
-                conversation_history.append({
-                    "role": "user",
-                    "parts": [f"[LEMBRETE] Continue chamando o usuário de {user_name}."]
-                })
-                conversation_history.append({
-                    "role": "model",
-                    "parts": [f"Entendido, continuarei usando o nome {user_name}!"]
-                })
-
             # Adicionar histórico de mensagens anteriores
             for msg in previous_messages:
                 conversation_history.append({
@@ -126,9 +105,12 @@ class SendMessageAPIView(APIView):
             # 4. Obter resposta do chatbot
             chatbot_service = get_chatbot_service()
 
+            # Adicionar contexto do usuário à mensagem
+            message_with_context = f"[Usuário: {user_name}] {user_message_text}"
+
             start_time = time.time()
             bot_response_text = chatbot_service.get_response(
-                message=user_message_text,
+                message=message_with_context,
                 conversation_history=conversation_history
             )
             response_time = time.time() - start_time
