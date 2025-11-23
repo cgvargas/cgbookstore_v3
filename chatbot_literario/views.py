@@ -91,6 +91,21 @@ class SendMessageAPIView(APIView):
             # 3. Obter histórico da conversa (últimas 10 mensagens)
             previous_messages = session.messages.exclude(id=user_message.id).order_by('created_at')[:10]
             conversation_history = []
+
+            # Se for a primeira mensagem da sessão, adicionar contexto do usuário
+            if session.get_messages_count() == 1:  # Apenas a mensagem atual
+                # Obter nome do usuário (first_name ou username)
+                user_name = request.user.first_name or request.user.username
+                conversation_history.append({
+                    "role": "user",
+                    "parts": [f"Meu nome é {user_name}"]
+                })
+                conversation_history.append({
+                    "role": "model",
+                    "parts": [f"Olá, {user_name}! Prazer em te conhecer! 📚 Como posso te ajudar hoje?"]
+                })
+
+            # Adicionar histórico de mensagens anteriores
             for msg in previous_messages:
                 conversation_history.append({
                     "role": msg.role if msg.role == "user" else "model",
