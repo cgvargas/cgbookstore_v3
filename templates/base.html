@@ -471,6 +471,11 @@
         {% endblock %}
     </main>
 
+    <!-- Widget Flutuante do Chatbot -->
+    {% if user.is_authenticated %}
+    {% include 'chatbot_literario/chatbot_widget.html' %}
+    {% endif %}
+
     <!-- Footer Melhorado -->
     <footer class="footer-modern mt-5">
         <!-- Linha Decorativa Laranja antes do Footer -->
