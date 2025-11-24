@@ -3,8 +3,8 @@
 <!-- Botão Flutuante do Chatbot -->
 <div id="chatbot-widget-container">
     <!-- Botão para abrir o chat -->
-    <button id="chatbot-toggle-btn" class="chatbot-fab" title="Assistente Literário" aria-label="Abrir chatbot">
-        <i class="fas fa-robot"></i>
+    <button id="chatbot-toggle-btn" class="chatbot-fab" title="Assistente Literário Dbit" aria-label="Abrir chatbot">
+        <img src="{% static 'images/Dbit.JPG' %}" alt="Dbit" class="dbit-avatar">
         <span class="chatbot-pulse"></span>
     </button>
 
@@ -13,9 +13,9 @@
         <!-- Cabeçalho -->
         <div class="chatbot-window-header">
             <div class="chatbot-header-info">
-                <i class="fas fa-robot me-2"></i>
+                <img src="{% static 'images/Dbit.JPG' %}" alt="Dbit" class="dbit-header-avatar me-2">
                 <div>
-                    <strong>Assistente Literário</strong>
+                    <strong>Dbit - Assistente Literário</strong>
                     <small class="d-block text-white-50">CG.BookStore</small>
                 </div>
             </div>
@@ -27,8 +27,8 @@
         <!-- Corpo -->
         <div class="chatbot-window-body">
             <div class="chatbot-welcome-message">
-                <i class="fas fa-robot fa-2x mb-2 text-primary"></i>
-                <h5>Olá! 👋</h5>
+                <img src="{% static 'images/Dbit.JPG' %}" alt="Dbit" class="dbit-welcome-avatar mb-2">
+                <h5>Olá! Sou o Dbit 👋</h5>
                 <p>Sou seu Assistente Literário! Posso ajudar com:</p>
                 <ul class="text-start">
                     <li>📚 Recomendações de livros</li>
@@ -54,16 +54,15 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* Botão Flutuante (FAB) */
+/* Botão Flutuante (FAB) - MAIOR */
 .chatbot-fab {
     position: relative;
-    width: 60px;
-    height: 60px;
+    width: 85px;
+    height: 85px;
     border-radius: 50%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
     color: white;
-    font-size: 24px;
     cursor: pointer;
     box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
     transition: all 0.3s ease;
@@ -71,6 +70,18 @@
     align-items: center;
     justify-content: center;
     z-index: 10000;
+    padding: 5px;
+    overflow: hidden;
+}
+
+/* Avatar do Dbit no botão */
+.dbit-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    position: relative;
+    z-index: 1;
 }
 
 .chatbot-fab:hover {
@@ -224,6 +235,25 @@
     border-bottom: none;
 }
 
+/* Avatar do Dbit no cabeçalho */
+.dbit-header-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Avatar do Dbit na mensagem de boas-vindas */
+.dbit-welcome-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #667eea;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
     #chatbot-widget-container {
@@ -232,9 +262,8 @@
     }
 
     .chatbot-fab {
-        width: 56px;
-        height: 56px;
-        font-size: 22px;
+        width: 70px;
+        height: 70px;
     }
 
     .chatbot-window {
