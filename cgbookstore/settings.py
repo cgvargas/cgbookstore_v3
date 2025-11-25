@@ -323,8 +323,18 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
+# ==============================================================================
+# AI PROVIDER CONFIGURATION
+# ==============================================================================
+# Escolha o provedor de IA para o chatbot: 'gemini' ou 'groq'
+AI_PROVIDER = config('AI_PROVIDER', default='groq')
+
 # Google Gemini AI
 GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
+
+# Groq AI (Recomendado - Mais rápido e free tier generoso)
+# Crie sua chave em: https://console.groq.com/keys
+GROQ_API_KEY = config('GROQ_API_KEY', default='')
 
 # ==============================================================================
 # MERCADO PAGO - MÓDULO FINANCEIRO
