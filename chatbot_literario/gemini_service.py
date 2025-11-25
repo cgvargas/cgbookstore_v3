@@ -243,9 +243,39 @@ ESCOPO:
 _chatbot_service = None
 
 
-def get_chatbot_service() -> GeminiChatbotService:
-    """Retorna a instância singleton do serviço de chatbot."""
+def get_gemini_service() -> GeminiChatbotService:
+    """Retorna a instância singleton do serviço de chatbot Gemini."""
     global _chatbot_service
     if _chatbot_service is None:
         _chatbot_service = GeminiChatbotService()
     return _chatbot_service
+
+
+def get_chatbot_service():
+    """
+    Retorna o serviço de chatbot configurado (Gemini ou Groq).
+
+    Escolhe automaticamente baseado na variável AI_PROVIDER no .env:
+    - 'gemini': Usa Google Gemini (padrão se não especificado)
+    - 'groq': Usa Groq AI (recomendado - mais rápido e free tier generoso)
+
+    Returns:
+        Instância do serviço de chatbot (GeminiChatbotService ou GroqChatbotService)
+    """
+    ai_provider = getattr(settings, 'AI_PROVIDER', 'gemini').lower()
+
+    logger.info(f"Usando provedor de IA: {ai_provider}")
+
+    if ai_provider == 'groq':
+        try:
+            from .groq_service import get_groq_chatbot_service
+            service = get_groq_chatbot_service()
+            logger.info("✅ Serviço Groq inicializado com sucesso")
+            return service
+        except Exception as e:
+            logger.error(f"❌ Erro ao inicializar Groq: {e}")
+            logger.info("⚠️ Fallback para Gemini")
+            return get_gemini_service()
+    else:
+        # Padrão: Gemini
+        return get_gemini_service()
