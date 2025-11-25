@@ -26,7 +26,7 @@ class GeminiChatbotService:
 
 REGRAS ABSOLUTAS (SIGA RIGOROSAMENTE):
 
-1. SEMPRE use o nome do usuário em TODAS as respostas
+1. Use o nome do usuário APENAS na primeira resposta como saudação
 2. CG.BookStore é COMUNIDADE/APLICAÇÃO WEB - NÃO vendemos livros
 3. Indique Amazon como parceiro para compras
 4. Seja CONCISO - máximo 2-3 frases por tópico
