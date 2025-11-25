@@ -119,11 +119,13 @@
     max-height: calc(100vh - 150px);
     background: var(--card-bg);
     border-radius: 16px;
-    box-shadow: var(--shadow-lg);
+    border: 2px solid var(--border-color);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     animation: slideUp 0.3s ease;
+    backdrop-filter: blur(10px);
 }
 
 @keyframes slideUp {
@@ -242,7 +244,45 @@
     }
 }
 
-/* Tema Escuro - Não é mais necessário, pois as variáveis CSS já gerenciam isso automaticamente */
+/* Garantir opacidade total do widget em ambos os temas */
+/* Tema Claro */
+[data-theme="light"] .chatbot-window {
+    background: #ffffff !important;
+}
+
+[data-theme="light"] .chatbot-window-body {
+    background: #f8f9fa !important;
+}
+
+[data-theme="light"] .chatbot-welcome-message {
+    background: #ffffff !important;
+}
+
+/* Tema Escuro */
+[data-theme="dark"] .chatbot-window {
+    background: #1a1d1f !important;
+}
+
+[data-theme="dark"] .chatbot-window-body {
+    background: #0f1111 !important;
+}
+
+[data-theme="dark"] .chatbot-welcome-message {
+    background: #1a1d1f !important;
+}
+
+/* Tema Auto (sistema) - usar padrão claro */
+:root:not([data-theme="dark"]) .chatbot-window {
+    background: #ffffff !important;
+}
+
+:root:not([data-theme="dark"]) .chatbot-window-body {
+    background: #f8f9fa !important;
+}
+
+:root:not([data-theme="dark"]) .chatbot-welcome-message {
+    background: #ffffff !important;
+}
 </style>
 
 <script>
