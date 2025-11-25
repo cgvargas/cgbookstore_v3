@@ -75,11 +75,12 @@ ESCOPO:
         """Inicializa o serviço do chatbot com Groq."""
         self.api_key = getattr(settings, 'GROQ_API_KEY', None)
         # Modelos disponíveis no Groq (gratuitos):
-        # - llama-3.1-70b-versatile (recomendado - mais inteligente)
+        # - llama-3.3-70b-versatile (recomendado - mais inteligente, substitui 3.1)
+        # - llama3-70b-8192 (alternativa robusta)
         # - llama-3.1-8b-instant (mais rápido)
         # - mixtral-8x7b-32768 (ótimo para contextos longos)
         # - gemma2-9b-it (eficiente e rápido)
-        self.model_name = 'llama-3.1-70b-versatile'
+        self.model_name = 'llama-3.3-70b-versatile'
         self._client = None
 
         # Configurações de geração
