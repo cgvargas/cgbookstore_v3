@@ -286,6 +286,36 @@
                 max-width: 100%;
             }
         }
+
+        /* Estilos para o botão de busca */
+        .btn-search-navbar {
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .btn-search-navbar:hover {
+            transform: scale(1.15);
+            color: #ff6b35 !important;
+        }
+
+        /* Estilos para o avatar do usuário */
+        .user-avatar-img {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: border-color 0.2s ease;
+        }
+
+        .user-avatar-img:hover {
+            border-color: #ff6b35;
+        }
+
+        .user-avatar-placeholder {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .user-avatar-placeholder:hover {
+            border-color: #ff6b35;
+            background-color: #ff6b35 !important;
+        }
     </style>
 </head>
 <body>
@@ -301,48 +331,33 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'core:home' %}">
-                            <i class="fas fa-home me-1"></i>Início
-                        </a>
+                        <a class="nav-link" href="{% url 'core:home' %}">Início</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'core:book_list' %}">
-                            <i class="fas fa-book me-1"></i>Catálogo
-                        </a>
+                        <a class="nav-link" href="{% url 'core:book_list' %}">Catálogo</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'core:about' %}">
-                            <i class="fas fa-info-circle me-1"></i>Sobre
-                        </a>
+                        <a class="nav-link" href="{% url 'core:about' %}">Sobre</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'core:contact' %}">
-                            <i class="fas fa-envelope me-1"></i>Contato
-                        </a>
+                        <a class="nav-link" href="{% url 'core:contact' %}">Contato</a>
                     </li>
                     {% if not user.is_authenticated or not user.subscription or user.subscription.status != 'ativa' %}
                     <li class="nav-item">
-                        <a class="nav-link text-warning fw-bold" href="{% url 'finance:subscription_checkout' %}">
-                            <i class="fas fa-crown me-1"></i>Premium
-                        </a>
+                        <a class="nav-link text-warning fw-bold" href="{% url 'finance:subscription_checkout' %}">Premium</a>
                     </li>
                     {% endif %}
                     {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'core:library' %}">
-                            <i class="fas fa-book-reader me-1"></i>Minha Biblioteca
-                        </a>
+                        <a class="nav-link" href="{% url 'core:library' %}">Minha Biblioteca</a>
                     </li>
                     {% endif %}
                 </ul>
 
-                <!-- Formulário de Busca -->
-                <form class="d-flex me-3" method="GET" action="{% url 'core:search' %}">
-                    <input class="form-control me-2" type="search" name="q" placeholder="Buscar livros..." aria-label="Buscar">
-                    <button class="btn btn-outline-light" type="submit">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </form>
+                <!-- Botão de Busca Global (abre modal) -->
+                <button class="btn btn-link text-white p-0 me-3 btn-search-navbar" type="button" data-bs-toggle="modal" data-bs-target="#globalSearchModal" style="font-size: 1.2rem; text-decoration: none; border: none; background: none;">
+                    <i class="fas fa-search"></i>
+                </button>
 
                 <!-- Theme Switcher -->
                 <div class="dropdown me-3">
@@ -402,8 +417,15 @@
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-1"></i>{{ user.username }}
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            {% if user.profile.avatar %}
+                                <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="rounded-circle me-2 user-avatar-img" style="width: 32px; height: 32px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle me-2 d-flex align-items-center justify-content-center user-avatar-placeholder" style="width: 32px; height: 32px; background-color: #6c757d; color: white; font-size: 14px; font-weight: bold;">
+                                    {{ user.username|first|upper }}
+                                </div>
+                            {% endif %}
+                            <span class="d-none d-md-inline">{{ user.username }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li>
@@ -448,14 +470,10 @@
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'account_login' %}">
-                            <i class="fas fa-sign-in-alt me-1"></i>Entrar
-                        </a>
+                        <a class="nav-link" href="{% url 'account_login' %}">Entrar</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'account_signup' %}">
-                            <i class="fas fa-user-plus me-1"></i>Cadastrar
-                        </a>
+                        <a class="nav-link" href="{% url 'account_signup' %}">Cadastrar</a>
                     </li>
                     {% endif %}
                 </ul>
@@ -470,6 +488,9 @@
         {% block content %}
         {% endblock %}
     </main>
+
+    <!-- Modal de Busca Global -->
+    {% include 'core/modals/global_search_modal.html' %}
 
     <!-- Widget Flutuante do Chatbot -->
     {% if user.is_authenticated %}
@@ -496,10 +517,9 @@
                                 Conectando leitores a histórias incríveis. Sua biblioteca digital para descobrir, organizar e compartilhar experiências literárias únicas.
                             </p>
                             <div class="footer-social">
-                                <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-                                <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
-                                <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
-                                <a href="#" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="https://www.facebook.com/profile.php?id=61569188766565" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                                <a href="https://www.instagram.com/cg.bookstore/" title="Instagram"><i class="fab fa-instagram"></i></a>
+                                <a href="https://x.com/CG_BookStore" title="Twitter"><i class="fab fa-twitter"></i></a>
                             </div>
                         </div>
                     </div>
@@ -573,6 +593,9 @@
 
 <!-- Theme Switcher (Global) -->
 <script src="{% static 'js/theme-switcher.js' %}?v=1.0"></script>
+
+<!-- Sistema de Busca Global -->
+<script src="{% static 'js/global-search.js' %}?v=3.0"></script>
 
 <!-- Gerenciadores Globais (Sempre necessários para Navbar e Notificações) -->
 <script src="{% static 'js/library-manager.js' %}?v=2.1"></script>

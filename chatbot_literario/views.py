@@ -95,18 +95,35 @@ class SendMessageAPIView(APIView):
             # Obter nome do usuário (first_name ou username)
             user_name = request.user.first_name or request.user.username
 
-            # Adicionar histórico de mensagens anteriores
-            for msg in previous_messages:
-                conversation_history.append({
-                    "role": msg.role if msg.role == "user" else "model",
-                    "parts": [msg.content]
-                })
-
             # 4. Obter resposta do chatbot
             chatbot_service = get_chatbot_service()
 
-            # Adicionar contexto do usuário à mensagem
-            message_with_context = f"[Usuário: {user_name}] {user_message_text}"
+            # Detectar qual provedor está sendo usado
+            from django.conf import settings
+            ai_provider = getattr(settings, 'AI_PROVIDER', 'gemini').lower()
+
+            # Adicionar histórico de mensagens anteriores no formato correto
+            for msg in previous_messages:
+                if ai_provider == 'groq':
+                    # Formato OpenAI/Groq
+                    conversation_history.append({
+                        "role": msg.role if msg.role == "user" else "assistant",
+                        "content": msg.content
+                    })
+                else:
+                    # Formato Gemini
+                    conversation_history.append({
+                        "role": msg.role if msg.role == "user" else "model",
+                        "parts": [msg.content]
+                    })
+
+            # Adicionar contexto do usuário APENAS na primeira mensagem (quando não há histórico)
+            if not conversation_history:
+                # Primeira mensagem: incluir nome para saudação personalizada
+                message_with_context = f"[Usuário: {user_name}] {user_message_text}"
+            else:
+                # Mensagens seguintes: enviar apenas o texto, sem contexto de nome
+                message_with_context = user_message_text
 
             start_time = time.time()
             bot_response_text = chatbot_service.get_response(
