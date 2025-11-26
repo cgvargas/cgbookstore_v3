@@ -57,7 +57,7 @@ class LibraryView(LoginRequiredMixin, TemplateView):
 
         # Otimização: Prefetch ReadingProgress para evitar N+1 queries
         reading_progress_prefetch = Prefetch(
-            'book__readingprogress_set',
+            'book__reading_progress',
             queryset=ReadingProgress.objects.filter(user=user),
             to_attr='user_progress'
         )
