@@ -134,10 +134,18 @@ const ReadingProgressManager = {
 
                     // Se o livro foi completado e movido para "Lidos"
                     if (data.progress.moved_to_read) {
-                        // Aguardar 2 segundos e recarregar a página para atualizar a UI
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 2000);
+                        // Atualizar UI sem reload - mostrar badge de completado
+                        const progressWidget = document.getElementById('readingProgressWidget');
+                        if (progressWidget) {
+                            const completedBadge = document.createElement('div');
+                            completedBadge.className = 'alert alert-success mt-3';
+                            completedBadge.innerHTML = '<i class="fas fa-check-circle me-2"></i>Livro marcado como lido! Parabéns!';
+                            progressWidget.appendChild(completedBadge);
+                        }
+                        // Atualizar badge imediatamente (sem reload)
+                        if (window.NotificationManager) {
+                            window.NotificationManager.api.fetchUnreadCount();
+                        }
                     }
                 } else {
                     showToast(data.message, 'error');
@@ -185,7 +193,16 @@ const ReadingProgressManager = {
                     const data = await response.json();
                     if (data.success) {
                         showToast(data.message, 'success');
-                        setTimeout(() => window.location.reload(), 1500);
+                        // Atualizar UI dinamicamente sem reload
+                        const widget = ReadingProgressManager.elements.widget;
+                        widget.dataset.deadline = newDeadline;
+
+                        // Atualizar display do prazo se existir
+                        const deadlineDisplay = document.getElementById('deadline-display');
+                        if (deadlineDisplay) {
+                            const formattedDate = new Date(newDeadline).toLocaleDateString('pt-BR');
+                            deadlineDisplay.textContent = formattedDate;
+                        }
                     } else {
                         showToast(data.message, 'error');
                     }
@@ -220,7 +237,21 @@ const ReadingProgressManager = {
                     const data = await response.json();
                     if (data.success) {
                         showToast(data.message, 'success');
-                        setTimeout(() => window.location.reload(), 1500);
+                        // Atualizar UI dinamicamente sem reload
+                        const widget = ReadingProgressManager.elements.widget;
+                        delete widget.dataset.deadline;
+
+                        // Remover display do prazo se existir
+                        const deadlineDisplay = document.getElementById('deadline-display');
+                        if (deadlineDisplay) {
+                            deadlineDisplay.textContent = 'Nenhum prazo definido';
+                        }
+
+                        // Esconder botão de remover e mostrar botão de definir
+                        const removeBtn = ReadingProgressManager.elements.removeDeadlineBtn;
+                        const setBtn = ReadingProgressManager.elements.deadlineBtn;
+                        if (removeBtn) removeBtn.style.display = 'none';
+                        if (setBtn) setBtn.style.display = 'inline-block';
                     } else {
                         showToast(data.message, 'error');
                     }
@@ -243,8 +274,8 @@ const NotificationManager = {
      * Configurações e preferências
      */
     settings: {
-        pollingInterval: 90000,  // 90 segundos
-        soundEnabled: true,      // Som ativo por padrão
+        pollingInterval: 300000,  // 5 minutos (otimizado para reduzir carga no servidor)
+        soundEnabled: true,       // Som ativo por padrão
         filters: {
             status: 'unread',    // 'all', 'unread', 'read'
             category: 'all',     // 'all', 'reading', 'system'
