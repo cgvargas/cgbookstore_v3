@@ -9,6 +9,9 @@ from core.models import Book
 class BookAdmin(admin.ModelAdmin):
     """Administração de Livros com autocomplete de autor."""
 
+    # Otimização: Evitar N+1 queries ao listar livros
+    list_select_related = ['author', 'category']
+
     list_display = [
         'title',
         'author',

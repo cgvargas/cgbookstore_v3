@@ -82,16 +82,19 @@ def google_books_search_user(request):
             isbn = book.get('isbn_13') or book.get('isbn_10')
             exists_in_catalog = False
             local_book_id = None
+            local_book_slug = None
 
             if isbn:
                 local_book = Book.objects.filter(isbn=isbn).first()
                 if local_book:
                     exists_in_catalog = True
                     local_book_id = local_book.id
+                    local_book_slug = local_book.slug
 
             # Adicionar flags úteis
             book['exists_in_catalog'] = exists_in_catalog
             book['local_book_id'] = local_book_id
+            book['local_book_slug'] = local_book_slug
 
             processed_books.append(book)
 
@@ -107,6 +110,9 @@ def google_books_search_user(request):
             'message': 'Parâmetros inválidos.'
         }, status=400)
     except Exception as e:
+        import traceback
+        print(f"ERRO NA API GOOGLE BOOKS: {str(e)}")
+        print(traceback.format_exc())
         return JsonResponse({
             'success': False,
             'message': f'Erro ao buscar livros: {str(e)}'
@@ -248,7 +254,8 @@ def local_books_search_api(request):
     ).distinct()[:10]
 
     results = [{
-        'id': book.id,  # <-- É AQUI QUE O ID CORRETO É PEGO
+        'id': book.id,
+        'slug': book.slug,  # Adicionar slug para usar na URL
         'title': book.title,
         'author': book.author.name if book.author else 'N/A',
         'cover': book.cover_image.url if book.cover_image else None,

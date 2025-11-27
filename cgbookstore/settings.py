@@ -62,7 +62,7 @@ INSTALLED_APPS = [
 
     # Third-party Apps
     'rest_framework',
-    'django_extensions',  # HTTPS em desenvolvimento
+    # 'django_extensions',  # HTTPS em desenvolvimento - COMENTADO TEMPORARIAMENTE
 ]
 
 MIDDLEWARE = [

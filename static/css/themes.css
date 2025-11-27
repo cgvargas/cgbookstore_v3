@@ -799,3 +799,10 @@ a, button, input, select, textarea {
     background-color: #f5f5f5 !important;
     color: #007185 !important;
 }
+
+/* Tema Claro - Corrigir cor do ícone de busca na navbar */
+:root:not([data-theme="dark"]) .btn-search-navbar,
+[data-theme="light"] .btn-search-navbar {
+    color: #1a1a2e !important;
+}
+}
