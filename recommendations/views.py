@@ -21,17 +21,7 @@ from .serializers import (
     RecommendationRequestSerializer,
     SimilarBooksRequestSerializer
 )
-from .algorithms import (
-    CollaborativeFilteringAlgorithm,
-    ContentBasedFilteringAlgorithm,
-    HybridRecommendationSystem
-)
-from .algorithms_preference_weighted import (
-    PreferenceWeightedHybrid,
-    PreferenceWeightedCollaborative,
-    PreferenceWeightedContentBased
-)
-from .gemini_ai import GeminiRecommendationEngine
+from .algorithms_simple import get_simple_recommendation_engine
 import logging
 
 logger = logging.getLogger(__name__)
@@ -142,117 +132,9 @@ def get_recommendations(request):
     limit = serializer.validated_data['limit']
 
     try:
-        # Selecionar algoritmo
-        if algorithm == 'collaborative':
-            engine = CollaborativeFilteringAlgorithm()
-            recommendations = engine.recommend(request.user, n=limit)
-
-        elif algorithm == 'content':
-            engine = ContentBasedFilteringAlgorithm()
-            recommendations = engine.recommend(request.user, n=limit)
-
-        elif algorithm == 'hybrid':
-            engine = HybridRecommendationSystem()
-            recommendations = engine.recommend(request.user, n=limit)
-
-        elif algorithm == 'preference_hybrid':
-            # Sistema ponderado por prateleiras (favoritos > lidos > lendo > quero ler)
-            engine = PreferenceWeightedHybrid()
-            recommendations = engine.recommend(request.user, n=limit)
-
-        elif algorithm == 'preference_collab':
-            # Collaborative ponderado por prateleiras
-            engine = PreferenceWeightedCollaborative()
-            recommendations = engine.recommend(request.user, n=limit)
-
-        elif algorithm == 'preference_content':
-            # Content-based ponderado por prateleiras
-            engine = PreferenceWeightedContentBased()
-            recommendations = engine.recommend(request.user, n=limit)
-
-        elif algorithm == 'ai':
-            # Recomendações com Google Gemini
-            engine = GeminiRecommendationEngine()
-
-            if not engine.is_available():
-                return Response(
-                    {'error': 'Gemini AI não está configurado. Adicione GEMINI_API_KEY ao .env'},
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE
-                )
-
-            # Obter histórico do usuário
-            user_history = UserBookInteraction.objects.filter(
-                user=request.user
-            ).select_related('book').order_by('-created_at')[:20]
-
-            history_data = [{
-                'title': interaction.book.title,
-                'author': interaction.book.author,
-                'categories': getattr(interaction.book, 'categories', ''),
-                'interaction_type': interaction.interaction_type
-            } for interaction in user_history]
-
-            # Pedir mais recomendações para compensar livros sem capa
-            recommendations = engine.generate_recommendations(
-                request.user,
-                history_data,
-                n=limit * 3  # Pedir 3x mais
-            )
-
-            # Tentar encontrar os livros no banco de dados e filtrar por capa
-            filtered_recommendations = []
-
-            for rec in recommendations:
-                # Tentar encontrar o livro no banco
-                try:
-                    # Buscar por título (case insensitive)
-                    from django.db.models import Q
-                    book = Book.objects.filter(
-                        Q(title__iexact=rec['title']) |
-                        Q(title__icontains=rec['title'][:30])  # Parte do título
-                    ).first()
-
-                    if book and book.has_valid_cover:
-                        # Livro encontrado E tem capa válida
-                        book_data = BookMiniSerializer(book).data
-                        book_data['score'] = rec['score']
-                        book_data['reason'] = rec['reason']
-                        filtered_recommendations.append(book_data)
-                    elif not book:
-                        # Livro não encontrado no banco - incluir como sugestão do Gemini
-                        logger.info(f"Book not found in DB: {rec['title']} by {rec['author']}")
-                        filtered_recommendations.append({
-                            'book': None,
-                            'score': rec['score'],
-                            'reason': rec['reason'],
-                            'title': rec['title'],
-                            'author': rec['author'],
-                            'cover_image': None,
-                            'source': 'gemini_suggestion'
-                        })
-                    else:
-                        # Livro sem capa - pular
-                        logger.debug(f"Filtered AI book without cover: {rec['title']}")
-
-                    # Parar quando atingir o limite
-                    if len(filtered_recommendations) >= limit:
-                        break
-
-                except Exception as e:
-                    logger.error(f"Error processing AI recommendation: {e}")
-                    continue
-
-            return Response({
-                'algorithm': algorithm,
-                'count': len(filtered_recommendations),
-                'recommendations': filtered_recommendations
-            })
-
-        else:
-            return Response(
-                {'error': 'Algoritmo inválido'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # Usar apenas algoritmo simplificado (ignorar parâmetro algorithm)
+        engine = get_simple_recommendation_engine()
+        recommendations = engine.recommend(request.user, n=limit)
 
         # Serializar livros
         books_data = []
@@ -292,9 +174,15 @@ def get_similar_books(request, book_id):
     limit = min(int(request.query_params.get('limit', 10)), 50)
 
     try:
-        # Usar algoritmo baseado em conteúdo
-        engine = ContentBasedFilteringAlgorithm()
-        similar_books = engine.find_similar_books(book, n=limit)
+        # Retornar livros da mesma categoria/autor (simplificado)
+        from django.db.models import Q
+        similar_books_qs = Book.objects.filter(
+            Q(category=book.category) | Q(author=book.author)
+        ).exclude(id=book.id).filter(
+            Q(cover_image__isnull=False) & ~Q(cover_image='')
+        )[:limit]
+
+        similar_books = [{'book': b, 'score': 0.8, 'reason': 'Mesma categoria/autor'} for b in similar_books_qs]
 
         # Serializar resultados
         results = []
