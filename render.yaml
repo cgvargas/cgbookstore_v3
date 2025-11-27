@@ -7,7 +7,7 @@ services:
     plan: free
     branch: main
     buildCommand: "chmod +x build.sh && ./build.sh"
-    startCommand: "gunicorn -c gunicorn_config.py"
+    startCommand: "gunicorn -c gunicorn_config.py cgbookstore.wsgi:application"
     healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION
