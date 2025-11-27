@@ -1,41 +1,21 @@
 {% load static %}
 
 <!--
-    Seção de Recomendações Personalizadas
-    Versão: 2.1 (Timeouts corrigidos: 30s IA, 10s outros)
-    Última atualização: 2025-01-17
-    Hash: 8285116469456800a37717f6d04b1420
+    Seção de Recomendações Personalizadas - SIMPLIFICADO
+    Versão: 3.0 (Sistema Único - Sem IA)
+    Última atualização: 2025-11-27
 -->
 <!-- Seção de Recomendações Personalizadas -->
 <section class="recommendations-section my-5" id="recommendations-for-you">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="mb-4">
             <h2 class="section-title">
-                <i class="fas fa-magic me-2"></i>
-                Para Você
+                <i class="fas fa-star me-2"></i>
+                Recomendações Para Você
             </h2>
-            {% if user.is_authenticated %}
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-sm btn-outline-primary active" data-algorithm="preference_hybrid" title="Recomendações ponderadas pelas suas prateleiras (Favoritos > Lidos > Lendo > Quero Ler)">
-                    <i class="fas fa-star"></i> Personalizado
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-primary" data-algorithm="ai" title="Recomendações potencializadas com IA Gemini + Google Books">
-                    <i class="fas fa-robot"></i> IA Premium
-                </button>
-                <!-- Algoritmos temporariamente desabilitados (muito lentos sem cache Redis) -->
-                <!--
-                <button type="button" class="btn btn-sm btn-outline-primary" data-algorithm="hybrid" title="Sistema híbrido clássico">
-                    <i class="fas fa-blender"></i> Híbrido
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-primary" data-algorithm="collaborative" title="Baseado em usuários com gostos similares">
-                    <i class="fas fa-users"></i> Similares
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-primary" data-algorithm="content" title="Baseado no conteúdo dos livros que você gosta">
-                    <i class="fas fa-book"></i> Conteúdo
-                </button>
-                -->
-            </div>
-            {% endif %}
+            <p class="text-muted small mb-0">
+                Baseado nas suas prateleiras (Favoritos, Lidos, Lendo e Quer Ler)
+            </p>
         </div>
 
         {% if user.is_authenticated %}
@@ -49,18 +29,6 @@
             </div>
         </div>
 
-        <!-- Insights do Usuário (opcional) -->
-        <div id="user-insights" class="mt-4" style="display:none;">
-            <div class="card bg-light">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="fas fa-lightbulb text-warning me-2"></i>
-                        Insights sobre sua leitura
-                    </h5>
-                    <div id="insights-content"></div>
-                </div>
-            </div>
-        </div>
 
         {% else %}
         <!-- Mensagem para usuários não autenticados -->
@@ -125,58 +93,30 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     {% if user.is_authenticated %}
-    // Carregar recomendações após a página estar pronta (evita bloquear renderização)
-    // Delay de 100ms permite que a página renderize completamente primeiro
+    // Carregar recomendações após a página estar pronta
     setTimeout(() => {
-        loadRecommendations('preference_hybrid');
+        loadRecommendations();
     }, 100);
-
-    // Event listeners para trocar de algoritmo
-    document.querySelectorAll('[data-algorithm]').forEach(button => {
-        button.addEventListener('click', function() {
-            // Atualizar botões ativos
-            document.querySelectorAll('[data-algorithm]').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            this.classList.add('active');
-
-            // Carregar recomendações
-            const algorithm = this.dataset.algorithm;
-            loadRecommendations(algorithm);
-        });
-    });
     {% endif %}
 });
 
-function loadRecommendations(algorithm) {
+function loadRecommendations() {
     const container = document.getElementById('recommendations-container');
-
-    // Marcar tempo de início para feedback de performance
     const startTime = performance.now();
-
-    // Mostrar loading com mensagem específica para IA
-    const loadingMessage = algorithm === 'ai'
-        ? 'Consultando IA... Isso pode levar alguns segundos na primeira vez 🤖'
-        : `Gerando recomendações...`;
 
     container.innerHTML = `
         <div class="col-12 text-center py-5">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Carregando...</span>
             </div>
-            <p class="mt-3 text-muted">${loadingMessage}</p>
-            ${algorithm === 'ai' ? '<p class="small text-muted">(Próximas requisições serão instantâneas graças ao cache!)</p>' : ''}
+            <p class="mt-3 text-muted">Gerando recomendações...</p>
         </div>
     `;
 
-    // Fazer request para a API com timeout adequado:
-    // - 30 segundos para IA (primeira chamada pode ser lenta)
-    // - 10 segundos para outros algoritmos
     const controller = new AbortController();
-    const timeoutDuration = algorithm === 'ai' ? 30000 : 10000;
-    const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    fetch(`/recommendations/api/recommendations/?algorithm=${algorithm}&limit=6`, {
+    fetch(`/recommendations/api/recommendations/?limit=6`, {
         credentials: 'same-origin',
         headers: {
             'X-Requested-With': 'XMLHttpRequest'
@@ -191,11 +131,8 @@ function loadRecommendations(algorithm) {
             return response.json();
         })
         .then(data => {
-            const loadTime = ((performance.now() - startTime) / 1000).toFixed(2);
-            const isFastLoad = loadTime < 1.0; // Menos de 1s = provavelmente cache
-
             if (data.recommendations && data.recommendations.length > 0) {
-                renderRecommendations(data.recommendations, algorithm, loadTime, isFastLoad);
+                renderRecommendations(data.recommendations);
             } else {
                 container.innerHTML = `
                     <div class="col-12 text-center py-5">
@@ -210,55 +147,18 @@ function loadRecommendations(algorithm) {
             clearTimeout(timeoutId);
             console.error('Erro ao carregar recomendações:', error);
 
-            // Mensagem diferente para timeout vs erro de servidor
-            const isTimeout = error.name === 'AbortError';
-            const errorMessage = isTimeout
-                ? 'Tempo esgotado ao buscar recomendações.'
-                : 'Erro ao carregar recomendações. Tente novamente.';
-
             container.innerHTML = `
                 <div class="col-12 text-center py-5">
                     <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
-                    <p class="text-muted">${errorMessage}</p>
-                    ${isTimeout ? '<p class="small text-muted">O serviço pode estar sobrecarregado. Tente novamente em alguns segundos.</p>' : ''}
-                    <p class="small text-muted">Se o problema persistir, verifique se o Redis está rodando.</p>
+                    <p class="text-muted">Erro ao carregar recomendações. Tente novamente.</p>
                 </div>
             `;
         });
 }
 
-function renderRecommendations(recommendations, algorithm, loadTime, isFastLoad) {
+function renderRecommendations(recommendations) {
     const container = document.getElementById('recommendations-container');
-
-    // Banner de performance/cache no topo
     let html = '';
-    if (isFastLoad && algorithm === 'ai') {
-        html += `
-            <div class="col-12 mb-3">
-                <div class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
-                    <i class="fas fa-bolt me-2"></i>
-                    <div>
-                        <strong>Cache ativo!</strong> Recomendações carregadas em ${loadTime}s.
-                        <small class="text-muted">(Cache válido por 1 hora)</small>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            </div>
-        `;
-    } else if (!isFastLoad && algorithm === 'ai') {
-        html += `
-            <div class="col-12 mb-3">
-                <div class="alert alert-info alert-dismissible fade show d-flex align-items-center" role="alert">
-                    <i class="fas fa-robot me-2"></i>
-                    <div>
-                        <strong>IA consultada!</strong> Recomendações geradas em ${loadTime}s.
-                        <small class="text-muted">(Próxima consulta será instantânea!)</small>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            </div>
-        `;
-    }
 
     recommendations.forEach(rec => {
         const score = Math.round(rec.score * 100);
@@ -266,58 +166,30 @@ function renderRecommendations(recommendations, algorithm, loadTime, isFastLoad)
         const bookAuthor = rec.author || 'Autor desconhecido';
         const bookCover = rec.cover_image || '/static/images/placeholder-book.png';
         const bookSlug = rec.slug;
-        const bookDescription = rec.description || rec.reason || 'Recomendado para você';
-        const googleBooksId = rec.google_books_id;
-        const source = rec.source || 'local_db';
+        const bookReason = rec.reason || 'Recomendado para você';
 
-        // Truncar descrição se muito longa
-        const shortDesc = bookDescription.length > 120
-            ? bookDescription.substring(0, 117) + '...'
-            : bookDescription;
+        const shortReason = bookReason.length > 120
+            ? bookReason.substring(0, 117) + '...'
+            : bookReason;
 
         html += `
             <div class="col-md-4 col-lg-2 mb-4">
                 <div class="card recommendation-card h-100">
                     <span class="recommendation-score">${score}%</span>
-                    ${source === 'google_books' ? `
-                        <span class="badge bg-info position-absolute top-0 start-0 m-2"
-                              style="z-index: 10; font-size: 0.65rem;">
-                            <i class="fas fa-globe"></i> Novo
-                        </span>
-                    ` : ''}
                     <img src="${bookCover}" class="card-img-top" alt="${bookTitle}"
                          style="height: 250px; object-fit: cover;"
                          onerror="this.src='{% static 'images/no-cover-placeholder.svg' %}';">
                     <div class="card-body d-flex flex-column">
                         <h6 class="card-title text-truncate" title="${bookTitle}">${bookTitle}</h6>
                         <p class="card-text text-muted small mb-2">${bookAuthor}</p>
-                        <p class="recommendation-reason small flex-grow-1">${shortDesc}</p>
-                        ${bookSlug ? `
-                            <a href="/livros/${bookSlug}/"
-                               class="btn btn-sm btn-primary w-100 mt-2 recommendation-link"
-                               data-book-id="${rec.id}"
-                               data-book-title="${bookTitle}"
-                               data-algorithm="${algorithm}"
-                               data-source="${source}"
-                               onclick="trackRecommendationClick(event, this)">
-                                <i class="fas fa-eye me-1"></i> Ver livro
-                            </a>
-                        ` : googleBooksId ? `
-                            <a href="https://books.google.com/books?id=${googleBooksId}"
-                               target="_blank"
-                               class="btn btn-sm btn-success w-100 mt-2 recommendation-link"
-                               data-book-id=""
-                               data-book-title="${bookTitle}"
-                               data-algorithm="${algorithm}"
-                               data-source="${source}"
-                               onclick="trackRecommendationClick(event, this)">
-                                <i class="fas fa-external-link-alt me-1"></i> Ver no Google Books
-                            </a>
-                        ` : `
-                            <button class="btn btn-sm btn-outline-secondary w-100 mt-2" disabled>
-                                <i class="fas fa-book me-1"></i> Indisponível
-                            </button>
-                        `}
+                        <p class="recommendation-reason small flex-grow-1">${shortReason}</p>
+                        <a href="/livros/${bookSlug}/"
+                           class="btn btn-sm btn-primary w-100 mt-2 recommendation-link"
+                           data-book-id="${rec.id}"
+                           data-book-title="${bookTitle}"
+                           onclick="trackRecommendationClick(event, this)">
+                            <i class="fas fa-eye me-1"></i> Ver livro
+                        </a>
                     </div>
                 </div>
             </div>
@@ -329,12 +201,9 @@ function renderRecommendations(recommendations, algorithm, loadTime, isFastLoad)
 
 // Função para rastrear cliques em recomendações
 function trackRecommendationClick(event, element) {
-    const bookId = element.dataset.bookId || null;
+    const bookId = element.dataset.bookId;
     const bookTitle = element.dataset.bookTitle;
-    const algorithm = element.dataset.algorithm;
-    const source = element.dataset.source;
 
-    // Enviar tracking de forma assíncrona (não bloqueia navegação)
     fetch('/recommendations/api/track-click/', {
         method: 'POST',
         credentials: 'same-origin',
@@ -346,19 +215,13 @@ function trackRecommendationClick(event, element) {
         body: JSON.stringify({
             book_id: bookId,
             book_title: bookTitle,
-            algorithm: algorithm,
-            source: source
+            algorithm: 'simple_unified'
         })
     })
     .then(response => response.json())
-    .then(data => {
-        console.log('Click tracked:', data);
-    })
-    .catch(error => {
-        console.error('Error tracking click:', error);
-    });
+    .then(data => console.log('Click tracked:', data))
+    .catch(error => console.error('Error tracking click:', error));
 
-    // Permitir navegação normal
     return true;
 }
 
