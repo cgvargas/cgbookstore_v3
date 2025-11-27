@@ -2,44 +2,35 @@
 # exit on error
 set -o errexit
 
-echo 'Starting build process...'
+echo '🚀 Starting optimized build process...'
 
 # Install dependencies
-echo 'Installing dependencies...'
+echo '📦 Installing dependencies...'
 pip install --upgrade pip
 pip install -r requirements.txt
 
 # Collect static files
-echo 'Collecting static files...'
+echo '📁 Collecting static files...'
 python manage.py collectstatic --no-input
 
-# Create migrations
-echo 'Checking for new migrations...'
-python manage.py makemigrations --no-input
+# ❌ REMOVED: makemigrations (deve ser feito LOCALMENTE, não no build!)
+# Migrations devem estar commitadas no repositório
 
-# Run migrations with verbose output
-echo 'Running database migrations...'
-python manage.py migrate --no-input --verbosity 2
+# Run migrations (sem verbose para ser mais rápido)
+echo '🗄️ Running database migrations...'
+python manage.py migrate --no-input
 
-# Verify migrations
-echo 'Verifying database setup...'
-python manage.py showmigrations
+# ❌ REMOVED: showmigrations (apenas debug, desnecessário em produção)
 
-# PRIMEIRO: Limpar SocialApps duplicados com limpeza forçada
-echo 'Cleaning up SocialApps...'
-python manage.py cleanup_socialapps || echo 'SocialApps cleanup completed'
+# ❌ REMOVED: cleanup_socialapps (executar apenas quando necessário)
 
-# DEPOIS: Setup initial data (Site, Categories, Sample Books) SEM Social Apps
-echo 'Setting up initial data...'
-python manage.py setup_initial_data --skip-superuser --skip-social || echo 'Initial data setup completed with warnings'
-
-# Fix SectionItem ContentTypes (running once after migration)
-# echo 'Fixing SectionItem ContentTypes...'
-# python manage.py fix_section_contenttypes || echo 'ContentType fix completed'
+# Setup initial data (silencioso, falha não é crítica)
+echo '⚙️ Setting up initial data...'
+python manage.py setup_initial_data --skip-superuser --skip-social 2>/dev/null || echo 'ℹ️ Initial data already exists'
 
 # Create superuser if environment variable is set
 if [ "$CREATE_SUPERUSER" = "true" ]; then
-    echo 'Creating superuser from environment variables...'
+    echo '👤 Creating superuser...'
     python manage.py shell -c "
 from django.contrib.auth import get_user_model;
 import os;
@@ -49,11 +40,10 @@ email = os.getenv('SUPERUSER_EMAIL', 'admin@cgbookstore.com');
 password = os.getenv('SUPERUSER_PASSWORD', 'admin123');
 if not User.objects.filter(username=username).exists():
     User.objects.create_superuser(username, email, password);
-    print(f'✅ Superuser created: {username} / {email}');
-    print('⚠️  IMPORTANTE: Altere a senha após primeiro login!');
+    print(f'✅ Superuser criado: {username}');
 else:
-    print(f'⚠️  Superuser {username} already exists');
-" || echo "Superuser creation skipped"
+    print(f'ℹ️ Superuser já existe');
+" 2>/dev/null || true
 fi
 
-echo 'Build completed successfully!'
+echo '✅ Build completed successfully!'
