@@ -1,7 +1,6 @@
 """
 Context processors para adicionar dados de recomendações aos templates.
 """
-from .algorithms import HybridRecommendationSystem
 
 
 def recommendations_available(request):

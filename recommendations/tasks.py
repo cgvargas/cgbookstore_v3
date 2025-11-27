@@ -7,8 +7,9 @@ from django.utils import timezone
 from django.conf import settings
 from django.core.cache import cache
 from .models import UserBookInteraction, BookSimilarity, Recommendation
-from .algorithms import ContentBasedFilteringAlgorithm, HybridRecommendationSystem
+from .algorithms_simple import get_simple_recommendation_engine
 from core.models import Book
+from django.db.models import Q
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,20 +18,15 @@ logger = logging.getLogger(__name__)
 @shared_task
 def compute_book_similarities():
     """
-    Calcula e armazena similaridades entre todos os livros.
+    Calcula e armazena similaridades entre todos os livros (baseado em categoria/autor).
     Task pesada que deve rodar periodicamente (ex: 1x por dia).
     """
     try:
         logger.info("Starting book similarity computation...")
 
-        engine = ContentBasedFilteringAlgorithm()
-        engine.build_book_vectors()
-
-        if engine.book_vectors is None:
-            logger.warning("No book vectors available")
-            return "No books to process"
-
-        books = Book.objects.all()
+        books = Book.objects.filter(
+            Q(cover_image__isnull=False) & ~Q(cover_image='')
+        )
         total_books = books.count()
         similarities_created = 0
         similarities_updated = 0
@@ -40,17 +36,24 @@ def compute_book_similarities():
             if i % 10 == 0:
                 logger.info(f"Processing book {i+1}/{total_books}: {book.title}")
 
-            # Encontrar livros similares
-            similar_books = engine.find_similar_books(book, n=20)
+            # Encontrar livros similares (mesma categoria ou autor)
+            similar_books = Book.objects.filter(
+                Q(category=book.category) | Q(author=book.author)
+            ).exclude(id=book.id).filter(
+                Q(cover_image__isnull=False) & ~Q(cover_image='')
+            )[:20]
 
             # Salvar similaridades
             for similar in similar_books:
+                # Calcular score simples
+                score = 0.8 if similar.category == book.category else 0.6
+
                 similarity, created = BookSimilarity.objects.update_or_create(
                     book_a=book,
-                    book_b=similar['book'],
-                    method='content',
+                    book_b=similar,
+                    method='simple',
                     defaults={
-                        'similarity_score': similar['score']
+                        'similarity_score': score
                     }
                 )
 
@@ -69,30 +72,21 @@ def compute_book_similarities():
 
 
 @shared_task
-def generate_user_recommendations(user_id, algorithm='hybrid', limit=10):
+def generate_user_recommendations(user_id, algorithm='simple_unified', limit=10):
     """
     Gera recomendações para um usuário específico e armazena no banco.
 
     Args:
         user_id: ID do usuário
-        algorithm: Algoritmo a usar ('hybrid', 'collaborative', 'content')
+        algorithm: Algoritmo a usar (sempre 'simple_unified')
         limit: Número de recomendações
     """
     try:
         user = User.objects.get(id=user_id)
-        logger.info(f"Generating {algorithm} recommendations for user {user.username}")
+        logger.info(f"Generating recommendations for user {user.username}")
 
-        # Selecionar algoritmo
-        if algorithm == 'hybrid':
-            engine = HybridRecommendationSystem()
-        elif algorithm == 'collaborative':
-            from .algorithms import CollaborativeFilteringAlgorithm
-            engine = CollaborativeFilteringAlgorithm()
-        elif algorithm == 'content':
-            engine = ContentBasedFilteringAlgorithm()
-        else:
-            logger.error(f"Invalid algorithm: {algorithm}")
-            return f"Invalid algorithm: {algorithm}"
+        # Usar algoritmo simplificado
+        engine = get_simple_recommendation_engine()
 
         # Gerar recomendações
         recommendations = engine.recommend(user, n=limit)
@@ -111,7 +105,7 @@ def generate_user_recommendations(user_id, algorithm='hybrid', limit=10):
             Recommendation.objects.update_or_create(
                 user=user,
                 book=rec['book'],
-                recommendation_type=algorithm,
+                recommendation_type='simple_unified',
                 defaults={
                     'score': rec['score'],
                     'reason': rec['reason'],
@@ -134,7 +128,7 @@ def generate_user_recommendations(user_id, algorithm='hybrid', limit=10):
 
 
 @shared_task
-def batch_generate_recommendations(algorithm='hybrid', limit=10):
+def batch_generate_recommendations(algorithm='simple_unified', limit=10):
     """
     Gera recomendações para todos os usuários ativos.
     Deve rodar periodicamente (ex: 1x por hora).
