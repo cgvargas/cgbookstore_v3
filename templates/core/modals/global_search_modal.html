@@ -1,0 +1,308 @@
+{% load static %}
+<!-- Modal: Busca Global de Livros -->
+<div
+    class="modal fade"
+    id="globalSearchModal"
+    tabindex="-1"
+    aria-labelledby="globalSearchModalLabel"
+    aria-hidden="true"
+    data-default-cover="{% static 'images/no-cover-placeholder.svg' %}"
+    data-book-detail-url="{% url 'core:book_detail' 0 %}"
+>
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="globalSearchModalLabel">
+                    <i class="fas fa-search text-primary"></i>
+                    Buscar Livros
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <!-- Campo de Busca -->
+                <div class="search-section mb-4">
+                    <div class="row g-2">
+                        <div class="col-md-10">
+                            <input
+                                type="text"
+                                id="globalSearchInput"
+                                class="form-control form-control-lg"
+                                placeholder="Digite o título, autor ou ISBN do livro..."
+                                autocomplete="off"
+                            >
+                        </div>
+                        <div class="col-md-2">
+                            <button id="btnGlobalSearch" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-2">
+                        <i class="fas fa-info-circle"></i>
+                        Buscaremos no nosso catálogo e no Google Books simultaneamente
+                    </small>
+                </div>
+
+                <!-- Abas de Navegação -->
+                <ul class="nav nav-tabs mb-3" id="globalSearchTabs" role="tablist" style="display: none;">
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link active"
+                            id="global-local-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#global-local-results"
+                            type="button"
+                            role="tab"
+                        >
+                            <i class="fas fa-store"></i> Nossa Loja
+                            <span class="badge bg-primary ms-2" id="globalLocalCount">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link"
+                            id="global-google-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#global-google-results"
+                            type="button"
+                            role="tab"
+                        >
+                            <i class="fas fa-globe"></i> Google Books
+                            <span class="badge bg-info ms-2" id="globalGoogleCount">0</span>
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Conteúdo das Abas -->
+                <div class="tab-content" id="globalSearchContent">
+                    <!-- Estado Inicial (antes de buscar) -->
+                    <div id="globalInitialState" class="text-center py-5">
+                        <i class="fas fa-book-open fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">Digite algo para começar a buscar livros</h5>
+                        <p class="text-muted">Você pode buscar por título, autor ou ISBN</p>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="globalLoadingState" class="text-center py-5" style="display: none;">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <h5 class="text-muted">Buscando livros...</h5>
+                        <p class="text-muted">Isso pode levar alguns segundos</p>
+                    </div>
+
+                    <!-- Resultados do Catálogo Local -->
+                    <div class="tab-pane fade show active" id="global-local-results" role="tabpanel">
+                        <div id="globalLocalResultsContainer" class="results-container">
+                            <!-- Cards serão inseridos aqui via JavaScript -->
+                        </div>
+                        <div id="globalLocalNoResults" class="text-center py-4" style="display: none;">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Nenhum livro encontrado no nosso catálogo</p>
+                        </div>
+                    </div>
+
+                    <!-- Resultados do Google Books -->
+                    <div class="tab-pane fade" id="global-google-results" role="tabpanel">
+                        <div id="globalGoogleResultsContainer" class="results-container">
+                            <!-- Cards serão inseridos aqui via JavaScript -->
+                        </div>
+                        <div id="globalGoogleNoResults" class="text-center py-4" style="display: none;">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Nenhum livro encontrado no Google Books</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensagem de Feedback -->
+                <div id="globalFeedbackMessage" class="alert alert-dismissible fade" role="alert" style="display: none;">
+                    <span id="globalFeedbackText"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template: Card de Resultado (Catálogo Local) -->
+<template id="globalLocalBookCardTemplate">
+    <div class="book-result-card">
+        <div class="row g-3">
+            <div class="col-md-2">
+                <img src="" alt="Capa" class="book-cover-img">
+            </div>
+            <div class="col-md-7">
+                <h5 class="book-title mb-2"></h5>
+                <p class="book-author text-muted mb-1">
+                    <i class="fas fa-user"></i> <span></span>
+                </p>
+                <p class="book-category text-muted mb-1">
+                    <i class="fas fa-tag"></i> <span></span>
+                </p>
+                <p class="book-publisher text-muted mb-1">
+                    <i class="fas fa-building"></i> <span></span>
+                </p>
+                <span class="badge bg-success">
+                    <i class="fas fa-check"></i> Disponível na Loja
+                </span>
+            </div>
+            <div class="col-md-3 d-flex align-items-center justify-content-end">
+                <div class="book-actions">
+                    <a href="#" class="btn btn-primary btn-view-details" target="_blank">
+                        <i class="fas fa-eye"></i> Ver Detalhes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- Template: Card de Resultado (Google Books) -->
+<template id="globalGoogleBookCardTemplate">
+    <div class="book-result-card google-book">
+        <div class="row g-3">
+            <div class="col-md-2">
+                <img src="" alt="Capa" class="book-cover-img">
+            </div>
+            <div class="col-md-7">
+                <h5 class="book-title mb-2"></h5>
+                <p class="book-author text-muted mb-1">
+                    <i class="fas fa-user"></i> <span></span>
+                </p>
+                <p class="book-publisher text-muted mb-1">
+                    <i class="fas fa-building"></i> <span></span>
+                </p>
+                <p class="book-description text-muted small mb-2" style="max-height: 60px; overflow: hidden;"></p>
+                <span class="badge bg-info">
+                    <i class="fas fa-globe"></i> Google Books
+                </span>
+                <span class="badge bg-warning text-dark already-in-catalog" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i> Já no Catálogo
+                </span>
+            </div>
+            <div class="col-md-3 d-flex align-items-center justify-content-end">
+                <div class="book-actions">
+                    <a href="#" class="btn btn-primary btn-view-details" target="_blank">
+                        <i class="fas fa-eye"></i> Ver Detalhes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<style>
+/* ==========================================
+   ESTILOS PARA O MODAL DE BUSCA GLOBAL
+========================================== */
+
+#globalSearchModal .modal-dialog {
+    max-width: 1200px;
+}
+
+/* ==========================================
+   CARDS DE RESULTADOS
+========================================== */
+
+.book-result-card {
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--card-bg);
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.book-result-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.book-cover-img {
+    width: 100%;
+    height: auto;
+    max-height: 180px;
+    object-fit: cover;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.book-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.book-author,
+.book-category,
+.book-publisher {
+    font-size: 0.9rem;
+}
+
+.book-actions {
+    text-align: center;
+}
+
+/* ==========================================
+   CONTAINER DE RESULTADOS
+========================================== */
+
+.results-container {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.results-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.results-container::-webkit-scrollbar-track {
+    background: var(--sidebar-bg);
+    border-radius: 4px;
+}
+
+.results-container::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.results-container::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* ==========================================
+   LOADING STATES
+========================================== */
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* ==========================================
+   BADGES
+========================================== */
+
+.badge {
+    font-weight: 500;
+    padding: 0.4em 0.8em;
+}
+
+/* ==========================================
+   BOTÕES - TAMANHO BASE
+========================================== */
+
+.btn-view-details {
+    min-width: 150px;
+}
+</style>

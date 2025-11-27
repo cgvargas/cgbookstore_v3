@@ -47,6 +47,7 @@ class CampaignNotification(BaseNotification):
         verbose_name_plural = 'Notificações de Campanhas'
         ordering = ['-created_at']
         indexes = [
+            models.Index(fields=['user', 'is_read']),  # Otimização para queries de contagem
             models.Index(fields=['user', 'notification_type', '-created_at']),
             models.Index(fields=['campaign', '-created_at']),
         ]

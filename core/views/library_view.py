@@ -5,7 +5,7 @@ Integrada com os models de BookShelf, ReadingProgress, etc.
 
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, F
+from django.db.models import Count, F, Prefetch
 from accounts.models import BookShelf, ReadingProgress, BookReview
 
 
@@ -55,9 +55,16 @@ class LibraryView(LoginRequiredMixin, TemplateView):
             user=user, shelf_type='to_read'
         ).select_related('book', 'book__author', 'book__category')[:50]
 
+        # Otimização: Prefetch ReadingProgress para evitar N+1 queries
+        reading_progress_prefetch = Prefetch(
+            'book__reading_progress',
+            queryset=ReadingProgress.objects.filter(user=user),
+            to_attr='user_progress'
+        )
+
         context['reading'] = BookShelf.objects.filter(
             user=user, shelf_type='reading'
-        ).select_related('book', 'book__author', 'book__category')[:50]
+        ).select_related('book', 'book__author', 'book__category').prefetch_related(reading_progress_prefetch)[:50]
 
         context['read'] = BookShelf.objects.filter(
             user=user, shelf_type='read'
@@ -124,11 +131,10 @@ class LibraryView(LoginRequiredMixin, TemplateView):
         context['recent_reviews'] = BookReview.objects.filter(
             user=user
         ).select_related('book').order_by('-created_at')[:5]
+
+        # Atribuir progresso aos itens da prateleira (otimizado com prefetch)
         for shelf_item in context['reading']:
-            progress = ReadingProgress.objects.filter(
-                user=self.request.user,
-                book=shelf_item.book
-            ).first()
-            shelf_item.progress = progress
+            # O progresso já foi carregado via prefetch_related
+            shelf_item.progress = shelf_item.book.user_progress[0] if hasattr(shelf_item.book, 'user_progress') and shelf_item.book.user_progress else None
 
         return context

@@ -1,8 +1,8 @@
-# Guia Rápido - Módulo Finance
+# Guia RÃ¡pido - MÃ³dulo Finance
 
-## Configuração em 5 Passos
+## ConfiguraÃ§Ã£o em 5 Passos
 
-### 1. Instalar Dependências
+### 1. Instalar DependÃªncias
 ```bash
 pip install mercadopago django-environ
 ```
@@ -22,7 +22,7 @@ INSTALLED_APPS = [
     'finance',
 ]
 
-# Adicionar configurações
+# Adicionar configuraï¿½ï¿½es
 MERCADOPAGO_ACCESS_TOKEN = env('MERCADOPAGO_ACCESS_TOKEN')
 MERCADOPAGO_PUBLIC_KEY = env('MERCADOPAGO_PUBLIC_KEY')
 SITE_URL = env('SITE_URL', default='http://localhost:8000')
@@ -37,37 +37,37 @@ urlpatterns = [
 ]
 ```
 
-### 5. Executar Migrações
+### 5. Executar Migraï¿½ï¿½es
 ```bash
 python manage.py makemigrations finance
 python manage.py migrate
 python manage.py runserver
 ```
 
-## URLs Disponíveis
+## URLs Disponï¿½veis
 
 - `/finance/subscription/checkout/` - Checkout de assinatura
 - `/finance/subscription/status/` - Status da assinatura
 - `/admin/finance/` - Painel administrativo
 
-## Testar o Módulo
+## Testar o Mï¿½dulo
 
 1. Acesse: http://localhost:8000/finance/subscription/checkout/
-2. Escolha PIX como método de pagamento
-3. Você será redirecionado para o Mercado Pago (sandbox)
+2. Escolha PIX como mï¿½todo de pagamento
+3. Vocï¿½ serï¿½ redirecionado para o Mercado Pago (sandbox)
 4. Use as credenciais de teste do MP
 
 ## Obter Credenciais de Teste
 
 1. Acesse: https://www.mercadopago.com.br/developers/panel/app
-2. Clique em "Suas aplicações" > "Criar aplicação"
-3. Vá em "Credenciais" > "Credenciais de teste"
+2. Clique em "Suas aplicaï¿½ï¿½es" > "Criar aplicaï¿½ï¿½o"
+3. Vï¿½ em "Credenciais" > "Credenciais de teste"
 4. Copie:
-   - Access Token (começa com TEST-)
-   - Public Key (começa com TEST-)
+   - Access Token (comeï¿½a com TEST-)
+   - Public Key (comeï¿½a com TEST-)
 
-## Próximos Passos
+## Prï¿½ximos Passos
 
-- Configure webhooks (necessário domínio público ou ngrok)
+- Configure webhooks (necessï¿½rio domï¿½nio pï¿½blico ou ngrok)
 - Personalize os templates em `finance/templates/finance/`
 - Adicione produtos para e-commerce em `/admin/finance/product/`

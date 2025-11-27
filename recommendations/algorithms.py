@@ -311,20 +311,22 @@ class ContentBasedFilteringAlgorithm:
         # Obter top N mais similares (excluindo o próprio livro)
         similar_indices = similarities.argsort()[::-1][1:n+1]
 
+        # Otimização: Buscar todos os livros de uma vez (bulk query)
+        similar_book_ids = [self.book_ids[idx] for idx in similar_indices]
+        books_dict = {book.id: book for book in Book.objects.filter(id__in=similar_book_ids)}
+
         results = []
         for idx in similar_indices:
             similar_book_id = self.book_ids[idx]
             similarity_score = similarities[idx]
 
-            try:
-                similar_book = Book.objects.get(id=similar_book_id)
+            similar_book = books_dict.get(similar_book_id)
+            if similar_book:
                 results.append({
                     'book': similar_book,
                     'score': float(similarity_score),
                     'reason': f"Similaridade de conteúdo: {similarity_score:.0%}"
                 })
-            except Book.DoesNotExist:
-                continue
 
         return results
 

@@ -21,14 +21,12 @@ class GeminiChatbotService:
     - Tratamento de assuntos fora do escopo
     """
 
-    # Template do prompt - será personalizado com nome do usuário
-    SYSTEM_PROMPT_TEMPLATE = """Você é o Assistente Literário da CG.BookStore.
-
-NOME DO USUÁRIO: {username}
+    # Prompt do sistema - Define a personalidade e escopo do chatbot
+    SYSTEM_PROMPT = """Você é o Assistente Literário da CG.BookStore.
 
 REGRAS ABSOLUTAS (SIGA RIGOROSAMENTE):
 
-1. SEMPRE use o nome "{username}" em TODAS as respostas
+1. Use o nome do usuário APENAS na primeira saudação ou quando fizer sentido natural no contexto
 2. CG.BookStore é COMUNIDADE/APLICAÇÃO WEB - NÃO vendemos livros
 3. Indique Amazon como parceiro para compras
 4. Seja CONCISO - máximo 2-3 frases por tópico
@@ -52,14 +50,14 @@ VOCABULÁRIO CORRETO:
 
 EXEMPLO DE RESPOSTA:
 Usuário: "Me recomende ficção científica"
-Você: "{username}, aqui vão 3 títulos:
+Você: "Aqui vão 3 títulos excelentes:
 1. **Neuromancer** (Gibson) - Cyberpunk clássico
 2. **Problema dos Três Corpos** (Cixin) - Sci-fi hard
 3. **Mão Esquerda da Escuridão** (Le Guin) - Questões sociais
 Qual te interessa mais?"
 
 ONDE COMPRAR:
-"{username}, CG.BookStore é comunidade, não vendemos. Indicamos **Amazon**:
+"CG.BookStore é comunidade, não vendemos. Indicamos **Amazon**:
 📦 Onde: Amazon
 💰 Média: R$ XX-XX*
 *Valores aproximados"
@@ -138,54 +136,9 @@ ESCOPO:
             logger.error("gemini_service", f"Serviço indisponível: {e}")
             return False
 
-    def _get_system_prompt(self, username: str) -> str:
-        """
-        Gera o system prompt personalizado com o nome do usuário.
-
-        Args:
-            username: Nome do usuário logado
-
-        Returns:
-            System prompt formatado
-        """
-        return self.SYSTEM_PROMPT_TEMPLATE.format(username=username)
-
-    def _create_model(self, username: str):
-        """
-        Cria uma instância do modelo Gemini com system prompt personalizado.
-
-        Args:
-            username: Nome do usuário para personalizar o prompt
-
-        Returns:
-            GenerativeModel configurado
-        """
-        if not self.api_key:
-            raise ValueError("GEMINI_API_KEY não configurada nas variáveis de ambiente")
-
-        # Configurar API se ainda não foi feito
-        try:
-            genai.configure(api_key=self.api_key)
-        except:
-            pass  # Já configurado
-
-        system_prompt = self._get_system_prompt(username)
-
-        logger.info("gemini_service", f"Criando modelo Gemini para usuário: {username}")
-        model = genai.GenerativeModel(
-            model_name=self.model_name,
-            generation_config=self.generation_config,
-            safety_settings=self.safety_settings,
-            system_instruction=system_prompt
-        )
-        logger.info("gemini_service", "Modelo Gemini criado com sucesso")
-
-        return model
-
     def get_response(
         self,
         message: str,
-        username: str,
         conversation_history: Optional[List[Dict[str, str]]] = None
     ) -> str:
         """
@@ -193,7 +146,6 @@ ESCOPO:
 
         Args:
             message: Mensagem do usuário
-            username: Nome do usuário (para personalizar o system prompt)
             conversation_history: Lista de mensagens anteriores no formato:
                 [{"role": "user", "parts": ["mensagem"]}, {"role": "model", "parts": ["resposta"]}]
 
@@ -206,11 +158,8 @@ ESCOPO:
         try:
             logger.info("gemini_service", f"Enviando mensagem ao Gemini: {message[:100]}...")
 
-            # Criar modelo personalizado com o nome do usuário
-            model = self._create_model(username)
-
             # Criar sessão de chat com histórico
-            chat = model.start_chat(history=conversation_history or [])
+            chat = self.model.start_chat(history=conversation_history or [])
 
             # Enviar mensagem
             response = chat.send_message(message)
@@ -294,9 +243,39 @@ ESCOPO:
 _chatbot_service = None
 
 
-def get_chatbot_service() -> GeminiChatbotService:
-    """Retorna a instância singleton do serviço de chatbot."""
+def get_gemini_service() -> GeminiChatbotService:
+    """Retorna a instância singleton do serviço de chatbot Gemini."""
     global _chatbot_service
     if _chatbot_service is None:
         _chatbot_service = GeminiChatbotService()
     return _chatbot_service
+
+
+def get_chatbot_service():
+    """
+    Retorna o serviço de chatbot configurado (Gemini ou Groq).
+
+    Escolhe automaticamente baseado na variável AI_PROVIDER no .env:
+    - 'gemini': Usa Google Gemini (padrão se não especificado)
+    - 'groq': Usa Groq AI (recomendado - mais rápido e free tier generoso)
+
+    Returns:
+        Instância do serviço de chatbot (GeminiChatbotService ou GroqChatbotService)
+    """
+    ai_provider = getattr(settings, 'AI_PROVIDER', 'gemini').lower()
+
+    logger.info(f"Usando provedor de IA: {ai_provider}")
+
+    if ai_provider == 'groq':
+        try:
+            from .groq_service import get_groq_chatbot_service
+            service = get_groq_chatbot_service()
+            logger.info("✅ Serviço Groq inicializado com sucesso")
+            return service
+        except Exception as e:
+            logger.error(f"❌ Erro ao inicializar Groq: {e}")
+            logger.info("⚠️ Fallback para Gemini")
+            return get_gemini_service()
+    else:
+        # Padrão: Gemini
+        return get_gemini_service()
