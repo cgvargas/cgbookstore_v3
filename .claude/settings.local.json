@@ -29,7 +29,12 @@
       "Bash(DATABASE_URL=\"postgresql://postgres:Oa023568910@@db.uomjbcuowfgcwhsejatn.supabase.co:5432/postgres\" python manage.py runserver:*)",
       "Bash(dir /B /A)",
       "Bash(mkdir:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git fetch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git reset:*)",
+      "Bash(.venv/Scripts/pip install:*)",
+      "Bash(requirements.txt)"
     ],
     "deny": [],
     "ask": []
