@@ -14,7 +14,8 @@ from typing import List, Dict
 from django.db.models import Count, Q, F, Exists, OuterRef
 from django.core.cache import cache
 from django.conf import settings
-from core.models import Book, BookShelf
+from core.models import Book
+from accounts.models import BookShelf
 from .models import UserBookInteraction
 
 logger = logging.getLogger(__name__)
