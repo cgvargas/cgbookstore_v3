@@ -89,7 +89,7 @@ def book_detail(request, slug):
             author = request.user.emerging_author
             if book.author != author:
                 return HttpResponseForbidden("Este livro ainda não foi publicado.")
-        except EmergingAuthor.DoesNotExist:
+        except (EmergingAuthor.DoesNotExist, AttributeError):
             return HttpResponseForbidden("Este livro ainda não foi publicado.")
 
     # Verificar se o usuário é o autor
@@ -98,7 +98,7 @@ def book_detail(request, slug):
         try:
             author = request.user.emerging_author
             is_author = (book.author == author)
-        except EmergingAuthor.DoesNotExist:
+        except (EmergingAuthor.DoesNotExist, AttributeError):
             pass
 
     # Incrementa visualizações apenas para livros publicados
@@ -152,7 +152,7 @@ def chapter_read(request, book_slug, chapter_number):
         try:
             author = request.user.emerging_author
             is_author = (book.author == author)
-        except EmergingAuthor.DoesNotExist:
+        except (EmergingAuthor.DoesNotExist, AttributeError):
             pass
 
     if book.status != 'published' and not is_author:
