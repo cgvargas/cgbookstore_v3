@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'debates',
     'recommendations',
     'finance.apps.FinanceConfig',
+    'new_authors.apps.NewAuthorsConfig',
 
     # Third-party Apps
     'rest_framework',

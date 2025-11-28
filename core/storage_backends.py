@@ -40,13 +40,22 @@ class SupabaseMediaStorage(Storage):
         self.base_url = base_url or settings.SUPABASE_URL
         self._supabase = supabase_storage_admin
 
-        # Mapeamento de pastas para buckets
-        self.bucket_mapping = {
-            'books/covers/': self._supabase.BOOK_COVERS_BUCKET,
-            'authors/photos/': self._supabase.AUTHOR_PHOTOS_BUCKET,
-            'events/': self._supabase.BOOK_COVERS_BUCKET,  # Usando mesmo bucket
-            'users/': self._supabase.USER_AVATARS_BUCKET,
-        }
+        # Mapeamento de pastas para buckets (com fallback se Supabase não estiver configurado)
+        if hasattr(self._supabase, 'BOOK_COVERS_BUCKET'):
+            self.bucket_mapping = {
+                'books/covers/': self._supabase.BOOK_COVERS_BUCKET,
+                'authors/photos/': self._supabase.AUTHOR_PHOTOS_BUCKET,
+                'events/': self._supabase.BOOK_COVERS_BUCKET,  # Usando mesmo bucket
+                'users/': self._supabase.USER_AVATARS_BUCKET,
+            }
+        else:
+            # Fallback se Supabase não estiver configurado
+            self.bucket_mapping = {
+                'books/covers/': 'book-covers',
+                'authors/photos/': 'author-photos',
+                'events/': 'book-covers',
+                'users/': 'user-avatars',
+            }
 
     def _get_bucket_and_path(self, name):
         """

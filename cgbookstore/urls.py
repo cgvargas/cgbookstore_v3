@@ -19,6 +19,7 @@ urlpatterns = [
     path('debates/', include('debates.urls')),
     path('recommendations/', include('recommendations.urls', namespace='recommendations')),
     path('finance/', include('finance.urls', namespace='finance')),
+    path('novos-autores/', include('new_authors.urls', namespace='new_authors')),
     path('', include('core.urls', namespace='core')),
 ]
 

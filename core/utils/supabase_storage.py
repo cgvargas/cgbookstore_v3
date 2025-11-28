@@ -32,7 +32,10 @@ class SupabaseStorage:
             self.key = settings.SUPABASE_ANON_KEY
 
         if not self.url or not self.key:
-            raise ValueError("SUPABASE_URL e chave devem estar configurados no .env")
+            logger.warning("⚠️ SUPABASE_URL e chave não configurados - Supabase Storage desabilitado")
+            self.client = None
+            self.storage = None
+            return
 
         self.client: Client = create_client(self.url, self.key)
         self.storage = self.client.storage

@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0013_add_custom_layouts_to_sections'),
+        ('core', '0012_section_container_opacity'),
     ]
 
     operations = [
