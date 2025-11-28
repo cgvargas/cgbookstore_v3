@@ -75,6 +75,14 @@ class Section(models.Model):
         help_text="Ex: #f8f9fa, transparent"
     )
 
+    banner_image = models.ImageField(
+        upload_to='sections/banners/',
+        blank=True,
+        null=True,
+        verbose_name="Imagem de Banner",
+        help_text="Imagem de fundo ou banner promocional para a seção (recomendado: 1920x400px)"
+    )
+
     css_class = models.CharField(
         max_length=100,
         blank=True,

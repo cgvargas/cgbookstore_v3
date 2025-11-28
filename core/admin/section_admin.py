@@ -227,6 +227,7 @@ class SectionAdmin(admin.ModelAdmin):
         'title',
         'content_type',
         'layout',
+        'banner_preview',
         'active',
         'order',
         'items_count',
@@ -265,11 +266,13 @@ class SectionAdmin(admin.ModelAdmin):
         ('Estilo Visual', {
             'classes': ('collapse',),
             'fields': (
+                'banner_image',
+                'banner_image_preview',
                 'background_color',
                 'container_opacity',
                 'css_class'
             ),
-            'description': 'Controle de transparência (0.0 = totalmente transparente, 1.0 = totalmente opaco) - útil para efeito Crunchyroll'
+            'description': 'Adicione uma imagem de banner para criar seções com imagens de fundo ou banners promocionais. Controle de transparência (0.0 = totalmente transparente, 1.0 = totalmente opaco) - útil para efeito Crunchyroll'
         }),
         ('Timestamps', {
             'classes': ('collapse',),
@@ -280,7 +283,32 @@ class SectionAdmin(admin.ModelAdmin):
         })
     )
 
-    readonly_fields = ['created_at', 'updated_at']
+    readonly_fields = ['created_at', 'updated_at', 'banner_image_preview']
+
+    def banner_preview(self, obj):
+        """Exibe preview do banner na lista."""
+        if obj.banner_image:
+            return format_html(
+                '<img src="{}" style="width: 60px; height: 30px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />',
+                obj.banner_image.url
+            )
+        return format_html('<span style="color: #999;">Sem banner</span>')
+
+    banner_preview.short_description = 'Banner'
+
+    def banner_image_preview(self, obj):
+        """Exibe preview da imagem de banner no formulário."""
+        if obj.banner_image:
+            return format_html(
+                '<div style="margin-top: 10px;">'
+                '<img src="{}" style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />'
+                '<p style="margin-top: 8px; color: #666; font-size: 12px;">Preview do banner atual</p>'
+                '</div>',
+                obj.banner_image.url
+            )
+        return format_html('<p style="color: #999; font-style: italic;">Nenhuma imagem de banner carregada</p>')
+
+    banner_image_preview.short_description = 'Preview do Banner'
 
     def items_count(self, obj):
         """Retorna quantidade de itens ativos na seção."""
