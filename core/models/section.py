@@ -23,6 +23,12 @@ class Section(models.Model):
         ('grid', 'Grid'),
         ('list', 'Lista'),
         ('featured', 'Destaque Grande'),
+        ('cards_large', 'Cards Grandes (2 colunas)'),
+        ('cards_small', 'Cards Pequenos (6 colunas)'),
+        ('banner_slider', 'Banner com Slider'),
+        ('grid_masonry', 'Grid Masonry (Pinterest style)'),
+        ('horizontal_scroll', 'Scroll Horizontal'),
+        ('spotlight', 'Destaque com Overlay'),
     ]
 
     # Campos básicos
@@ -75,10 +81,24 @@ class Section(models.Model):
         help_text="Ex: #f8f9fa, transparent"
     )
 
+    banner_image = models.ImageField(
+        upload_to='sections/banners/',
+        blank=True,
+        null=True,
+        verbose_name="Imagem de Banner",
+        help_text="Imagem de fundo ou banner promocional para a seção (recomendado: 1920x400px)"
+    )
+
     css_class = models.CharField(
         max_length=100,
         blank=True,
         verbose_name="Classe CSS Personalizada"
+    )
+
+    custom_css = models.TextField(
+        blank=True,
+        verbose_name="CSS Personalizado",
+        help_text="CSS customizado para esta seção (será inserido dentro de uma tag <style>)"
     )
 
     container_opacity = models.FloatField(
@@ -86,6 +106,56 @@ class Section(models.Model):
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
         verbose_name="Opacidade do Container",
         help_text="Transparência do container (0.0 = totalmente transparente, 1.0 = totalmente opaco)"
+    )
+
+    # Configurações de layout avançadas
+    card_style = models.CharField(
+        max_length=50,
+        blank=True,
+        default='default',
+        verbose_name="Estilo do Card",
+        choices=[
+            ('default', 'Padrão'),
+            ('minimal', 'Minimalista'),
+            ('shadow', 'Com Sombra'),
+            ('bordered', 'Com Borda'),
+            ('gradient', 'Com Gradiente'),
+            ('overlay', 'Com Overlay'),
+        ],
+        help_text="Estilo visual dos cards nesta seção"
+    )
+
+    card_hover_effect = models.CharField(
+        max_length=50,
+        blank=True,
+        default='scale',
+        verbose_name="Efeito ao Passar Mouse",
+        choices=[
+            ('none', 'Nenhum'),
+            ('scale', 'Aumentar'),
+            ('lift', 'Elevar'),
+            ('glow', 'Brilho'),
+            ('tilt', 'Inclinação'),
+        ],
+        help_text="Efeito de hover nos cards"
+    )
+
+    show_price = models.BooleanField(
+        default=True,
+        verbose_name="Mostrar Preço",
+        help_text="Exibir preço nos cards de livros"
+    )
+
+    show_rating = models.BooleanField(
+        default=True,
+        verbose_name="Mostrar Avaliação",
+        help_text="Exibir estrelas de avaliação"
+    )
+
+    show_author = models.BooleanField(
+        default=True,
+        verbose_name="Mostrar Autor",
+        help_text="Exibir nome do autor nos cards de livros"
     )
 
     # Configurações de exibição

@@ -179,6 +179,9 @@ class HomeView(TemplateView):
                 }
                 items_data.append(item_dict)
 
+            # Extrair URL do banner se existir
+            banner_url = section.banner_image.url if section.banner_image else None
+
             section_dict = {
                 'id': section.id,
                 'title': section.title,
@@ -187,6 +190,7 @@ class HomeView(TemplateView):
                 'layout': section.layout,
                 'css_class': section.css_class,
                 'background_color': section.background_color,
+                'banner_image_url': banner_url,
                 'container_opacity': section.container_opacity,
                 'show_see_more': section.show_see_more,
                 'see_more_url': section.see_more_url,
