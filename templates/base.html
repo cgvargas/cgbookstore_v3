@@ -342,6 +342,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'core:contact' %}">Contato</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'new_authors:books_list' %}">
+                            <i class="fas fa-pen-fancy"></i> Autores Emergentes
+                        </a>
+                    </li>
                     {% if not user.is_authenticated or not user.subscription or user.subscription.status != 'ativa' %}
                     <li class="nav-item">
                         <a class="nav-link text-warning fw-bold" href="{% url 'finance:subscription_checkout' %}">Premium</a>
