@@ -18,6 +18,14 @@ except ImportError:
     CampaignGrant = None
     Order = None
 
+# Importar modelos do New Authors
+try:
+    from new_authors.models import EmergingAuthor, AuthorBook, Chapter
+except ImportError:
+    EmergingAuthor = None
+    AuthorBook = None
+    Chapter = None
+
 
 @staff_member_required
 def admin_dashboard(request):
@@ -169,6 +177,22 @@ def admin_dashboard(request):
 
         subscription_chart_data = subscriptions_by_month
 
+    # ============================================
+    # ESTATÍSTICAS DO NEW AUTHORS MODULE
+    # ============================================
+    new_authors_stats = {}
+
+    if EmergingAuthor and AuthorBook and Chapter:
+        total_authors = EmergingAuthor.objects.filter(is_active=True).count()
+        total_books = AuthorBook.objects.filter(status='published').count()
+        total_chapters = Chapter.objects.filter(is_published=True).count()
+
+        new_authors_stats = {
+            'total_authors': total_authors,
+            'total_books': total_books,
+            'total_chapters': total_chapters,
+        }
+
     context = {
         'title': 'Dashboard',
         'stats': stats,
@@ -185,6 +209,8 @@ def admin_dashboard(request):
         'recent_subscriptions': recent_subscriptions,
         'active_campaigns': active_campaigns,
         'subscription_chart_data': subscription_chart_data,
+        # New Authors data
+        'new_authors_stats': new_authors_stats,
     }
 
     return render(request, 'admin/dashboard.html', context)
