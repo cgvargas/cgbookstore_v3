@@ -34,7 +34,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>
             {% if current_genre %}
-                Livros de {{ genres|dictsort:0|lookup:current_genre }}
+                Livros - {{ current_genre }}
             {% elif search_query %}
                 Resultados para "{{ search_query }}"
             {% else %}
