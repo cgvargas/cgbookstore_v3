@@ -57,7 +57,7 @@
                     <div class="card-body">
                         <h6>{{ interest.book.title }}</h6>
                         <p class="small text-muted mb-1">{{ interest.book.author }}</p>
-                        <span class="badge bg-{{ interest.status == 'pending' and 'warning' or interest.status == 'contacted' and 'info' or 'success' }}">
+                        <span class="badge {% if interest.status == 'pending' %}bg-warning{% elif interest.status == 'contacted' %}bg-info{% else %}bg-success{% endif %}">
                             {{ interest.get_status_display }}
                         </span>
                     </div>

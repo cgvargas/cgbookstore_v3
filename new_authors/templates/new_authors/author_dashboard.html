@@ -66,7 +66,7 @@
                             <div class="col-md-10">
                                 <div class="d-flex justify-content-between">
                                     <h5>{{ book.title }}</h5>
-                                    <span class="badge bg-{{ book.status == 'published' and 'success' or book.status == 'draft' and 'secondary' or 'warning' }}">
+                                    <span class="badge {% if book.status == 'published' %}bg-success{% elif book.status == 'draft' %}bg-secondary{% else %}bg-warning{% endif %}">
                                         {{ book.get_status_display }}
                                     </span>
                                 </div>
