@@ -10,6 +10,7 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.utils.text import slugify
 
 from .models import (
     EmergingAuthor,
@@ -432,3 +433,162 @@ def trending_books(request):
         'title': 'Livros em Alta',
     }
     return render(request, 'new_authors/trending_books.html', context)
+
+
+# ========== VIEWS DE GERENCIAMENTO DE LIVROS (AUTOR) ==========
+
+@login_required
+def manage_book(request, book_id=None):
+    """Criar ou editar livro (apenas autores)"""
+    from .forms import AuthorBookForm
+
+    try:
+        author = request.user.emerging_author
+    except EmergingAuthor.DoesNotExist:
+        messages.error(request, 'Você precisa ser um autor para acessar esta página.')
+        return redirect('new_authors:become_author')
+
+    if book_id:
+        book = get_object_or_404(AuthorBook, id=book_id, author=author)
+        is_editing = True
+    else:
+        book = None
+        is_editing = False
+
+    if request.method == 'POST':
+        form = AuthorBookForm(request.POST, request.FILES, instance=book)
+        if form.is_valid():
+            book = form.save(commit=False)
+            if not is_editing:
+                book.author = author
+
+            # Gerar slug automaticamente
+            if not book.slug:
+                base_slug = slugify(book.title)
+                slug = base_slug
+                counter = 1
+                while AuthorBook.objects.filter(slug=slug).exists():
+                    slug = f"{base_slug}-{counter}"
+                    counter += 1
+                book.slug = slug
+
+            book.save()
+            messages.success(request, 'Livro salvo com sucesso!' if is_editing else 'Livro criado com sucesso!')
+            return redirect('new_authors:manage_chapters', book_id=book.id)
+        else:
+            messages.error(request, 'Por favor, corrija os erros abaixo.')
+    else:
+        form = AuthorBookForm(instance=book)
+
+    context = {
+        'form': form,
+        'book': book,
+        'is_editing': is_editing,
+    }
+    return render(request, 'new_authors/manage_book.html', context)
+
+
+@login_required
+def manage_chapters(request, book_id):
+    """Gerenciar capítulos de um livro (apenas autor do livro)"""
+    try:
+        author = request.user.emerging_author
+    except EmergingAuthor.DoesNotExist:
+        messages.error(request, 'Você precisa ser um autor para acessar esta página.')
+        return redirect('new_authors:become_author')
+
+    book = get_object_or_404(AuthorBook, id=book_id, author=author)
+    chapters = book.chapters.all().order_by('chapter_number')
+
+    context = {
+        'book': book,
+        'chapters': chapters,
+    }
+    return render(request, 'new_authors/manage_chapters.html', context)
+
+
+@login_required
+def edit_chapter(request, book_id, chapter_id=None):
+    """Criar ou editar capítulo (apenas autor do livro)"""
+    from .forms import ChapterForm
+
+    try:
+        author = request.user.emerging_author
+    except EmergingAuthor.DoesNotExist:
+        messages.error(request, 'Você precisa ser um autor para acessar esta página.')
+        return redirect('new_authors:become_author')
+
+    book = get_object_or_404(AuthorBook, id=book_id, author=author)
+
+    if chapter_id:
+        chapter = get_object_or_404(Chapter, id=chapter_id, book=book)
+        is_editing = True
+    else:
+        chapter = None
+        is_editing = False
+
+    if request.method == 'POST':
+        form = ChapterForm(request.POST, instance=chapter)
+        if form.is_valid():
+            chapter = form.save(commit=False)
+            if not is_editing:
+                chapter.book = book
+                # Definir número do capítulo automaticamente
+                last_chapter = book.chapters.order_by('-chapter_number').first()
+                chapter.chapter_number = (last_chapter.chapter_number + 1) if last_chapter else 1
+
+            chapter.save()
+            messages.success(request, 'Capítulo salvo com sucesso!' if is_editing else 'Capítulo criado com sucesso!')
+            return redirect('new_authors:manage_chapters', book_id=book.id)
+        else:
+            messages.error(request, 'Por favor, corrija os erros abaixo.')
+    else:
+        form = ChapterForm(instance=chapter)
+
+    context = {
+        'form': form,
+        'book': book,
+        'chapter': chapter,
+        'is_editing': is_editing,
+    }
+    return render(request, 'new_authors/edit_chapter.html', context)
+
+
+@login_required
+@require_POST
+def delete_chapter(request, chapter_id):
+    """Deletar capítulo (apenas autor do livro)"""
+    try:
+        author = request.user.emerging_author
+    except EmergingAuthor.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Acesso negado.'}, status=403)
+
+    chapter = get_object_or_404(Chapter, id=chapter_id, book__author=author)
+    book_id = chapter.book.id
+    chapter.delete()
+
+    # Renumerar capítulos
+    chapters = Chapter.objects.filter(book_id=book_id).order_by('chapter_number')
+    for idx, ch in enumerate(chapters, start=1):
+        if ch.chapter_number != idx:
+            ch.chapter_number = idx
+            ch.save()
+
+    messages.success(request, 'Capítulo deletado com sucesso!')
+    return JsonResponse({'status': 'success', 'redirect': f'/novos-autores/livro/{book_id}/capitulos/'})
+
+
+@login_required
+@require_POST
+def delete_book(request, book_id):
+    """Deletar livro (apenas autor)"""
+    try:
+        author = request.user.emerging_author
+    except EmergingAuthor.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Acesso negado.'}, status=403)
+
+    book = get_object_or_404(AuthorBook, id=book_id, author=author)
+    book.delete()
+
+    messages.success(request, 'Livro deletado com sucesso!')
+    return JsonResponse({'status': 'success', 'redirect': '/novos-autores/dashboard/'})

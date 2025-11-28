@@ -1,0 +1,111 @@
+{% extends 'new_authors/base.html' %}
+
+{% block title %}{{ is_editing|yesno:"Editar,Novo" }} Capítulo - {{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1>{{ is_editing|yesno:"Editar,Novo" }} Capítulo</h1>
+                    <p class="text-muted">{{ book.title }}</p>
+                </div>
+                <a href="{% url 'new_authors:manage_chapters' book.id %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <strong>Erro!</strong> Por favor, corrija os erros abaixo.
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">
+                                {{ form.title.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.title }}
+                            {% if chapter %}
+                                <div class="form-text">Capítulo #{{ chapter.chapter_number }}</div>
+                            {% endif %}
+                            {% if form.title.errors %}
+                                <div class="text-danger small">{{ form.title.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.content.id_for_label }}" class="form-label">
+                                {{ form.content.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.content }}
+                            <div class="form-text">
+                                <span id="wordCount">0</span> palavras
+                            </div>
+                            {% if form.content.errors %}
+                                <div class="text-danger small">{{ form.content.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.author_notes.id_for_label }}" class="form-label">{{ form.author_notes.label }}</label>
+                            {{ form.author_notes }}
+                            <div class="form-text">Opcional: notas ou agradecimentos para os leitores.</div>
+                            {% if form.author_notes.errors %}
+                                <div class="text-danger small">{{ form.author_notes.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.is_published }}
+                                <label class="form-check-label" for="{{ form.is_published.id_for_label }}">
+                                    {{ form.is_published.label }}
+                                </label>
+                            </div>
+                            <div class="form-text">
+                                Quando marcado, o capítulo ficará visível para todos os leitores.
+                            </div>
+                            {% if form.is_published.errors %}
+                                <div class="text-danger small">{{ form.is_published.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Salvar Capítulo
+                            </button>
+                            <a href="{% url 'new_authors:manage_chapters' book.id %}" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Contador de palavras
+const contentField = document.getElementById('{{ form.content.id_for_label }}');
+const wordCountDisplay = document.getElementById('wordCount');
+
+function updateWordCount() {
+    const text = contentField.value.trim();
+    const words = text.length > 0 ? text.split(/\s+/).length : 0;
+    wordCountDisplay.textContent = words;
+}
+
+contentField.addEventListener('input', updateWordCount);
+updateWordCount(); // Inicializar contagem
+</script>
+{% endblock %}

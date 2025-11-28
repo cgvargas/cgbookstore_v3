@@ -1,0 +1,131 @@
+{% extends 'new_authors/base.html' %}
+
+{% block title %}Gerenciar Capítulos - {{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1>Capítulos de {{ book.title }}</h1>
+                    <p class="text-muted">Total: {{ chapters.count }} capítulos</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'new_authors:edit_chapter' book.id %}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Novo Capítulo
+                    </a>
+                    <a href="{% url 'new_authors:manage_book' book.id %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-pencil"></i> Editar Livro
+                    </a>
+                    <a href="{% url 'new_authors:author_dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Dashboard
+                    </a>
+                </div>
+            </div>
+
+            {% if chapters %}
+                <div class="card">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th width="60">#</th>
+                                        <th>Título</th>
+                                        <th width="120">Palavras</th>
+                                        <th width="100">Status</th>
+                                        <th width="150">Publicado em</th>
+                                        <th width="200" class="text-end">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for chapter in chapters %}
+                                        <tr>
+                                            <td class="text-center">{{ chapter.chapter_number }}</td>
+                                            <td>
+                                                <strong>{{ chapter.title }}</strong>
+                                                {% if chapter.author_notes %}
+                                                    <br><small class="text-muted">{{ chapter.author_notes|truncatewords:10 }}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ chapter.word_count|default:"0" }}</td>
+                                            <td>
+                                                {% if chapter.is_published %}
+                                                    <span class="badge bg-success">Publicado</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Rascunho</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if chapter.published_at %}
+                                                    {{ chapter.published_at|date:"d/m/Y" }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="{% url 'new_authors:edit_chapter' book.id chapter.id %}"
+                                                   class="btn btn-sm btn-outline-primary" title="Editar">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                {% if chapter.is_published %}
+                                                    <a href="{% url 'new_authors:chapter_read' book.slug chapter.chapter_number %}"
+                                                       class="btn btn-sm btn-outline-info" title="Visualizar" target="_blank">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                {% endif %}
+                                                <button onclick="deleteChapter({{ chapter.id }})"
+                                                        class="btn btn-sm btn-outline-danger" title="Deletar">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <h5><i class="bi bi-info-circle"></i> Nenhum capítulo ainda</h5>
+                    <p class="mb-0">Comece adicionando o primeiro capítulo do seu livro!</p>
+                    <a href="{% url 'new_authors:edit_chapter' book.id %}" class="btn btn-primary mt-3">
+                        <i class="bi bi-plus-circle"></i> Adicionar Primeiro Capítulo
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function deleteChapter(chapterId) {
+    if (!confirm('Tem certeza que deseja deletar este capítulo? Esta ação não pode ser desfeita.')) {
+        return;
+    }
+
+    fetch(`/novos-autores/api/capitulo/${chapterId}/deletar/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.location.href = data.redirect;
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        alert('Erro ao deletar capítulo.');
+        console.error(error);
+    });
+}
+</script>
+{% endblock %}

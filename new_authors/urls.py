@@ -21,6 +21,17 @@ urlpatterns = [
     path('tornar-se-autor/', views.become_author, name='become_author'),
     path('dashboard/', views.author_dashboard, name='author_dashboard'),
 
+    # Gerenciamento de livros (autor)
+    path('livro/novo/', views.manage_book, name='create_book'),
+    path('livro/<int:book_id>/editar/', views.manage_book, name='manage_book'),
+    path('livro/<int:book_id>/deletar/', views.delete_book, name='delete_book'),
+
+    # Gerenciamento de capítulos (autor)
+    path('livro/<int:book_id>/capitulos/', views.manage_chapters, name='manage_chapters'),
+    path('livro/<int:book_id>/capitulo/novo/', views.edit_chapter, name='edit_chapter'),
+    path('livro/<int:book_id>/capitulo/<int:chapter_id>/editar/', views.edit_chapter, name='edit_chapter'),
+    path('api/capitulo/<int:chapter_id>/deletar/', views.delete_chapter, name='delete_chapter'),
+
     # Interações
     path('api/seguir/<int:book_id>/', views.follow_book, name='follow_book'),
     path('api/avaliar/<int:book_id>/', views.submit_review, name='submit_review'),

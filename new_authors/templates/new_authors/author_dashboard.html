@@ -49,7 +49,7 @@
         <div class="col-md-8">
             <h3>Seus Livros</h3>
             <div class="mb-3">
-                <a href="/admin/new_authors/authorbook/add/" class="btn btn-primary">
+                <a href="{% url 'new_authors:create_book' %}" class="btn btn-primary">
                     <i class="bi bi-plus-circle"></i> Adicionar Novo Livro
                 </a>
             </div>
@@ -78,7 +78,8 @@
                                 </div>
                                 <div class="mt-3">
                                     <a href="{% url 'new_authors:book_detail' book.slug %}" class="btn btn-sm btn-outline-primary">Ver Livro</a>
-                                    <a href="/admin/new_authors/authorbook/{{ book.id }}/change/" class="btn btn-sm btn-outline-secondary">Editar</a>
+                                    <a href="{% url 'new_authors:manage_book' book.id %}" class="btn btn-sm btn-outline-secondary">Editar</a>
+                                    <a href="{% url 'new_authors:manage_chapters' book.id %}" class="btn btn-sm btn-outline-success">Capítulos</a>
                                 </div>
                             </div>
                         </div>
@@ -86,7 +87,7 @@
                 </div>
             {% empty %}
                 <div class="alert alert-info">
-                    Você ainda não publicou nenhum livro. <a href="/admin/new_authors/authorbook/add/">Adicione seu primeiro livro!</a>
+                    Você ainda não publicou nenhum livro. <a href="{% url 'new_authors:create_book' %}">Adicione seu primeiro livro!</a>
                 </div>
             {% endfor %}
         </div>
