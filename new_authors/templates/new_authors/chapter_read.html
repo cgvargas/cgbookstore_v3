@@ -1,0 +1,120 @@
+{% extends 'new_authors/base.html' %}
+
+{% block title %}{{ book.title }} - Capítulo {{ chapter.number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reader-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        font-family: Georgia, serif;
+        line-height: 1.8;
+        font-size: 1.1rem;
+    }
+    .chapter-content {
+        white-space: pre-line;
+        text-align: justify;
+    }
+    .chapter-nav {
+        position: sticky;
+        top: 70px;
+        background: white;
+        padding: 15px 0;
+        border-bottom: 2px solid #f0f0f0;
+        margin-bottom: 30px;
+        z-index: 100;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chapter-nav shadow-sm">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <a href="{% url 'new_authors:book_detail' book.slug %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar ao Livro
+                </a>
+            </div>
+
+            <div class="btn-group">
+                {% if prev_chapter %}
+                    <a href="{% url 'new_authors:chapter_read' book.slug prev_chapter.number %}"
+                       class="btn btn-sm btn-primary">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </a>
+                {% else %}
+                    <button class="btn btn-sm btn-secondary" disabled>
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </button>
+                {% endif %}
+
+                {% if next_chapter %}
+                    <a href="{% url 'new_authors:chapter_read' book.slug next_chapter.number %}"
+                       class="btn btn-sm btn-primary">
+                        Próximo <i class="bi bi-chevron-right"></i>
+                    </a>
+                {% else %}
+                    <button class="btn btn-sm btn-secondary" disabled>
+                        Próximo <i class="bi bi-chevron-right"></i>
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="reader-container">
+    <div class="text-center mb-5">
+        <h5 class="text-muted">{{ book.title }}</h5>
+        <h1 class="display-5 fw-bold">Capítulo {{ chapter.number }}</h1>
+        <h3 class="text-primary">{{ chapter.title }}</h3>
+        <hr class="my-4">
+        <p class="text-muted">
+            <i class="bi bi-person"></i> {{ book.author }} |
+            <i class="bi bi-file-text"></i> {{ chapter.word_count }} palavras |
+            <i class="bi bi-eye"></i> {{ chapter.views_count }} leituras
+        </p>
+    </div>
+
+    <div class="chapter-content">
+        {{ chapter.content }}
+    </div>
+
+    <hr class="my-5">
+
+    <div class="text-center">
+        <h5 class="mb-4">Gostou deste capítulo?</h5>
+
+        <div class="d-flex gap-2 justify-content-center mb-4">
+            {% if prev_chapter %}
+                <a href="{% url 'new_authors:chapter_read' book.slug prev_chapter.number %}"
+                   class="btn btn-outline-primary">
+                    <i class="bi bi-chevron-left"></i> Capítulo Anterior
+                </a>
+            {% endif %}
+
+            <a href="{% url 'new_authors:book_detail' book.slug %}" class="btn btn-primary">
+                <i class="bi bi-list"></i> Ver Todos os Capítulos
+            </a>
+
+            {% if next_chapter %}
+                <a href="{% url 'new_authors:chapter_read' book.slug next_chapter.number %}"
+                   class="btn btn-outline-primary">
+                    Próximo Capítulo <i class="bi bi-chevron-right"></i>
+                </a>
+            {% endif %}
+        </div>
+
+        {% if not next_chapter %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                Você chegou ao último capítulo disponível!
+                <a href="{% url 'new_authors:book_detail' book.slug %}" class="alert-link">Avalie este livro</a>
+                e ajude o autor.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

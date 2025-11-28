@@ -1,0 +1,247 @@
+{% extends 'new_authors/base.html' %}
+
+{% block title %}{{ book.title }} - {{ book.author }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-4">
+            {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}" class="img-fluid rounded shadow" alt="{{ book.title }}">
+            {% else %}
+                <div class="ratio ratio-3x4 bg-gradient rounded shadow d-flex align-items-center justify-content-center text-white"
+                     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="bi bi-book" style="font-size: 6rem;"></i>
+                </div>
+            {% endif %}
+
+            <div class="d-grid gap-2 mt-4">
+                {% if chapters %}
+                    <a href="{% url 'new_authors:chapter_read' book.slug chapters.first.number %}"
+                       class="btn btn-primary btn-lg">
+                        <i class="bi bi-book-half"></i> Começar a Ler
+                    </a>
+                {% endif %}
+
+                {% if user.is_authenticated %}
+                    <button class="btn btn-outline-primary" onclick="followBook({{ book.id }})">
+                        <i class="bi bi-{% if is_following %}heart-fill{% else %}heart{% endif %}"></i>
+                        <span id="follow-text">{% if is_following %}Deixar de seguir{% else %}Seguir livro{% endif %}</span>
+                    </button>
+                {% endif %}
+            </div>
+
+            <div class="mt-4 p-3 bg-light rounded">
+                <h6 class="text-muted">Estatísticas</h6>
+                <div class="d-flex justify-content-between mb-2">
+                    <span><i class="bi bi-eye"></i> Visualizações:</span>
+                    <strong>{{ book.views_count }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span><i class="bi bi-heart"></i> Curtidas:</span>
+                    <strong>{{ book.likes_count }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span><i class="bi bi-book"></i> Capítulos:</span>
+                    <strong>{{ chapters.count }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <h1 class="mb-3">{{ book.title }}</h1>
+            {% if book.subtitle %}
+                <h5 class="text-muted mb-3">{{ book.subtitle }}</h5>
+            {% endif %}
+
+            <div class="mb-3">
+                <a href="{% url 'new_authors:author_profile' book.author.user.username %}" class="text-decoration-none">
+                    <i class="bi bi-person-circle"></i> {{ book.author }}
+                    {% if book.author.is_verified %}
+                        <i class="bi bi-patch-check-fill text-primary" title="Autor Verificado"></i>
+                    {% endif %}
+                </a>
+            </div>
+
+            <div class="mb-4">
+                <span class="rating-stars" style="font-size: 1.5rem;">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= book.rating_average %}
+                            <i class="bi bi-star-fill"></i>
+                        {% else %}
+                            <i class="bi bi-star"></i>
+                        {% endif %}
+                    {% endfor %}
+                </span>
+                <span class="ms-2">{{ book.rating_average|floatformat:1 }} ({{ book.rating_count }} avaliações)</span>
+            </div>
+
+            <div class="mb-3">
+                <span class="badge bg-primary">{{ book.get_genre_display }}</span>
+                {% for tag in book.tags %}
+                    <span class="badge bg-secondary">{{ tag }}</span>
+                {% endfor %}
+            </div>
+
+            <h3 class="mt-4">Sinopse</h3>
+            <p class="lead">{{ book.synopsis }}</p>
+
+            <h3 class="mt-4">Sobre este livro</h3>
+            <p style="white-space: pre-line;">{{ book.description }}</p>
+
+            <h3 class="mt-5">Capítulos ({{ chapters.count }})</h3>
+            <div class="list-group">
+                {% for chapter in chapters %}
+                    <a href="{% url 'new_authors:chapter_read' book.slug chapter.number %}"
+                       class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Capítulo {{ chapter.number }}: {{ chapter.title }}</h6>
+                            <small class="text-muted">
+                                <i class="bi bi-eye"></i> {{ chapter.views_count }} |
+                                <i class="bi bi-file-text"></i> {{ chapter.word_count }} palavras
+                            </small>
+                        </div>
+                        <p class="mb-1 small text-muted">{{ chapter.preview|truncatewords:30 }}</p>
+                    </a>
+                {% empty %}
+                    <div class="alert alert-info">
+                        Este livro ainda não tem capítulos publicados. Volte em breve!
+                    </div>
+                {% endfor %}
+            </div>
+
+            <h3 class="mt-5">Avaliações ({{ book.rating_count }})</h3>
+
+            {% if user.is_authenticated and not user_review %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5>Avaliar este livro</h5>
+                        <form id="review-form">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label>Sua avaliação:</label>
+                                <div class="rating-input">
+                                    {% for i in "12345" %}
+                                        <input type="radio" name="rating" value="{{ forloop.counter }}" id="star{{ forloop.counter }}" required>
+                                        <label for="star{{ forloop.counter }}">⭐</label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <input type="text" name="title" class="form-control" placeholder="Título da avaliação (opcional)">
+                            </div>
+                            <div class="mb-3">
+                                <textarea name="comment" class="form-control" rows="4"
+                                          placeholder="Compartilhe sua opinião sobre este livro..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Enviar Avaliação</button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% for review in reviews %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>{{ review.user.username }}</strong>
+                                <span class="rating-stars small">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}⭐{% endif %}
+                                    {% endfor %}
+                                </span>
+                            </div>
+                            <small class="text-muted">{{ review.created_at|date:"d/m/Y" }}</small>
+                        </div>
+                        {% if review.title %}
+                            <h6 class="mt-2">{{ review.title }}</h6>
+                        {% endif %}
+                        <p class="mb-2">{{ review.comment }}</p>
+                        <div class="text-muted small">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="markHelpful({{ review.id }})">
+                                <i class="bi bi-hand-thumbs-up"></i> Útil ({{ review.helpful_count }})
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-muted">Ainda não há avaliações. Seja o primeiro a avaliar!</p>
+            {% endfor %}
+
+            {% if related_books %}
+                <h3 class="mt-5">Livros Relacionados</h3>
+                <div class="row g-3">
+                    {% for related in related_books %}
+                        <div class="col-md-3">
+                            <a href="{% url 'new_authors:book_detail' related.slug %}" class="text-decoration-none">
+                                <div class="card h-100">
+                                    {% if related.cover_image %}
+                                        <img src="{{ related.cover_image.url }}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ related.title }}">
+                                    {% endif %}
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title small">{{ related.title|truncatewords:5 }}</h6>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function followBook(bookId) {
+    fetch(`/novos-autores/api/seguir/${bookId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        location.reload();
+    });
+}
+
+document.getElementById('review-form')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+
+    fetch(`/novos-autores/api/avaliar/{{ book.id }}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        if (data.status === 'success') {
+            location.reload();
+        }
+    });
+});
+
+function markHelpful(reviewId) {
+    fetch(`/novos-autores/api/review/${reviewId}/util/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Obrigado pelo feedback!');
+        location.reload();
+    });
+}
+</script>
+{% endblock %}

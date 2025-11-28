@@ -1,0 +1,119 @@
+{% extends 'new_authors/base.html' %}
+
+{% block title %}{{ author }} - Perfil do Autor{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-4 text-center">
+            {% if author.photo %}
+                <img src="{{ author.photo.url }}" class="img-fluid rounded-circle mb-3" alt="{{ author }}" style="max-width: 250px;">
+            {% else %}
+                <div class="bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                     style="width: 250px; height: 250px;">
+                    <i class="bi bi-person-circle" style="font-size: 8rem;"></i>
+                </div>
+            {% endif %}
+
+            <h2>{{ author }}
+                {% if author.is_verified %}
+                    <i class="bi bi-patch-check-fill text-primary" title="Autor Verificado"></i>
+                {% endif %}
+            </h2>
+
+            <p class="text-muted">@{{ author.user.username }}</p>
+
+            <div class="d-flex justify-content-center gap-3 mb-3">
+                {% if author.website %}
+                    <a href="{{ author.website }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-globe"></i>
+                    </a>
+                {% endif %}
+                {% if author.twitter %}
+                    <a href="https://twitter.com/{{ author.twitter }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-twitter"></i>
+                    </a>
+                {% endif %}
+                {% if author.instagram %}
+                    <a href="https://instagram.com/{{ author.instagram }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                {% endif %}
+                {% if author.facebook %}
+                    <a href="https://facebook.com/{{ author.facebook }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-facebook"></i>
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Estatísticas</h5>
+                    <div class="row text-center">
+                        <div class="col-6 border-end">
+                            <h3 class="text-primary mb-0">{{ stats.total_books }}</h3>
+                            <small class="text-muted">Livros</small>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="text-primary mb-0">{{ stats.total_views }}</h3>
+                            <small class="text-muted">Leituras</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-6 border-end">
+                            <h3 class="text-primary mb-0">{{ stats.avg_rating|floatformat:1 }}</h3>
+                            <small class="text-muted">Avaliação Média</small>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="text-primary mb-0">{{ stats.total_chapters }}</h3>
+                            <small class="text-muted">Capítulos</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <h3>Sobre o Autor</h3>
+            <p style="white-space: pre-line;">{{ author.bio }}</p>
+
+            <h3 class="mt-5">Obras Publicadas ({{ books.count }})</h3>
+            <div class="row g-4">
+                {% for book in books %}
+                    <div class="col-md-4">
+                        <div class="card h-100 book-card" onclick="window.location='{% url 'new_authors:book_detail' book.slug %}'">
+                            {% if book.cover_image %}
+                                <img src="{{ book.cover_image.url }}" class="card-img-top" style="height: 300px; object-fit: cover;" alt="{{ book.title }}">
+                            {% else %}
+                                <div class="bg-gradient text-white d-flex align-items-center justify-content-center"
+                                     style="height: 300px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <i class="bi bi-book" style="font-size: 4rem;"></i>
+                                </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ book.title }}</h5>
+                                <p class="card-text small text-muted">{{ book.synopsis|truncatewords:15 }}</p>
+                                <div class="d-flex justify-content-between">
+                                    <span class="rating-stars small">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= book.rating_average %}⭐{% endif %}
+                                        {% endfor %}
+                                    </span>
+                                    <small class="text-muted"><i class="bi bi-eye"></i> {{ book.views_count }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            Este autor ainda não publicou nenhum livro.
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

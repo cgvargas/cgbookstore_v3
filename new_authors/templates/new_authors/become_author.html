@@ -1,0 +1,46 @@
+{% extends 'new_authors/base.html' %}
+
+{% block title %}Tornar-se Autor Emergente{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="text-center mb-5">
+                <h1 class="display-4">Torne-se um Autor Emergente</h1>
+                <p class="lead">Compartilhe suas histórias com milhares de leitores</p>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h3 class="mb-4">Benefícios</h3>
+                    <ul class="list-unstyled mb-5">
+                        <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> Publique seus livros gratuitamente</li>
+                        <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> Receba feedback de leitores</li>
+                        <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> Conecte-se com editoras</li>
+                        <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> Acompanhe estatísticas de leitura</li>
+                        <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> Construa sua audiência</li>
+                    </ul>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="bio" class="form-label">Conte-nos sobre você</label>
+                            <textarea name="bio" id="bio" class="form-control" rows="6"
+                                      placeholder="Escreva sua biografia como escritor. Conte sobre suas inspirações, experiências e o que você ama escrever..."
+                                      required></textarea>
+                            <div class="form-text">Mínimo 100 caracteres</div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Tornar-me Autor Emergente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
