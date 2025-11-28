@@ -75,17 +75,41 @@ def books_list(request):
 
 def book_detail(request, slug):
     """Detalhes de um livro específico"""
+    # Buscar o livro
     book = get_object_or_404(
         AuthorBook.objects.select_related('author__user'),
-        slug=slug,
-        status='published'
+        slug=slug
     )
 
-    # Incrementa visualizações
-    book.increment_views()
+    # Apenas o autor pode ver livros não publicados
+    if book.status != 'published':
+        if not request.user.is_authenticated:
+            return HttpResponseForbidden("Este livro ainda não foi publicado.")
+        try:
+            author = request.user.emerging_author
+            if book.author != author:
+                return HttpResponseForbidden("Este livro ainda não foi publicado.")
+        except EmergingAuthor.DoesNotExist:
+            return HttpResponseForbidden("Este livro ainda não foi publicado.")
 
-    # Capítulos publicados
-    chapters = book.chapters.filter(is_published=True).order_by('number')
+    # Verificar se o usuário é o autor
+    is_author = False
+    if request.user.is_authenticated:
+        try:
+            author = request.user.emerging_author
+            is_author = (book.author == author)
+        except EmergingAuthor.DoesNotExist:
+            pass
+
+    # Incrementa visualizações apenas para livros publicados
+    if book.status == 'published':
+        book.increment_views()
+
+    # Capítulos (autor vê todos, outros só publicados)
+    if is_author:
+        chapters = book.chapters.all().order_by('chapter_number')
+    else:
+        chapters = book.chapters.filter(is_published=True).order_by('chapter_number')
 
     # Reviews aprovadas
     reviews = book.reviews.filter(is_approved=True).select_related('user').order_by('-created_at')[:10]
@@ -113,40 +137,53 @@ def book_detail(request, slug):
         'is_following': is_following,
         'user_review': user_review,
         'related_books': related_books,
+        'is_author': is_author,
     }
     return render(request, 'new_authors/book_detail.html', context)
 
 
 def chapter_read(request, book_slug, chapter_number):
     """Visualizador de capítulo"""
-    book = get_object_or_404(AuthorBook, slug=book_slug, status='published')
-    chapter = get_object_or_404(
-        Chapter,
-        book=book,
-        number=chapter_number,
-        is_published=True
-    )
+    book = get_object_or_404(AuthorBook, slug=book_slug)
+
+    # Verificar se o livro está publicado ou se o usuário é o autor
+    is_author = False
+    if request.user.is_authenticated:
+        try:
+            author = request.user.emerging_author
+            is_author = (book.author == author)
+        except EmergingAuthor.DoesNotExist:
+            pass
+
+    if book.status != 'published' and not is_author:
+        return HttpResponseForbidden("Este livro ainda não foi publicado.")
+
+    # Buscar capítulo (autor pode ver rascunhos)
+    chapter_filter = {'book': book, 'number': chapter_number}
+    if not is_author:
+        chapter_filter['is_published'] = True
+
+    chapter = get_object_or_404(Chapter, **chapter_filter)
 
     # Verificar se capítulo é gratuito ou requer login
-    if not chapter.is_free and not request.user.is_authenticated:
+    if not is_author and not chapter.is_free and not request.user.is_authenticated:
         messages.warning(request, 'Você precisa estar logado para ler este capítulo.')
         return redirect('accounts:login')
 
-    # Incrementa visualizações
-    chapter.increment_views()
+    # Incrementa visualizações apenas para livros publicados
+    if book.status == 'published' and chapter.is_published:
+        chapter.increment_views()
 
     # Capítulo anterior e próximo
-    prev_chapter = Chapter.objects.filter(
-        book=book,
-        number__lt=chapter_number,
-        is_published=True
-    ).order_by('-number').first()
+    prev_filter = {'book': book, 'number__lt': chapter_number}
+    next_filter = {'book': book, 'number__gt': chapter_number}
 
-    next_chapter = Chapter.objects.filter(
-        book=book,
-        number__gt=chapter_number,
-        is_published=True
-    ).order_by('number').first()
+    if not is_author:
+        prev_filter['is_published'] = True
+        next_filter['is_published'] = True
+
+    prev_chapter = Chapter.objects.filter(**prev_filter).order_by('-number').first()
+    next_chapter = Chapter.objects.filter(**next_filter).order_by('number').first()
 
     context = {
         'book': book,
