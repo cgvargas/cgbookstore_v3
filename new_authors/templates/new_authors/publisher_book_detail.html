@@ -1,0 +1,432 @@
+{% extends 'new_authors/base.html' %}
+{% load static %}
+
+{% block title %}{{ book.title }} - Análise para Editoras{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'new_authors:publisher_dashboard' %}">Dashboard da Editora</a>
+            </li>
+            <li class="breadcrumb-item active">{{ book.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Coluna da Capa e Ações -->
+        <div class="col-md-4">
+            {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}"
+                     class="img-fluid rounded shadow mb-4"
+                     alt="{{ book.title }}">
+            {% else %}
+                <div class="ratio ratio-3x4 bg-gradient rounded shadow mb-4 d-flex align-items-center justify-content-center text-white"
+                     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="bi bi-book" style="font-size: 6rem;"></i>
+                </div>
+            {% endif %}
+
+            <!-- Card de Ações -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-hand-thumbs-up"></i> Ações da Editora</h5>
+                </div>
+                <div class="card-body">
+                    {% if existing_interest %}
+                        <div class="alert alert-info mb-3">
+                            <i class="bi bi-check-circle"></i>
+                            Você já demonstrou interesse neste livro
+                            <br>
+                            <strong>Status:</strong>
+                            <span class="badge
+                                {% if existing_interest.status == 'pending' %}bg-warning
+                                {% elif existing_interest.status == 'contacted' %}bg-info
+                                {% elif existing_interest.status == 'negotiating' %}bg-success
+                                {% else %}bg-secondary{% endif %}">
+                                {{ existing_interest.get_status_display }}
+                            </span>
+                            <br>
+                            <small class="text-muted">{{ existing_interest.created_at|date:"d/m/Y H:i" }}</small>
+                        </div>
+                    {% else %}
+                        <button class="btn btn-primary w-100 mb-2"
+                                onclick="expressInterest({{ book.id }})">
+                            <i class="bi bi-hand-thumbs-up"></i>
+                            Demonstrar Interesse
+                        </button>
+                    {% endif %}
+
+                    <a href="{% url 'new_authors:book_detail' book.slug %}"
+                       class="btn btn-outline-secondary w-100"
+                       target="_blank">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                        Ver Página Pública
+                    </a>
+                </div>
+            </div>
+
+            <!-- Estatísticas Detalhadas -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="bi bi-graph-up"></i> Estatísticas Completas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-eye text-primary"></i> Visualizações</span>
+                            <strong>{{ book.views_count }}</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-heart text-danger"></i> Curtidas</span>
+                            <strong>{{ book_stats.likes_count }}</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-people text-success"></i> Seguidores</span>
+                            <strong>{{ book_stats.followers_count }}</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-book text-info"></i> Capítulos</span>
+                            <strong>{{ book_stats.total_chapters }}</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-file-text text-secondary"></i> Total de Palavras</span>
+                            <strong>{{ book_stats.total_words|floatformat:0 }}</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-star text-warning"></i> Avaliações</span>
+                            <strong>{{ book_stats.reviews_count }}</strong>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-eye-fill text-primary"></i> Média Views/Cap.</span>
+                            <strong>{{ book_stats.avg_chapter_views|floatformat:0 }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coluna de Conteúdo Principal -->
+        <div class="col-md-8">
+            <!-- Informações do Livro -->
+            <h1 class="mb-2">{{ book.title }}</h1>
+            {% if book.subtitle %}
+                <h5 class="text-muted mb-3">{{ book.subtitle }}</h5>
+            {% endif %}
+
+            <div class="mb-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rating-stars" style="font-size: 1.5rem;">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= book.rating_average %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                            {% else %}
+                                <i class="bi bi-star text-muted"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="fs-5">{{ book.rating_average|floatformat:1 }}</span>
+                    <span class="text-muted">({{ book.rating_count }} avaliações)</span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <span class="badge bg-primary">{{ book.get_genre_display }}</span>
+                {% for tag in book.tags %}
+                    <span class="badge bg-secondary">{{ tag }}</span>
+                {% endfor %}
+                <span class="badge bg-success">{{ book.language }}</span>
+            </div>
+
+            <!-- Informações do Autor -->
+            <div class="card mb-4 border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-person-circle"></i> Informações do Autor</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            {% if book.author.photo %}
+                                <img src="{{ book.author.photo.url }}"
+                                     class="img-fluid rounded-circle mb-2"
+                                     style="max-width: 120px;"
+                                     alt="{{ book.author }}">
+                            {% else %}
+                                <div class="bg-secondary text-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                                     style="width: 120px; height: 120px;">
+                                    <i class="bi bi-person" style="font-size: 3rem;"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <h4>
+                                {{ book.author.user.get_full_name|default:book.author.user.username }}
+                                {% if book.author.is_verified %}
+                                    <i class="bi bi-patch-check-fill text-primary" title="Autor Verificado"></i>
+                                {% endif %}
+                            </h4>
+                            <p class="text-muted mb-3">@{{ book.author.user.username }}</p>
+
+                            <!-- Informações de Contato -->
+                            <div class="mb-3">
+                                <h6><i class="bi bi-envelope"></i> Contato:</h6>
+                                <p class="mb-1">
+                                    <strong>Email:</strong>
+                                    <a href="mailto:{{ book.author.user.email }}">{{ book.author.user.email }}</a>
+                                </p>
+                            </div>
+
+                            <!-- Redes Sociais -->
+                            {% if book.author.website or book.author.twitter or book.author.instagram or book.author.facebook %}
+                                <div class="mb-3">
+                                    <h6><i class="bi bi-share"></i> Redes Sociais:</h6>
+                                    <div class="d-flex gap-2">
+                                        {% if book.author.website %}
+                                            <a href="{{ book.author.website }}"
+                                               target="_blank"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-globe"></i> Website
+                                            </a>
+                                        {% endif %}
+                                        {% if book.author.twitter %}
+                                            <a href="https://twitter.com/{{ book.author.twitter }}"
+                                               target="_blank"
+                                               class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-twitter"></i> Twitter
+                                            </a>
+                                        {% endif %}
+                                        {% if book.author.instagram %}
+                                            <a href="https://instagram.com/{{ book.author.instagram }}"
+                                               target="_blank"
+                                               class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-instagram"></i> Instagram
+                                            </a>
+                                        {% endif %}
+                                        {% if book.author.facebook %}
+                                            <a href="https://facebook.com/{{ book.author.facebook }}"
+                                               target="_blank"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-facebook"></i> Facebook
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <!-- Estatísticas do Autor -->
+                            <div class="row text-center bg-light rounded p-3">
+                                <div class="col-4">
+                                    <h5 class="text-primary mb-0">{{ book.author.total_books }}</h5>
+                                    <small class="text-muted">Livros</small>
+                                </div>
+                                <div class="col-4">
+                                    <h5 class="text-primary mb-0">{{ book.author.total_views }}</h5>
+                                    <small class="text-muted">Visualizações</small>
+                                </div>
+                                <div class="col-4">
+                                    <h5 class="text-primary mb-0">{{ book.author.total_followers }}</h5>
+                                    <small class="text-muted">Seguidores</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <a href="{% url 'new_authors:author_profile' book.author.user.username %}"
+                                   class="btn btn-outline-primary"
+                                   target="_blank">
+                                    <i class="bi bi-person-badge"></i> Ver Perfil Completo do Autor
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sinopse e Descrição -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-book-half"></i> Sobre o Livro</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Sinopse:</h6>
+                    <p class="lead">{{ book.synopsis }}</p>
+
+                    <h6 class="mt-4">Descrição Completa:</h6>
+                    <p style="white-space: pre-line;">{{ book.description }}</p>
+
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar"></i> Publicado em: {{ book.published_at|date:"d/m/Y" }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Outros Livros do Autor -->
+            {% if author_books %}
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-collection"></i>
+                            Outras Obras do Autor
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            {% for other_book in author_books %}
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        {% if other_book.cover_image %}
+                                            <img src="{{ other_book.cover_image.url }}"
+                                                 class="card-img-top"
+                                                 style="height: 200px; object-fit: cover;"
+                                                 alt="{{ other_book.title }}">
+                                        {% else %}
+                                            <div class="card-img-top bg-gradient text-white d-flex align-items-center justify-content-center"
+                                                 style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                                <i class="bi bi-book" style="font-size: 3rem;"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ other_book.title }}</h6>
+                                            <p class="card-text small">
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                                {{ other_book.rating_average|floatformat:1 }}
+                                                •
+                                                <i class="bi bi-eye"></i>
+                                                {{ other_book.views_count }}
+                                            </p>
+                                            <a href="{% url 'new_authors:publisher_book_detail' other_book.id %}"
+                                               class="btn btn-sm btn-outline-primary w-100">
+                                                Ver Detalhes
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Capítulos Mais Populares -->
+            {% if top_chapters %}
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-bar-chart"></i>
+                            Capítulos Mais Populares
+                        </h5>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        {% for chapter in top_chapters %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            Capítulo {{ chapter.number }}: {{ chapter.title }}
+                                        </h6>
+                                        <small class="text-muted">
+                                            {{ chapter.word_count }} palavras
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <strong class="text-primary">{{ chapter.views_count }}</strong>
+                                        <small class="d-block text-muted">visualizações</small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Reviews em Destaque -->
+            {% if featured_reviews %}
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-chat-quote"></i>
+                            Avaliações em Destaque
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for review in featured_reviews %}
+                            <div class="mb-4 {% if not forloop.last %}border-bottom pb-3{% endif %}">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <strong>{{ review.user.username }}</strong>
+                                        {% if review.title %}
+                                            <br>
+                                            <span class="text-muted">{{ review.title }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="rating-stars text-warning">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= review.rating %}⭐{% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <p class="mb-2">{{ review.comment|truncatewords:50 }}</p>
+                                <small class="text-muted">
+                                    <i class="bi bi-hand-thumbs-up"></i> {{ review.helpful_count }} acharam útil
+                                    •
+                                    {{ review.created_at|date:"d/m/Y" }}
+                                </small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function expressInterest(bookId) {
+    const message = prompt('Escreva uma mensagem para o autor (mínimo 20 caracteres):');
+    if (!message || message.length < 20) {
+        alert('Mensagem muito curta! Por favor, escreva pelo menos 20 caracteres.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('message', message);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch(`/novos-autores/api/interesse/${bookId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        if (data.status === 'success') {
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Ocorreu um erro ao enviar o interesse.');
+    });
+}
+</script>
+{% endblock %}

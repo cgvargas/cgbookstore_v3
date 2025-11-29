@@ -1,47 +1,261 @@
 {% extends 'new_authors/base.html' %}
+{% load static %}
 
-{% block title %}Dashboard da Editora{% endblock %}
+{% block title %}Dashboard da Editora - {{ publisher.company_name }}{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-    <h1 class="mb-4">{{ publisher.company_name }}</h1>
+<div class="container-fluid my-4">
+    <!-- Header com nome da editora -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-1">
+                <i class="bi bi-building"></i> {{ publisher.company_name }}
+                {% if publisher.is_verified %}
+                    <i class="bi bi-patch-check-fill text-success" title="Editora Verificada"></i>
+                {% endif %}
+            </h1>
+            <p class="text-muted">Descubra talentos emergentes e obras promissoras</p>
+        </div>
+    </div>
+
+    <!-- Estatísticas da Plataforma -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-2 opacity-75">Total de Livros</h6>
+                            <h2 class="card-title mb-0">{{ platform_stats.total_books }}</h2>
+                        </div>
+                        <i class="bi bi-book-fill" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-2 opacity-75">Autores Ativos</h6>
+                            <h2 class="card-title mb-0">{{ platform_stats.total_authors }}</h2>
+                        </div>
+                        <i class="bi bi-people-fill" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-2">Avaliação Média</h6>
+                            <h2 class="card-title mb-0">
+                                {{ platform_stats.avg_rating|floatformat:1 }}
+                                <small style="font-size: 1rem;">⭐</small>
+                            </h2>
+                        </div>
+                        <i class="bi bi-star-fill" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-2 opacity-75">Total de Capítulos</h6>
+                            <h2 class="card-title mb-0">{{ platform_stats.total_chapters }}</h2>
+                        </div>
+                        <i class="bi bi-journal-text" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estatísticas dos Seus Interesses -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Seus Contatos e Interesses</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h3 class="text-primary">{{ interest_stats.total }}</h3>
+                            <p class="text-muted mb-0">Total de Contatos</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h3 class="text-warning">{{ interest_stats.pending }}</h3>
+                            <p class="text-muted mb-0">Pendentes</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h3 class="text-info">{{ interest_stats.contacted }}</h3>
+                            <p class="text-muted mb-0">Contatados</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h3 class="text-success">{{ interest_stats.negotiating }}</h3>
+                            <p class="text-muted mb-0">Em Negociação</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="row">
-        <div class="col-md-8">
-            <h3>Talentos em Destaque</h3>
-            <p class="text-muted">Autores com alto engajamento e avaliações positivas</p>
+        <!-- Coluna Principal - Livros em Destaque -->
+        <div class="col-lg-9">
+            <!-- Filtros -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3"><i class="bi bi-funnel"></i> Filtros de Busca</h5>
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Gênero</label>
+                            <select name="genre" class="form-select" onchange="this.form.submit()">
+                                <option value="">Todos os Gêneros</option>
+                                {% for value, label in genres %}
+                                    <option value="{{ value }}" {% if current_genre == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Avaliação Mínima</label>
+                            <select name="min_rating" class="form-select" onchange="this.form.submit()">
+                                <option value="3.0" {% if min_rating == "3.0" %}selected{% endif %}>3.0+ ⭐</option>
+                                <option value="3.5" {% if min_rating == "3.5" %}selected{% endif %}>3.5+ ⭐</option>
+                                <option value="4.0" {% if min_rating == "4.0" %}selected{% endif %}>4.0+ ⭐</option>
+                                <option value="4.5" {% if min_rating == "4.5" %}selected{% endif %}>4.5+ ⭐</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Visualizações Mínimas</label>
+                            <select name="min_views" class="form-select" onchange="this.form.submit()">
+                                <option value="50" {% if min_views == "50" %}selected{% endif %}>50+</option>
+                                <option value="100" {% if min_views == "100" %}selected{% endif %}>100+</option>
+                                <option value="500" {% if min_views == "500" %}selected{% endif %}>500+</option>
+                                <option value="1000" {% if min_views == "1000" %}selected{% endif %}>1000+</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Ordenar por</label>
+                            <select name="sort" class="form-select" onchange="this.form.submit()">
+                                <option value="rating" {% if current_sort == "rating" %}selected{% endif %}>Melhor Avaliação</option>
+                                <option value="views" {% if current_sort == "views" %}selected{% endif %}>Mais Visualizações</option>
+                                <option value="likes" {% if current_sort == "likes" %}selected{% endif %}>Mais Curtidas</option>
+                                <option value="recent" {% if current_sort == "recent" %}selected{% endif %}>Mais Recentes</option>
+                                <option value="chapters" {% if current_sort == "chapters" %}selected{% endif %}>Mais Capítulos</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Lista de Livros -->
+            <h3 class="mb-3">
+                <i class="bi bi-star-fill text-warning"></i>
+                Talentos em Destaque ({{ top_books|length }})
+            </h3>
 
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
                         <tr>
+                            <th style="width: 60px;"></th>
                             <th>Livro</th>
                             <th>Autor</th>
-                            <th>Avaliação</th>
-                            <th>Leituras</th>
-                            <th>Ação</th>
+                            <th class="text-center">Avaliação</th>
+                            <th class="text-center">Estatísticas</th>
+                            <th class="text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for book in top_books %}
                             <tr>
                                 <td>
-                                    <a href="{% url 'new_authors:book_detail' book.slug %}">{{ book.title }}</a>
+                                    {% if book.cover_image %}
+                                        <img src="{{ book.cover_image.url }}"
+                                             class="img-thumbnail"
+                                             style="width: 50px; height: 70px; object-fit: cover;"
+                                             alt="{{ book.title }}">
+                                    {% else %}
+                                        <div class="bg-gradient text-white d-flex align-items-center justify-content-center rounded"
+                                             style="width: 50px; height: 70px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                            <i class="bi bi-book"></i>
+                                        </div>
+                                    {% endif %}
                                 </td>
-                                <td>{{ book.author }}</td>
                                 <td>
-                                    <span class="rating-stars">
+                                    <a href="{% url 'new_authors:publisher_book_detail' book.id %}"
+                                       class="text-decoration-none fw-bold">
+                                        {{ book.title }}
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">
+                                        <span class="badge bg-secondary">{{ book.get_genre_display }}</span>
+                                    </small>
+                                </td>
+                                <td>
+                                    <a href="{% url 'new_authors:author_profile' book.author.user.username %}"
+                                       class="text-decoration-none">
+                                        {{ book.author }}
+                                        {% if book.author.is_verified %}
+                                            <i class="bi bi-patch-check-fill text-primary" title="Autor Verificado"></i>
+                                        {% endif %}
+                                    </a>
+                                </td>
+                                <td class="text-center">
+                                    <div class="rating-stars mb-1">
                                         {% for i in "12345" %}
-                                            {% if forloop.counter <= book.rating_average %}⭐{% endif %}
+                                            {% if forloop.counter <= book.rating_average %}
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            {% else %}
+                                                <i class="bi bi-star text-muted"></i>
+                                            {% endif %}
                                         {% endfor %}
-                                    </span>
-                                    {{ book.rating_average|floatformat:1 }}
+                                    </div>
+                                    <small class="text-muted">
+                                        {{ book.rating_average|floatformat:1 }} ({{ book.rating_count }})
+                                    </small>
                                 </td>
-                                <td>{{ book.views_count }}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary" onclick="expressInterest({{ book.id }})">
-                                        Demonstrar Interesse
+                                <td class="text-center">
+                                    <small class="d-block">
+                                        <i class="bi bi-eye text-primary"></i> {{ book.views_count }}
+                                    </small>
+                                    <small class="d-block">
+                                        <i class="bi bi-heart text-danger"></i> {{ book.likes_count }}
+                                    </small>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{% url 'new_authors:publisher_book_detail' book.id %}"
+                                       class="btn btn-sm btn-outline-primary mb-1">
+                                        <i class="bi bi-eye"></i> Ver Detalhes
+                                    </a>
+                                    <button class="btn btn-sm btn-primary"
+                                            onclick="expressInterest({{ book.id }})">
+                                        <i class="bi bi-hand-thumbs-up"></i> Demonstrar Interesse
                                     </button>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                                    <p class="text-muted mt-3">Nenhum livro encontrado com os filtros selecionados.</p>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -50,21 +264,90 @@
             </div>
         </div>
 
-        <div class="col-md-4">
-            <h3>Seus Contatos</h3>
-            {% for interest in interests %}
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h6>{{ interest.book.title }}</h6>
-                        <p class="small text-muted mb-1">{{ interest.book.author }}</p>
-                        <span class="badge {% if interest.status == 'pending' %}bg-warning{% elif interest.status == 'contacted' %}bg-info{% else %}bg-success{% endif %}">
-                            {{ interest.get_status_display }}
-                        </span>
-                    </div>
+        <!-- Sidebar - Autores em Destaque e Seus Contatos -->
+        <div class="col-lg-3">
+            <!-- Top Autores -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="bi bi-trophy"></i> Top Autores</h6>
                 </div>
-            {% empty %}
-                <p class="text-muted">Nenhum contato ainda.</p>
-            {% endfor %}
+                <div class="list-group list-group-flush">
+                    {% for author in top_authors %}
+                        <a href="{% url 'new_authors:author_profile' author.user.username %}"
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex align-items-center">
+                                {% if author.photo %}
+                                    <img src="{{ author.photo.url }}"
+                                         class="rounded-circle me-2"
+                                         style="width: 40px; height: 40px; object-fit: cover;"
+                                         alt="{{ author }}">
+                                {% else %}
+                                    <div class="bg-secondary text-white rounded-circle me-2 d-flex align-items-center justify-content-center"
+                                         style="width: 40px; height: 40px;">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold small">
+                                        {{ author.user.get_full_name|default:author.user.username }}
+                                        {% if author.is_verified %}
+                                            <i class="bi bi-patch-check-fill text-primary"></i>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">
+                                        {{ author.total_books }} livros • {{ author.total_views }} views
+                                    </small>
+                                </div>
+                            </div>
+                        </a>
+                    {% empty %}
+                        <div class="list-group-item text-center text-muted">
+                            <small>Nenhum autor encontrado</small>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Seus Contatos Recentes -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="bi bi-envelope"></i> Seus Contatos Recentes</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for interest in interests %}
+                        <div class="list-group-item">
+                            <a href="{% url 'new_authors:publisher_book_detail' interest.book.id %}"
+                               class="text-decoration-none d-block">
+                                <h6 class="mb-1">{{ interest.book.title|truncatewords:5 }}</h6>
+                            </a>
+                            <p class="small text-muted mb-1">
+                                por {{ interest.book.author }}
+                            </p>
+                            <span class="badge
+                                {% if interest.status == 'pending' %}bg-warning
+                                {% elif interest.status == 'contacted' %}bg-info
+                                {% elif interest.status == 'negotiating' %}bg-success
+                                {% else %}bg-secondary{% endif %}">
+                                {{ interest.get_status_display }}
+                            </span>
+                            <small class="text-muted d-block mt-1">
+                                {{ interest.created_at|date:"d/m/Y" }}
+                            </small>
+                        </div>
+                    {% empty %}
+                        <div class="list-group-item text-center text-muted">
+                            <small>Nenhum contato ainda</small>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if interests %}
+                    <div class="card-footer text-center">
+                        <small>
+                            <a href="#" class="text-decoration-none">Ver todos os contatos</a>
+                        </small>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
@@ -75,12 +358,13 @@
 function expressInterest(bookId) {
     const message = prompt('Escreva uma mensagem para o autor (mínimo 20 caracteres):');
     if (!message || message.length < 20) {
-        alert('Mensagem muito curta!');
+        alert('Mensagem muito curta! Por favor, escreva pelo menos 20 caracteres.');
         return;
     }
 
     const formData = new FormData();
     formData.append('message', message);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
     fetch(`/novos-autores/api/interesse/${bookId}/`, {
         method: 'POST',
@@ -95,6 +379,10 @@ function expressInterest(bookId) {
         if (data.status === 'success') {
             location.reload();
         }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Ocorreu um erro ao enviar o interesse.');
     });
 }
 </script>
