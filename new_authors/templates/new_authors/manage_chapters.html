@@ -42,7 +42,7 @@
                                 <tbody>
                                     {% for chapter in chapters %}
                                         <tr>
-                                            <td class="text-center">{{ chapter.chapter_number }}</td>
+                                            <td class="text-center">{{ chapter.number }}</td>
                                             <td>
                                                 <strong>{{ chapter.title }}</strong>
                                                 {% if chapter.author_notes %}
@@ -70,7 +70,7 @@
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
                                                 {% if chapter.is_published %}
-                                                    <a href="{% url 'new_authors:chapter_read' book.slug chapter.chapter_number %}"
+                                                    <a href="{% url 'new_authors:chapter_read' book.slug chapter.number %}"
                                                        class="btn btn-sm btn-outline-info" title="Visualizar" target="_blank">
                                                         <i class="bi bi-eye"></i>
                                                     </a>

@@ -13,7 +13,7 @@ class AuthorBookForm(forms.ModelForm):
         model = AuthorBook
         fields = [
             'title', 'synopsis', 'genre', 'cover_image',
-            'target_audience', 'tags', 'content_warning', 'status'
+            'tags', 'status'
         ]
         widgets = {
             'title': forms.TextInput(attrs={
@@ -32,17 +32,9 @@ class AuthorBookForm(forms.ModelForm):
                 'class': 'form-control',
                 'accept': 'image/*'
             }),
-            'target_audience': forms.Select(attrs={
-                'class': 'form-select'
-            }),
             'tags': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'romance, fantasia, aventura (separados por vírgula)'
-            }),
-            'content_warning': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 2,
-                'placeholder': 'Avisos sobre conteúdo sensível (opcional)'
             }),
             'status': forms.Select(attrs={
                 'class': 'form-select'
@@ -53,9 +45,7 @@ class AuthorBookForm(forms.ModelForm):
             'synopsis': 'Sinopse',
             'genre': 'Gênero',
             'cover_image': 'Capa do Livro',
-            'target_audience': 'Público-Alvo',
             'tags': 'Tags',
-            'content_warning': 'Avisos de Conteúdo',
             'status': 'Status',
         }
 

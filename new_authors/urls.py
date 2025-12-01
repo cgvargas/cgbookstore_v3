@@ -34,6 +34,7 @@ urlpatterns = [
 
     # Interações
     path('api/seguir/<int:book_id>/', views.follow_book, name='follow_book'),
+    path('api/curtir/<int:book_id>/', views.like_book, name='like_book'),
     path('api/avaliar/<int:book_id>/', views.submit_review, name='submit_review'),
     path('api/review/<int:review_id>/util/', views.mark_review_helpful, name='mark_review_helpful'),
 

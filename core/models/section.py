@@ -29,6 +29,7 @@ class Section(models.Model):
         ('grid_masonry', 'Grid Masonry (Pinterest style)'),
         ('horizontal_scroll', 'Scroll Horizontal'),
         ('spotlight', 'Destaque com Overlay'),
+        ('banner_only', 'Apenas Banner (sem itens)'),
     ]
 
     # Campos básicos

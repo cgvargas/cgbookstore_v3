@@ -18,6 +18,7 @@ from .models import (
     Chapter,
     AuthorBookReview,
     BookFollower,
+    BookLike,
     PublisherProfile,
     PublisherInterest
 )
@@ -86,7 +87,7 @@ def book_detail(request, slug):
         if not request.user.is_authenticated:
             return HttpResponseForbidden("Este livro ainda não foi publicado.")
         try:
-            author = request.user.emerging_author
+            author = request.user.emerging_author_profile
             if book.author != author:
                 return HttpResponseForbidden("Este livro ainda não foi publicado.")
         except (EmergingAuthor.DoesNotExist, AttributeError):
@@ -96,7 +97,7 @@ def book_detail(request, slug):
     is_author = False
     if request.user.is_authenticated:
         try:
-            author = request.user.emerging_author
+            author = request.user.emerging_author_profile
             is_author = (book.author == author)
         except (EmergingAuthor.DoesNotExist, AttributeError):
             pass
@@ -107,18 +108,20 @@ def book_detail(request, slug):
 
     # Capítulos (autor vê todos, outros só publicados)
     if is_author:
-        chapters = book.chapters.all().order_by('chapter_number')
+        chapters = book.chapters.all().order_by('number')
     else:
-        chapters = book.chapters.filter(is_published=True).order_by('chapter_number')
+        chapters = book.chapters.filter(is_published=True).order_by('number')
 
     # Reviews aprovadas
     reviews = book.reviews.filter(is_approved=True).select_related('user').order_by('-created_at')[:10]
 
-    # Verificar se usuário já segue o livro
+    # Verificar se usuário já segue o livro e curtiu
     is_following = False
+    has_liked = False
     user_review = None
     if request.user.is_authenticated:
         is_following = BookFollower.objects.filter(book=book, user=request.user).exists()
+        has_liked = BookLike.objects.filter(book=book, user=request.user).exists()
         try:
             user_review = AuthorBookReview.objects.get(book=book, user=request.user)
         except AuthorBookReview.DoesNotExist:
@@ -135,6 +138,7 @@ def book_detail(request, slug):
         'chapters': chapters,
         'reviews': reviews,
         'is_following': is_following,
+        'has_liked': has_liked,
         'user_review': user_review,
         'related_books': related_books,
         'is_author': is_author,
@@ -150,7 +154,7 @@ def chapter_read(request, book_slug, chapter_number):
     is_author = False
     if request.user.is_authenticated:
         try:
-            author = request.user.emerging_author
+            author = request.user.emerging_author_profile
             is_author = (book.author == author)
         except (EmergingAuthor.DoesNotExist, AttributeError):
             pass
@@ -301,6 +305,32 @@ def follow_book(request, book_id):
         return JsonResponse({'status': 'unfollowed', 'message': 'Você deixou de seguir este livro.'})
     else:
         return JsonResponse({'status': 'followed', 'message': 'Você está seguindo este livro!'})
+
+
+@login_required
+@require_POST
+def like_book(request, book_id):
+    """Curtir/descurtir um livro"""
+    book = get_object_or_404(AuthorBook, id=book_id)
+
+    like, created = BookLike.objects.get_or_create(
+        book=book,
+        user=request.user
+    )
+
+    if not created:
+        like.delete()
+        return JsonResponse({
+            'status': 'unliked',
+            'message': 'Você removeu sua curtida deste livro.',
+            'likes_count': book.likes_count
+        })
+    else:
+        return JsonResponse({
+            'status': 'liked',
+            'message': 'Você curtiu este livro!',
+            'likes_count': book.likes_count
+        })
 
 
 @login_required
@@ -480,7 +510,7 @@ def manage_book(request, book_id=None):
     from .forms import AuthorBookForm
 
     try:
-        author = request.user.emerging_author
+        author = request.user.emerging_author_profile
     except EmergingAuthor.DoesNotExist:
         messages.error(request, 'Você precisa ser um autor para acessar esta página.')
         return redirect('new_authors:become_author')
@@ -529,13 +559,13 @@ def manage_book(request, book_id=None):
 def manage_chapters(request, book_id):
     """Gerenciar capítulos de um livro (apenas autor do livro)"""
     try:
-        author = request.user.emerging_author
+        author = request.user.emerging_author_profile
     except EmergingAuthor.DoesNotExist:
         messages.error(request, 'Você precisa ser um autor para acessar esta página.')
         return redirect('new_authors:become_author')
 
     book = get_object_or_404(AuthorBook, id=book_id, author=author)
-    chapters = book.chapters.all().order_by('chapter_number')
+    chapters = book.chapters.all().order_by('number')
 
     context = {
         'book': book,
@@ -550,7 +580,7 @@ def edit_chapter(request, book_id, chapter_id=None):
     from .forms import ChapterForm
 
     try:
-        author = request.user.emerging_author
+        author = request.user.emerging_author_profile
     except EmergingAuthor.DoesNotExist:
         messages.error(request, 'Você precisa ser um autor para acessar esta página.')
         return redirect('new_authors:become_author')
@@ -571,8 +601,8 @@ def edit_chapter(request, book_id, chapter_id=None):
             if not is_editing:
                 chapter.book = book
                 # Definir número do capítulo automaticamente
-                last_chapter = book.chapters.order_by('-chapter_number').first()
-                chapter.chapter_number = (last_chapter.chapter_number + 1) if last_chapter else 1
+                last_chapter = book.chapters.order_by('-number').first()
+                chapter.number = (last_chapter.number + 1) if last_chapter else 1
 
             chapter.save()
             messages.success(request, 'Capítulo salvo com sucesso!' if is_editing else 'Capítulo criado com sucesso!')
@@ -596,7 +626,7 @@ def edit_chapter(request, book_id, chapter_id=None):
 def delete_chapter(request, chapter_id):
     """Deletar capítulo (apenas autor do livro)"""
     try:
-        author = request.user.emerging_author
+        author = request.user.emerging_author_profile
     except EmergingAuthor.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Acesso negado.'}, status=403)
 
@@ -605,10 +635,10 @@ def delete_chapter(request, chapter_id):
     chapter.delete()
 
     # Renumerar capítulos
-    chapters = Chapter.objects.filter(book_id=book_id).order_by('chapter_number')
+    chapters = Chapter.objects.filter(book_id=book_id).order_by('number')
     for idx, ch in enumerate(chapters, start=1):
-        if ch.chapter_number != idx:
-            ch.chapter_number = idx
+        if ch.number != idx:
+            ch.number = idx
             ch.save()
 
     messages.success(request, 'Capítulo deletado com sucesso!')
@@ -620,7 +650,7 @@ def delete_chapter(request, chapter_id):
 def delete_book(request, book_id):
     """Deletar livro (apenas autor)"""
     try:
-        author = request.user.emerging_author
+        author = request.user.emerging_author_profile
     except EmergingAuthor.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Acesso negado.'}, status=403)
 

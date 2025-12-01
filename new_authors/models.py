@@ -139,7 +139,9 @@ class AuthorBook(models.Model):
     )
     description = models.TextField(
         'Descrição Completa',
-        help_text='Descrição detalhada do livro e enredo'
+        help_text='Descrição detalhada do livro e enredo',
+        blank=True,
+        default=''
     )
 
     # Capa
@@ -274,6 +276,13 @@ class Chapter(models.Model):
         max_length=500,
         blank=True,
         help_text='Primeiras linhas do capítulo'
+    )
+
+    # Notas do autor
+    author_notes = models.TextField(
+        'Notas do Autor',
+        blank=True,
+        help_text='Notas ou comentários do autor sobre o capítulo'
     )
 
     # Controle
@@ -433,6 +442,52 @@ class BookFollower(models.Model):
 
     def __str__(self):
         return f"{self.user.username} segue {self.book.title}"
+
+
+class BookLike(models.Model):
+    """
+    Curtidas de um livro
+    """
+    book = models.ForeignKey(
+        AuthorBook,
+        on_delete=models.CASCADE,
+        related_name='likes'
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='liked_books'
+    )
+
+    # Metadata
+    created_at = models.DateTimeField('Curtido em', auto_now_add=True)
+
+    class Meta:
+        db_table = 'new_authors_book_like'
+        verbose_name = 'Curtida de Livro'
+        verbose_name_plural = 'Curtidas de Livros'
+        unique_together = ['book', 'user']
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['book'], name='idx_like_book'),
+            models.Index(fields=['user'], name='idx_like_user'),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} curtiu {self.book.title}"
+
+    def save(self, *args, **kwargs):
+        """Atualiza o contador de curtidas do livro ao salvar"""
+        super().save(*args, **kwargs)
+        self.book.likes_count = self.book.likes.count()
+        self.book.save(update_fields=['likes_count'])
+
+    def delete(self, *args, **kwargs):
+        """Atualiza o contador de curtidas do livro ao deletar"""
+        book = self.book
+        super().delete(*args, **kwargs)
+        book.likes_count = book.likes.count()
+        book.save(update_fields=['likes_count'])
 
 
 class PublisherProfile(models.Model):

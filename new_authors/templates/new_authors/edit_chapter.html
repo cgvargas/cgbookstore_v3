@@ -33,7 +33,7 @@
                             </label>
                             {{ form.title }}
                             {% if chapter %}
-                                <div class="form-text">Capítulo #{{ chapter.chapter_number }}</div>
+                                <div class="form-text">Capítulo #{{ chapter.number }}</div>
                             {% endif %}
                             {% if form.title.errors %}
                                 <div class="text-danger small">{{ form.title.errors }}</div>

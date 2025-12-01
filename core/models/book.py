@@ -209,3 +209,15 @@ class Book(models.Model):
         Retorna True se houver uma imagem de capa carregada.
         """
         return bool(self.cover_image and self.cover_image.name)
+
+    @property
+    def cover_image_url(self):
+        """
+        Retorna a URL da capa com cache-buster baseado no updated_at.
+        Isso força o navegador a recarregar a imagem quando ela é atualizada.
+        """
+        if self.cover_image:
+            # Usar timestamp do updated_at como versão
+            version = int(self.updated_at.timestamp())
+            return f"{self.cover_image.url}?v={version}"
+        return None

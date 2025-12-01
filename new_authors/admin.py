@@ -9,6 +9,7 @@ from .models import (
     Chapter,
     AuthorBookReview,
     BookFollower,
+    BookLike,
     PublisherProfile,
     PublisherInterest
 )
@@ -267,6 +268,14 @@ class AuthorBookReviewAdmin(admin.ModelAdmin):
 class BookFollowerAdmin(admin.ModelAdmin):
     list_display = ['book', 'user', 'notify_new_chapter', 'notify_updates', 'created_at']
     list_filter = ['notify_new_chapter', 'notify_updates', 'created_at']
+    search_fields = ['book__title', 'user__username']
+    readonly_fields = ['created_at']
+
+
+@admin.register(BookLike)
+class BookLikeAdmin(admin.ModelAdmin):
+    list_display = ['book', 'user', 'created_at']
+    list_filter = ['created_at']
     search_fields = ['book__title', 'user__username']
     readonly_fields = ['created_at']
 

@@ -24,8 +24,13 @@
                 {% endif %}
 
                 {% if user.is_authenticated %}
+                    <button class="btn btn-outline-danger" id="like-button" onclick="likeBook({{ book.id }})">
+                        <i class="bi bi-{% if has_liked %}heart-fill{% else %}heart{% endif %}" id="like-icon"></i>
+                        <span id="like-text">{% if has_liked %}Descurtir{% else %}Curtir{% endif %}</span>
+                    </button>
+
                     <button class="btn btn-outline-primary" onclick="followBook({{ book.id }})">
-                        <i class="bi bi-{% if is_following %}heart-fill{% else %}heart{% endif %}"></i>
+                        <i class="bi bi-{% if is_following %}bookmark-fill{% else %}bookmark{% endif %}"></i>
                         <span id="follow-text">{% if is_following %}Deixar de seguir{% else %}Seguir livro{% endif %}</span>
                     </button>
                 {% endif %}
@@ -39,7 +44,7 @@
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <span><i class="bi bi-heart"></i> Curtidas:</span>
-                    <strong>{{ book.likes_count }}</strong>
+                    <strong id="likes-count">{{ book.likes_count }}</strong>
                 </div>
                 <div class="d-flex justify-content-between">
                     <span><i class="bi bi-book"></i> Capítulos:</span>
@@ -195,6 +200,41 @@
 
 {% block extra_js %}
 <script>
+function likeBook(bookId) {
+    fetch(`/novos-autores/api/curtir/${bookId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Atualizar o ícone e texto do botão
+        const likeIcon = document.getElementById('like-icon');
+        const likeText = document.getElementById('like-text');
+        const likesCount = document.getElementById('likes-count');
+
+        if (data.status === 'liked') {
+            likeIcon.className = 'bi bi-heart-fill';
+            likeText.textContent = 'Descurtir';
+        } else {
+            likeIcon.className = 'bi bi-heart';
+            likeText.textContent = 'Curtir';
+        }
+
+        // Atualizar contador
+        likesCount.textContent = data.likes_count;
+
+        // Mostrar mensagem
+        alert(data.message);
+    })
+    .catch(error => {
+        console.error('Erro ao curtir livro:', error);
+        alert('Erro ao processar sua ação. Tente novamente.');
+    });
+}
+
 function followBook(bookId) {
     fetch(`/novos-autores/api/seguir/${bookId}/`, {
         method: 'POST',

@@ -5,21 +5,217 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Autores Emergentes{% endblock %} - CG.BookStore</title>
+
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Sistema de Temas -->
+    <link rel="stylesheet" href="{% static 'css/themes.css' %}">
+
     <style>
-        :root {
-            --primary-color: #6366f1;
-            --secondary-color: #8b5cf6;
+        /* Estilos específicos de Autores Emergentes adaptados aos temas */
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color) !important;
         }
-        .navbar-brand { font-weight: 700; color: var(--primary-color) !important; }
-        .btn-primary { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border: none; }
-        .btn-primary:hover { opacity: 0.9; }
-        .book-card { transition: transform 0.3s; cursor: pointer; }
-        .book-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-        .book-cover { height: 300px; object-fit: cover; }
-        .rating-stars { color: #ffc107; }
-        .hero-section { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 80px 0; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            color: var(--text-light);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .book-card {
+            transition: transform 0.3s;
+            cursor: pointer;
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--border-hover);
+        }
+
+        .book-cover {
+            height: 300px;
+            object-fit: contain;
+            width: 100%;
+            background-color: var(--card-bg);
+        }
+
+        .rating-stars {
+            color: var(--star-color);
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 80px 0;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .table {
+            color: var(--text-primary);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: var(--sidebar-bg);
+        }
+
+        .form-control, .form-select {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-primary);
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--input-bg);
+            border-color: var(--input-focus);
+            color: var(--text-primary);
+        }
+
+        /* Placeholder no tema escuro */
+        [data-theme="dark"] .form-control::placeholder {
+            color: #cccccc !important;
+            opacity: 1;
+        }
+
+        [data-theme="dark"] input[type="search"]::placeholder,
+        [data-theme="dark"] input[type="text"]::placeholder,
+        [data-theme="dark"] textarea::placeholder {
+            color: #cccccc !important;
+            opacity: 1;
+        }
+
+        /* Texto de input no tema escuro */
+        [data-theme="dark"] input[type="search"],
+        [data-theme="dark"] input[type="text"],
+        [data-theme="dark"] textarea {
+            color: var(--text-primary) !important;
+        }
+
+        .badge {
+            color: var(--text-light);
+        }
+
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        /* Link de retorno para CG.BookStore */
+        .navbar-nav .nav-link i.bi-house-door {
+            margin-right: 4px;
+        }
+
+        .navbar-nav.me-auto .nav-link {
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-nav.me-auto .nav-link:hover {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color) !important;
+        }
+
+        [data-theme="dark"] .navbar-nav.me-auto .nav-link:hover {
+            background-color: rgba(93, 195, 209, 0.15);
+            color: var(--primary-color) !important;
+        }
+
+        /* Dark theme específico */
+        [data-theme="dark"] .navbar-light {
+            background-color: var(--navbar-bg) !important;
+        }
+
+        [data-theme="dark"] .navbar-light .navbar-brand,
+        [data-theme="dark"] .navbar-light .nav-link {
+            color: var(--text-light) !important;
+        }
+
+        [data-theme="dark"] .bg-light {
+            background-color: var(--card-bg) !important;
+        }
+
+        /* Dropdown de tema */
+        .dropdown-item i {
+            width: 20px;
+            margin-right: 8px;
+        }
+
+        /* Dropdown tema claro */
+        [data-theme="light"] .dropdown-item,
+        :root:not([data-theme]) .dropdown-item {
+            color: #0f1111;
+        }
+
+        [data-theme="light"] .dropdown-item i,
+        :root:not([data-theme]) .dropdown-item i {
+            color: #0f1111;
+        }
+
+        /* Dropdown tema escuro */
+        [data-theme="dark"] .dropdown-menu {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .dropdown-item {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .dropdown-item:hover {
+            background-color: var(--sidebar-bg);
+            color: var(--text-link);
+        }
+
+        [data-theme="dark"] .dropdown-item.active {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+        }
+
+        /* Footer no tema escuro */
+        [data-theme="dark"] .bg-dark {
+            background-color: var(--footer-bg) !important;
+        }
+
+        /* Links do footer */
+        .footer-nav a {
+            transition: all 0.3s ease;
+            opacity: 0.9;
+        }
+
+        .footer-nav a:hover {
+            opacity: 1;
+            text-decoration: underline !important;
+        }
+
+        .footer-nav a i {
+            margin-right: 4px;
+        }
+
+        /* Alertas */
+        [data-theme="dark"] .alert {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -33,6 +229,13 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'core:home' %}">
+                            <i class="bi bi-house-door"></i> CG.BookStore
+                        </a>
+                    </li>
+                </ul>
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'new_authors:books_list' %}">Explorar Livros</a>
@@ -54,6 +257,17 @@
                             </a>
                         </li>
                     {% endif %}
+                    <!-- Seletor de Tema -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="themeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-palette"></i> Tema
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeDropdown">
+                            <li><a class="dropdown-item theme-option" href="#" data-theme="light"><i class="fas fa-sun"></i> Claro</a></li>
+                            <li><a class="dropdown-item theme-option" href="#" data-theme="dark"><i class="fas fa-moon"></i> Escuro</a></li>
+                            <li><a class="dropdown-item theme-option" href="#" data-theme="auto"><i class="fas fa-circle-half-stroke"></i> Sistema</a></li>
+                        </ul>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -73,13 +287,77 @@
     {% block content %}{% endblock %}
 
     <footer class="bg-dark text-white mt-5 py-4">
-        <div class="container text-center">
-            <p class="mb-0">&copy; 2025 CG.BookStore - Plataforma de Autores Emergentes</p>
-            <p class="small text-muted">Dê asas ao seu talento literário</p>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <p class="mb-1">&copy; 2025 CG.BookStore - Plataforma de Autores Emergentes</p>
+                    <p class="small text-muted mb-0">Dê asas ao seu talento literário</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <nav class="footer-nav">
+                        <a href="{% url 'core:home' %}" class="text-white text-decoration-none me-3">
+                            <i class="bi bi-house-door"></i> Página Principal
+                        </a>
+                        <a href="{% url 'new_authors:books_list' %}" class="text-white text-decoration-none">
+                            <i class="bi bi-book"></i> Explorar Livros
+                        </a>
+                    </nav>
+                </div>
+            </div>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script de Gerenciamento de Temas -->
+    <script>
+        // Função para aplicar o tema
+        function applyTheme(theme) {
+            if (theme === 'auto') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        }
+
+        // Carregar tema salvo ou usar padrão
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+
+        // Detectar mudança de preferência do sistema quando em modo auto
+        if (savedTheme === 'auto') {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (localStorage.getItem('theme') === 'auto') {
+                    applyTheme('auto');
+                }
+            });
+        }
+
+        // Event listeners para os botões de tema
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeButtons = document.querySelectorAll('.theme-option');
+
+            themeButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const theme = this.getAttribute('data-theme');
+                    localStorage.setItem('theme', theme);
+                    applyTheme(theme);
+
+                    // Atualizar indicador visual
+                    themeButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                });
+
+                // Marcar o tema atual como ativo
+                if (button.getAttribute('data-theme') === savedTheme) {
+                    button.classList.add('active');
+                }
+            });
+        });
+    </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -98,16 +98,35 @@ class SupabaseStorage:
             else:
                 path = filename
 
-            # Fazer upload
+            # Ler conteúdo do arquivo
             file.seek(0)  # Garantir que está no início do arquivo
-            response = self.storage.from_(bucket).upload(
-                path=path,
-                file=file.read(),
-                file_options={"content-type": self._get_content_type(filename)}
-            )
+            file_content = file.read()
+            content_type = self._get_content_type(filename)
+
+            # Verificar se arquivo já existe
+            existing_files = self.list_files(bucket, folder)
+            file_exists = any(f.get('name') == filename for f in existing_files)
+
+            # Se arquivo existe, atualizar; senão, fazer upload
+            if file_exists:
+                logger.info(f"Arquivo {path} já existe, atualizando...")
+                response = self.storage.from_(bucket).update(
+                    path=path,
+                    file=file_content,
+                    file_options={"content-type": content_type, "upsert": "true"}
+                )
+            else:
+                logger.info(f"Fazendo upload do arquivo {path}...")
+                response = self.storage.from_(bucket).upload(
+                    path=path,
+                    file=file_content,
+                    file_options={"content-type": content_type}
+                )
 
             # Retornar URL pública
-            return self.get_public_url(bucket, path)
+            public_url = self.get_public_url(bucket, path)
+            logger.info(f"Upload/atualização concluída: {public_url}")
+            return public_url
 
         except Exception as e:
             logger.error(f"Erro no upload para Supabase: {str(e)}")

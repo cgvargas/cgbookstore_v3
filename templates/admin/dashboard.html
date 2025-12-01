@@ -403,6 +403,18 @@
         </div>
     </a>
 
+    <!-- NEW AUTHORS CARD -->
+    <a href="{% url 'admin:new_authors_authorbook_changelist' %}" class="stat-card-link">
+        <div class="stat-card success">
+            <div class="stat-card-header">
+                <span class="stat-card-title">Autores Emergentes</span>
+                <span class="stat-card-icon">✨</span>
+            </div>
+            <div class="stat-card-value">{{ new_authors_stats.total_books|default:0 }}</div>
+            <div class="stat-card-label">{{ new_authors_stats.total_authors|default:0 }} autores • {{ new_authors_stats.total_chapters|default:0 }} capítulos</div>
+        </div>
+    </a>
+
     {% if finance_stats %}
     <!-- FINANCE STATISTICS -->
     <a href="{% url 'admin:finance_subscription_changelist' %}" class="stat-card-link">
@@ -466,6 +478,9 @@
         <a href="{% url 'admin:core_video_add' %}" class="action-btn">
             🎥 Adicionar Vídeo
         </a>
+        <a href="{% url 'admin:new_authors_authorbook_add' %}" class="action-btn success" style="background: #8b5cf6;">
+            ✨ Publicar Livro de Autor Emergente
+        </a>
     </div>
 </div>
 
@@ -494,6 +509,9 @@
         </a>
         <a href="{% url 'admin:app_list' 'debates' %}" class="action-btn" style="background: #e83e8c;">
             💬 Sistema de Debates
+        </a>
+        <a href="{% url 'admin:app_list' 'new_authors' %}" class="action-btn" style="background: #8b5cf6;">
+            ✨ Autores Emergentes
         </a>
     </div>
 </div>

@@ -171,6 +171,44 @@
     .book-card-link .book-card {
         cursor: pointer;
     }
+
+    /* Banner da Seção */
+    .section-banner-wrapper {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 2rem;
+    }
+
+    .section-banner-wrapper img {
+        display: block;
+        width: 100%;
+        max-height: 400px;
+        object-fit: cover;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .section-banner-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 2rem 1.5rem;
+        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+        border-radius: 0 0 8px 8px;
+    }
+
+    .section-banner-overlay h2 {
+        color: white;
+        margin-bottom: 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .section-banner-overlay p {
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 0;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    }
 </style>
 {% endblock %}
 
@@ -187,18 +225,14 @@
 
     <!-- Seções Dinâmicas (usando estrutura de dicts para performance) -->
     {% for section in sections %}
+    <!-- DEBUG: Secao {{ section.title }} - Banner URL: {{ section.banner_image_url }} -->
     <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative {% if forloop.first %}section-overlap-banner{% endif %}">
         <!-- Banner da Seção (se existir) -->
         {% if section.banner_image_url %}
-        <div class="section-banner-wrapper position-relative" style="margin-bottom: 2rem;">
-            <img src="{{ section.banner_image_url }}"
-                 class="w-100"
-                 style="max-height: 400px; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"
-                 alt="{{ section.title }}">
-            <!-- Overlay com gradiente para melhor legibilidade do título -->
-            <div class="position-absolute bottom-0 start-0 w-100 p-4"
-                 style="background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); border-radius: 0 0 8px 8px;">
-                <h2 class="text-white mb-0">
+        <div class="section-banner-wrapper">
+            <img src="{{ section.banner_image_url }}" alt="{{ section.title }}" loading="lazy">
+            <div class="section-banner-overlay">
+                <h2>
                     {% if section.content_type == 'books' %}
                         <i class="fas fa-book me-2"></i>
                     {% elif section.content_type == 'authors' %}
@@ -213,7 +247,7 @@
                     {{ section.title }}
                 </h2>
                 {% if section.subtitle %}
-                    <p class="text-white-50 mb-0">{{ section.subtitle }}</p>
+                    <p>{{ section.subtitle }}</p>
                 {% endif %}
             </div>
         </div>
@@ -252,7 +286,10 @@
             {% endif %}
 
             <!-- Renderização por Layout -->
-            {% if section.layout == 'carousel' %}
+            {% if section.layout == 'banner_only' %}
+                <!-- Layout: Apenas Banner (sem renderizar itens) -->
+
+            {% elif section.layout == 'carousel' %}
                 <!-- Layout Carrossel (Swiper) -->
                 <div class="swiper books-swiper">
                     <div class="swiper-wrapper">
