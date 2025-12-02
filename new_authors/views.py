@@ -382,29 +382,239 @@ def mark_review_helpful(request, review_id):
 # ========== VIEWS DE EDITORAS ==========
 
 @login_required
+def become_publisher(request):
+    """Página para se tornar uma editora"""
+    # Verificar se já é editora
+    try:
+        publisher = request.user.publisher_profile
+        return redirect('new_authors:publisher_dashboard')
+    except PublisherProfile.DoesNotExist:
+        pass
+
+    if request.method == 'POST':
+        company_name = request.POST.get('company_name')
+        description = request.POST.get('description')
+        email = request.POST.get('email')
+        website = request.POST.get('website', '')
+        phone = request.POST.get('phone', '')
+
+        # Validações
+        if not company_name or len(company_name) < 3:
+            messages.error(request, 'Nome da editora deve ter pelo menos 3 caracteres.')
+            return render(request, 'new_authors/become_publisher.html')
+
+        if not description or len(description) < 50:
+            messages.error(request, 'Descrição deve ter pelo menos 50 caracteres.')
+            return render(request, 'new_authors/become_publisher.html')
+
+        if not email:
+            messages.error(request, 'Email de contato é obrigatório.')
+            return render(request, 'new_authors/become_publisher.html')
+
+        # Criar perfil de editora (não verificado)
+        publisher = PublisherProfile.objects.create(
+            user=request.user,
+            company_name=company_name,
+            description=description,
+            email=email,
+            website=website,
+            phone=phone,
+            is_verified=False,  # Requer aprovação do administrador
+            is_active=True
+        )
+
+        messages.success(
+            request,
+            'Solicitação de cadastro enviada! Sua editora será analisada por nossa equipe. '
+            'Você receberá um email quando for aprovada.'
+        )
+        return redirect('new_authors:publisher_pending')
+
+    return render(request, 'new_authors/become_publisher.html')
+
+
+@login_required
+def publisher_pending(request):
+    """Página de aguardando aprovação para editoras"""
+    try:
+        publisher = request.user.publisher_profile
+    except PublisherProfile.DoesNotExist:
+        messages.warning(request, 'Você não tem um perfil de editora.')
+        return redirect('new_authors:become_publisher')
+
+    if publisher.is_verified:
+        return redirect('new_authors:publisher_dashboard')
+
+    context = {
+        'publisher': publisher,
+    }
+    return render(request, 'new_authors/publisher_pending.html', context)
+
+
+@login_required
 def publisher_dashboard(request):
     """Dashboard para editoras"""
     try:
         publisher = request.user.publisher_profile
     except PublisherProfile.DoesNotExist:
         messages.warning(request, 'Você não tem um perfil de editora.')
-        return redirect('new_authors:books_list')
+        return redirect('new_authors:become_publisher')
 
-    # Livros mais bem avaliados
-    top_books = AuthorBook.objects.filter(
+    # Verificar se está verificada
+    if not publisher.is_verified:
+        messages.warning(request, 'Sua editora ainda não foi verificada. Aguarde a aprovação.')
+        return redirect('new_authors:publisher_pending')
+
+    # Filtros
+    genre_filter = request.GET.get('genre')
+    min_rating = request.GET.get('min_rating', 4.0)
+    min_views = request.GET.get('min_views', 100)
+    sort_by = request.GET.get('sort', '-rating_average')
+
+    # Query base de livros
+    books_query = AuthorBook.objects.filter(
         status='published',
-        rating_count__gte=5
-    ).order_by('-rating_average', '-views_count')[:20]
+        rating_count__gte=3
+    ).select_related('author__user')
+
+    # Aplicar filtros
+    if genre_filter:
+        books_query = books_query.filter(genre=genre_filter)
+
+    try:
+        books_query = books_query.filter(
+            rating_average__gte=float(min_rating),
+            views_count__gte=int(min_views)
+        )
+    except (ValueError, TypeError):
+        pass
+
+    # Ordenação
+    valid_sorts = {
+        'rating': '-rating_average',
+        'views': '-views_count',
+        'likes': '-likes_count',
+        'recent': '-published_at',
+        'chapters': '-chapters__count'
+    }
+    sort_field = valid_sorts.get(sort_by, '-rating_average')
+
+    if sort_by == 'chapters':
+        books_query = books_query.annotate(
+            chapter_count=Count('chapters', filter=Q(chapters__is_published=True))
+        ).order_by('-chapter_count')
+    else:
+        books_query = books_query.order_by(sort_field)
+
+    # Limitar resultados
+    top_books = books_query[:30]
+
+    # Estatísticas gerais da plataforma
+    platform_stats = {
+        'total_books': AuthorBook.objects.filter(status='published').count(),
+        'total_authors': EmergingAuthor.objects.filter(is_active=True).count(),
+        'avg_rating': AuthorBook.objects.filter(
+            status='published',
+            rating_count__gte=1
+        ).aggregate(Avg('rating_average'))['rating_average__avg'] or 0,
+        'total_chapters': Chapter.objects.filter(is_published=True).count(),
+    }
+
+    # Top autores por engajamento
+    top_authors = EmergingAuthor.objects.filter(
+        is_active=True,
+        books__status='published'
+    ).annotate(
+        total_engagement=Count('books__reviews') + Count('books__followers')
+    ).order_by('-total_engagement', '-total_views')[:10]
 
     # Interesses da editora
-    interests = publisher.interests.all().select_related('book__author__user').order_by('-created_at')[:10]
+    interests = publisher.interests.all().select_related(
+        'book__author__user'
+    ).order_by('-created_at')
+
+    # Estatísticas dos interesses
+    interest_stats = {
+        'total': interests.count(),
+        'pending': interests.filter(status='pending').count(),
+        'contacted': interests.filter(status='contacted').count(),
+        'negotiating': interests.filter(status='negotiating').count(),
+    }
 
     context = {
         'publisher': publisher,
         'top_books': top_books,
-        'interests': interests,
+        'top_authors': top_authors,
+        'interests': interests[:10],
+        'platform_stats': platform_stats,
+        'interest_stats': interest_stats,
+        'genres': AuthorBook.GENRE_CHOICES,
+        'current_genre': genre_filter,
+        'current_sort': sort_by,
+        'min_rating': min_rating,
+        'min_views': min_views,
     }
     return render(request, 'new_authors/publisher_dashboard.html', context)
+
+
+@login_required
+def publisher_book_detail(request, book_id):
+    """Detalhes completos de um livro para editoras (com informações de contato do autor)"""
+    try:
+        publisher = request.user.publisher_profile
+    except PublisherProfile.DoesNotExist:
+        messages.warning(request, 'Você não tem um perfil de editora.')
+        return redirect('new_authors:books_list')
+
+    book = get_object_or_404(
+        AuthorBook.objects.select_related('author__user'),
+        id=book_id,
+        status='published'
+    )
+
+    # Verificar se já demonstrou interesse
+    existing_interest = PublisherInterest.objects.filter(
+        publisher=publisher,
+        book=book
+    ).first()
+
+    # Estatísticas detalhadas do livro
+    book_stats = {
+        'total_chapters': book.chapters.filter(is_published=True).count(),
+        'total_words': sum(ch.word_count for ch in book.chapters.filter(is_published=True)),
+        'avg_chapter_views': book.chapters.filter(is_published=True).aggregate(
+            Avg('views_count')
+        )['views_count__avg'] or 0,
+        'followers_count': book.followers.count(),
+        'likes_count': book.likes_count,
+        'reviews_count': book.reviews.filter(is_approved=True).count(),
+    }
+
+    # Outros livros do autor
+    author_books = book.author.books.filter(
+        status='published'
+    ).exclude(id=book.id).order_by('-published_at')[:5]
+
+    # Reviews em destaque
+    featured_reviews = book.reviews.filter(
+        is_approved=True
+    ).order_by('-helpful_count', '-created_at')[:5]
+
+    # Capítulos com mais views
+    top_chapters = book.chapters.filter(
+        is_published=True
+    ).order_by('-views_count')[:5]
+
+    context = {
+        'publisher': publisher,
+        'book': book,
+        'book_stats': book_stats,
+        'author_books': author_books,
+        'featured_reviews': featured_reviews,
+        'top_chapters': top_chapters,
+        'existing_interest': existing_interest,
+    }
+    return render(request, 'new_authors/publisher_book_detail.html', context)
 
 
 @login_required
