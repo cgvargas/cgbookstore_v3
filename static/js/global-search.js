@@ -252,9 +252,9 @@
         card.querySelector('.book-category span').textContent = book.category;
         card.querySelector('.book-publisher span').textContent = book.publisher || 'N/A';
 
-        // Configurar link de detalhes
+        // Configurar link de detalhes (USAR SLUG, NÃO ID)
         const btnViewDetails = card.querySelector('.btn-view-details');
-        btnViewDetails.href = elements.bookDetailUrlTemplate.replace('0', book.id);
+        btnViewDetails.href = elements.bookDetailUrlTemplate.replace('BOOK_SLUG_PLACEHOLDER', book.slug);
 
         return card;
     }
@@ -296,9 +296,9 @@
         const badgeAlready = card.querySelector('.already-in-catalog');
 
         if (book.exists_in_catalog) {
-            // Livro JÁ EXISTE: Mostrar link para página de detalhes
+            // Livro JÁ EXISTE: Mostrar link para página de detalhes (USAR SLUG, NÃO ID)
             btnViewDetails.innerHTML = '<i class="fas fa-eye"></i> Ver Detalhes';
-            btnViewDetails.href = elements.bookDetailUrlTemplate.replace('0', book.local_book_id);
+            btnViewDetails.href = elements.bookDetailUrlTemplate.replace('BOOK_SLUG_PLACEHOLDER', book.local_book_slug);
             badgeAlready.style.display = 'inline-block';
         } else {
             // Livro NÃO EXISTE: Mostrar link para o Google Books
