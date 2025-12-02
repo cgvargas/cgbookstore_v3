@@ -34,6 +34,7 @@ PERSONALIDADE:
 - Responde diretamente às perguntas
 - Só menciona funcionalidades quando REALMENTE relevante
 - NUNCA force redirecionamentos
+- HONESTO: Admite quando não sabe algo
 
 REGRAS ABSOLUTAS:
 
@@ -45,9 +46,25 @@ REGRAS ABSOLUTAS:
 6. FOQUE na conversa - não fique empurrando funcionalidades
 7. NUNCA diga "procure no banco de dados" ou "use a lupa" sem contexto
 
+⚠️ REGRA CRÍTICA - ANTI-ALUCINAÇÃO:
+8. Se você receber [DADOS VERIFICADOS] no prompt, USE APENAS ESSAS INFORMAÇÕES
+9. Se NÃO houver [DADOS VERIFICADOS] e você não tiver CERTEZA ABSOLUTA, diga:
+   "Não encontrei essa informação no nosso banco de dados. Quer que eu ajude a buscar?"
+10. NUNCA invente autores, datas de publicação ou detalhes de livros
+11. Quando em DÚVIDA, sempre escolha: "Não tenho certeza" em vez de chutar
+
+EXEMPLOS DE RESPOSTAS CORRETAS:
+
+Usuário: "Quem escreveu Quarta Asa?"
+Você (SEM dados verificados): "Não encontrei 'Quarta Asa' no nosso banco de dados. Pode verificar se o título está correto? Se for um livro específico que está procurando, posso ajudar a buscar usando a lupa ali em cima."
+
+Usuário: "Quem escreveu Quarta Asa?"
+Você (COM [DADOS VERIFICADOS] mostrando Rebecca Yarros): "**Quarta Asa** foi escrito por **Rebecca Yarros**! É o segundo livro da série 'The Empyrean'. Quer saber mais sobre a série?"
+
 QUANDO MENCIONAR A LUPA:
 ✅ Usuário pergunta como buscar livros específicos
 ✅ Usuário quer EXPLORAR o catálogo (não uma conversa)
+✅ Quando você NÃO tem informação no banco de dados
 ❌ NUNCA na saudação inicial
 ❌ NUNCA após cada resposta
 ❌ NUNCA quando você pode responder diretamente
@@ -146,7 +163,8 @@ ESCOPO:
             'book_recommendation': r'(recomend|indic|sugir|sugest).*(livro|título|leitura)',
             'book_detail': r'(fale|conte|explique|detalhe|mais sobre).*(livro|título)',
             'book_reference': r'(livro [0-9]|título [0-9]|[0-9]º livro|terceiro livro)',
-            'author_search': r'(livros? d[eo]|obras? d[eo]|autor).*(autor|escritor)',
+            'author_query': r'(quem escreveu|quem é o autor|autor d[eo]|escrito por)',  # NOVO: Detecta "Quem escreveu"
+            'author_search': r'(livros? d[eo]|obras? d[eo]).*(autor|escritor)',
             'series_info': r'(série|saga|coleção|crônicas|trilogia)',
             'category_search': r'(ficção|romance|fantasia|terror|suspense|policial|biografia)',
         }
@@ -203,12 +221,37 @@ ESCOPO:
                             verified_data = self.knowledge_service.format_book_for_prompt(book)
                             return f"{message}\n\n{verified_data}"
 
-            # INTENT 3: Referência a livro mencionado (ex: "Me fale sobre o livro 3")
+            # INTENT 3: Referência a livro mencionado (ex: "Me fale sobre o livro 3" ou "terceiro livro")
             elif intent_type == 'book_reference':
-                # Extrair número da referência
+                # Mapeamento de números por extenso
+                number_words = {
+                    'primeiro': '1', 'primeira': '1',
+                    'segundo': '2', 'segunda': '2',
+                    'terceiro': '3', 'terceira': '3',
+                    'quarto': '4', 'quarta': '4',
+                    'quinto': '5', 'quinta': '5',
+                    'sexto': '6', 'sexta': '6',
+                    'sétimo': '7', 'sétima': '7', 'setimo': '7', 'setima': '7',
+                    'oitavo': '8', 'oitava': '8',
+                    'nono': '9', 'nona': '9',
+                    'décimo': '10', 'décima': '10', 'decimo': '10', 'decima': '10'
+                }
+
+                book_num = None
+
+                # Tentar extrair número direto (ex: "livro 3")
                 match = re.search(r'livro\s+([0-9])', message.lower())
                 if match:
                     book_num = match.group(1)
+                else:
+                    # Tentar extrair número por extenso (ex: "terceiro livro")
+                    for word, num in number_words.items():
+                        if word in message.lower():
+                            book_num = num
+                            logger.info(f"Detectado número por extenso: '{word}' = {num}")
+                            break
+
+                if book_num:
                     ref_id = f"livro_{book_num}"
                     logger.info(f"Recuperando referência: {ref_id}")
                     book_data = self.knowledge_service.get_conversation_reference(ref_id)
@@ -233,17 +276,131 @@ ESCOPO:
 
             # INTENT 5: Informações sobre série
             elif intent_type == 'series_info':
-                # Buscar série mencionada
-                series_keywords = ['nárnia', 'harry potter', 'senhor dos anéis', 'hobbit', 'fundação']
-                for keyword in series_keywords:
-                    if keyword in message.lower():
-                        logger.info(f"Buscando série: {keyword}")
+                # Buscar série mencionada (expandida com mais séries populares)
+                series_keywords = {
+                    # Fantasia
+                    'nárnia': 'Nárnia',
+                    'narnia': 'Nárnia',
+                    'crônicas de nárnia': 'Nárnia',
+                    'cronicas de narnia': 'Nárnia',
+                    'harry potter': 'Harry Potter',
+                    'senhor dos anéis': 'Senhor dos Anéis',
+                    'senhor dos aneis': 'Senhor dos Anéis',
+                    'o senhor dos anéis': 'Senhor dos Anéis',
+                    'hobbit': 'Hobbit',
+                    'o hobbit': 'Hobbit',
+                    'fundação': 'Fundação',
+                    'fundacao': 'Fundação',
+                    'game of thrones': 'Game of Thrones',
+                    'crônicas de gelo e fogo': 'Crônicas de Gelo e Fogo',
+                    'eragon': 'Eragon',
+                    'ciclo da herança': 'Eragon',
+                    'percy jackson': 'Percy Jackson',
+
+                    # Ficção Científica
+                    'dune': 'Dune',
+                    'fundação': 'Fundação',
+                    'guia do mochileiro': 'Guia do Mochileiro das Galáxias',
+                    'hitchhiker': 'Guia do Mochileiro das Galáxias',
+
+                    # Distopia
+                    'jogos vorazes': 'Jogos Vorazes',
+                    'hunger games': 'Jogos Vorazes',
+                    'divergente': 'Divergente',
+                    'maze runner': 'Maze Runner',
+                    'correr ou morrer': 'Maze Runner',
+
+                    # Romance/Fantasia
+                    'crepúsculo': 'Crepúsculo',
+                    'crepusculo': 'Crepúsculo',
+                    'twilight': 'Crepúsculo',
+                    'cinquenta tons': 'Cinquenta Tons',
+
+                    # Nacionais
+                    'turma da mônica': 'Turma da Mônica',
+                    'turma da monica': 'Turma da Mônica',
+                    'sítio do picapau amarelo': 'Sítio do Picapau Amarelo',
+                    'sitio do picapau amarelo': 'Sítio do Picapau Amarelo',
+                }
+
+                message_lower = message.lower()
+                for keyword, series_name in series_keywords.items():
+                    if keyword in message_lower:
+                        logger.info(f"Buscando série: {series_name} (keyword: '{keyword}')")
                         books = self.knowledge_service.get_books_by_series_detection(keyword)
                         if books:
                             verified_data = self.knowledge_service.format_multiple_books_for_prompt(books, max_books=7)
                             return f"{message}\n\n{verified_data}"
+                        else:
+                            logger.warning(f"⚠️ Série '{series_name}' detectada mas nenhum livro encontrado no banco")
+                            # Continuar tentando outros keywords
 
-            # INTENT 6: Busca por categoria geral
+            # INTENT 6: Query sobre autor de um livro específico (NOVO)
+            elif intent_type == 'author_query':
+                # Extrair título do livro da mensagem
+                # Exemplos: "Quem escreveu Quarta Asa?", "Quem é o autor de Neuromancer?"
+
+                # Remover palavras de query para isolar o título (ordenadas da mais específica para a menos)
+                query_words = [
+                    'quem é o autor do livro',
+                    'quem é o autor de',
+                    'quem é o autor do',
+                    'quem é o autor',
+                    'quem escreveu o livro',
+                    'quem escreveu',
+                    'autor do livro',
+                    'autor de',
+                    'autor do',
+                    'escrito por',
+                    'o livro',
+                    'livro'
+                ]
+
+                book_title = message.lower()
+
+                # Remover palavras de query (da mais longa para a mais curta para evitar remoções parciais)
+                for query_word in query_words:
+                    if query_word in book_title:
+                        book_title = book_title.replace(query_word, '', 1)  # Remover apenas primeira ocorrência
+                        break  # Parar após primeira correspondência para evitar remoções excessivas
+
+                # Limpar pontuação e espaços extras
+                book_title = book_title.replace('?', '').replace('!', '').replace('.', '').strip()
+
+                # Remover artigos e preposições no início (casos edge)
+                articles = ['o ', 'a ', 'os ', 'as ', 'um ', 'uma ', 'de ', 'da ', 'do ']
+                for article in articles:
+                    if book_title.startswith(article):
+                        book_title = book_title[len(article):].strip()
+
+                if book_title and len(book_title) > 2:  # Título deve ter pelo menos 3 caracteres
+                    logger.info(f"Buscando autor do livro: '{book_title}'")
+
+                    # Buscar livro por título
+                    book = self.knowledge_service.get_book_by_exact_title(book_title)
+
+                    if not book:
+                        # Tentar busca parcial se busca exata falhar
+                        books = self.knowledge_service.search_books_by_title(book_title, limit=1)
+                        book = books[0] if books else None
+
+                    if book:
+                        # Livro encontrado - injetar dados verificados
+                        verified_data = self.knowledge_service.format_book_for_prompt(book)
+                        enriched_message = f"{message}\n\n{verified_data}"
+                        logger.info(f"✅ RAG: Livro '{book_title}' encontrado! Autor: {book.get('author_name', 'N/A')}")
+                        return enriched_message
+                    else:
+                        # Livro NÃO encontrado - retornar mensagem original
+                        # O SYSTEM_PROMPT vai fazer a IA admitir que não sabe
+                        logger.warning(f"⚠️ RAG: Livro '{book_title}' NÃO encontrado no banco de dados")
+                        return message
+                else:
+                    # Título muito curto ou inválido
+                    logger.warning(f"⚠️ RAG: Título extraído muito curto ou inválido: '{book_title}'")
+                    return message
+
+            # INTENT 7: Busca por categoria geral
             elif intent_type == 'category_search':
                 categories = {
                     'ficção': 'Ficção',
