@@ -163,7 +163,7 @@ ESCOPO:
             'book_recommendation': r'(recomend|indic|sugir|sugest).*(livro|título|leitura)',
             'book_detail': r'(fale|conte|explique|detalhe|mais sobre).*(livro|título)',
             'book_reference': r'(livro [0-9]|título [0-9]|[0-9]º livro|terceiro livro)',
-            'author_query': r'(quem escreveu|quem é o autor|autor d[eo]|escrito por)',  # NOVO: Detecta "Quem escreveu"
+            'author_query': r'(quero saber quem|quem escreveu|quem é o autor|autor d[eo]|escrito por|gostaria de saber quem)',  # NOVO: Detecta "Quem escreveu" + variações
             'author_search': r'(livros? d[eo]|obras? d[eo]).*(autor|escritor)',
             'series_info': r'(série|saga|coleção|crônicas|trilogia)',
             'category_search': r'(ficção|romance|fantasia|terror|suspense|policial|biografia)',
@@ -342,6 +342,10 @@ ESCOPO:
 
                 # Remover palavras de query para isolar o título (ordenadas da mais específica para a menos)
                 query_words = [
+                    'gostaria de saber quem escreveu o livro',
+                    'gostaria de saber quem escreveu',
+                    'quero saber quem escreveu o livro',
+                    'quero saber quem escreveu',
                     'quem é o autor do livro',
                     'quem é o autor de',
                     'quem é o autor do',
