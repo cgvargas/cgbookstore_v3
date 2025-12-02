@@ -11,24 +11,38 @@ def add_container_opacity_if_not_exists(apps, schema_editor):
     """
     from django.db import connection
 
-    with connection.cursor() as cursor:
-        # Verificar se a coluna já existe
-        cursor.execute("""
-            SELECT column_name
-            FROM information_schema.columns
-            WHERE table_name='core_section' AND column_name='container_opacity';
-        """)
+    db_vendor = connection.vendor
 
-        if not cursor.fetchone():
-            # Coluna não existe, criar com ALTER TABLE
-            cursor.execute("""
-                ALTER TABLE core_section
-                ADD COLUMN container_opacity DOUBLE PRECISION DEFAULT 1.0 NOT NULL
-                CHECK (container_opacity >= 0.0 AND container_opacity <= 1.0);
-            """)
-            print("✅ Coluna container_opacity criada com sucesso")
+    with connection.cursor() as cursor:
+        # Verificar se a coluna já existe (SQLite vs PostgreSQL)
+        if db_vendor == 'sqlite':
+            cursor.execute("PRAGMA table_info(core_section)")
+            columns = [row[1] for row in cursor.fetchall()]
+            column_exists = 'container_opacity' in columns
         else:
-            print("ℹ️  Coluna container_opacity já existe, pulando criação")
+            cursor.execute("""
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name='core_section' AND column_name='container_opacity';
+            """)
+            column_exists = cursor.fetchone() is not None
+
+        if not column_exists:
+            # Coluna não existe, criar com ALTER TABLE
+            if db_vendor == 'sqlite':
+                cursor.execute("""
+                    ALTER TABLE core_section
+                    ADD COLUMN container_opacity REAL DEFAULT 1.0 NOT NULL;
+                """)
+            else:
+                cursor.execute("""
+                    ALTER TABLE core_section
+                    ADD COLUMN container_opacity DOUBLE PRECISION DEFAULT 1.0 NOT NULL
+                    CHECK (container_opacity >= 0.0 AND container_opacity <= 1.0);
+                """)
+            print("[OK] Coluna container_opacity criada com sucesso")
+        else:
+            print("[INFO] Coluna container_opacity ja existe, pulando criacao")
 
 
 def reverse_add_container_opacity(apps, schema_editor):
