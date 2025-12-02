@@ -352,13 +352,88 @@ def mark_review_helpful(request, review_id):
 # ========== VIEWS DE EDITORAS ==========
 
 @login_required
+def become_publisher(request):
+    """Página para se tornar uma editora"""
+    # Verificar se já é editora
+    try:
+        publisher = request.user.publisher_profile
+        return redirect('new_authors:publisher_dashboard')
+    except PublisherProfile.DoesNotExist:
+        pass
+
+    if request.method == 'POST':
+        company_name = request.POST.get('company_name')
+        description = request.POST.get('description')
+        email = request.POST.get('email')
+        website = request.POST.get('website', '')
+        phone = request.POST.get('phone', '')
+
+        # Validações
+        if not company_name or len(company_name) < 3:
+            messages.error(request, 'Nome da editora deve ter pelo menos 3 caracteres.')
+            return render(request, 'new_authors/become_publisher.html')
+
+        if not description or len(description) < 50:
+            messages.error(request, 'Descrição deve ter pelo menos 50 caracteres.')
+            return render(request, 'new_authors/become_publisher.html')
+
+        if not email:
+            messages.error(request, 'Email de contato é obrigatório.')
+            return render(request, 'new_authors/become_publisher.html')
+
+        # Criar perfil de editora (não verificado)
+        publisher = PublisherProfile.objects.create(
+            user=request.user,
+            company_name=company_name,
+            description=description,
+            email=email,
+            website=website,
+            phone=phone,
+            is_verified=False,  # Requer aprovação do administrador
+            is_active=True
+        )
+
+        messages.success(
+            request,
+            'Solicitação de cadastro enviada! Sua editora será analisada por nossa equipe. '
+            'Você receberá um email quando for aprovada.'
+        )
+        return redirect('new_authors:publisher_pending')
+
+    return render(request, 'new_authors/become_publisher.html')
+
+
+@login_required
+def publisher_pending(request):
+    """Página de aguardando aprovação para editoras"""
+    try:
+        publisher = request.user.publisher_profile
+    except PublisherProfile.DoesNotExist:
+        messages.warning(request, 'Você não tem um perfil de editora.')
+        return redirect('new_authors:become_publisher')
+
+    if publisher.is_verified:
+        return redirect('new_authors:publisher_dashboard')
+
+    context = {
+        'publisher': publisher,
+    }
+    return render(request, 'new_authors/publisher_pending.html', context)
+
+
+@login_required
 def publisher_dashboard(request):
     """Dashboard para editoras"""
     try:
         publisher = request.user.publisher_profile
     except PublisherProfile.DoesNotExist:
         messages.warning(request, 'Você não tem um perfil de editora.')
-        return redirect('new_authors:books_list')
+        return redirect('new_authors:become_publisher')
+
+    # Verificar se está verificada
+    if not publisher.is_verified:
+        messages.warning(request, 'Sua editora ainda não foi verificada. Aguarde a aprovação.')
+        return redirect('new_authors:publisher_pending')
 
     # Filtros
     genre_filter = request.GET.get('genre')

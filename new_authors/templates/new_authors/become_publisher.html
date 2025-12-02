@@ -1,0 +1,288 @@
+{% extends 'new_authors/base.html' %}
+{% load static %}
+
+{% block title %}Cadastro de Editora{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <div class="d-inline-block p-3 bg-primary bg-opacity-10 rounded-circle mb-3">
+                    <i class="bi bi-building text-primary" style="font-size: 3rem;"></i>
+                </div>
+                <h1 class="display-5 fw-bold mb-3">Cadastro de Editora</h1>
+                <p class="lead text-muted">
+                    Descubra talentos literários emergentes e conecte-se diretamente com autores promissores
+                </p>
+            </div>
+
+            <!-- Informações de Segurança -->
+            <div class="alert alert-info border-info">
+                <h5 class="alert-heading">
+                    <i class="bi bi-shield-check"></i> Processo de Verificação
+                </h5>
+                <p class="mb-2">
+                    Para garantir a segurança dos autores e a qualidade das editoras na plataforma,
+                    todas as solicitações de cadastro passam por um processo de verificação.
+                </p>
+                <hr>
+                <p class="mb-0 small">
+                    <strong>O que você terá acesso após aprovação:</strong>
+                </p>
+                <ul class="small mb-0">
+                    <li>Dashboard completo com estatísticas de livros e autores</li>
+                    <li>Informações de contato dos autores (email e redes sociais)</li>
+                    <li>Análise detalhada de obras e engajamento</li>
+                    <li>Sistema de demonstração de interesse</li>
+                </ul>
+            </div>
+
+            <!-- Formulário de Cadastro -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil-square"></i> Informações da Editora
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if not user.is_authenticated %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Você precisa estar logado para se cadastrar como editora.
+                            <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="alert-link">
+                                Fazer login
+                            </a>
+                            ou
+                            <a href="{% url 'accounts:signup' %}?next={{ request.path }}" class="alert-link">
+                                criar uma conta
+                            </a>
+                        </div>
+                    {% else %}
+                        <form method="post">
+                            {% csrf_token %}
+
+                            <div class="mb-4">
+                                <label for="company_name" class="form-label fw-bold">
+                                    <i class="bi bi-building"></i> Nome da Editora *
+                                </label>
+                                <input type="text"
+                                       class="form-control form-control-lg"
+                                       id="company_name"
+                                       name="company_name"
+                                       placeholder="Ex: Editora Novos Talentos"
+                                       required
+                                       minlength="3">
+                                <div class="form-text">
+                                    O nome oficial ou comercial da sua editora
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="description" class="form-label fw-bold">
+                                    <i class="bi bi-file-text"></i> Descrição da Editora *
+                                </label>
+                                <textarea class="form-control"
+                                          id="description"
+                                          name="description"
+                                          rows="6"
+                                          placeholder="Conte-nos sobre sua editora, sua história, áreas de interesse, tipos de livros que publica..."
+                                          required
+                                          minlength="50"></textarea>
+                                <div class="form-text">
+                                    Mínimo de 50 caracteres. Esta informação ajudará na verificação.
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="email" class="form-label fw-bold">
+                                    <i class="bi bi-envelope"></i> Email de Contato Profissional *
+                                </label>
+                                <input type="email"
+                                       class="form-control form-control-lg"
+                                       id="email"
+                                       name="email"
+                                       placeholder="contato@suaeditora.com.br"
+                                       required>
+                                <div class="form-text">
+                                    Email profissional para contato com autores
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="website" class="form-label fw-bold">
+                                    <i class="bi bi-globe"></i> Website da Editora
+                                </label>
+                                <input type="url"
+                                       class="form-control"
+                                       id="website"
+                                       name="website"
+                                       placeholder="https://www.suaeditora.com.br">
+                                <div class="form-text">
+                                    URL do site oficial da editora (opcional, mas recomendado para verificação)
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="phone" class="form-label fw-bold">
+                                    <i class="bi bi-telephone"></i> Telefone de Contato
+                                </label>
+                                <input type="tel"
+                                       class="form-control"
+                                       id="phone"
+                                       name="phone"
+                                       placeholder="(11) 1234-5678">
+                                <div class="form-text">
+                                    Telefone comercial da editora (opcional)
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Termos e Condições -->
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           id="terms"
+                                           required>
+                                    <label class="form-check-label" for="terms">
+                                        Concordo com os
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">
+                                            Termos de Uso para Editoras
+                                        </a>
+                                        e confirmo que todas as informações fornecidas são verdadeiras *
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-send"></i> Enviar Solicitação de Cadastro
+                                </button>
+                                <a href="{% url 'new_authors:books_list' %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left"></i> Voltar
+                                </a>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Informações Adicionais -->
+            <div class="row mt-5">
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 bg-light">
+                        <div class="card-body text-center">
+                            <i class="bi bi-clock-history text-primary" style="font-size: 2.5rem;"></i>
+                            <h5 class="card-title mt-3">Análise Rápida</h5>
+                            <p class="card-text small text-muted">
+                                Nossa equipe analisa solicitações em até 48 horas úteis
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 bg-light">
+                        <div class="card-body text-center">
+                            <i class="bi bi-shield-check text-primary" style="font-size: 2.5rem;"></i>
+                            <h5 class="card-title mt-3">Segurança</h5>
+                            <p class="card-text small text-muted">
+                                Processo de verificação rigoroso para proteção dos autores
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 bg-light">
+                        <div class="card-body text-center">
+                            <i class="bi bi-people text-primary" style="font-size: 2.5rem;"></i>
+                            <h5 class="card-title mt-3">Acesso Completo</h5>
+                            <p class="card-text small text-muted">
+                                Dashboard completo com informações de contato dos autores
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Termos -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-file-text"></i> Termos de Uso para Editoras
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Cadastro e Verificação</h6>
+                <p class="small">
+                    Todas as editoras devem passar por um processo de verificação antes de acessar
+                    informações sensíveis dos autores. A plataforma se reserva o direito de recusar
+                    ou cancelar cadastros a qualquer momento.
+                </p>
+
+                <h6>2. Uso de Informações</h6>
+                <p class="small">
+                    As informações de contato dos autores (emails, telefones, redes sociais) devem
+                    ser utilizadas exclusivamente para fins profissionais relacionados à publicação
+                    de obras literárias. É proibido:
+                </p>
+                <ul class="small">
+                    <li>Compartilhar ou vender informações de contato</li>
+                    <li>Enviar spam ou comunicações não solicitadas</li>
+                    <li>Usar informações para fins não relacionados à publicação</li>
+                </ul>
+
+                <h6>3. Conduta Profissional</h6>
+                <p class="small">
+                    As editoras devem manter uma conduta profissional e ética ao contatar autores,
+                    respeitando suas decisões e prazos de resposta.
+                </p>
+
+                <h6>4. Privacidade e LGPD</h6>
+                <p class="small">
+                    A editora concorda em cumprir todas as leis de proteção de dados aplicáveis,
+                    incluindo a LGPD (Lei Geral de Proteção de Dados).
+                </p>
+
+                <h6>5. Cancelamento</h6>
+                <p class="small mb-0">
+                    Violações destes termos podem resultar no cancelamento imediato do acesso
+                    e banimento permanente da plataforma.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Contador de caracteres para descrição
+document.getElementById('description')?.addEventListener('input', function() {
+    const length = this.value.length;
+    const helpText = this.nextElementSibling;
+
+    if (length < 50) {
+        helpText.innerHTML = `Mínimo de 50 caracteres. Faltam ${50 - length} caracteres.`;
+        helpText.classList.add('text-danger');
+    } else {
+        helpText.innerHTML = `${length} caracteres. Ótimo!`;
+        helpText.classList.remove('text-danger');
+        helpText.classList.add('text-success');
+    }
+});
+</script>
+{% endblock %}

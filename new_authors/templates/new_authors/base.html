@@ -41,16 +41,29 @@
                         <a class="nav-link" href="{% url 'new_authors:trending_books' %}">Em Alta</a>
                     </li>
                     {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'new_authors:author_dashboard' %}">Meu Dashboard</a>
-                        </li>
+                        {% if user.publisher_profile %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'new_authors:publisher_dashboard' %}">
+                                    <i class="bi bi-building"></i> Dashboard Editora
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'new_authors:author_dashboard' %}">Meu Dashboard</a>
+                            </li>
+                        {% endif %}
                         <li class="nav-item">
                             <span class="nav-link">Olá, {{ user.username }}</span>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link btn btn-primary text-white px-3" href="{% url 'new_authors:become_author' %}">
+                            <a class="nav-link btn btn-primary text-white px-3 me-2" href="{% url 'new_authors:become_author' %}">
                                 Tornar-se Autor
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-outline-primary px-3" href="{% url 'new_authors:become_publisher' %}">
+                                <i class="bi bi-building"></i> Sou uma Editora
                             </a>
                         </li>
                     {% endif %}

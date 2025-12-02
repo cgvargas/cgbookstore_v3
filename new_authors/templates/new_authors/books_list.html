@@ -8,6 +8,26 @@
         <h1 class="display-4 fw-bold mb-3">Descubra Novos Talentos Literários</h1>
         <p class="lead mb-4">Explore obras inéditas de autores emergentes e faça parte da jornada deles</p>
 
+        <!-- Banner para Editoras -->
+        {% if not user.is_authenticated or not user.publisher_profile %}
+            <div class="alert alert-light border border-white shadow-sm d-inline-block mx-auto mb-4" style="max-width: 600px;">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-building text-primary me-3" style="font-size: 2rem;"></i>
+                    <div class="text-start">
+                        <h6 class="mb-1">
+                            <strong>É uma Editora?</strong>
+                        </h6>
+                        <p class="mb-2 small">
+                            Cadastre-se para acessar informações de contato dos autores e descobrir novos talentos
+                        </p>
+                        <a href="{% url 'new_authors:become_publisher' %}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-arrow-right"></i> Cadastrar Editora
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
         <form method="get" class="row g-3 justify-content-center">
             <div class="col-md-5">
                 <input type="text" name="search" class="form-control form-control-lg"

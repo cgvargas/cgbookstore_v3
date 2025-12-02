@@ -38,6 +38,8 @@ urlpatterns = [
     path('api/review/<int:review_id>/util/', views.mark_review_helpful, name='mark_review_helpful'),
 
     # Editoras
+    path('editora/cadastro/', views.become_publisher, name='become_publisher'),
+    path('editora/aguardando/', views.publisher_pending, name='publisher_pending'),
     path('editora/dashboard/', views.publisher_dashboard, name='publisher_dashboard'),
     path('editora/livro/<int:book_id>/', views.publisher_book_detail, name='publisher_book_detail'),
     path('api/interesse/<int:book_id>/', views.express_interest, name='express_interest'),
