@@ -356,6 +356,7 @@ ESCOPO:
                     'autor de',
                     'autor do',
                     'escrito por',
+                    ', quem escreveu',  # Casos com vírgula
                     'o livro',
                     'livro'
                 ]
@@ -369,13 +370,17 @@ ESCOPO:
                         break  # Parar após primeira correspondência para evitar remoções excessivas
 
                 # Limpar pontuação e espaços extras
-                book_title = book_title.replace('?', '').replace('!', '').replace('.', '').strip()
+                book_title = book_title.replace('?', '').replace('!', '').replace('.', '').replace(',', '').replace(';', '').replace(':', '').strip()
 
-                # Remover artigos e preposições no início (casos edge)
-                articles = ['o ', 'a ', 'os ', 'as ', 'um ', 'uma ', 'de ', 'da ', 'do ']
+                # Remover artigos, preposições e conjunções no início (casos edge) - pode ter múltiplos
+                articles = ['e o ', 'e a ', 'e os ', 'e as ', 'o ', 'a ', 'os ', 'as ', 'um ', 'uma ', 'de ', 'da ', 'do ']
                 for article in articles:
                     if book_title.startswith(article):
                         book_title = book_title[len(article):].strip()
+
+                # Remover palavra "livro" sozinha no início (casos como "E o livro Quarta Asa, quem escreveu?")
+                if book_title.startswith('livro '):
+                    book_title = book_title[6:].strip()  # len('livro ') = 6
 
                 if book_title and len(book_title) > 2:  # Título deve ter pelo menos 3 caracteres
                     logger.info(f"Buscando autor do livro: '{book_title}'")

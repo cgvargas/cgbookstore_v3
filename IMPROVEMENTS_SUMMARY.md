@@ -2,6 +2,12 @@
 **Data:** 2025-12-02
 **Sessão:** Correção de Alucinações + Melhorias Opcionais RAG
 
+**⚠️ ATUALIZAÇÃO CRÍTICA (2025-12-02 19:07):**
+- ✅ **Bug "E o livro Quarta Asa, quem escreveu?" RESOLVIDO**
+- Problema: Vírgulas não eram removidas, conjunções "e o" não eram detectadas
+- Solução: Extração de título agora remove vírgulas, conjunções e palavra "livro" isolada
+- Status: **TODOS OS TESTES PASSANDO (4/4)**
+
 ---
 
 ## 🎯 Problema Original
@@ -50,11 +56,12 @@ Chatbot: "O livro 'Quarta Asa' foi escrito por Fernando Sabino." ❌
 **Arquivo:** `chatbot_literario/groq_service.py`
 
 **Mudanças:**
-- ✅ Adicionado padrão regex: `(quem escreveu|quem é o autor|autor d[eo]|escrito por)`
+- ✅ Adicionado padrão regex: `(quero saber quem|gostaria de saber quem|quem escreveu|quem é o autor|autor d[eo]|escrito por)`
 - ✅ Extração inteligente de título da pergunta:
-  - Remove palavras de query ("quem escreveu", "autor de", etc.)
-  - Remove pontuação (?, !, .)
-  - Remove artigos e preposições do início
+  - Remove palavras de query ("quem escreveu", "autor de", "o livro", etc.)
+  - Remove pontuação (?, !, ., **,** ← ADICIONADO, ;, :)
+  - Remove artigos, preposições **e conjunções** do início (o, a, **e o, e a** ← ADICIONADO)
+  - Remove palavra "livro" isolada no início (caso especial)
   - Valida título mínimo de 3 caracteres
 
 - ✅ Busca em 2 etapas:
@@ -64,6 +71,7 @@ Chatbot: "O livro 'Quarta Asa' foi escrito por Fernando Sabino." ❌
 - ✅ Tratamento de casos edge:
   - "Quem é o autor do livro O Hobbit?" → extrai "hobbit"
   - "Autor de Dune" → extrai "dune"
+  - **"E o livro Quarta Asa, quem escreveu?"** → extrai "quarta asa" ← NOVO
   - "Quem escreveu?" → ignora (título inválido)
 
 **Resultado:**
