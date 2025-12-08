@@ -1,0 +1,632 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Excluir Conta - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --danger-color: #dc3545;
+        --danger-hover: #c82333;
+        --warning-bg: #fff3cd;
+        --warning-border: #ffc107;
+        --dark-bg: #1a1a1a;
+        --card-bg: #2d2d2d;
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0b0;
+    }
+
+    .delete-account-page {
+        min-height: 100vh;
+        padding: 80px 0 60px;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    }
+
+    .delete-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .delete-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .delete-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+
+    .delete-header h1 {
+        font-size: 32px;
+        color: var(--danger-color);
+        margin-bottom: 10px;
+    }
+
+    .delete-header p {
+        color: var(--text-secondary);
+        font-size: 16px;
+    }
+
+    .warning-card {
+        background: var(--card-bg);
+        border: 2px solid var(--danger-color);
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+
+    .warning-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--danger-color);
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .warning-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .warning-list li {
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-secondary);
+        display: flex;
+        align-items: start;
+        gap: 10px;
+    }
+
+    .warning-list li:last-child {
+        border-bottom: none;
+    }
+
+    .warning-list i {
+        color: var(--danger-color);
+        margin-top: 3px;
+        font-size: 14px;
+    }
+
+    .info-card {
+        background: var(--card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+
+    .info-title {
+        color: var(--text-primary);
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .user-info {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+
+    .user-info p {
+        margin: 8px 0;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .user-info strong {
+        color: var(--text-primary);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--danger-color);
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    .checkbox-wrapper {
+        display: flex;
+        align-items: start;
+        gap: 12px;
+        padding: 15px;
+        background: rgba(220, 53, 69, 0.1);
+        border: 1px solid var(--danger-color);
+        border-radius: 8px;
+        margin-bottom: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .checkbox-wrapper:hover {
+        background: rgba(220, 53, 69, 0.15);
+    }
+
+    .checkbox-wrapper input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    .checkbox-wrapper label {
+        color: var(--text-primary);
+        font-size: 14px;
+        cursor: pointer;
+        line-height: 1.5;
+    }
+
+    .buttons-container {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 14px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-cancel {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+    }
+
+    .btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .btn-delete {
+        background: var(--danger-color);
+        color: white;
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-delete.enabled {
+        opacity: 1;
+        cursor: pointer;
+    }
+
+    .btn-delete.enabled:hover {
+        background: var(--danger-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+    }
+
+    .btn-delete:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .alert {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: none;
+    }
+
+    .alert.show {
+        display: block;
+        animation: slideIn 0.3s ease;
+    }
+
+    .alert-error {
+        background: rgba(220, 53, 69, 0.2);
+        border: 1px solid var(--danger-color);
+        color: var(--danger-color);
+    }
+
+    .alert-success {
+        background: rgba(40, 167, 69, 0.2);
+        border: 1px solid #28a745;
+        color: #28a745;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .loading-overlay.active {
+        display: flex;
+    }
+
+    .loading-content {
+        text-align: center;
+        color: white;
+    }
+
+    .spinner {
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid var(--danger-color);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+        .delete-account-page {
+            padding: 60px 0 40px;
+        }
+
+        .delete-header h1 {
+            font-size: 24px;
+        }
+
+        .delete-icon {
+            font-size: 48px;
+        }
+
+        .warning-card, .info-card {
+            padding: 20px;
+        }
+
+        .buttons-container {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-account-page">
+    <div class="delete-container">
+        <!-- Header -->
+        <div class="delete-header">
+            <div class="delete-icon">⚠️</div>
+            <h1>Excluir Minha Conta</h1>
+            <p>Esta ação é permanente e não pode ser desfeita</p>
+        </div>
+
+        <!-- Alert Messages -->
+        <div id="alertContainer"></div>
+
+        <!-- Warning Card -->
+        <div class="warning-card">
+            <div class="warning-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>O que será perdido permanentemente:</span>
+            </div>
+            <ul class="warning-list">
+                <li>
+                    <i class="fas fa-times-circle"></i>
+                    <span><strong>Todos os seus dados pessoais</strong> (nome, email, biografia, preferências)</span>
+                </li>
+                <li>
+                    <i class="fas fa-times-circle"></i>
+                    <span><strong>Sua biblioteca pessoal</strong> (livros salvos, estantes customizadas, progresso de leitura)</span>
+                </li>
+                <li>
+                    <i class="fas fa-times-circle"></i>
+                    <span><strong>Conquistas e badges</strong> (pontos, ranking, desafios completados)</span>
+                </li>
+                <li>
+                    <i class="fas fa-times-circle"></i>
+                    <span><strong>Histórico de conversas</strong> com o Chatbot Literário</span>
+                </li>
+                <li>
+                    <i class="fas fa-times-circle"></i>
+                    <span><strong>Comentários e participações</strong> em debates literários</span>
+                </li>
+                <li>
+                    <i class="fas fa-times-circle"></i>
+                    <span><strong>Imagens do perfil</strong> (avatar, banner, background personalizado)</span>
+                </li>
+                <li>
+                    <i class="fas fa-times-circle"></i>
+                    <span><strong>Assinatura Premium</strong> (se houver, sem direito a reembolso)</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- User Info Card -->
+        <div class="info-card">
+            <div class="info-title">Conta que será excluída:</div>
+            <div class="user-info">
+                <p><i class="fas fa-user"></i> <strong>Usuário:</strong> {{ user.username }}</p>
+                <p><i class="fas fa-envelope"></i> <strong>Email:</strong> {{ user.email }}</p>
+                <p><i class="fas fa-calendar"></i> <strong>Membro desde:</strong> {{ user.date_joined|date:"d/m/Y" }}</p>
+            </div>
+        </div>
+
+        <!-- Confirmation Form -->
+        <form id="deleteAccountForm">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label" for="deletionReason">
+                    Por favor, nos conte o motivo da sua saída (opcional, mas muito importante para nós):
+                </label>
+                <select
+                    id="deletionReason"
+                    name="deletion_reason"
+                    class="form-input"
+                    style="cursor: pointer;"
+                >
+                    <option value="">Selecione um motivo...</option>
+                    <option value="nao_uso_mais">Não uso mais o serviço</option>
+                    <option value="falta_funcionalidades">Falta de funcionalidades que preciso</option>
+                    <option value="dificuldade_uso">Dificuldade de uso / Interface confusa</option>
+                    <option value="problemas_tecnicos">Problemas técnicos recorrentes</option>
+                    <option value="preco_premium">Preço do Premium muito alto</option>
+                    <option value="privacidade">Preocupações com privacidade</option>
+                    <option value="migrando_plataforma">Migrando para outra plataforma</option>
+                    <option value="conta_duplicada">Conta duplicada</option>
+                    <option value="outros">Outros (especifique)</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="otherReasonContainer" style="display: none;">
+                <label class="form-label" for="otherReason">
+                    Por favor, especifique brevemente o motivo:
+                </label>
+                <input
+                    type="text"
+                    id="otherReason"
+                    name="other_reason"
+                    class="form-input"
+                    placeholder="Digite o motivo em poucas palavras..."
+                    maxlength="100"
+                    autocomplete="off"
+                >
+                <small style="color: var(--text-secondary); font-size: 0.85rem; display: block; margin-top: 5px;">
+                    Máximo 100 caracteres
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="emailConfirmation">
+                    Para confirmar, digite seu email: <strong>{{ user.email }}</strong>
+                </label>
+                <input
+                    type="email"
+                    id="emailConfirmation"
+                    name="email_confirmation"
+                    class="form-input"
+                    placeholder="Digite seu email para confirmar"
+                    required
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="checkbox-wrapper" onclick="document.getElementById('understoodCheckbox').click();">
+                <input
+                    type="checkbox"
+                    id="understoodCheckbox"
+                    name="understood"
+                    onclick="event.stopPropagation();"
+                >
+                <label for="understoodCheckbox">
+                    Eu entendo que esta ação é <strong>irreversível</strong> e que todos os meus dados serão
+                    <strong>permanentemente excluídos</strong>. Não poderei recuperar minha conta, biblioteca,
+                    conquistas ou qualquer outro dado após a exclusão.
+                </label>
+            </div>
+
+            <div class="buttons-container">
+                <a href="{% url 'accounts:edit_profile' %}" class="btn btn-cancel">
+                    <i class="fas fa-arrow-left"></i>
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-delete" id="deleteBtn" disabled>
+                    <i class="fas fa-trash-alt"></i>
+                    Excluir Minha Conta Permanentemente
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="spinner"></div>
+        <p>Excluindo sua conta...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('deleteAccountForm');
+    const emailInput = document.getElementById('emailConfirmation');
+    const checkbox = document.getElementById('understoodCheckbox');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const alertContainer = document.getElementById('alertContainer');
+    const userEmail = '{{ user.email }}';
+
+    // Elementos do motivo de exclusão
+    const deletionReasonSelect = document.getElementById('deletionReason');
+    const otherReasonContainer = document.getElementById('otherReasonContainer');
+    const otherReasonInput = document.getElementById('otherReason');
+
+    // Mostrar/ocultar campo "Outros"
+    deletionReasonSelect.addEventListener('change', function() {
+        if (this.value === 'outros') {
+            otherReasonContainer.style.display = 'block';
+            otherReasonInput.required = true;
+        } else {
+            otherReasonContainer.style.display = 'none';
+            otherReasonInput.required = false;
+            otherReasonInput.value = '';
+        }
+    });
+
+    // Validar e habilitar botão
+    function validateForm() {
+        const emailMatches = emailInput.value.trim() === userEmail;
+        const checkboxChecked = checkbox.checked;
+
+        if (emailMatches && checkboxChecked) {
+            deleteBtn.disabled = false;
+            deleteBtn.classList.add('enabled');
+        } else {
+            deleteBtn.disabled = true;
+            deleteBtn.classList.remove('enabled');
+        }
+    }
+
+    // Event listeners
+    emailInput.addEventListener('input', validateForm);
+    checkbox.addEventListener('change', validateForm);
+
+    // Mostrar alert
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} show`;
+        alertDiv.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i> ${message}`;
+        alertContainer.innerHTML = '';
+        alertContainer.appendChild(alertDiv);
+
+        // Scroll to alert
+        alertDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Submit form
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Confirmação final
+        const confirmed = confirm(
+            '⚠️ ATENÇÃO: Esta é sua última chance!\n\n' +
+            'Tem certeza ABSOLUTA que deseja excluir sua conta?\n\n' +
+            'Clique em OK para excluir PERMANENTEMENTE ou Cancelar para voltar.'
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        // Mostrar loading
+        loadingOverlay.classList.add('active');
+        deleteBtn.disabled = true;
+
+        // Preparar dados do motivo
+        const deletionReason = deletionReasonSelect.value;
+        const otherReason = deletionReason === 'outros' ? otherReasonInput.value.trim() : '';
+
+        try {
+            const response = await fetch('{% url "accounts:delete_account" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    email_confirmation: emailInput.value.trim(),
+                    understood: checkbox.checked,
+                    deletion_reason: deletionReason,
+                    other_reason: otherReason
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert(data.message, 'success');
+
+                // Redirecionar após 2 segundos
+                setTimeout(() => {
+                    window.location.href = data.redirect_url;
+                }, 2000);
+            } else {
+                loadingOverlay.classList.remove('active');
+                deleteBtn.disabled = false;
+                showAlert(data.error, 'error');
+            }
+        } catch (error) {
+            loadingOverlay.classList.remove('active');
+            deleteBtn.disabled = false;
+            showAlert('Erro ao processar solicitação. Tente novamente.', 'error');
+            console.error('Error:', error);
+        }
+    });
+
+    // Prevenir saída acidental
+    window.addEventListener('beforeunload', function(e) {
+        if (emailInput.value.trim() || checkbox.checked) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+});
+</script>
+{% endblock %}

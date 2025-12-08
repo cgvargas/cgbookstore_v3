@@ -16,6 +16,10 @@ urlpatterns = [
     path('update-background-settings/', views.update_background_settings, name='update_background_settings'),
     path('remove-background/', views.remove_background, name='remove_background'),
 
+    # URLs de Exclusão de Conta
+    path('delete-account/confirm/', views.delete_account_confirm, name='delete_account_confirm'),
+    path('delete-account/', views.delete_account, name='delete_account'),
+
     # URLs de Autenticação (LEGADO - mantidas por compatibilidade)
     path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
 ]

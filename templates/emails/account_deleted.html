@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sua conta foi excluída - CG.BookStore</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <!-- Container Principal -->
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+
+                    <!-- Header com gradiente -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">
+                                💔 Sentiremos sua falta
+                            </h1>
+                            <p style="margin: 10px 0 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">
+                                Sua conta foi excluída com sucesso
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Conteúdo -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+
+                            <!-- Saudação personalizada -->
+                            <p style="margin: 0 0 20px 0; font-size: 16px; color: #333333; line-height: 1.6;">
+                                Olá <strong>{{ username }}</strong>,
+                            </p>
+
+                            <p style="margin: 0 0 20px 0; font-size: 16px; color: #333333; line-height: 1.6;">
+                                É com o coração apertado que confirmamos a exclusão da sua conta na <strong>CG.BookStore</strong>.
+                                Esperávamos que você ficasse conosco por mais tempo, mas respeitamos sua decisão.
+                            </p>
+
+                            {% if deletion_reason_text %}
+                            <div style="background-color: #f8f9fa; border-left: 4px solid #667eea; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                                <p style="margin: 0; font-size: 14px; color: #666666;">
+                                    <strong style="color: #333;">Motivo informado:</strong><br>
+                                    {{ deletion_reason_text }}
+                                </p>
+                            </div>
+                            {% endif %}
+
+                            <!-- Box de confirmação -->
+                            <div style="background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); padding: 20px; border-radius: 8px; margin: 30px 0;">
+                                <p style="margin: 0 0 10px 0; font-size: 14px; color: #2d3436; font-weight: 600;">
+                                    ✅ Confirmação de Exclusão
+                                </p>
+                                <p style="margin: 0; font-size: 13px; color: #2d3436; line-height: 1.5;">
+                                    <strong>Conta:</strong> {{ email }}<br>
+                                    <strong>Data da exclusão:</strong> {{ deletion_date }}<br>
+                                    <strong>Status:</strong> Permanentemente excluída
+                                </p>
+                            </div>
+
+                            <!-- O que foi excluído -->
+                            <h2 style="margin: 30px 0 15px 0; font-size: 20px; color: #333333; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                                📦 O que foi excluído definitivamente
+                            </h2>
+
+                            <table width="100%" cellpadding="8" cellspacing="0" style="margin: 0 0 20px 0;">
+                                <tr>
+                                    <td style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                                        <span style="color: #e74c3c; font-size: 16px; margin-right: 10px;">✗</span>
+                                        <span style="color: #555555; font-size: 14px;">Todos os seus dados pessoais e preferências</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                                        <span style="color: #e74c3c; font-size: 16px; margin-right: 10px;">✗</span>
+                                        <span style="color: #555555; font-size: 14px;">Sua biblioteca pessoal completa ({{ books_count }} livros)</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                                        <span style="color: #e74c3c; font-size: 16px; margin-right: 10px;">✗</span>
+                                        <span style="color: #555555; font-size: 14px;">Progresso de leitura e metas alcançadas</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                                        <span style="color: #e74c3c; font-size: 16px; margin-right: 10px;">✗</span>
+                                        <span style="color: #555555; font-size: 14px;">Conquistas, badges e posição no ranking</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                                        <span style="color: #e74c3c; font-size: 16px; margin-right: 10px;">✗</span>
+                                        <span style="color: #555555; font-size: 14px;">Histórico completo de conversas com o Chatbot Literário</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                                        <span style="color: #e74c3c; font-size: 16px; margin-right: 10px;">✗</span>
+                                        <span style="color: #555555; font-size: 14px;">Participações em debates e comentários literários</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                                        <span style="color: #e74c3c; font-size: 16px; margin-right: 10px;">✗</span>
+                                        <span style="color: #555555; font-size: 14px;">Imagens personalizadas (avatar, banner, backgrounds)</span>
+                                    </td>
+                                </tr>
+                                {% if was_premium %}
+                                <tr>
+                                    <td style="padding: 10px 0;">
+                                        <span style="color: #e74c3c; font-size: 16px; margin-right: 10px;">✗</span>
+                                        <span style="color: #555555; font-size: 14px;"><strong>Assinatura Premium</strong> (sem direito a reembolso)</span>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </table>
+
+                            <!-- Aviso importante -->
+                            <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 15px; margin: 30px 0;">
+                                <p style="margin: 0; font-size: 14px; color: #856404; line-height: 1.6;">
+                                    <strong>⚠️ IMPORTANTE:</strong> Esta exclusão é <strong>irreversível e permanente</strong>.
+                                    Todos os dados foram deletados de nossos servidores e <strong>não podem ser recuperados</strong>.
+                                    Não há como voltar atrás ou restaurar sua conta.
+                                </p>
+                            </div>
+
+                            <!-- Mensagem emocional -->
+                            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 30px 0; text-align: center;">
+                                <p style="margin: 0 0 15px 0; font-size: 16px; color: #333333; line-height: 1.6;">
+                                    Obrigado por ter feito parte da nossa comunidade literária. Cada leitor que passa por aqui
+                                    deixa uma marca especial em nossa história. 📚
+                                </p>
+                                <p style="margin: 0; font-size: 16px; color: #667eea; font-weight: 600;">
+                                    As portas da CG.BookStore estarão sempre abertas caso você decida voltar!
+                                </p>
+                            </div>
+
+                            <!-- Call to action para voltar -->
+                            <div style="text-align: center; margin: 30px 0;">
+                                <p style="margin: 0 0 15px 0; font-size: 14px; color: #666666;">
+                                    Mudou de ideia? Você pode criar uma nova conta a qualquer momento:
+                                </p>
+                                <a href="{{ site_url }}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 6px; font-size: 16px; font-weight: 600;">
+                                    Voltar para CG.BookStore
+                                </a>
+                            </div>
+
+                            <!-- Feedback -->
+                            <div style="background-color: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 30px 0; border-radius: 4px;">
+                                <p style="margin: 0 0 10px 0; font-size: 14px; color: #333333;">
+                                    <strong>💬 Seu feedback é valioso!</strong>
+                                </p>
+                                <p style="margin: 0; font-size: 13px; color: #555555; line-height: 1.5;">
+                                    Gostaríamos de melhorar nossa plataforma. Se você tiver alguns minutos,
+                                    por favor compartilhe sua experiência conosco respondendo a este email.
+                                </p>
+                            </div>
+
+                            <!-- Despedida -->
+                            <p style="margin: 30px 0 0 0; font-size: 16px; color: #333333; line-height: 1.6;">
+                                Com carinho e gratidão,<br>
+                                <strong>Equipe CG.BookStore</strong> 💜
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #2d3436; padding: 30px; text-align: center;">
+                            <p style="margin: 0 0 10px 0; font-size: 13px; color: #b2bec3;">
+                                Este é um email automático de confirmação de exclusão de conta.
+                            </p>
+                            <p style="margin: 0; font-size: 12px; color: #636e72;">
+                                © {{ year }} CG.BookStore - Todos os direitos reservados
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

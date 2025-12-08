@@ -1,0 +1,75 @@
+============================================================
+SENTIREMOS SUA FALTA
+Sua conta foi excluída com sucesso
+============================================================
+
+Olá {{ username }},
+
+É com o coração apertado que confirmamos a exclusão da sua conta
+na CG.BookStore. Esperávamos que você ficasse conosco por mais
+tempo, mas respeitamos sua decisão.
+
+{% if deletion_reason_text %}
+MOTIVO INFORMADO:
+{{ deletion_reason_text }}
+{% endif %}
+
+------------------------------------------------------------
+CONFIRMAÇÃO DE EXCLUSÃO
+------------------------------------------------------------
+Conta: {{ email }}
+Data da exclusão: {{ deletion_date }}
+Status: Permanentemente excluída
+
+============================================================
+O QUE FOI EXCLUÍDO DEFINITIVAMENTE
+============================================================
+
+✗ Todos os seus dados pessoais e preferências
+✗ Sua biblioteca pessoal completa ({{ books_count }} livros)
+✗ Progresso de leitura e metas alcançadas
+✗ Conquistas, badges e posição no ranking
+✗ Histórico completo de conversas com o Chatbot Literário
+✗ Participações em debates e comentários literários
+✗ Imagens personalizadas (avatar, banner, backgrounds)
+{% if was_premium %}✗ Assinatura Premium (sem direito a reembolso){% endif %}
+
+------------------------------------------------------------
+⚠️ IMPORTANTE
+------------------------------------------------------------
+Esta exclusão é IRREVERSÍVEL e PERMANENTE.
+
+Todos os dados foram deletados de nossos servidores e NÃO PODEM
+SER RECUPERADOS. Não há como voltar atrás ou restaurar sua conta.
+
+============================================================
+
+Obrigado por ter feito parte da nossa comunidade literária.
+Cada leitor que passa por aqui deixa uma marca especial em
+nossa história. 📚
+
+As portas da CG.BookStore estarão sempre abertas caso você
+decida voltar!
+
+------------------------------------------------------------
+MUDOU DE IDEIA?
+------------------------------------------------------------
+Você pode criar uma nova conta a qualquer momento em:
+{{ site_url }}
+
+------------------------------------------------------------
+SEU FEEDBACK É VALIOSO!
+------------------------------------------------------------
+Gostaríamos de melhorar nossa plataforma. Se você tiver alguns
+minutos, por favor compartilhe sua experiência conosco
+respondendo a este email.
+
+------------------------------------------------------------
+
+Com carinho e gratidão,
+Equipe CG.BookStore 💜
+
+============================================================
+Este é um email automático de confirmação de exclusão de conta.
+© {{ year }} CG.BookStore - Todos os direitos reservados
+============================================================

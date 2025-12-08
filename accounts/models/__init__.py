@@ -18,6 +18,9 @@ from .user_badge import UserBadge
 from .monthly_ranking import MonthlyRanking
 from .xp_multiplier import XPMultiplier
 
+# Modelo de exclusão de conta
+from .account_deletion import AccountDeletion
+
 __all__ = [
     'UserProfile',
     'BookShelf',
@@ -35,4 +38,6 @@ __all__ = [
     'UserBadge',
     'MonthlyRanking',
     'XPMultiplier',
+    # Exclusão de conta
+    'AccountDeletion',
 ]
