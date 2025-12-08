@@ -13,6 +13,7 @@ from .video_views import VideoListView
 from .search_view import SearchView
 from .about_view import AboutView
 from .contact_view import ContactView
+from .faq_view import FAQView
 from .library_view import LibraryView
 from .event_views import EventListView
 
@@ -68,6 +69,7 @@ __all__ = [
     'SearchView',
     'AboutView',
     'ContactView',
+    'FAQView',
     'LibraryView',
     'EventListView',
 

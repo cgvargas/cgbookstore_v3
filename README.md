@@ -15,41 +15,67 @@ Sistema completo de livraria virtual com recomendações por IA, gamificação, 
 
 ```
 cgbookstore_v3/
-├── 📂 accounts/              # Sistema de autenticação e perfis
-├── 📂 cgbookstore/           # Configurações principais do Django
-├── 📂 chatbot_literario/     # Chatbot IA para recomendações
-├── 📂 core/                  # App principal (livros, categorias, etc.)
-│   ├── management/commands/  # Comandos Django customizados
-│   ├── views/admin_tools.py  # Ferramentas web para admin
-│   └── models/               # Models do sistema
-├── 📂 debates/               # Sistema de debates literários
-├── 📂 finance/               # Integração Mercado Pago
-├── 📂 recommendations/       # Sistema de recomendações IA
+├── 📂 Apps Django             # Aplicações principais
+│   ├── accounts/              # Autenticação e perfis
+│   ├── cgbookstore/           # Configurações Django
+│   ├── chatbot_literario/     # Chatbot IA com RAG + Knowledge Base
+│   ├── core/                  # App principal (livros, autores, etc.)
+│   ├── debates/               # Sistema de debates literários
+│   ├── finance/               # Assinaturas e pagamentos
+│   ├── new_authors/           # Autores emergentes
+│   └── recommendations/       # Sistema de recomendações IA
 │
-├── 📂 config/                # ⭐ Arquivos de configuração
-│   ├── .env.example          # Template de variáveis de ambiente
-│   └── requirements.txt      # Dependências Python
+├── 📂 config/                 # ⭐ Configurações
+│   └── deployment/            # Configurações de deploy
+│       ├── build.sh           # Script de build para produção
+│       ├── gunicorn_config.py # Configuração do Gunicorn
+│       └── render.yaml        # Configuração Render.com
 │
-├── 📂 deploy/                # ⭐ Arquivos de deploy
-│   ├── render.yaml           # Configuração Render.com
-│   └── scripts/
-│       └── build.sh          # Script de build
+├── 📂 docs/                   # ⭐ Documentação completa
+│   ├── features/              # Documentação de funcionalidades
+│   │   ├── KNOWLEDGE_BASE_SYSTEM.md
+│   │   ├── RAG_IMPLEMENTATION.md
+│   │   ├── DASHBOARD_CHATBOT_CARD.md
+│   │   └── RECOMMENDATIONS_REFACTORING.md
+│   ├── setup/                 # Guias de configuração
+│   │   ├── GROQ_SETUP.md
+│   │   └── SETUP_SEGUNDO_COMPUTADOR.md
+│   ├── deployment/            # Deploy e produção
+│   │   └── RENDER_PERFORMANCE_FIXES.md
+│   ├── guides/                # Guias gerais
+│   ├── testing/               # Documentação de testes
+│   └── troubleshooting/       # Solução de problemas
 │
-├── 📂 docs/                  # ⭐ Documentação organizada
-│   ├── deployment/           # Deploy e infraestrutura
-│   ├── production/           # Guias de produção
-│   ├── setup/                # Configuração inicial
-│   └── troubleshooting/      # Solução de problemas
+├── 📂 scripts/                # ⭐ Scripts utilitários
+│   ├── testing/               # Scripts de teste
+│   │   ├── test_chatbot_fix.py
+│   │   ├── test_rag_integration_complete.py
+│   │   └── test_recommendations_simple.py
+│   ├── debug/                 # Scripts de debug
+│   │   ├── debug_banner.py
+│   │   └── debug_banner_simple.py
+│   ├── maintenance/           # Manutenção do sistema
+│   │   ├── clear_cache.py
+│   │   └── database/          # Manutenção de banco
+│   │       ├── fix_userprofile_duplicate.py
+│   │       └── verify_userprofiles.py
+│   ├── setup/                 # Scripts de setup
+│   └── utils/                 # Utilitários gerais
 │
-├── 📂 templates/             # Templates Django
-├── 📂 static/                # Arquivos estáticos (CSS, JS, images)
-├── 📂 media/                 # Uploads de usuários
+├── 📂 templates/              # Templates Django
+├── 📂 static/                 # Arquivos estáticos (CSS, JS, images)
+├── 📂 staticfiles/            # Arquivos estáticos coletados
+├── 📂 media/                  # Uploads de usuários
+├── 📂 backups/                # Backups do sistema
 │
-├── manage.py                 # CLI do Django
-├── requirements.txt          # Dependências (link para config/)
-├── build.sh                  # Script de build (link para deploy/)
-└── render.yaml               # Config Render (link para deploy/)
+├── 📄 manage.py               # CLI do Django
+├── 📄 requirements.txt        # Dependências Python
+├── 📄 .env.example            # Template de variáveis de ambiente
+├── 📄 .env                    # Variáveis de ambiente (não versionado)
+└── 📄 .gitignore              # Arquivos ignorados pelo Git
 ```
+
+> 📖 **Índice Completo:** Veja [docs/PROJECT_INDEX.md](docs/PROJECT_INDEX.md) para navegação detalhada.
 
 ---
 
@@ -68,7 +94,7 @@ pip install -r requirements.txt
 ### 2. Configurar Ambiente
 
 ```bash
-cp config/.env.example .env
+cp .env.example .env
 # Edite o .env com suas credenciais
 ```
 
@@ -104,10 +130,14 @@ Acesse: `http://localhost:8000`
 - Sistema de categorias
 - Gestão de autores e editoras
 
-### 💬 Chatbot Literário
+### 💬 Chatbot Literário (com IA)
+- Powered by Groq API (LLaMA 3.1 70B)
+- **RAG (Retrieval-Augmented Generation)** - Consulta banco antes da IA
+- **Knowledge Base com Aprendizado** - Correções administrativas reutilizadas
 - Recomendações personalizadas via chat
 - Processamento de linguagem natural
 - Histórico de conversas
+- Dashboard administrativa com estatísticas
 
 ### 🎮 Gamificação
 - Sistema de pontos e badges
@@ -133,6 +163,21 @@ Acesse: `http://localhost:8000`
 ---
 
 ## 📚 Documentação
+
+### ❓ **FAQ - Perguntas Frequentes** ⭐ **NOVO!**
+
+- **[FAQ Completo](docs/FAQ.md)** - 39 perguntas e respostas sobre o sistema
+  - 🚀 Setup e configuração
+  - 🤖 Chatbot e IA
+  - 📚 Livros e catálogo
+  - 💰 Sistema financeiro
+  - 🌐 Deploy e produção
+  - 🔧 Troubleshooting
+
+### 📖 **Documentação Geral**
+
+- **[Índice Completo](docs/PROJECT_INDEX.md)** - Navegação por toda documentação
+- **[Estrutura do Projeto](docs/REORGANIZACAO_2025.md)** - Como está organizado
 
 ### 🚀 Deploy e Produção
 
@@ -280,7 +325,7 @@ SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_KEY=...
 ```
 
-Ver [config/.env.example](config/.env.example) para lista completa.
+Ver [.env.example](.env.example) para lista completa.
 
 ---
 

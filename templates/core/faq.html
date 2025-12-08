@@ -1,0 +1,1150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FAQ - Perguntas Frequentes | CG.BookStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #ff6b35;
+        --secondary-color: #004e89;
+        --accent-color: #f77f00;
+        --text-dark: #2c3e50;
+        --text-light: #7f8c8d;
+        --bg-light: #f8f9fa;
+        --border-color: #e0e0e0;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .faq-hero {
+        background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+        color: white;
+        padding: 80px 0 60px;
+        margin-top: 56px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .faq-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.1)" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,133.3C672,139,768,181,864,181.3C960,181,1056,139,1152,128C1248,117,1344,139,1392,149.3L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+        background-size: cover;
+        opacity: 0.3;
+    }
+
+    .faq-hero-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+    }
+
+    .faq-hero h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .faq-hero p {
+        font-size: 1.25rem;
+        opacity: 0.95;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .faq-search-box {
+        margin-top: 2rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .faq-search-input {
+        border-radius: 50px;
+        padding: 1rem 1.5rem;
+        border: none;
+        font-size: 1rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .faq-search-input:focus {
+        box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        outline: none;
+    }
+
+    .faq-container {
+        padding: 60px 0;
+    }
+
+    .faq-categories {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .faq-category-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border: 2px solid transparent;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+    .faq-category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        border-color: var(--primary-color);
+    }
+
+    .faq-category-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+    }
+
+    .faq-category-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .faq-category-count {
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+
+    .faq-section {
+        margin-bottom: 3rem;
+    }
+
+    .faq-section-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .faq-section-icon {
+        font-size: 2rem;
+        color: var(--primary-color);
+    }
+
+    .faq-section-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .faq-accordion {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .faq-item {
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .faq-item:last-child {
+        border-bottom: none;
+    }
+
+    .faq-question {
+        width: 100%;
+        padding: 1.5rem;
+        background: white;
+        border: none;
+        text-align: left;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+
+    .faq-question:hover {
+        background: var(--bg-light);
+        color: var(--primary-color);
+    }
+
+    .faq-question.active {
+        background: var(--bg-light);
+        color: var(--primary-color);
+    }
+
+    .faq-icon {
+        font-size: 1.25rem;
+        transition: transform 0.3s ease;
+        color: var(--primary-color);
+    }
+
+    .faq-question.active .faq-icon {
+        transform: rotate(180deg);
+    }
+
+    .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        padding: 0 1.5rem;
+        background: white;
+    }
+
+    .faq-answer.active {
+        max-height: 1000px;
+        padding: 0 1.5rem 1.5rem;
+    }
+
+    .faq-answer-content {
+        padding-top: 1rem;
+        color: var(--text-light);
+        line-height: 1.8;
+        font-size: 1rem;
+    }
+
+    .faq-answer-content ul {
+        margin-left: 1.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .faq-answer-content code {
+        background: var(--bg-light);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        color: var(--primary-color);
+    }
+
+    .faq-cta {
+        background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+        color: white;
+        padding: 4rem 0;
+        text-align: center;
+        border-radius: 20px;
+        margin-top: 4rem;
+    }
+
+    .faq-cta h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .faq-cta p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+        margin-bottom: 2rem;
+    }
+
+    .faq-cta-button {
+        display: inline-block;
+        padding: 1rem 2.5rem;
+        background: white;
+        color: var(--primary-color);
+        font-weight: 600;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .faq-cta-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        color: var(--primary-color);
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-light);
+    }
+
+    .no-results i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+
+    @media (max-width: 768px) {
+        .faq-hero h1 {
+            font-size: 2rem;
+        }
+
+        .faq-hero p {
+            font-size: 1rem;
+        }
+
+        .faq-categories {
+            grid-template-columns: 1fr;
+        }
+
+        .faq-section-title {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="faq-hero">
+    <div class="container">
+        <div class="faq-hero-content">
+            <h1>Como podemos ajudar?</h1>
+            <p>Encontre respostas rápidas para as perguntas mais comuns sobre a CG.BookStore</p>
+
+            <div class="faq-search-box">
+                <input type="text"
+                       class="form-control faq-search-input"
+                       id="faqSearch"
+                       placeholder="Busque sua dúvida aqui...">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="faq-container">
+    <div class="container">
+
+        <!-- Category Quick Links -->
+        <div class="faq-categories" id="faqCategories">
+            <a href="#conta" class="faq-category-card">
+                <div class="faq-category-icon">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h3 class="faq-category-title">Conta e Perfil</h3>
+                <p class="faq-category-count">6 perguntas</p>
+            </a>
+
+            <a href="#livros" class="faq-category-card">
+                <div class="faq-category-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <h3 class="faq-category-title">Livros e Catálogo</h3>
+                <p class="faq-category-count">5 perguntas</p>
+            </a>
+
+            <a href="#premium" class="faq-category-card">
+                <div class="faq-category-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <h3 class="faq-category-title">Premium e Pagamentos</h3>
+                <p class="faq-category-count">7 perguntas</p>
+            </a>
+
+            <a href="#chatbot" class="faq-category-card">
+                <div class="faq-category-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3 class="faq-category-title">Chatbot Literário</h3>
+                <p class="faq-category-count">4 perguntas</p>
+            </a>
+
+            <a href="#biblioteca" class="faq-category-card">
+                <div class="faq-category-icon">
+                    <i class="fas fa-bookmark"></i>
+                </div>
+                <h3 class="faq-category-title">Minha Biblioteca</h3>
+                <p class="faq-category-count">4 perguntas</p>
+            </a>
+
+            <a href="#tecnico" class="faq-category-card">
+                <div class="faq-category-icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <h3 class="faq-category-title">Suporte Técnico</h3>
+                <p class="faq-category-count">5 perguntas</p>
+            </a>
+        </div>
+
+        <!-- FAQ Sections -->
+
+        <!-- Conta e Perfil -->
+        <div class="faq-section" id="conta">
+            <div class="faq-section-header">
+                <div class="faq-section-icon">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h2 class="faq-section-title">Conta e Perfil</h2>
+            </div>
+
+            <div class="faq-accordion">
+                <div class="faq-item" data-category="conta">
+                    <button class="faq-question">
+                        <span>Como criar uma conta na CG.BookStore?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Criar uma conta é simples e rápido:</p>
+                            <ul>
+                                <li>Clique em "Entrar" no menu superior</li>
+                                <li>Selecione "Criar conta"</li>
+                                <li>Preencha seus dados (nome, email e senha)</li>
+                                <li>Ou use login social com Google/Facebook</li>
+                                <li>Confirme seu email (se solicitado)</li>
+                            </ul>
+                            <p>Pronto! Sua conta está ativa e você já pode começar a explorar.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="conta">
+                    <button class="faq-question">
+                        <span>Esqueci minha senha. Como recuperar?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Para recuperar sua senha:</p>
+                            <ul>
+                                <li>Clique em "Entrar" → "Esqueceu a senha?"</li>
+                                <li>Digite seu email cadastrado</li>
+                                <li>Verifique sua caixa de entrada</li>
+                                <li>Clique no link de recuperação</li>
+                                <li>Crie uma nova senha</li>
+                            </ul>
+                            <p><strong>Dica:</strong> Verifique também sua pasta de spam se não receber o email em alguns minutos.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="conta">
+                    <button class="faq-question">
+                        <span>Como atualizar meu perfil?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Você pode editar seu perfil a qualquer momento:</p>
+                            <ul>
+                                <li>Clique no seu avatar (canto superior direito)</li>
+                                <li>Selecione "Meu Perfil"</li>
+                                <li>Edite: foto, nome, biografia, gêneros favoritos</li>
+                                <li>Salve as alterações</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="conta">
+                    <button class="faq-question">
+                        <span>Como excluir minha conta?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Se deseja excluir sua conta:</p>
+                            <ul>
+                                <li>Acesse "Meu Perfil" → "Configurações"</li>
+                                <li>Role até o final da página</li>
+                                <li>Clique em "Excluir minha conta"</li>
+                                <li>Confirme a ação</li>
+                            </ul>
+                            <p><strong>Atenção:</strong> Esta ação é irreversível e todos os seus dados serão permanentemente removidos.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="conta">
+                    <button class="faq-question">
+                        <span>Posso usar login social (Google/Facebook)?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Sim! Oferecemos login social para facilitar seu acesso:</p>
+                            <ul>
+                                <li><strong>Google:</strong> Clique em "Continuar com Google"</li>
+                                <li><strong>Facebook:</strong> Clique em "Continuar com Facebook"</li>
+                            </ul>
+                            <p>Seus dados são seguros e não compartilhamos informações com terceiros.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="conta">
+                    <button class="faq-question">
+                        <span>Meus dados estão seguros?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Sim! Levamos a segurança muito a sério:</p>
+                            <ul>
+                                <li>✅ Senhas criptografadas</li>
+                                <li>✅ Conexão HTTPS segura</li>
+                                <li>✅ Não vendemos seus dados</li>
+                                <li>✅ Conformidade com LGPD</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Livros e Catálogo -->
+        <div class="faq-section" id="livros">
+            <div class="faq-section-header">
+                <div class="faq-section-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <h2 class="faq-section-title">Livros e Catálogo</h2>
+            </div>
+
+            <div class="faq-accordion">
+                <div class="faq-item" data-category="livros">
+                    <button class="faq-question">
+                        <span>Quantos livros estão disponíveis?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Temos um catálogo em constante crescimento com milhares de títulos, incluindo:</p>
+                            <ul>
+                                <li>📚 Ficção e Não-ficção</li>
+                                <li>📖 Best-sellers nacionais e internacionais</li>
+                                <li>✨ Obras de autores emergentes</li>
+                                <li>📕 Clássicos da literatura</li>
+                                <li>🆕 Lançamentos mensais</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="livros">
+                    <button class="faq-question">
+                        <span>Como buscar um livro específico?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Temos várias formas de busca:</p>
+                            <ul>
+                                <li><strong>Busca rápida:</strong> Use o ícone de lupa no menu</li>
+                                <li><strong>Filtros:</strong> Por categoria, autor, idioma</li>
+                                <li><strong>Ordenação:</strong> Mais recentes, populares, bem avaliados</li>
+                                <li><strong>Chatbot:</strong> Pergunte diretamente ao assistente literário</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="livros">
+                    <button class="faq-question">
+                        <span>Posso ler os livros online?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Atualmente, a CG.BookStore funciona como uma plataforma de <strong>descoberta e organização</strong> de livros.</p>
+                            <ul>
+                                <li>✅ Explore nosso catálogo completo</li>
+                                <li>✅ Organize sua biblioteca pessoal</li>
+                                <li>✅ Receba recomendações personalizadas</li>
+                                <li>✅ Participe de debates literários</li>
+                            </ul>
+                            <p>Para leitura digital, direcionamos para parceiros e plataformas oficiais.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="livros">
+                    <button class="faq-question">
+                        <span>Como funcionam as avaliações e resenhas?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Você pode avaliar e comentar sobre os livros:</p>
+                            <ul>
+                                <li>⭐ Avalie de 1 a 5 estrelas</li>
+                                <li>✍️ Escreva uma resenha detalhada</li>
+                                <li>👥 Veja opiniões de outros leitores</li>
+                                <li>❤️ Curta resenhas úteis</li>
+                            </ul>
+                            <p>Suas avaliações ajudam outros leitores e melhoram nossas recomendações!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="livros">
+                    <button class="faq-question">
+                        <span>Recebo sugestões personalizadas?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Sim! Usamos <strong>Inteligência Artificial</strong> para recomendar livros:</p>
+                            <ul>
+                                <li>🤖 Baseado nos seus gêneros favoritos</li>
+                                <li>📊 Analisando suas avaliações</li>
+                                <li>👥 Comparando com leitores similares</li>
+                                <li>🔥 Considerando tendências atuais</li>
+                            </ul>
+                            <p>Acesse "Recomendações para Você" na home ou use o Chatbot Literário!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Premium e Pagamentos -->
+        <div class="faq-section" id="premium">
+            <div class="faq-section-header">
+                <div class="faq-section-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <h2 class="faq-section-title">Premium e Pagamentos</h2>
+            </div>
+
+            <div class="faq-accordion">
+                <div class="faq-item" data-category="premium">
+                    <button class="faq-question">
+                        <span>O que é o plano Premium?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>O <strong>CG.BookStore Premium</strong> oferece benefícios exclusivos:</p>
+                            <ul>
+                                <li>👑 Acesso a conteúdo exclusivo</li>
+                                <li>🚫 Navegação sem anúncios</li>
+                                <li>⭐ Prioridade em recomendações</li>
+                                <li>📚 Download de listas personalizadas</li>
+                                <li>💬 Participação em debates premium</li>
+                                <li>🎁 Acesso antecipado a novos recursos</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="premium">
+                    <button class="faq-question">
+                        <span>Quanto custa o Premium?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Oferecemos planos flexíveis:</p>
+                            <ul>
+                                <li><strong>Mensal:</strong> R$ 19,90/mês</li>
+                                <li><strong>Trimestral:</strong> R$ 49,90 (economize 16%)</li>
+                                <li><strong>Anual:</strong> R$ 149,90 (economize 37%)</li>
+                            </ul>
+                            <p>💡 <strong>Dica:</strong> O plano anual é o mais vantajoso!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="premium">
+                    <button class="faq-question">
+                        <span>Quais formas de pagamento são aceitas?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Aceitamos diversos métodos via <strong>MercadoPago</strong>:</p>
+                            <ul>
+                                <li>💳 Cartão de crédito (à vista ou parcelado)</li>
+                                <li>💵 Pix (aprovação instantânea)</li>
+                                <li>🏦 Boleto bancário</li>
+                                <li>💰 Saldo MercadoPago</li>
+                            </ul>
+                            <p>Pagamento 100% seguro e criptografado.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="premium">
+                    <button class="faq-question">
+                        <span>Como cancelar minha assinatura?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Você pode cancelar a qualquer momento:</p>
+                            <ul>
+                                <li>Acesse "Meu Perfil" → "Assinatura"</li>
+                                <li>Clique em "Gerenciar assinatura"</li>
+                                <li>Selecione "Cancelar"</li>
+                                <li>Confirme o cancelamento</li>
+                            </ul>
+                            <p><strong>Importante:</strong> Você continuará com acesso Premium até o fim do período pago.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="premium">
+                    <button class="faq-question">
+                        <span>Posso pausar minha assinatura?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>No momento, não oferecemos a opção de pausar. Você pode:</p>
+                            <ul>
+                                <li><strong>Cancelar:</strong> E reativar quando quiser</li>
+                                <li><strong>Manter ativo:</strong> Sem compromisso de permanência</li>
+                            </ul>
+                            <p>Estamos trabalhando para adicionar esta funcionalidade em breve!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="premium">
+                    <button class="faq-question">
+                        <span>Tenho direito a reembolso?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Sim! Oferecemos <strong>7 dias de garantia</strong>:</p>
+                            <ul>
+                                <li>✅ Reembolso total em até 7 dias</li>
+                                <li>📧 Entre em contato: contato@cgbookstore.com</li>
+                                <li>💰 Devolução em até 10 dias úteis</li>
+                            </ul>
+                            <p>Sem perguntas, sem burocracia.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="premium">
+                    <button class="faq-question">
+                        <span>Há cupons de desconto disponíveis?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Sim! Fique atento às nossas promoções:</p>
+                            <ul>
+                                <li>🎉 Campanhas sazonais (Black Friday, Natal, etc.)</li>
+                                <li>📧 Ofertas exclusivas por email</li>
+                                <li>🎁 Programas de indicação</li>
+                                <li>👥 Siga nossas redes sociais</li>
+                            </ul>
+                            <p>Inscreva-se na newsletter para não perder nenhuma oferta!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chatbot Literário -->
+        <div class="faq-section" id="chatbot">
+            <div class="faq-section-header">
+                <div class="faq-section-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h2 class="faq-section-title">Chatbot Literário</h2>
+            </div>
+
+            <div class="faq-accordion">
+                <div class="faq-item" data-category="chatbot">
+                    <button class="faq-question">
+                        <span>O que é o Chatbot Literário?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Nosso assistente inteligente powered by <strong>IA Groq (LLaMA 3.1)</strong>:</p>
+                            <ul>
+                                <li>🔍 Busca livros por descrição</li>
+                                <li>💡 Recomenda leituras personalizadas</li>
+                                <li>❓ Responde perguntas sobre livros e autores</li>
+                                <li>📚 Sugere séries e sagas</li>
+                                <li>🎯 Entende linguagem natural</li>
+                            </ul>
+                            <p><strong>Exemplo:</strong> "Me recomende livros de fantasia parecidos com Harry Potter"</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="chatbot">
+                    <button class="faq-question">
+                        <span>Como usar o Chatbot?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>É muito simples:</p>
+                            <ul>
+                                <li>Clique no ícone do chat (canto inferior direito)</li>
+                                <li>Digite sua pergunta naturalmente</li>
+                                <li>Aguarde a resposta em segundos</li>
+                                <li>Continue a conversa quantas vezes quiser</li>
+                            </ul>
+                            <p>💬 Suas conversas ficam salvas em "Meu Perfil"</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="chatbot">
+                    <button class="faq-question">
+                        <span>O Chatbot é gratuito?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Sim! Oferecemos acesso gratuito com:</p>
+                            <ul>
+                                <li>✅ Conversas ilimitadas</li>
+                                <li>✅ Recomendações personalizadas</li>
+                                <li>✅ Histórico salvo</li>
+                            </ul>
+                            <p>👑 <strong>Premium:</strong> Recebe respostas priorizadas e sugestões ainda mais precisas.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="chatbot">
+                    <button class="faq-question">
+                        <span>As respostas do Chatbot são confiáveis?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Sim! Usamos tecnologia <strong>RAG (Retrieval-Augmented Generation)</strong>:</p>
+                            <ul>
+                                <li>✅ Dados verificados do nosso catálogo</li>
+                                <li>✅ IA consulta banco antes de responder</li>
+                                <li>✅ Sistema anti-alucinação</li>
+                                <li>✅ Aprendizado contínuo com correções</li>
+                            </ul>
+                            <p>Estamos sempre melhorando a precisão das respostas!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Minha Biblioteca -->
+        <div class="faq-section" id="biblioteca">
+            <div class="faq-section-header">
+                <div class="faq-section-icon">
+                    <i class="fas fa-bookmark"></i>
+                </div>
+                <h2 class="faq-section-title">Minha Biblioteca</h2>
+            </div>
+
+            <div class="faq-accordion">
+                <div class="faq-item" data-category="biblioteca">
+                    <button class="faq-question">
+                        <span>Como adicionar livros à minha biblioteca?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Você pode organizar sua biblioteca com listas:</p>
+                            <ul>
+                                <li>📚 <strong>Lendo:</strong> Livros em andamento</li>
+                                <li>✅ <strong>Lidos:</strong> Livros finalizados</li>
+                                <li>❤️ <strong>Favoritos:</strong> Seus preferidos</li>
+                                <li>📖 <strong>Quero Ler:</strong> Lista de desejos</li>
+                            </ul>
+                            <p>Clique no botão "+" na página do livro para adicionar.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="biblioteca">
+                    <button class="faq-question">
+                        <span>Posso criar listas personalizadas?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Sim! Crie listas para qualquer propósito:</p>
+                            <ul>
+                                <li>📝 "Livros para o Verão"</li>
+                                <li>🎓 "Leituras Acadêmicas"</li>
+                                <li>👨‍👩‍👧 "Leitura em Família"</li>
+                                <li>🌟 Qualquer tema que desejar</li>
+                            </ul>
+                            <p>Acesse "Minha Biblioteca" → "Criar Nova Lista"</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="biblioteca">
+                    <button class="faq-question">
+                        <span>Posso compartilhar minhas listas?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Sim! Compartilhe suas descobertas:</p>
+                            <ul>
+                                <li>🔗 Gere link público da lista</li>
+                                <li>📱 Compartilhe nas redes sociais</li>
+                                <li>👥 Envie para amigos leitores</li>
+                                <li>🌐 Torne sua biblioteca pública</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="biblioteca">
+                    <button class="faq-question">
+                        <span>Posso acompanhar meu progresso de leitura?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Sim! Acompanhe suas estatísticas:</p>
+                            <ul>
+                                <li>📊 Total de livros lidos</li>
+                                <li>📈 Metas anuais de leitura</li>
+                                <li>🏆 Conquistas e badges</li>
+                                <li>⏱️ Tempo médio de leitura</li>
+                            </ul>
+                            <p>Acesse "Meu Perfil" → "Estatísticas"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suporte Técnico -->
+        <div class="faq-section" id="tecnico">
+            <div class="faq-section-header">
+                <div class="faq-section-icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <h2 class="faq-section-title">Suporte Técnico</h2>
+            </div>
+
+            <div class="faq-accordion">
+                <div class="faq-item" data-category="tecnico">
+                    <button class="faq-question">
+                        <span>O site não está carregando. O que fazer?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Tente estas soluções:</p>
+                            <ul>
+                                <li>🔄 Atualize a página (F5 ou Ctrl+R)</li>
+                                <li>🌐 Verifique sua conexão com internet</li>
+                                <li>🧹 Limpe cache e cookies do navegador</li>
+                                <li>🚫 Desative extensões (AdBlock, etc.)</li>
+                                <li>🔄 Tente outro navegador</li>
+                            </ul>
+                            <p>Se o problema persistir, entre em contato conosco.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="tecnico">
+                    <button class="faq-question">
+                        <span>O site funciona em dispositivos móveis?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Sim! Nosso site é <strong>100% responsivo</strong>:</p>
+                            <ul>
+                                <li>📱 Smartphones (iOS e Android)</li>
+                                <li>📲 Tablets</li>
+                                <li>💻 Desktop</li>
+                                <li>🖥️ Smart TVs (navegadores)</li>
+                            </ul>
+                            <p>Acesse de qualquer dispositivo com internet!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="tecnico">
+                    <button class="faq-question">
+                        <span>Há um aplicativo móvel?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>No momento, não temos app nativo, mas você pode:</p>
+                            <ul>
+                                <li>📱 Adicionar à tela inicial (PWA)</li>
+                                <li>🌐 Usar pelo navegador mobile</li>
+                                <li>🔖 Salvar nos favoritos</li>
+                            </ul>
+                            <p>🚀 Um app dedicado está em nosso roadmap!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="tecnico">
+                    <button class="faq-question">
+                        <span>Como reportar um bug ou erro?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Valorizamos seu feedback! Para reportar:</p>
+                            <ul>
+                                <li>📧 Email: contato@cgbookstore.com</li>
+                                <li>💬 Chat de suporte no site</li>
+                                <li>📱 Direct nas redes sociais</li>
+                            </ul>
+                            <p><strong>Inclua:</strong> Descrição do erro, navegador usado, e prints se possível.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="tecnico">
+                    <button class="faq-question">
+                        <span>Como entrar em contato com o suporte?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Estamos aqui para ajudar:</p>
+                            <ul>
+                                <li>📧 <strong>Email:</strong> contato@cgbookstore.com</li>
+                                <li>💬 <strong>Chat:</strong> Disponível no site</li>
+                                <li>📱 <strong>WhatsApp:</strong> Em breve</li>
+                                <li>🌐 <strong>Redes sociais:</strong> @cg.bookstore</li>
+                            </ul>
+                            <p>⏱️ Tempo médio de resposta: 24-48 horas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="faq-cta">
+            <div class="container">
+                <h2>Não encontrou sua resposta?</h2>
+                <p>Nossa equipe está pronta para ajudar você!</p>
+                <a href="{% url 'core:contact' %}" class="faq-cta-button">
+                    <i class="fas fa-envelope me-2"></i> Entre em Contato
+                </a>
+            </div>
+        </div>
+
+        <!-- No Results Message (Hidden by default) -->
+        <div class="no-results" id="noResults" style="display: none;">
+            <i class="fas fa-search"></i>
+            <h3>Nenhum resultado encontrado</h3>
+            <p>Tente buscar com outras palavras-chave ou navegue pelas categorias acima.</p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // FAQ Accordion
+    const faqQuestions = document.querySelectorAll('.faq-question');
+
+    faqQuestions.forEach(question => {
+        question.addEventListener('click', () => {
+            const answer = question.nextElementSibling;
+            const isActive = question.classList.contains('active');
+
+            // Close all other answers
+            document.querySelectorAll('.faq-question').forEach(q => {
+                q.classList.remove('active');
+                q.nextElementSibling.classList.remove('active');
+            });
+
+            // Toggle current answer
+            if (!isActive) {
+                question.classList.add('active');
+                answer.classList.add('active');
+            }
+        });
+    });
+
+    // Search functionality
+    const searchInput = document.getElementById('faqSearch');
+    const faqItems = document.querySelectorAll('.faq-item');
+    const faqSections = document.querySelectorAll('.faq-section');
+    const noResults = document.getElementById('noResults');
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        let hasResults = false;
+
+        if (searchTerm === '') {
+            // Show all items
+            faqItems.forEach(item => item.style.display = 'block');
+            faqSections.forEach(section => section.style.display = 'block');
+            noResults.style.display = 'none';
+            return;
+        }
+
+        // Search in questions and answers
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question span').textContent.toLowerCase();
+            const answer = item.querySelector('.faq-answer-content').textContent.toLowerCase();
+
+            if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                item.style.display = 'block';
+                hasResults = true;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        // Hide empty sections
+        faqSections.forEach(section => {
+            const visibleItems = section.querySelectorAll('.faq-item[style="display: block;"]');
+            section.style.display = visibleItems.length > 0 ? 'block' : 'none';
+        });
+
+        // Show/hide no results message
+        noResults.style.display = hasResults ? 'none' : 'block';
+    });
+
+    // Smooth scroll to sections
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            if (targetId !== '#') {
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    const offset = 80; // Account for fixed navbar
+                    const elementPosition = targetElement.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

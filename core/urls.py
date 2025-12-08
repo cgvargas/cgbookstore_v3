@@ -10,6 +10,7 @@ from core.views import (
     SearchView,
     AboutView,
     ContactView,
+    FAQView,
     LibraryView,
     EventListView,
     # Views AJAX - Biblioteca Pessoal
@@ -86,6 +87,7 @@ urlpatterns = [
     path('buscar/', SearchView.as_view(), name='search'),
     path('sobre/', AboutView.as_view(), name='about'),
     path('contato/', ContactView.as_view(), name='contact'),
+    path('faq/', FAQView.as_view(), name='faq'),
     path('biblioteca/', LibraryView.as_view(), name='library'),
     path('eventos/', EventListView.as_view(), name='events'),
     # Redirecionamento para URLs antigas (compatibilidade)
