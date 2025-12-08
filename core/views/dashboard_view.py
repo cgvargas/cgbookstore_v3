@@ -26,6 +26,14 @@ except ImportError:
     AuthorBook = None
     Chapter = None
 
+# Importar modelos do Chatbot Literário
+try:
+    from chatbot_literario.models import ChatSession, ChatMessage, ChatbotKnowledge
+except ImportError:
+    ChatSession = None
+    ChatMessage = None
+    ChatbotKnowledge = None
+
 
 @staff_member_required
 def admin_dashboard(request):
@@ -193,6 +201,56 @@ def admin_dashboard(request):
             'total_chapters': total_chapters,
         }
 
+    # ============================================
+    # ESTATÍSTICAS DO CHATBOT LITERÁRIO
+    # ============================================
+    chatbot_stats = {}
+    recent_chat_sessions = []
+
+    if ChatSession and ChatMessage and ChatbotKnowledge:
+        # Estatísticas de conversas
+        total_sessions = ChatSession.objects.count()
+        active_sessions = ChatSession.objects.filter(is_active=True).count()
+        total_messages = ChatMessage.objects.count()
+
+        # Mensagens nos últimos 7 dias
+        seven_days_ago = now - timedelta(days=7)
+        recent_messages_count = ChatMessage.objects.filter(
+            created_at__gte=seven_days_ago
+        ).count()
+
+        # Estatísticas de Knowledge Base
+        total_knowledge = ChatbotKnowledge.objects.count()
+        active_knowledge = ChatbotKnowledge.objects.filter(is_active=True).count()
+
+        # Correções feitas
+        corrected_messages = ChatMessage.objects.filter(has_correction=True).count()
+
+        # Knowledge Base mais usado
+        top_knowledge = ChatbotKnowledge.objects.filter(
+            is_active=True
+        ).order_by('-times_used').first()
+
+        # Total de usos de Knowledge Base
+        total_kb_usage = ChatbotKnowledge.objects.aggregate(
+            total=Sum('times_used')
+        )['total'] or 0
+
+        chatbot_stats = {
+            'total_sessions': total_sessions,
+            'active_sessions': active_sessions,
+            'total_messages': total_messages,
+            'recent_messages': recent_messages_count,
+            'total_knowledge': total_knowledge,
+            'active_knowledge': active_knowledge,
+            'corrected_messages': corrected_messages,
+            'top_knowledge': top_knowledge,
+            'total_kb_usage': total_kb_usage,
+        }
+
+        # Últimas 5 sessões
+        recent_chat_sessions = ChatSession.objects.select_related('user').order_by('-updated_at')[:5]
+
     context = {
         'title': 'Dashboard',
         'stats': stats,
@@ -211,6 +269,9 @@ def admin_dashboard(request):
         'subscription_chart_data': subscription_chart_data,
         # New Authors data
         'new_authors_stats': new_authors_stats,
+        # Chatbot data
+        'chatbot_stats': chatbot_stats,
+        'recent_chat_sessions': recent_chat_sessions,
     }
 
     return render(request, 'admin/dashboard.html', context)

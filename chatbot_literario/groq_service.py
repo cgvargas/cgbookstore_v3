@@ -179,7 +179,11 @@ ESCOPO:
 
     def _apply_rag_knowledge(self, message: str, rag_intent: Dict[str, any]) -> str:
         """
-        Aplica conhecimento verificado (RAG) à mensagem antes de enviar à IA.
+        Aplica conhecimento verificado (RAG + Knowledge Base) à mensagem antes de enviar à IA.
+
+        Estratégia em camadas:
+        1. Verifica Knowledge Base (correções prévias de admins)
+        2. Se não houver conhecimento prévio, aplica RAG normal
 
         Args:
             message: Mensagem original do usuário
@@ -188,6 +192,45 @@ ESCOPO:
         Returns:
             Mensagem enriquecida com dados verificados
         """
+        try:
+            # === CAMADA 1: KNOWLEDGE BASE (Prioridade Máxima) ===
+            # Verificar se já temos uma correção prévia para esta pergunta
+            from .knowledge_base_service import get_knowledge_service
+
+            kb_service = get_knowledge_service()
+            learned_knowledge = kb_service.search_knowledge(
+                question=message,
+                knowledge_type=rag_intent.get('intent_type'),  # Filtrar por tipo se aplicável
+                min_confidence=0.7
+            )
+
+            if learned_knowledge:
+                logger.info(
+                    f"🧠 KNOWLEDGE BASE: Usando conhecimento prévio "
+                    f"(ID: {learned_knowledge['id']}, usado {learned_knowledge['times_used']}x)"
+                )
+
+                # Injetar conhecimento aprendido no prompt
+                enriched_prompt = f"""{message}
+
+[CONHECIMENTO VERIFICADO - CORREÇÃO ADMINISTRATIVA]
+{learned_knowledge['response']}
+[/CONHECIMENTO VERIFICADO]
+
+⚠️ IMPORTANTE: Esta resposta foi corrigida e verificada por um administrador.
+Use EXATAMENTE esta informação. NÃO invente ou adicione detalhes."""
+
+                # Retornar com conhecimento aprendido (pula RAG normal)
+                return enriched_prompt
+
+            # === CAMADA 2: RAG NORMAL (Se não houver conhecimento prévio) ===
+            logger.info(f"ℹ️ Knowledge Base: Sem conhecimento prévio. Usando RAG normal.")
+
+        except Exception as e:
+            logger.error(f"Erro ao consultar Knowledge Base: {e}", exc_info=True)
+            # Se houver erro, continuar com RAG normal
+
+        # Continuar com RAG normal se não houver conhecimento prévio
         intent_type = rag_intent.get('intent_type')
 
         if not intent_type:

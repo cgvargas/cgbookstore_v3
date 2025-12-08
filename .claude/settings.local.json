@@ -36,7 +36,15 @@
       "Bash(.venv/Scripts/pip install:*)",
       "Bash(requirements.txt)",
       "Bash(dir:*)",
-      "Bash(else echo \".env não encontrado no repo principal\")"
+      "Bash(else echo \".env não encontrado no repo principal\")",
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "Bash(del accounts/admin/account_deletion_admin.py)",
+      "Bash(if exist accountsadminaccount_deletion_admin.py del accountsadminaccount_deletion_admin.py)",
+      "Bash(git merge-base:*)",
+      "Bash(git for-each-ref:*)",
+      "Bash(sort:*)",
+      "Bash(git branch:*)"
     ],
     "deny": [],
     "ask": []

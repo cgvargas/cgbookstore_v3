@@ -415,6 +415,20 @@
         </div>
     </a>
 
+    {% if chatbot_stats %}
+    <!-- CHATBOT LITERÁRIO CARD -->
+    <a href="{% url 'admin:chatbot_literario_chatsession_changelist' %}" class="stat-card-link">
+        <div class="stat-card info">
+            <div class="stat-card-header">
+                <span class="stat-card-title">Chatbot Literário</span>
+                <span class="stat-card-icon">🤖</span>
+            </div>
+            <div class="stat-card-value">{{ chatbot_stats.total_messages|default:0 }}</div>
+            <div class="stat-card-label">{{ chatbot_stats.total_sessions|default:0 }} conversas • {{ chatbot_stats.active_knowledge|default:0 }} correções ativas</div>
+        </div>
+    </a>
+    {% endif %}
+
     {% if finance_stats %}
     <!-- FINANCE STATISTICS -->
     <a href="{% url 'admin:finance_subscription_changelist' %}" class="stat-card-link">
@@ -481,6 +495,11 @@
         <a href="{% url 'admin:new_authors_authorbook_add' %}" class="action-btn success" style="background: #8b5cf6;">
             ✨ Publicar Livro de Autor Emergente
         </a>
+        {% if chatbot_stats %}
+        <a href="{% url 'admin:chatbot_literario_chatbotknowledge_add' %}" class="action-btn" style="background: #17a2b8;">
+            🧠 Adicionar Conhecimento ao Chatbot
+        </a>
+        {% endif %}
     </div>
 </div>
 
@@ -513,6 +532,11 @@
         <a href="{% url 'admin:app_list' 'new_authors' %}" class="action-btn" style="background: #8b5cf6;">
             ✨ Autores Emergentes
         </a>
+        {% if chatbot_stats %}
+        <a href="{% url 'admin:app_list' 'chatbot_literario' %}" class="action-btn" style="background: #17a2b8;">
+            🤖 Chatbot Literário
+        </a>
+        {% endif %}
     </div>
 </div>
 
@@ -627,6 +651,89 @@
             <li class="recent-item">Nenhuma campanha ativa no momento.</li>
             {% endfor %}
         </ul>
+    </div>
+</div>
+{% endif %}
+
+{% if chatbot_stats %}
+<!-- CHATBOT LITERÁRIO SECTION: CONVERSAS + KNOWLEDGE BASE -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-top: 25px;">
+
+    <!-- CONVERSAS RECENTES -->
+    <div class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">🤖 Conversas Recentes</h2>
+            <a href="{% url 'admin:chatbot_literario_chatsession_changelist' %}" class="section-link">Ver todas →</a>
+        </div>
+        <ul class="recent-list">
+            {% for session in recent_chat_sessions %}
+            <li class="recent-item">
+                <div class="recent-info">
+                    <div class="recent-title">{{ session.title|default:"Nova conversa"|truncatechars:60 }}</div>
+                    <div class="recent-meta">
+                        👤 {{ session.user.username }}
+                        {% if session.is_active %}
+                        <span style="color: var(--success-color);">• ⚡ Ativa</span>
+                        {% else %}
+                        <span style="color: var(--text-secondary);">• 🔒 Encerrada</span>
+                        {% endif %}
+                        • {{ session.get_messages_count }} mensagens
+                        • {{ session.updated_at|date:"d/m/Y H:i" }}
+                    </div>
+                </div>
+            </li>
+            {% empty %}
+            <li class="recent-item">Nenhuma conversa registrada ainda.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- KNOWLEDGE BASE STATS -->
+    <div class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">🧠 Base de Conhecimento</h2>
+            <a href="{% url 'admin:chatbot_literario_chatbotknowledge_changelist' %}" class="section-link">Ver tudo →</a>
+        </div>
+
+        <!-- Mini Stats Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+            <div style="background: #1a4d5c; border-radius: 8px; padding: 15px; text-align: center;">
+                <div style="font-size: 28px; font-weight: bold; color: #5dcdeb;">{{ chatbot_stats.active_knowledge|default:0 }}</div>
+                <div style="font-size: 12px; color: #5dcdeb; margin-top: 5px;">Correções Ativas</div>
+            </div>
+            <div style="background: #4d1a4d; border-radius: 8px; padding: 15px; text-align: center;">
+                <div style="font-size: 28px; font-weight: bold; color: #eb5dcd;">{{ chatbot_stats.total_kb_usage|default:0 }}</div>
+                <div style="font-size: 12px; color: #eb5dcd; margin-top: 5px;">Vezes Usado</div>
+            </div>
+        </div>
+
+        <!-- Activity Stats -->
+        <div style="padding: 15px; background: #1a1a1a; border-radius: 8px; border: 1px solid #333;">
+            <div style="margin-bottom: 12px;">
+                <span style="color: var(--text-secondary); font-size: 13px;">📊 Total de Conversas:</span>
+                <span style="color: var(--text-primary); font-weight: 600; float: right;">{{ chatbot_stats.total_sessions|default:0 }}</span>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <span style="color: var(--text-secondary); font-size: 13px;">💬 Mensagens (últimos 7 dias):</span>
+                <span style="color: var(--success-color); font-weight: 600; float: right;">{{ chatbot_stats.recent_messages|default:0 }}</span>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <span style="color: var(--text-secondary); font-size: 13px;">✏️ Respostas Corrigidas:</span>
+                <span style="color: var(--warning-color); font-weight: 600; float: right;">{{ chatbot_stats.corrected_messages|default:0 }}</span>
+            </div>
+            {% if chatbot_stats.top_knowledge %}
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
+                <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 8px;">🏆 Conhecimento Mais Usado:</div>
+                <div style="color: var(--text-primary); font-size: 13px; line-height: 1.5;">
+                    <strong>{{ chatbot_stats.top_knowledge.original_question|truncatechars:80 }}</strong>
+                    <br>
+                    <span style="color: var(--success-color); font-size: 12px;">
+                        ✓ Usado {{ chatbot_stats.top_knowledge.times_used }} vezes
+                    </span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endif %}
