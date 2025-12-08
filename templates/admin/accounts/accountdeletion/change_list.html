@@ -1,0 +1,142 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    /* Gradiente sempre visível (não muda com tema) */
+    .dashboard-button-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .dashboard-button-text {
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .dashboard-button-text small {
+        display: block;
+        font-size: 13px;
+        font-weight: normal;
+        opacity: 0.9;
+        margin-top: 3px;
+    }
+
+    /* Botão sempre branco com texto roxo (destaque no gradiente) */
+    .dashboard-button {
+        background: rgba(255, 255, 255, 0.95);
+        color: #667eea;
+        padding: 10px 25px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .dashboard-button:hover {
+        background: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        color: #764ba2;
+    }
+
+    .dashboard-button:active {
+        transform: translateY(0);
+    }
+
+    /* Cards de stats rápidas (caso sejam adicionados futuramente) */
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    /* Variáveis para tema escuro em cards */
+    :root,
+    [data-theme="light"] {
+        --quick-card-bg: #ffffff;
+        --quick-card-text: #333333;
+        --quick-label-text: #666666;
+        --quick-card-shadow: rgba(0,0,0,0.1);
+    }
+
+    [data-theme="dark"],
+    [data-theme="auto"] {
+        --quick-card-bg: #2b2b2b;
+        --quick-card-text: #e0e0e0;
+        --quick-label-text: #b0b0b0;
+        --quick-card-shadow: rgba(0,0,0,0.3);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+            --quick-card-bg: #2b2b2b;
+            --quick-card-text: #e0e0e0;
+            --quick-label-text: #b0b0b0;
+            --quick-card-shadow: rgba(0,0,0,0.3);
+        }
+    }
+
+    .quick-stat-card {
+        background: var(--quick-card-bg);
+        border-radius: 6px;
+        padding: 15px;
+        box-shadow: 0 2px 4px var(--quick-card-shadow);
+        border-left: 4px solid #417690;
+    }
+
+    .quick-stat-card.danger {
+        border-left-color: #e74c3c;
+    }
+
+    .quick-stat-card.warning {
+        border-left-color: #f39c12;
+    }
+
+    .quick-stat-card.success {
+        border-left-color: #27ae60;
+    }
+
+    .quick-stat-label {
+        font-size: 12px;
+        color: var(--quick-label-text);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+    }
+
+    .quick-stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--quick-card-text);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if show_dashboard_button %}
+<div class="dashboard-button-container">
+    <div class="dashboard-button-text">
+        📊 Dashboard de Exclusões de Conta
+        <small>Visualize estatísticas completas, gráficos e análises de churn</small>
+    </div>
+    <a href="{% url 'admin:account_deletion_dashboard' %}" class="dashboard-button">
+        Acessar Dashboard
+    </a>
+</div>
+{% endif %}
+
+{{ block.super }}
+{% endblock %}

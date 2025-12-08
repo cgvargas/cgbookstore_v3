@@ -1,0 +1,414 @@
+{% extends "new_authors/base.html" %}
+{% load static %}
+
+{% block title %}Planos para Autores Emergentes{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pricing-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 60px 0;
+        text-align: center;
+        margin-bottom: 50px;
+    }
+
+    .pricing-card {
+        border: 2px solid var(--border-color);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        transition: all 0.3s ease;
+        background: var(--card-bg);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pricing-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-color);
+    }
+
+    .pricing-card.featured {
+        border-color: var(--primary-color);
+        border-width: 3px;
+        position: relative;
+    }
+
+    .pricing-card.featured::before {
+        content: "MAIS POPULAR";
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--primary-color);
+        color: white;
+        padding: 5px 20px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .plan-name {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: var(--text-primary);
+    }
+
+    .plan-price {
+        font-size: 48px;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 10px;
+    }
+
+    .plan-price small {
+        font-size: 18px;
+        color: var(--text-secondary);
+    }
+
+    .plan-yearly {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+    }
+
+    .plan-features {
+        list-style: none;
+        padding: 0;
+        margin: 30px 0;
+        flex-grow: 1;
+    }
+
+    .plan-features li {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .plan-features li:last-child {
+        border-bottom: none;
+    }
+
+    .plan-features li i {
+        color: var(--success-color);
+        margin-right: 10px;
+    }
+
+    .plan-features li.unavailable {
+        color: var(--text-secondary);
+        text-decoration: line-through;
+    }
+
+    .plan-features li.unavailable i {
+        color: var(--danger-color);
+    }
+
+    .btn-subscribe {
+        width: 100%;
+        padding: 15px;
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 10px;
+        margin-top: auto;
+    }
+
+    .commission-badge {
+        display: inline-block;
+        background: var(--warning-color);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    .commission-badge.zero {
+        background: var(--success-color);
+    }
+
+    .comparison-table {
+        margin-top: 80px;
+        background: var(--card-bg);
+        border-radius: 15px;
+        padding: 30px;
+    }
+
+    .faq-section {
+        margin-top: 80px;
+    }
+
+    .faq-item {
+        background: var(--card-bg);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pricing-header">
+    <div class="container">
+        <h1><i class="fas fa-pen-fancy"></i> Planos para Autores Emergentes</h1>
+        <p class="lead mt-3">Escolha o plano ideal para impulsionar sua carreira literária</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        {% for plan in plans %}
+        <div class="col-md-4">
+            <div class="pricing-card {% if plan.plan_type == 'premium' %}featured{% endif %}">
+                <div class="text-center">
+                    <h2 class="plan-name">{{ plan.name }}</h2>
+
+                    {% if plan.price_monthly > 0 %}
+                        <div class="plan-price">
+                            R$ {{ plan.price_monthly|floatformat:2 }}
+                            <small>/mês</small>
+                        </div>
+                        <div class="plan-yearly">
+                            ou R$ {{ plan.price_yearly|floatformat:2 }}/ano
+                            <span class="badge bg-success">Economize 17%</span>
+                        </div>
+                    {% else %}
+                        <div class="plan-price">
+                            GRÁTIS
+                        </div>
+                        <div class="plan-yearly">
+                            Sem custos, para sempre
+                        </div>
+                    {% endif %}
+
+                    <div class="commission-badge {% if plan.commission_rate == 0 %}zero{% endif %}">
+                        {% if plan.commission_rate == 0 %}
+                            <i class="fas fa-star"></i> 0% de Comissão
+                        {% else %}
+                            {{ plan.commission_rate|floatformat:0 }}% de Comissão
+                        {% endif %}
+                    </div>
+                </div>
+
+                <ul class="plan-features">
+                    {% if plan.max_books %}
+                        <li><i class="fas fa-check-circle"></i> Até {{ plan.max_books }} livros</li>
+                    {% else %}
+                        <li><i class="fas fa-check-circle"></i> <strong>Livros ilimitados</strong></li>
+                    {% endif %}
+
+                    {% if plan.max_chapters_per_book %}
+                        <li><i class="fas fa-check-circle"></i> {{ plan.max_chapters_per_book }} capítulos por livro</li>
+                    {% else %}
+                        <li><i class="fas fa-check-circle"></i> <strong>Capítulos ilimitados</strong></li>
+                    {% endif %}
+
+                    <li><i class="fas fa-check-circle"></i> Perfil público de autor</li>
+                    <li><i class="fas fa-check-circle"></i> Estatísticas de visualizações</li>
+
+                    {% if plan.can_receive_publisher_messages %}
+                        <li><i class="fas fa-check-circle"></i> <strong>Mensagens diretas de editoras</strong></li>
+                    {% else %}
+                        <li class="unavailable"><i class="fas fa-times-circle"></i> Mensagens diretas de editoras</li>
+                    {% endif %}
+
+                    {% if plan.is_featured %}
+                        <li><i class="fas fa-check-circle"></i> <strong>Perfil em destaque</strong></li>
+                        <li><i class="fas fa-check-circle"></i> Prioridade na busca</li>
+                    {% else %}
+                        <li class="unavailable"><i class="fas fa-times-circle"></i> Perfil em destaque</li>
+                        <li class="unavailable"><i class="fas fa-times-circle"></i> Prioridade na busca</li>
+                    {% endif %}
+
+                    {% if plan.has_verified_badge %}
+                        <li><i class="fas fa-check-circle"></i> <strong>Selo verificado</strong></li>
+                    {% else %}
+                        <li class="unavailable"><i class="fas fa-times-circle"></i> Selo verificado</li>
+                    {% endif %}
+
+                    {% if plan.has_advanced_stats %}
+                        <li><i class="fas fa-check-circle"></i> <strong>Estatísticas avançadas</strong></li>
+                        <li><i class="fas fa-check-circle"></i> Relatórios mensais</li>
+                    {% else %}
+                        <li class="unavailable"><i class="fas fa-times-circle"></i> Estatísticas avançadas</li>
+                        <li class="unavailable"><i class="fas fa-times-circle"></i> Relatórios mensais</li>
+                    {% endif %}
+
+                    {% if plan.plan_type == 'pro' %}
+                        <li><i class="fas fa-check-circle"></i> <strong>Assessoria literária</strong></li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Destaque na home</strong></li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Networking exclusivo</strong></li>
+                    {% endif %}
+                </ul>
+
+                {% if user.is_authenticated and user.emerging_author_profile %}
+                    {% if plan.price_monthly > 0 %}
+                        <!-- Dropdown para escolher ciclo de pagamento -->
+                        <form method="POST" action="{% url 'new_authors:author_checkout' plan.id %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <select name="billing_cycle" class="form-select" style="margin-bottom: 15px;">
+                                    <option value="monthly">Mensal - R$ {{ plan.price_monthly|floatformat:2 }}</option>
+                                    <option value="yearly">Anual - R$ {{ plan.price_yearly|floatformat:2 }} (economize 17%)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-subscribe">
+                                <i class="fas fa-rocket"></i> Assinar Agora
+                            </button>
+                        </form>
+                    {% else %}
+                        <button class="btn btn-outline-secondary btn-subscribe" disabled>
+                            <i class="fas fa-check"></i> Plano Atual
+                        </button>
+                    {% endif %}
+                {% else %}
+                    {% if plan.price_monthly > 0 %}
+                        <a href="{% url 'new_authors:become_author' %}" class="btn btn-primary btn-subscribe">
+                            <i class="fas fa-user-plus"></i> Tornar-se Autor
+                        </a>
+                    {% else %}
+                        <a href="{% url 'new_authors:become_author' %}" class="btn btn-success btn-subscribe">
+                            <i class="fas fa-play"></i> Começar Grátis
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Comparação Detalhada -->
+    <div class="comparison-table">
+        <h2 class="text-center mb-4"><i class="fas fa-table"></i> Comparação Completa</h2>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Recurso</th>
+                        {% for plan in plans %}
+                        <th class="text-center">{{ plan.name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Preço Mensal</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            {% if plan.price_monthly > 0 %}
+                                R$ {{ plan.price_monthly|floatformat:2 }}
+                            {% else %}
+                                Grátis
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Número de Livros</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            {% if plan.max_books %}{{ plan.max_books }}{% else %}Ilimitado{% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Capítulos por Livro</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            {% if plan.max_chapters_per_book %}{{ plan.max_chapters_per_book }}{% else %}Ilimitado{% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Taxa de Comissão</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            <span class="badge {% if plan.commission_rate == 0 %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ plan.commission_rate|floatformat:0 }}%
+                            </span>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Mensagens de Editoras</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            {% if plan.can_receive_publisher_messages %}
+                                <i class="fas fa-check-circle text-success"></i>
+                            {% else %}
+                                <i class="fas fa-times-circle text-danger"></i>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Perfil em Destaque</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            {% if plan.is_featured %}
+                                <i class="fas fa-check-circle text-success"></i>
+                            {% else %}
+                                <i class="fas fa-times-circle text-danger"></i>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Selo Verificado</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            {% if plan.has_verified_badge %}
+                                <i class="fas fa-check-circle text-success"></i>
+                            {% else %}
+                                <i class="fas fa-times-circle text-danger"></i>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Estatísticas Avançadas</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            {% if plan.has_advanced_stats %}
+                                <i class="fas fa-check-circle text-success"></i>
+                            {% else %}
+                                <i class="fas fa-times-circle text-danger"></i>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="faq-section">
+        <h2 class="text-center mb-4"><i class="fas fa-question-circle"></i> Perguntas Frequentes</h2>
+
+        <div class="faq-item">
+            <h5><i class="fas fa-question"></i> Posso mudar de plano depois?</h5>
+            <p>Sim! Você pode fazer upgrade ou downgrade do seu plano a qualquer momento. Mudanças entram em vigor no próximo ciclo de cobrança.</p>
+        </div>
+
+        <div class="faq-item">
+            <h5><i class="fas fa-question"></i> O que acontece se eu exceder os limites do plano gratuito?</h5>
+            <p>Se você atingir os limites (3 livros ou 10 capítulos por livro), não poderá adicionar novos conteúdos até fazer upgrade para um plano pago.</p>
+        </div>
+
+        <div class="faq-item">
+            <h5><i class="fas fa-question"></i> Como funciona a comissão?</h5>
+            <p>A comissão só é cobrada quando você fechar um contrato de publicação através da plataforma. No plano gratuito e premium, cobramos 10%. No plano Pro, não há comissão!</p>
+        </div>
+
+        <div class="faq-item">
+            <h5><i class="fas fa-question"></i> Posso cancelar a qualquer momento?</h5>
+            <p>Sim! Não há fidelidade. Você pode cancelar sua assinatura quando quiser. Seu conteúdo permanecerá na plataforma, mas algumas funcionalidades serão limitadas ao plano gratuito.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

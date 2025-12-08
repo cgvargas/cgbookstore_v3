@@ -1,0 +1,199 @@
+{% extends "admin/index.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    /* Suporte para tema escuro do Django Admin */
+    :root,
+    [data-theme="light"] {
+        --dashboard-card-bg: #ffffff;
+        --dashboard-card-text: #333333;
+        --dashboard-card-desc: #666666;
+        --dashboard-section-border: #f0f0f0;
+        --dashboard-card-shadow: rgba(0,0,0,0.1);
+        --dashboard-card-shadow-hover: rgba(0,0,0,0.15);
+    }
+
+    [data-theme="dark"],
+    [data-theme="auto"] {
+        --dashboard-card-bg: #2b2b2b;
+        --dashboard-card-text: #e0e0e0;
+        --dashboard-card-desc: #b0b0b0;
+        --dashboard-section-border: #404040;
+        --dashboard-card-shadow: rgba(0,0,0,0.3);
+        --dashboard-card-shadow-hover: rgba(0,0,0,0.5);
+    }
+
+    /* Para detectar dark mode automaticamente se o admin não usar data-theme */
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+            --dashboard-card-bg: #2b2b2b;
+            --dashboard-card-text: #e0e0e0;
+            --dashboard-card-desc: #b0b0b0;
+            --dashboard-section-border: #404040;
+            --dashboard-card-shadow: rgba(0,0,0,0.3);
+            --dashboard-card-shadow-hover: rgba(0,0,0,0.5);
+        }
+    }
+
+    .dashboard-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+
+    .dashboard-card {
+        background: var(--dashboard-card-bg);
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px var(--dashboard-card-shadow);
+        border-left: 4px solid #417690;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: block;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px var(--dashboard-card-shadow-hover);
+    }
+
+    .dashboard-card.danger {
+        border-left-color: #e74c3c;
+    }
+
+    .dashboard-card.warning {
+        border-left-color: #f39c12;
+    }
+
+    .dashboard-card.success {
+        border-left-color: #27ae60;
+    }
+
+    .dashboard-card.info {
+        border-left-color: #3498db;
+    }
+
+    .dashboard-card-icon {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+
+    .dashboard-card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--dashboard-card-text);
+        margin: 10px 0;
+    }
+
+    .dashboard-card-description {
+        font-size: 14px;
+        color: var(--dashboard-card-desc);
+        line-height: 1.5;
+    }
+
+    .dashboard-section {
+        margin: 30px 0;
+    }
+
+    .dashboard-section-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--dashboard-card-text);
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--dashboard-section-border);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
+
+<div class="dashboard-section">
+    <h2 class="dashboard-section-title">📊 Dashboards e Análises</h2>
+
+    <div class="dashboard-cards">
+        <!-- Card: Dashboard de Exclusões -->
+        <a href="{% url 'admin:account_deletion_dashboard' %}" class="dashboard-card danger">
+            <div class="dashboard-card-icon">💔</div>
+            <h3 class="dashboard-card-title">Dashboard de Exclusões</h3>
+            <p class="dashboard-card-description">
+                Análise completa de usuários que excluíram suas contas, motivos de churn,
+                estatísticas e tendências.
+            </p>
+        </a>
+
+        <!-- Card: Usuários Premium -->
+        <a href="/admin/accounts/userprofile/?is_premium__exact=1" class="dashboard-card warning">
+            <div class="dashboard-card-icon">👑</div>
+            <h3 class="dashboard-card-title">Usuários Premium</h3>
+            <p class="dashboard-card-description">
+                Visualize e gerencie todos os usuários com assinatura Premium ativa.
+            </p>
+        </a>
+
+        <!-- Card: Notificações de Campanha -->
+        <a href="/admin/accounts/campaignnotification/" class="dashboard-card info">
+            <div class="dashboard-card-icon">📢</div>
+            <h3 class="dashboard-card-title">Campanhas Ativas</h3>
+            <p class="dashboard-card-description">
+                Gerencie notificações e campanhas de marketing para usuários.
+            </p>
+        </a>
+
+        <!-- Card: Estatísticas de Leitura -->
+        <a href="/admin/accounts/readingprogress/" class="dashboard-card success">
+            <div class="dashboard-card-icon">📚</div>
+            <h3 class="dashboard-card-title">Progresso de Leitura</h3>
+            <p class="dashboard-card-description">
+                Acompanhe o progresso de leitura dos usuários e engajamento.
+            </p>
+        </a>
+    </div>
+</div>
+
+<div class="dashboard-section">
+    <h2 class="dashboard-section-title">⚡ Ações Rápidas</h2>
+
+    <div class="dashboard-cards">
+        <!-- Card: Adicionar Livro -->
+        <a href="/admin/core/book/add/" class="dashboard-card info">
+            <div class="dashboard-card-icon">➕</div>
+            <h3 class="dashboard-card-title">Adicionar Livro</h3>
+            <p class="dashboard-card-description">
+                Cadastre um novo livro na biblioteca.
+            </p>
+        </a>
+
+        <!-- Card: Gerenciar Banners -->
+        <a href="/admin/core/banner/" class="dashboard-card warning">
+            <div class="dashboard-card-icon">🎨</div>
+            <h3 class="dashboard-card-title">Gerenciar Banners</h3>
+            <p class="dashboard-card-description">
+                Configure os banners da página inicial.
+            </p>
+        </a>
+
+        <!-- Card: Ver Usuários -->
+        <a href="/admin/auth/user/" class="dashboard-card success">
+            <div class="dashboard-card-icon">👥</div>
+            <h3 class="dashboard-card-title">Gerenciar Usuários</h3>
+            <p class="dashboard-card-description">
+                Visualize e gerencie todos os usuários da plataforma.
+            </p>
+        </a>
+
+        <!-- Card: Avaliações de Livros -->
+        <a href="/admin/accounts/bookreview/" class="dashboard-card info">
+            <div class="dashboard-card-icon">⭐</div>
+            <h3 class="dashboard-card-title">Avaliações</h3>
+            <p class="dashboard-card-description">
+                Modere avaliações e comentários dos usuários.
+            </p>
+        </a>
+    </div>
+</div>
+{% endblock %}

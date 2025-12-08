@@ -1,0 +1,600 @@
+{% extends "new_authors/base.html" %}
+{% load static %}
+
+{% block title %}Planos para Editoras{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pricing-header {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+        color: white;
+        padding: 60px 0;
+        text-align: center;
+        margin-bottom: 50px;
+    }
+
+    .pricing-card {
+        border: 2px solid var(--border-color);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        transition: all 0.3s ease;
+        background: var(--card-bg);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pricing-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-lg);
+        border-color: #17a2b8;
+    }
+
+    .pricing-card.featured {
+        border-color: #17a2b8;
+        border-width: 3px;
+        position: relative;
+    }
+
+    .pricing-card.featured::before {
+        content: "RECOMENDADO";
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #17a2b8;
+        color: white;
+        padding: 5px 20px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .plan-name {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: var(--text-primary);
+    }
+
+    .plan-price {
+        font-size: 48px;
+        font-weight: 700;
+        color: #17a2b8;
+        margin-bottom: 10px;
+    }
+
+    .plan-price small {
+        font-size: 18px;
+        color: var(--text-secondary);
+    }
+
+    .plan-yearly {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+    }
+
+    .plan-features {
+        list-style: none;
+        padding: 0;
+        margin: 30px 0;
+        flex-grow: 1;
+    }
+
+    .plan-features li {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .plan-features li:last-child {
+        border-bottom: none;
+    }
+
+    .plan-features li i {
+        color: var(--success-color);
+        margin-right: 10px;
+    }
+
+    .plan-features li.unavailable {
+        color: var(--text-secondary);
+        text-decoration: line-through;
+    }
+
+    .plan-features li.unavailable i {
+        color: var(--danger-color);
+    }
+
+    .plan-features li strong {
+        color: #17a2b8;
+    }
+
+    .btn-subscribe {
+        width: 100%;
+        padding: 15px;
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 10px;
+        margin-top: auto;
+    }
+
+    .btn-trial {
+        background: linear-gradient(135deg, #28a745, #218838);
+        border: none;
+        color: white;
+    }
+
+    .btn-trial:hover {
+        opacity: 0.9;
+        color: white;
+    }
+
+    .trial-badge {
+        display: inline-block;
+        background: #28a745;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    .limit-badge {
+        display: inline-block;
+        background: #6c757d;
+        color: white;
+        padding: 3px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        margin-left: 5px;
+    }
+
+    .unlimited-badge {
+        display: inline-block;
+        background: #17a2b8;
+        color: white;
+        padding: 3px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        margin-left: 5px;
+    }
+
+    .comparison-table {
+        margin-top: 80px;
+        background: var(--card-bg);
+        border-radius: 15px;
+        padding: 30px;
+    }
+
+    .benefits-section {
+        margin-top: 80px;
+        padding: 60px 0;
+        background: var(--background-secondary);
+    }
+
+    .benefit-card {
+        text-align: center;
+        padding: 30px;
+        background: var(--card-bg);
+        border-radius: 15px;
+        margin-bottom: 30px;
+        transition: all 0.3s ease;
+    }
+
+    .benefit-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .benefit-card i {
+        font-size: 48px;
+        color: #17a2b8;
+        margin-bottom: 20px;
+    }
+
+    .faq-section {
+        margin-top: 80px;
+        margin-bottom: 60px;
+    }
+
+    .faq-item {
+        background: var(--card-bg);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pricing-header">
+    <div class="container">
+        <h1><i class="fas fa-building"></i> Planos para Editoras</h1>
+        <p class="lead mt-3">Descubra novos talentos literários e impulsione seu catálogo</p>
+        <div class="mt-4">
+            <span class="badge bg-success" style="font-size: 16px; padding: 10px 20px;">
+                <i class="fas fa-gift"></i> 14 Dias de Trial Gratuito
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        {% for plan in plans %}
+        <div class="col-md-4">
+            <div class="pricing-card {% if plan.plan_type == 'premium' %}featured{% endif %}">
+                <div class="text-center">
+                    <h2 class="plan-name">{{ plan.name }}</h2>
+
+                    <div class="plan-price">
+                        R$ {{ plan.price_monthly|floatformat:2 }}
+                        <small>/mês</small>
+                    </div>
+                    <div class="plan-yearly">
+                        ou R$ {{ plan.price_yearly|floatformat:2 }}/ano
+                        <span class="badge bg-success">Economize 17%</span>
+                    </div>
+
+                    <div class="trial-badge">
+                        <i class="fas fa-clock"></i> Trial de 14 Dias Grátis
+                    </div>
+                </div>
+
+                <ul class="plan-features">
+                    <li>
+                        <i class="fas fa-check-circle"></i> Acesso ao catálogo completo
+                    </li>
+
+                    {% if plan.max_manuscript_views %}
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            Visualizar manuscritos
+                            <span class="limit-badge">{{ plan.max_manuscript_views }}/mês</span>
+                        </li>
+                    {% else %}
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Visualizar manuscritos</strong>
+                            <span class="unlimited-badge">ILIMITADO</span>
+                        </li>
+                    {% endif %}
+
+                    {% if plan.max_chapter_downloads %}
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            Downloads de capítulos
+                            <span class="limit-badge">{{ plan.max_chapter_downloads }}/mês</span>
+                        </li>
+                    {% else %}
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Downloads de capítulos</strong>
+                            <span class="unlimited-badge">ILIMITADO</span>
+                        </li>
+                    {% endif %}
+
+                    {% if plan.can_download_full_book %}
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Download de livro completo</strong>
+                        </li>
+                    {% else %}
+                        <li class="unavailable">
+                            <i class="fas fa-times-circle"></i>
+                            Download de livro completo
+                        </li>
+                    {% endif %}
+
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        Watermark em todos os documentos
+                    </li>
+
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        Demonstrar interesse em livros
+                    </li>
+
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        Filtros avançados de busca
+                    </li>
+
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        Histórico de downloads
+                    </li>
+
+                    {% if plan.plan_type == 'premium' or plan.plan_type == 'enterprise' %}
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Perfil destacado</strong>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Mensagens diretas ilimitadas</strong>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            Sistema de favoritos/watchlist
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            Alertas personalizados
+                        </li>
+                    {% else %}
+                        <li class="unavailable">
+                            <i class="fas fa-times-circle"></i>
+                            Perfil destacado
+                        </li>
+                        <li class="unavailable">
+                            <i class="fas fa-times-circle"></i>
+                            Mensagens diretas ilimitadas
+                        </li>
+                    {% endif %}
+
+                    {% if plan.plan_type == 'enterprise' %}
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Acesso via API</strong>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Gerente de conta dedicado</strong>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <strong>{{ plan.max_users }} usuários simultâneos</strong>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Acesso antecipado (48h antes)</strong>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            Suporte prioritário (WhatsApp/Chat)
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            Relatórios customizados
+                        </li>
+                    {% endif %}
+                </ul>
+
+                {% if user.is_authenticated and user.publisher_profile %}
+                    <!-- Formulário com opção de trial e ciclo de pagamento -->
+                    <form method="POST" action="{% url 'new_authors:publisher_checkout' plan.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <select name="billing_cycle" class="form-select" style="margin-bottom: 10px;">
+                                <option value="monthly">Mensal - R$ {{ plan.price_monthly|floatformat:2 }}</option>
+                                <option value="yearly">Anual - R$ {{ plan.price_yearly|floatformat:2 }} (economize 17%)</option>
+                            </select>
+                        </div>
+                        <div class="form-check mb-3" style="text-align: left;">
+                            <input class="form-check-input" type="checkbox" name="is_trial" value="true" id="trial_{{ plan.id }}" checked>
+                            <label class="form-check-label" for="trial_{{ plan.id }}" style="color: var(--text-secondary); font-size: 14px;">
+                                Iniciar com trial de 14 dias grátis
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-trial btn-subscribe">
+                            <i class="fas fa-rocket"></i> Assinar Agora
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'new_authors:become_publisher' %}" class="btn btn-trial btn-subscribe">
+                        <i class="fas fa-building"></i> Cadastrar Editora
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Benefícios -->
+    <div class="benefits-section">
+        <div class="container">
+            <h2 class="text-center mb-5"><i class="fas fa-star"></i> Por Que Escolher Nossa Plataforma?</h2>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="benefit-card">
+                        <i class="fas fa-users"></i>
+                        <h5>Autores Qualificados</h5>
+                        <p>Acesso a centenas de autores emergentes talentosos</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="benefit-card">
+                        <i class="fas fa-shield-alt"></i>
+                        <h5>Segurança Total</h5>
+                        <p>Watermark automático em todos os manuscritos baixados</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="benefit-card">
+                        <i class="fas fa-chart-line"></i>
+                        <h5>Analytics Detalhado</h5>
+                        <p>Estatísticas completas de engajamento e visualizações</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="benefit-card">
+                        <i class="fas fa-handshake"></i>
+                        <h5>Conexão Direta</h5>
+                        <p>Comunique-se diretamente com os autores</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparação Detalhada -->
+    <div class="comparison-table">
+        <h2 class="text-center mb-4"><i class="fas fa-table"></i> Comparação Completa de Planos</h2>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Recurso</th>
+                        {% for plan in plans %}
+                        <th class="text-center">{{ plan.name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Preço Mensal</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">R$ {{ plan.price_monthly|floatformat:2 }}</td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Trial Gratuito</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            <span class="badge bg-success">14 Dias</span>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Visualizações de Manuscritos/Mês</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            {% if plan.max_manuscript_views %}
+                                {{ plan.max_manuscript_views }}
+                            {% else %}
+                                <strong>Ilimitado</strong>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Downloads de Capítulos/Mês</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            {% if plan.max_chapter_downloads %}
+                                {{ plan.max_chapter_downloads }}
+                            {% else %}
+                                <strong>Ilimitado</strong>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Download de Livro Completo</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            {% if plan.can_download_full_book %}
+                                <i class="fas fa-check-circle text-success"></i>
+                            {% else %}
+                                <i class="fas fa-times-circle text-danger"></i>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Formatos de Download</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">PDF, DOCX</td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Watermark</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            <i class="fas fa-check-circle text-success"></i>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Número de Usuários</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">{{ plan.max_users }}</td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Acesso via API</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            {% if plan.has_api_access %}
+                                <i class="fas fa-check-circle text-success"></i>
+                            {% else %}
+                                <i class="fas fa-times-circle text-danger"></i>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Suporte Prioritário</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            {% if plan.has_priority_support %}
+                                <i class="fas fa-check-circle text-success"></i>
+                            {% else %}
+                                Email
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Acesso Antecipado</strong></td>
+                        {% for plan in plans %}
+                        <td class="text-center">
+                            {% if plan.early_access_hours > 0 %}
+                                {{ plan.early_access_hours }}h antes
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="faq-section">
+        <h2 class="text-center mb-4"><i class="fas fa-question-circle"></i> Perguntas Frequentes</h2>
+
+        <div class="faq-item">
+            <h5><i class="fas fa-question"></i> Como funciona o trial de 14 dias?</h5>
+            <p>Você terá acesso completo ao plano escolhido por 14 dias sem custo. Não é necessário cartão de crédito para começar. Após o período, você decide se quer continuar com a assinatura.</p>
+        </div>
+
+        <div class="faq-item">
+            <h5><i class="fas fa-question"></i> Os manuscritos têm watermark?</h5>
+            <p>Sim! Todos os arquivos baixados (PDF e DOCX) incluem watermark com o nome da sua editora em todas as páginas, garantindo a rastreabilidade do documento.</p>
+        </div>
+
+        <div class="faq-item">
+            <h5><i class="fas fa-question"></i> Posso fazer upgrade do plano depois?</h5>
+            <p>Sim! Você pode fazer upgrade a qualquer momento. A diferença de valor será calculada proporcionalmente e os novos limites entram em vigor imediatamente.</p>
+        </div>
+
+        <div class="faq-item">
+            <h5><i class="fas fa-question"></i> Como funcionam os limites mensais?</h5>
+            <p>Os limites de visualizações e downloads são resetados automaticamente todo dia 1º de cada mês. Você pode acompanhar seu uso em tempo real no dashboard.</p>
+        </div>
+
+        <div class="faq-item">
+            <h5><i class="fas fa-question"></i> O que acontece se eu atingir o limite?</h5>
+            <p>Se atingir o limite de downloads ou visualizações, você precisará aguardar o próximo ciclo mensal ou fazer upgrade para um plano com limites maiores/ilimitados.</p>
+        </div>
+
+        <div class="faq-item">
+            <h5><i class="fas fa-question"></i> Como funciona o download de livro completo?</h5>
+            <p>Nos planos Premium e Enterprise, você pode baixar todos os capítulos de um livro em um único arquivo. Este download conta como múltiplos downloads (1 por capítulo) nos limites mensais.</p>
+        </div>
+
+        <div class="faq-item">
+            <h5><i class="fas fa-question"></i> Posso cancelar a qualquer momento?</h5>
+            <p>Sim! Não há fidelidade ou multas por cancelamento. Você pode cancelar sua assinatura quando quiser e continuará tendo acesso até o fim do período pago.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

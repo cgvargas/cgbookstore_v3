@@ -1,0 +1,491 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if chronicle %}{{ chronicle.title }}{% else %}Crônica Semanal{% endif %} - CG.BookStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Traditional newspaper styling */
+    @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600;700&display=swap');
+
+    body {
+        font-family: 'Open Sans', sans-serif;
+        line-height: 1.6;
+        color: #333;
+    }
+
+    .newspaper {
+        max-width: 1200px;
+        margin: 0 auto;
+        background-color: white;
+        padding: 40px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+
+    /* Header */
+    .header {
+        border-bottom: 3px double #333;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+    }
+
+    .masthead {
+        font-family: 'Merriweather', serif;
+        font-size: 3em;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 10px;
+        letter-spacing: 2px;
+        color: var(--text-color, #333);
+    }
+
+    .tagline {
+        text-align: center;
+        font-style: italic;
+        font-size: 1em;
+        color: var(--text-muted, #666);
+        margin-bottom: 10px;
+    }
+
+    .date-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9em;
+        margin-top: 15px;
+        color: var(--text-color, #333);
+    }
+
+    /* Main content area */
+    .main-content {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+
+    /* Article styles */
+    .article {
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .article:last-child {
+        border-bottom: none;
+    }
+
+    .headline {
+        font-family: 'Merriweather', serif;
+        font-size: 1.8em;
+        font-weight: 700;
+        margin-bottom: 5px;
+        line-height: 1.2;
+        color: var(--text-color, #333);
+    }
+
+    .subheading {
+        font-family: 'Merriweather', serif;
+        font-size: 1.3em;
+        font-weight: 700;
+        margin-bottom: 5px;
+        margin-top: 20px;
+        color: var(--text-color, #333);
+    }
+
+    .byline {
+        font-style: italic;
+        color: var(--text-muted, #666);
+        font-size: 0.9em;
+        margin-bottom: 10px;
+    }
+
+    .article-text {
+        text-align: justify;
+        font-size: 1em;
+        line-height: 1.6;
+        color: var(--text-color, #333);
+        white-space: pre-wrap;
+    }
+
+    /* Sidebar styles */
+    .sidebar {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border: 1px solid #ddd;
+    }
+
+    .sidebar-header {
+        font-family: 'Merriweather', serif;
+        font-size: 1.2em;
+        font-weight: 700;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #333;
+        padding-bottom: 5px;
+        color: var(--text-color, #333);
+    }
+
+    .sidebar-item {
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+        color: var(--text-color, #333);
+    }
+
+    .sidebar-item:last-child {
+        border-bottom: none;
+    }
+
+    .sidebar-item strong {
+        color: var(--text-color, #000);
+    }
+
+    /* Section headers */
+    .section-header {
+        font-family: 'Merriweather', serif;
+        font-size: 1.5em;
+        font-weight: 700;
+        margin-top: 40px;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #333;
+        text-transform: uppercase;
+        color: var(--text-color, #333);
+    }
+
+    /* Three column layout for sections */
+    .three-column {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 30px;
+    }
+
+    /* Image container */
+    .article-image {
+        width: 100%;
+        margin: 15px 0;
+        border: 1px solid #ddd;
+        overflow: hidden;
+    }
+
+    .article-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    /* Quote box */
+    .quote-box {
+        background-color: #f5f5f5;
+        border-left: 4px solid #333;
+        padding: 20px;
+        margin: 20px 0;
+        font-style: italic;
+        font-size: 1.1em;
+    }
+
+    .quote-attribution {
+        text-align: right;
+        margin-top: 10px;
+        font-style: normal;
+        font-weight: 600;
+        color: var(--text-color, #333);
+    }
+
+    /* Empty state */
+    .chronicle-empty {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .chronicle-empty-icon {
+        font-size: 5rem;
+        color: var(--primary-color, #ff6b35);
+        margin-bottom: 1.5rem;
+    }
+
+    .chronicle-empty-title {
+        font-size: 1.8rem;
+        color: var(--text-color, #2c3e50);
+        margin-bottom: 1rem;
+    }
+
+    .chronicle-empty-text {
+        font-size: 1.1rem;
+        color: var(--text-muted, #6c757d);
+    }
+
+    @media (max-width: 768px) {
+        .newspaper {
+            padding: 20px;
+        }
+
+        .main-content {
+            grid-template-columns: 1fr;
+        }
+
+        .three-column {
+            grid-template-columns: 1fr;
+        }
+
+        .masthead {
+            font-size: 2em;
+        }
+    }
+
+    /* Dark mode support */
+    [data-theme="dark"] .newspaper {
+        background-color: var(--card-bg, #1a1a1a);
+    }
+
+    [data-theme="dark"] .header {
+        border-bottom-color: rgba(255, 255, 255, 0.2);
+    }
+
+    [data-theme="dark"] .masthead {
+        color: var(--text-color, #e0e0e0);
+    }
+
+    [data-theme="dark"] .tagline {
+        color: var(--text-muted, #999);
+    }
+
+    [data-theme="dark"] .date-info {
+        color: var(--text-color, #e0e0e0);
+    }
+
+    [data-theme="dark"] .headline,
+    [data-theme="dark"] .subheading {
+        color: var(--text-color, #e0e0e0);
+    }
+
+    [data-theme="dark"] .byline {
+        color: var(--text-muted, #999);
+    }
+
+    [data-theme="dark"] .article-text {
+        color: var(--text-color, #d0d0d0);
+    }
+
+    [data-theme="dark"] .article {
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+
+    [data-theme="dark"] .sidebar {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    [data-theme="dark"] .sidebar-header {
+        border-bottom-color: rgba(255, 255, 255, 0.2);
+        color: var(--text-color, #e0e0e0);
+    }
+
+    [data-theme="dark"] .sidebar-item {
+        border-bottom-color: rgba(255, 255, 255, 0.05);
+        color: var(--text-color, #d0d0d0);
+    }
+
+    [data-theme="dark"] .sidebar-item strong {
+        color: var(--text-color, #e0e0e0);
+    }
+
+    [data-theme="dark"] .section-header {
+        border-bottom-color: rgba(255, 255, 255, 0.2);
+        color: var(--text-color, #e0e0e0);
+    }
+
+    [data-theme="dark"] .quote-box {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-left-color: var(--primary-color, #ff6b35);
+        color: var(--text-color, #d0d0d0);
+    }
+
+    [data-theme="dark"] .quote-attribution {
+        color: var(--text-color, #e0e0e0);
+    }
+
+    [data-theme="dark"] .article-image {
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if chronicle %}
+<div class="newspaper">
+    <header class="header">
+        <h1 class="masthead">A CRÔNICA SEMANAL</h1>
+        <p class="tagline">Sua Semana em Revista</p>
+        <div class="date-info">
+            <span>
+                {% if chronicle.week_start_date and chronicle.week_end_date %}
+                    Semana de {{ chronicle.week_start_date|date:"d/m" }} a {{ chronicle.week_end_date|date:"d/m/Y" }}
+                {% else %}
+                    {{ chronicle.published_date|date:"d/m/Y" }}
+                {% endif %}
+            </span>
+            <span>Volume {{ chronicle.volume_number }}, Edição {{ chronicle.issue_number }}</span>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <div class="main-articles">
+            <article class="article">
+                <h2 class="headline">{{ chronicle.title }}</h2>
+                <div class="byline">Por {{ chronicle.author_name }} | {{ chronicle.published_date|date:"l, d \d\e F \d\e Y"|title }}</div>
+
+                {% if chronicle.subtitle %}
+                <p class="article-text"><strong>{{ chronicle.subtitle }}</strong></p>
+                {% endif %}
+
+                <p class="article-text">{{ chronicle.introduction }}</p>
+
+                {% if chronicle.featured_image %}
+                <div class="article-image">
+                    <img src="{{ chronicle.featured_image.url }}" alt="{{ chronicle.title }}">
+                </div>
+                {% endif %}
+
+                <p class="article-text">{{ chronicle.main_content }}</p>
+
+                {% if chronicle.conclusion %}
+                <p class="article-text">{{ chronicle.conclusion }}</p>
+                {% endif %}
+            </article>
+        </div>
+
+        <aside class="sidebar">
+            <h3 class="sidebar-header">Destaques da Semana</h3>
+
+            {% if chronicle.highlights_accomplishment %}
+            <div class="sidebar-item">
+                <strong>Realização:</strong> {{ chronicle.highlights_accomplishment }}
+            </div>
+            {% endif %}
+
+            {% if chronicle.highlights_social %}
+            <div class="sidebar-item">
+                <strong>Social:</strong> {{ chronicle.highlights_social }}
+            </div>
+            {% endif %}
+
+            {% if chronicle.highlights_health %}
+            <div class="sidebar-item">
+                <strong>Saúde:</strong> {{ chronicle.highlights_health }}
+            </div>
+            {% endif %}
+
+            {% if chronicle.highlights_learning %}
+            <div class="sidebar-item">
+                <strong>Aprendizado:</strong> {{ chronicle.highlights_learning }}
+            </div>
+            {% endif %}
+
+            {% if chronicle.highlights_personal %}
+            <div class="sidebar-item">
+                <strong>Pessoal:</strong> {{ chronicle.highlights_personal }}
+            </div>
+            {% endif %}
+        </aside>
+    </div>
+
+    {% if chronicle.section_home_title and chronicle.section_home_content %}
+    <section>
+        <h2 class="section-header">Casa & Família</h2>
+        <article class="article">
+            <h3 class="subheading">{{ chronicle.section_home_title }}</h3>
+            <p class="article-text">{{ chronicle.section_home_content }}</p>
+
+            {% if chronicle.secondary_image %}
+            <div class="article-image">
+                <img src="{{ chronicle.secondary_image.url }}" alt="{{ chronicle.section_home_title }}">
+            </div>
+            {% endif %}
+        </article>
+    </section>
+    {% endif %}
+
+    {% if chronicle.section_health_title and chronicle.section_health_content %}
+    <section>
+        <h2 class="section-header">Saúde & Bem-Estar</h2>
+        <article class="article">
+            <h3 class="subheading">{{ chronicle.section_health_title }}</h3>
+            <div class="byline">Por {{ chronicle.author_name }} | {{ chronicle.published_date|date:"l, d \d\e F \d\e Y"|title }}</div>
+            <p class="article-text">{{ chronicle.section_health_content }}</p>
+
+            {% if chronicle.quote %}
+            <div class="quote-box">
+                "{{ chronicle.quote }}"
+                {% if chronicle.quote_author %}
+                <div class="quote-attribution">— {{ chronicle.quote_author }}</div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if chronicle.gallery_image_1 %}
+            <div class="article-image">
+                <img src="{{ chronicle.gallery_image_1.url }}" alt="Galeria">
+            </div>
+            {% endif %}
+        </article>
+    </section>
+    {% endif %}
+
+    {% if chronicle.section_entertainment_title and chronicle.section_entertainment_content %}
+    <section>
+        <h2 class="section-header">Entretenimento & Cultura</h2>
+        <div class="three-column">
+            <article class="article">
+                <h3 class="subheading">{{ chronicle.section_entertainment_title }}</h3>
+                <p class="article-text">{{ chronicle.section_entertainment_content }}</p>
+            </article>
+
+            {% if chronicle.gallery_image_2 %}
+            <article class="article">
+                <div class="article-image">
+                    <img src="{{ chronicle.gallery_image_2.url }}" alt="Galeria 2">
+                </div>
+            </article>
+            {% endif %}
+
+            {% if chronicle.gallery_image_3 %}
+            <article class="article">
+                <div class="article-image">
+                    <img src="{{ chronicle.gallery_image_3.url }}" alt="Galeria 3">
+                </div>
+            </article>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if chronicle.quote_secondary %}
+    <section>
+        <h2 class="section-header">Perspectivas</h2>
+        <article class="article">
+            <div class="quote-box">
+                "{{ chronicle.quote_secondary }}"
+                {% if chronicle.quote_secondary_author %}
+                <div class="quote-attribution">— {{ chronicle.quote_secondary_author }}</div>
+                {% endif %}
+            </div>
+        </article>
+    </section>
+    {% endif %}
+</div>
+{% else %}
+<!-- Estado Vazio -->
+<div class="newspaper">
+    <div class="chronicle-empty">
+        <div class="chronicle-empty-icon">
+            <i class="fas fa-feather-alt"></i>
+        </div>
+        <h2 class="chronicle-empty-title">Crônica em Breve</h2>
+        <p class="chronicle-empty-text">
+            Nossa equipe está preparando uma nova crônica especial para você.<br>
+            Volte em breve para conferir!
+        </p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
