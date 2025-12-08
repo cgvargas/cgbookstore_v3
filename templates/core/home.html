@@ -700,7 +700,7 @@ function openVideoModal(element) {
         // Mostra player integrado
         embedContainer.style.display = 'block';
         fallback.style.display = 'none';
-        embedContainer.innerHTML = `<iframe src="${embedUrl}?autoplay=1"
+        embedContainer.innerHTML = `<iframe src="${embedUrl}&autoplay=1"
                                            frameborder="0"
                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                            allowfullscreen>
@@ -938,7 +938,7 @@ function openVideoModal(element) {
         // Mostra player integrado
         embedContainer.style.display = 'block';
         fallback.style.display = 'none';
-        embedContainer.innerHTML = `<iframe src="${embedUrl}?autoplay=1"
+        embedContainer.innerHTML = `<iframe src="${embedUrl}&autoplay=1"
                                            frameborder="0"
                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                            allowfullscreen>

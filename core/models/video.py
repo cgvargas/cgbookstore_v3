@@ -200,7 +200,8 @@ class Video(models.Model):
     def get_embed_url(self):
         """Retorna URL para embed baseado na plataforma"""
         if self.platform == 'youtube' and self.embed_code:
-            return f"https://www.youtube.com/embed/{self.embed_code}"
+            # Adiciona parâmetros para corrigir erro 153 e melhorar compatibilidade
+            return f"https://www.youtube-nocookie.com/embed/{self.embed_code}?rel=0&modestbranding=1&enablejsapi=1"
         elif self.platform == 'vimeo' and self.embed_code:
             return f"https://player.vimeo.com/video/{self.embed_code}"
         return None
