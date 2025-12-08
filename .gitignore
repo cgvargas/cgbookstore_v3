@@ -8,7 +8,8 @@ __pycache__/
 .env
 .env.*
 !.env.example
-!.env.backup_render_*
+.env.backup_render_*
+config/.env.example
 
 # Ambiente Virtual
 venv/
