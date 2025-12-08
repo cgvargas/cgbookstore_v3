@@ -185,6 +185,7 @@
     .swiper-button-prev::after {
         font-size: 1rem;
     }
+.video-thumbnail {        height: 250px;    }
 }
 
 /* ===== VÍDEOS NAS SEÇÕES ===== */
@@ -213,7 +214,7 @@
 
 .video-thumbnail {
     width: 100%;
-    height: 450px;
+    height: 400px;
     object-fit: cover;
     display: block;
 }

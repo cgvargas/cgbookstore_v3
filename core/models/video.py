@@ -76,6 +76,14 @@ class Video(models.Model):
     )
 
     # Thumbnail
+    thumbnail_image = models.ImageField(
+        upload_to='videos/thumbnails/',
+        blank=True,
+        null=True,
+        verbose_name="Thumbnail Customizada",
+        help_text="Upload de thumbnail para Instagram, Vimeo, TikTok, etc."
+    )
+
     thumbnail_url = models.URLField(
         blank=True,
         verbose_name="URL da Thumbnail",
@@ -178,6 +186,17 @@ class Video(models.Model):
     def __str__(self):
         return self.title
 
+    def get_thumbnail(self):
+        """
+        Retorna a URL da thumbnail do vídeo.
+        Prioriza: 1) thumbnail_image (upload), 2) thumbnail_url (YouTube)
+        """
+        if self.thumbnail_image:
+            return self.thumbnail_image.url
+        elif self.thumbnail_url:
+            return self.thumbnail_url
+        return None
+
     def get_embed_url(self):
         """Retorna URL para embed baseado na plataforma"""
         if self.platform == 'youtube' and self.embed_code:
@@ -189,17 +208,17 @@ class Video(models.Model):
     def get_embed_html(self):
         """Retorna código HTML iframe para embed do vídeo"""
         if self.platform == 'youtube' and self.embed_code:
-            return f'''<iframe width="100%" height="100%" 
-                        src="https://www.youtube.com/embed/{self.embed_code}" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            return f'''<iframe width="100%" height="100%"
+                        src="https://www.youtube.com/embed/{self.embed_code}"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen>
                        </iframe>'''
         elif self.platform == 'vimeo' and self.embed_code:
-            return f'''<iframe width="100%" height="100%" 
-                        src="https://player.vimeo.com/video/{self.embed_code}" 
-                        frameborder="0" 
-                        allow="autoplay; fullscreen; picture-in-picture" 
+            return f'''<iframe width="100%" height="100%"
+                        src="https://player.vimeo.com/video/{self.embed_code}"
+                        frameborder="0"
+                        allow="autoplay; fullscreen; picture-in-picture"
                         allowfullscreen>
                        </iframe>'''
         return None
