@@ -80,6 +80,54 @@ class Banner(models.Model):
         help_text="Altura do banner em pixels (padrão: 700px, estilo Crunchyroll: 700-900px)"
     )
 
+    # Posicionamento da imagem
+    VERTICAL_POSITION_CHOICES = [
+        ('top', 'Topo'),
+        ('center', 'Centro'),
+        ('bottom', 'Inferior'),
+    ]
+
+    HORIZONTAL_POSITION_CHOICES = [
+        ('left', 'Esquerda'),
+        ('center', 'Centro'),
+        ('right', 'Direita'),
+    ]
+
+    image_position_vertical = models.CharField(
+        max_length=10,
+        choices=VERTICAL_POSITION_CHOICES,
+        default='center',
+        verbose_name="Posição Vertical da Imagem",
+        help_text="Onde a imagem deve ser posicionada verticalmente no banner"
+    )
+
+    image_position_horizontal = models.CharField(
+        max_length=10,
+        choices=HORIZONTAL_POSITION_CHOICES,
+        default='center',
+        verbose_name="Posição Horizontal da Imagem",
+        help_text="Onde a imagem deve ser posicionada horizontalmente no banner"
+    )
+
+    # Efeitos visuais
+    overlay_opacity = models.FloatField(
+        default=0.3,
+        verbose_name="Opacidade do Overlay Escuro",
+        help_text="Escurecimento sobre a imagem (0.0 = transparente, 1.0 = totalmente escuro). Recomendado: 0.2-0.4"
+    )
+
+    blur_edges = models.BooleanField(
+        default=True,
+        verbose_name="Desfocar Bordas",
+        help_text="Aplica efeito de desfoque gradual nas bordas superior e inferior do banner"
+    )
+
+    blur_intensity = models.PositiveIntegerField(
+        default=100,
+        verbose_name="Intensidade do Desfoque (px)",
+        help_text="Tamanho da área de desfoque nas bordas (recomendado: 80-150px)"
+    )
+
     # Período de exibição
     start_date = models.DateTimeField(
         null=True,

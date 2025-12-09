@@ -7,17 +7,23 @@
         <!-- Slides dos Banners -->
         <div class="banner-slides">
             {% for banner in banners %}
-            <div class="banner-slide {% if forloop.first %}active{% endif %}" data-banner-id="{{ banner.id }}">
+            <div class="banner-slide {% if forloop.first %}active{% endif %}"
+                 data-banner-id="{{ banner.id }}"
+                 style="height: {{ banner.height|default:700 }}px;">
                     <div class="banner-image-wrapper">
                         <img src="{{ banner.image.url }}"
                              alt="{{ banner.title }}"
-                             class="banner-image">
+                             class="banner-image"
+                             style="object-position: {{ banner.image_position_horizontal|default:'center' }} {{ banner.image_position_vertical|default:'center' }};">
 
-                        <!-- Overlay com gradiente para melhor legibilidade do texto -->
-                        <!-- Gradiente de opacidade no topo -->
-                        <div class="banner-top-fade"></div>
+                        <!-- Overlay com opacidade controlável -->
+                        <div class="banner-overlay" style="background: rgba(0, 0, 0, {{ banner.overlay_opacity|default:0.3 }});"></div>
 
-                        <div class="banner-overlay"></div>
+                        <!-- Desfoque nas bordas (opcional) -->
+                        {% if banner.blur_edges %}
+                        <div class="banner-blur-top" style="height: {{ banner.blur_intensity|default:100 }}px;"></div>
+                        <div class="banner-blur-bottom" style="height: {{ banner.blur_intensity|default:100 }}px;"></div>
+                        {% endif %}
 
                         <!-- Gradient Fade Transparente (Estilo Crunchyroll) -->
                         <div class="banner-gradient-fade"></div>

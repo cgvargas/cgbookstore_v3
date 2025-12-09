@@ -57,6 +57,22 @@ class BannerAdmin(admin.ModelAdmin):
                 'image_preview'
             )
         }),
+        ('Posicionamento da Imagem', {
+            'fields': (
+                ('image_position_vertical', 'image_position_horizontal'),
+            ),
+            'description': 'Controle onde a imagem é posicionada dentro do banner'
+        }),
+        ('Efeitos Visuais', {
+            'fields': (
+                'overlay_opacity',
+                ('blur_edges', 'blur_intensity'),
+            ),
+            'description': (
+                'Overlay: Escurecimento sobre a imagem (0.0-1.0, recomendado: 0.2-0.4)<br>'
+                'Desfoque: Aplica fade gradual nas bordas superior e inferior (80-150px)'
+            )
+        }),
         ('Link de Ação', {
             'fields': (
                 'link_url',

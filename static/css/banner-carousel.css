@@ -467,34 +467,65 @@
 }
 
 /* ============================================
-   GRADIENTE DE OPACIDADE NO TOPO DO BANNER
-   Suaviza transição com navbar/linha decorativa
+   DESFOQUE NAS BORDAS (Controlável pelo Admin)
+   Aplica desfoque gradual nas bordas superior e inferior
    ============================================ */
 
-.banner-top-fade {
+.banner-blur-top {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: 80px; /* Altura do fade */
+    height: 100px; /* Valor padrão, substituído por inline style */
     background: linear-gradient(
         to bottom,
         var(--body-bg) 0%,
-        rgba(var(--body-bg-rgb, 255, 255, 255), 0.8) 20%,
-        rgba(var(--body-bg-rgb, 255, 255, 255), 0.4) 50%,
+        rgba(var(--body-bg-rgb, 255, 255, 255), 0.95) 10%,
+        rgba(var(--body-bg-rgb, 255, 255, 255), 0.8) 30%,
+        rgba(var(--body-bg-rgb, 255, 255, 255), 0.5) 60%,
         transparent 100%
     );
-    z-index: 2; /* Acima do overlay mas abaixo do conteúdo */
+    z-index: 4; /* Acima de tudo */
     pointer-events: none;
 }
 
-/* Versão dark mode */
-[data-theme="dark"] .banner-top-fade {
+.banner-blur-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100px; /* Valor padrão, substituído por inline style */
+    background: linear-gradient(
+        to top,
+        var(--body-bg) 0%,
+        rgba(var(--body-bg-rgb, 255, 255, 255), 0.95) 10%,
+        rgba(var(--body-bg-rgb, 255, 255, 255), 0.8) 30%,
+        rgba(var(--body-bg-rgb, 255, 255, 255), 0.5) 60%,
+        transparent 100%
+    );
+    z-index: 4; /* Acima de tudo */
+    pointer-events: none;
+}
+
+/* Versões dark mode */
+[data-theme="dark"] .banner-blur-top {
     background: linear-gradient(
         to bottom,
         rgb(18, 18, 18) 0%,
-        rgba(18, 18, 18, 0.8) 20%,
-        rgba(18, 18, 18, 0.4) 50%,
+        rgba(18, 18, 18, 0.95) 10%,
+        rgba(18, 18, 18, 0.8) 30%,
+        rgba(18, 18, 18, 0.5) 60%,
+        transparent 100%
+    );
+}
+
+[data-theme="dark"] .banner-blur-bottom {
+    background: linear-gradient(
+        to top,
+        rgb(18, 18, 18) 0%,
+        rgba(18, 18, 18, 0.95) 10%,
+        rgba(18, 18, 18, 0.8) 30%,
+        rgba(18, 18, 18, 0.5) 60%,
         transparent 100%
     );
 }
