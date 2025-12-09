@@ -90,6 +90,61 @@ class Section(models.Model):
         help_text="Imagem de fundo ou banner promocional para a seção (recomendado: 1920x400px)"
     )
 
+    # Posicionamento do banner
+    BANNER_VERTICAL_CHOICES = [
+        ('top', 'Topo'),
+        ('center', 'Centro'),
+        ('bottom', 'Inferior'),
+    ]
+
+    BANNER_HORIZONTAL_CHOICES = [
+        ('left', 'Esquerda'),
+        ('center', 'Centro'),
+        ('right', 'Direita'),
+    ]
+
+    banner_position_vertical = models.CharField(
+        max_length=10,
+        choices=BANNER_VERTICAL_CHOICES,
+        default='center',
+        verbose_name="Posição Vertical do Banner",
+        help_text="Onde a imagem do banner deve ser posicionada verticalmente"
+    )
+
+    banner_position_horizontal = models.CharField(
+        max_length=10,
+        choices=BANNER_HORIZONTAL_CHOICES,
+        default='center',
+        verbose_name="Posição Horizontal do Banner",
+        help_text="Onde a imagem do banner deve ser posicionada horizontalmente"
+    )
+
+    banner_height = models.PositiveIntegerField(
+        default=400,
+        verbose_name="Altura do Banner (px)",
+        help_text="Altura do banner em pixels (padrão: 400px, recomendado: 300-500px)"
+    )
+
+    # Efeitos visuais do banner
+    banner_overlay_opacity = models.FloatField(
+        default=0.5,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        verbose_name="Opacidade do Overlay do Banner",
+        help_text="Escurecimento sobre a imagem do banner (0.0-1.0, recomendado: 0.4-0.6)"
+    )
+
+    banner_blur_edges = models.BooleanField(
+        default=False,
+        verbose_name="Desfocar Bordas do Banner",
+        help_text="Aplica desfoque gradual nas bordas superior e inferior do banner"
+    )
+
+    banner_blur_intensity = models.PositiveIntegerField(
+        default=80,
+        verbose_name="Intensidade do Desfoque do Banner (px)",
+        help_text="Tamanho da área de desfoque nas bordas (recomendado: 60-120px)"
+    )
+
     css_class = models.CharField(
         max_length=100,
         blank=True,

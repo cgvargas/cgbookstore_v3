@@ -299,17 +299,36 @@ class SectionAdmin(admin.ModelAdmin):
             ),
             'description': 'Configure a aparência e comportamento dos cards desta seção'
         }),
-        ('Estilo Visual', {
+        ('Banner da Seção', {
             'classes': ('collapse',),
             'fields': (
                 'banner_image',
                 'banner_image_preview',
+                'banner_height',
+                ('banner_position_vertical', 'banner_position_horizontal'),
+            ),
+            'description': 'Configure a imagem de banner para a seção'
+        }),
+        ('Efeitos Visuais do Banner', {
+            'classes': ('collapse',),
+            'fields': (
+                'banner_overlay_opacity',
+                ('banner_blur_edges', 'banner_blur_intensity'),
+            ),
+            'description': (
+                'Overlay: Escurecimento sobre a imagem do banner (0.0-1.0, recomendado: 0.4-0.6)<br>'
+                'Desfoque: Aplica fade gradual nas bordas superior e inferior (60-120px)'
+            )
+        }),
+        ('Estilo Visual Avançado', {
+            'classes': ('collapse',),
+            'fields': (
                 'background_color',
                 'container_opacity',
                 'css_class',
                 'custom_css'
             ),
-            'description': 'Adicione uma imagem de banner para criar seções com imagens de fundo ou banners promocionais. Use CSS customizado para criar estilos únicos.'
+            'description': 'Configurações avançadas de estilo. Use CSS customizado para criar estilos únicos.'
         }),
         ('Timestamps', {
             'classes': ('collapse',),

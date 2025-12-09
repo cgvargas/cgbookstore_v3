@@ -177,15 +177,88 @@
         position: relative;
         z-index: 1;
         margin-bottom: 2rem;
+        overflow: hidden;
     }
 
     .section-banner-wrapper img {
         display: block;
         width: 100%;
-        max-height: 400px;
+        height: 100%;
         object-fit: cover;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    /* Overlay base controlável */
+    .section-banner-overlay-base {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    /* Desfoque no topo da seção */
+    .section-blur-top {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 80px;
+        background: linear-gradient(
+            to bottom,
+            var(--body-bg) 0%,
+            rgba(var(--body-bg-rgb, 255, 255, 255), 0.95) 10%,
+            rgba(var(--body-bg-rgb, 255, 255, 255), 0.8) 30%,
+            rgba(var(--body-bg-rgb, 255, 255, 255), 0.5) 60%,
+            transparent 100%
+        );
+        z-index: 4;
+        pointer-events: none;
+    }
+
+    /* Desfoque no fundo da seção */
+    .section-blur-bottom {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 80px;
+        background: linear-gradient(
+            to top,
+            var(--body-bg) 0%,
+            rgba(var(--body-bg-rgb, 255, 255, 255), 0.95) 10%,
+            rgba(var(--body-bg-rgb, 255, 255, 255), 0.8) 30%,
+            rgba(var(--body-bg-rgb, 255, 255, 255), 0.5) 60%,
+            transparent 100%
+        );
+        z-index: 4;
+        pointer-events: none;
+    }
+
+    /* Dark mode */
+    [data-theme="dark"] .section-blur-top {
+        background: linear-gradient(
+            to bottom,
+            rgb(18, 18, 18) 0%,
+            rgba(18, 18, 18, 0.95) 10%,
+            rgba(18, 18, 18, 0.8) 30%,
+            rgba(18, 18, 18, 0.5) 60%,
+            transparent 100%
+        );
+    }
+
+    [data-theme="dark"] .section-blur-bottom {
+        background: linear-gradient(
+            to top,
+            rgb(18, 18, 18) 0%,
+            rgba(18, 18, 18, 0.95) 10%,
+            rgba(18, 18, 18, 0.8) 30%,
+            rgba(18, 18, 18, 0.5) 60%,
+            transparent 100%
+        );
     }
 
     .section-banner-overlay {
@@ -196,6 +269,7 @@
         padding: 2rem 1.5rem;
         background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
         border-radius: 0 0 8px 8px;
+        z-index: 2;
     }
 
     .section-banner-overlay h2 {
@@ -254,8 +328,21 @@
     <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative {% if forloop.first %}section-overlap-banner{% endif %}">
         <!-- Banner da Seção (se existir) -->
         {% if section.banner_image_url %}
-        <div class="section-banner-wrapper">
-            <img src="{{ section.banner_image_url }}" alt="{{ section.title }}" loading="lazy">
+        <div class="section-banner-wrapper" style="height: {{ section.banner_height|default:400 }}px;">
+            <img src="{{ section.banner_image_url }}"
+                 alt="{{ section.title }}"
+                 loading="lazy"
+                 style="object-position: {{ section.banner_position_horizontal|default:'center' }} {{ section.banner_position_vertical|default:'center' }};">
+
+            <!-- Overlay controlável -->
+            <div class="section-banner-overlay-base" style="background: rgba(0, 0, 0, {{ section.banner_overlay_opacity|default:0.5 }});"></div>
+
+            <!-- Desfoque nas bordas (opcional) -->
+            {% if section.banner_blur_edges %}
+            <div class="section-blur-top" style="height: {{ section.banner_blur_intensity|default:80 }}px;"></div>
+            <div class="section-blur-bottom" style="height: {{ section.banner_blur_intensity|default:80 }}px;"></div>
+            {% endif %}
+
             <div class="section-banner-overlay">
                 <h2>
                     {% if section.content_type == 'books' %}
