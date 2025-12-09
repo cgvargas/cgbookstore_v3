@@ -700,10 +700,11 @@ function openVideoModal(element) {
         // Mostra player integrado
         embedContainer.style.display = 'block';
         fallback.style.display = 'none';
-        embedContainer.innerHTML = `<iframe src="${embedUrl}?autoplay=1"
+        embedContainer.innerHTML = `<iframe src="${embedUrl}?rel=0&modestbranding=1"
                                            frameborder="0"
-                                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                           allowfullscreen>
+                                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                           allowfullscreen
+                                           referrerpolicy="strict-origin-when-cross-origin">
                                     </iframe>`;
     } else {
         // Mostra fallback para Instagram/TikTok
@@ -938,10 +939,11 @@ function openVideoModal(element) {
         // Mostra player integrado
         embedContainer.style.display = 'block';
         fallback.style.display = 'none';
-        embedContainer.innerHTML = `<iframe src="${embedUrl}?autoplay=1"
+        embedContainer.innerHTML = `<iframe src="${embedUrl}?rel=0&modestbranding=1"
                                            frameborder="0"
-                                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                           allowfullscreen>
+                                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                           allowfullscreen
+                                           referrerpolicy="strict-origin-when-cross-origin">
                                     </iframe>`;
     } else {
         // Mostra fallback para Instagram/TikTok

@@ -244,15 +244,38 @@
                         <a class="nav-link" href="{% url 'new_authors:trending_books' %}">Em Alta</a>
                     </li>
                     {% if user.is_authenticated %}
-                        {% if user.publisher_profile %}
+                        {% if user.emerging_author_profile and user.publisher_profile %}
+                            <!-- Usuário tem AMBOS os perfis - mostrar dropdown -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="dashboardDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-speedometer2"></i> Dashboards
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="dashboardDropdown">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'new_authors:author_dashboard' %}">
+                                            <i class="bi bi-person"></i> Meu Dashboard (Autor)
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'new_authors:publisher_dashboard' %}">
+                                            <i class="bi bi-building"></i> Dashboard Editora
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        {% elif user.emerging_author_profile %}
+                            <!-- Apenas perfil de autor -->
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'new_authors:author_dashboard' %}">
+                                    <i class="bi bi-person"></i> Meu Dashboard
+                                </a>
+                            </li>
+                        {% elif user.publisher_profile %}
+                            <!-- Apenas perfil de editora -->
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'new_authors:publisher_dashboard' %}">
                                     <i class="bi bi-building"></i> Dashboard Editora
                                 </a>
-                            </li>
-                        {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'new_authors:author_dashboard' %}">Meu Dashboard</a>
                             </li>
                         {% endif %}
                         <li class="nav-item">
