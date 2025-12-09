@@ -33,6 +33,26 @@
                         </p>
                     </div>
 
+                    <!-- XP e Gamificação -->
+                    {% if xp_earned %}
+                    <div class="alert {% if leveled_up %}alert-warning{% else %}alert-info{% endif %} mb-4">
+                        <h4 class="mb-2">
+                            {% if leveled_up %}
+                            🎊 SUBIU DE NÍVEL!
+                            {% else %}
+                            ⭐ Recompensa
+                            {% endif %}
+                        </h4>
+                        <p class="mb-0">
+                            Você ganhou <strong>{{ xp_earned }} XP</strong>
+                            {% if leveled_up %}
+                            <br>
+                            <strong>Nível {{ old_level }} → Nível {{ new_level }}</strong>
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% endif %}
+
                     <h4 class="text-start mb-3">Respostas Detalhadas:</h4>
 
                     {% for result in results %}

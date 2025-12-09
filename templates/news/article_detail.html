@@ -73,11 +73,11 @@
             <h3 class="mb-3">🎥 Assista ao vídeo</h3>
             <div class="ratio ratio-16x9">
                 {% if 'youtube.com/watch?v=' in article.video_url %}
-                    <iframe src="https://www.youtube.com/embed/{{ article.video_url|slice:'32:' }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    <iframe src="https://www.youtube.com/embed/{{ article.video_url|slice:'32:' }}?rel=0&modestbranding=1" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                 {% elif 'youtu.be/' in article.video_url %}
-                    <iframe src="https://www.youtube.com/embed/{{ article.video_url|slice:'17:' }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    <iframe src="https://www.youtube.com/embed/{{ article.video_url|slice:'17:' }}?rel=0&modestbranding=1" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                 {% elif 'youtube.com/embed/' in article.video_url %}
-                    <iframe src="{{ article.video_url }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    <iframe src="{{ article.video_url }}?rel=0&modestbranding=1" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                 {% else %}
                     <div class="d-flex align-items-center justify-content-center bg-light rounded">
                         <a href="{{ article.video_url }}" target="_blank" class="btn btn-primary btn-lg">
@@ -117,6 +117,37 @@
                     </a>
                 </div>
             </div>
+        </div>
+        {% endif %}
+
+        <!-- Quiz Relacionado -->
+        {% if article.quizzes.exists %}
+        <div class="related-quiz-box my-4">
+            {% for quiz in article.quizzes.all %}
+            <div class="card border-primary mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">🎯 Quiz: {{ quiz.title }}</h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ quiz.description }}</p>
+                    {% if quiz.featured_image %}
+                    <img src="{{ quiz.featured_image.url }}" class="img-fluid rounded mb-3" style="max-height: 200px;" alt="{{ quiz.title }}">
+                    {% endif %}
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-users"></i> {{ quiz.times_completed }} pessoa{{ quiz.times_completed|pluralize }} já fizeram este quiz
+                    </p>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'news:quiz_detail' quiz.slug %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-play"></i> Fazer Quiz Agora
+                    </a>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-lock"></i> Você precisa estar <a href="{% url 'account_login' %}?next={{ request.path }}">logado</a> para fazer este quiz e ganhar pontos!
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
         </div>
         {% endif %}
 

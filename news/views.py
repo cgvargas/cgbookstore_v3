@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from django.http import JsonResponse
@@ -203,8 +204,9 @@ def search_articles(request):
     return render(request, 'news/search.html', context)
 
 
+@login_required(login_url='account_login')
 def quiz_detail(request, slug):
-    """Página do quiz"""
+    """Página do quiz - requer login"""
     quiz = get_object_or_404(Quiz, slug=slug, is_active=True)
     questions = quiz.questions.prefetch_related('options').all()
 
@@ -216,9 +218,10 @@ def quiz_detail(request, slug):
     return render(request, 'news/quiz_detail.html', context)
 
 
+@login_required(login_url='account_login')
 @require_POST
 def submit_quiz(request, slug):
-    """Processa resposta do quiz"""
+    """Processa resposta do quiz e concede pontos de gamificação"""
     quiz = get_object_or_404(Quiz, slug=slug, is_active=True)
 
     # Coletar respostas do POST
@@ -259,12 +262,63 @@ def submit_quiz(request, slug):
 
     score_percentage = (correct_answers / total_questions * 100) if total_questions > 0 else 0
 
+    # ===== INTEGRAÇÃO COM GAMIFICAÇÃO =====
+    # Calcular XP baseado no desempenho
+    xp_earned = 0
+    leveled_up = False
+    old_level = 0
+    new_level = 0
+
+    if hasattr(request.user, 'profile'):
+        profile = request.user.profile
+        old_level = profile.level
+
+        # Sistema de pontos baseado no desempenho:
+        # 100% = 50 XP
+        # 90-99% = 40 XP
+        # 80-89% = 30 XP
+        # 70-79% = 20 XP
+        # 60-69% = 10 XP
+        # < 60% = 5 XP (participação)
+
+        if score_percentage >= 100:
+            xp_earned = 50
+        elif score_percentage >= 90:
+            xp_earned = 40
+        elif score_percentage >= 80:
+            xp_earned = 30
+        elif score_percentage >= 70:
+            xp_earned = 20
+        elif score_percentage >= 60:
+            xp_earned = 10
+        else:
+            xp_earned = 5  # XP de participação
+
+        # Adicionar XP ao perfil
+        new_level, leveled_up = profile.add_xp(xp_earned)
+
+        # Mensagem de sucesso
+        if leveled_up:
+            messages.success(
+                request,
+                f'🎉 Parabéns! Você ganhou {xp_earned} XP e subiu para o nível {new_level}!'
+            )
+        else:
+            messages.success(
+                request,
+                f'✅ Quiz concluído! Você ganhou {xp_earned} XP.'
+            )
+
     context = {
         'quiz': quiz,
         'results': results,
         'correct_answers': correct_answers,
         'total_questions': total_questions,
         'score_percentage': score_percentage,
+        'xp_earned': xp_earned,
+        'leveled_up': leveled_up,
+        'old_level': old_level,
+        'new_level': new_level,
     }
 
     return render(request, 'news/quiz_results.html', context)
