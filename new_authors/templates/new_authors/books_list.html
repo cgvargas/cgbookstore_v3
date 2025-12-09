@@ -30,9 +30,9 @@
 
         <!-- Banner para Editoras -->
         {% if not user.is_authenticated or not user.publisher_profile %}
-            <div class="alert alert-light border border-white shadow-sm d-inline-block mx-auto mb-4" style="max-width: 600px;">
+            <div class="alert alert-info border shadow-sm d-inline-block mx-auto mb-4" style="max-width: 600px;">
                 <div class="d-flex align-items-center">
-                    <i class="bi bi-building text-primary me-3" style="font-size: 2rem;"></i>
+                    <i class="bi bi-building me-3" style="font-size: 2rem;"></i>
                     <div class="text-start">
                         <h6 class="mb-1">
                             <strong>É uma Editora?</strong>
@@ -200,6 +200,53 @@
 .author-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+}
+
+/* Tema escuro */
+[data-theme="dark"] .author-card:hover {
+    box-shadow: 0 .5rem 1rem rgba(255,255,255,.1)!important;
+}
+
+[data-theme="dark"] .btn-light {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .btn-light:hover {
+    background-color: var(--sidebar-bg);
+    color: var(--text-link);
+}
+
+/* Pagination no tema escuro */
+[data-theme="dark"] .page-link {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .page-link:hover {
+    background-color: var(--sidebar-bg);
+    color: var(--text-link);
+}
+
+[data-theme="dark"] .page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--text-light);
+}
+
+/* Alertas no tema escuro */
+[data-theme="dark"] .alert-success {
+    background-color: rgba(40, 167, 69, 0.1);
+    border-color: rgba(40, 167, 69, 0.3);
+    color: #28a745;
+}
+
+[data-theme="dark"] .alert-info {
+    background-color: rgba(23, 162, 184, 0.1);
+    border-color: rgba(23, 162, 184, 0.3);
+    color: var(--text-primary);
 }
 </style>
 {% endblock %}

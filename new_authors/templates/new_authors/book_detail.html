@@ -2,6 +2,41 @@
 
 {% block title %}{{ book.title }} - {{ book.author }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Stats box tema escuro */
+    [data-theme="dark"] .stats-box {
+        background-color: var(--sidebar-bg) !important;
+        color: var(--text-primary);
+    }
+
+    /* List group tema escuro */
+    [data-theme="dark"] .list-group-item {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .list-group-item:hover {
+        background-color: var(--sidebar-bg);
+    }
+
+    [data-theme="dark"] .list-group-item-action:hover {
+        background-color: var(--sidebar-bg);
+    }
+
+    /* Rating input tema escuro */
+    [data-theme="dark"] .rating-input label {
+        filter: brightness(1.2);
+    }
+
+    /* Placeholder cor capa */
+    .book-cover-placeholder {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container my-5">
     <div class="row">
@@ -9,8 +44,7 @@
             {% if book.cover_image %}
                 <img src="{{ book.cover_image.url }}" class="img-fluid rounded shadow" alt="{{ book.title }}">
             {% else %}
-                <div class="ratio ratio-3x4 bg-gradient rounded shadow d-flex align-items-center justify-content-center text-white"
-                     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="ratio ratio-3x4 book-cover-placeholder rounded shadow d-flex align-items-center justify-content-center text-white">
                     <i class="bi bi-book" style="font-size: 6rem;"></i>
                 </div>
             {% endif %}
@@ -36,7 +70,7 @@
                 {% endif %}
             </div>
 
-            <div class="mt-4 p-3 bg-light rounded">
+            <div class="mt-4 p-3 stats-box rounded" style="background-color: #f8f9fa;">
                 <h6 class="text-muted">Estatísticas</h6>
                 <div class="d-flex justify-content-between mb-2">
                     <span><i class="bi bi-eye"></i> Visualizações:</span>
