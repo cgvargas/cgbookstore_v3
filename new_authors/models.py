@@ -30,9 +30,55 @@ def chapter_file_path(instance, filename):
     return f'new_authors/chapters/{instance.book.slug}/{instance.number}_{instance.slug}{ext}'
 
 
+class AuthorTermsOfService(models.Model):
+    """
+    Termo de Responsabilidade e Uso da Plataforma para Autores Emergentes
+    """
+    title = models.CharField('Título', max_length=200, default='Termo de Responsabilidade - Autores Emergentes')
+    version = models.CharField('Versão', max_length=20, unique=True, help_text='Ex: 1.0, 1.1, 2.0')
+
+    # Conteúdo do termo
+    content = models.TextField(
+        'Conteúdo do Termo',
+        help_text='Texto completo do termo de responsabilidade em markdown ou HTML'
+    )
+
+    # Resumo dos pontos principais
+    summary_points = models.JSONField(
+        'Pontos Principais',
+        default=list,
+        help_text='Lista dos pontos principais do termo para exibição rápida'
+    )
+
+    # Controle
+    is_active = models.BooleanField('Versão Ativa', default=True)
+    is_current = models.BooleanField('Versão Atual', default=False, help_text='Apenas uma versão pode ser a atual')
+
+    # Datas
+    effective_date = models.DateTimeField('Data de Vigência', help_text='Data em que este termo entra em vigor')
+    created_at = models.DateTimeField('Criado em', auto_now_add=True)
+    updated_at = models.DateTimeField('Atualizado em', auto_now=True)
+
+    class Meta:
+        db_table = 'new_authors_terms_of_service'
+        verbose_name = 'Termo de Responsabilidade'
+        verbose_name_plural = 'Termos de Responsabilidade'
+        ordering = ['-version']
+
+    def __str__(self):
+        return f"{self.title} - Versão {self.version}"
+
+    def save(self, *args, **kwargs):
+        """Garante que apenas uma versão seja a atual"""
+        if self.is_current:
+            AuthorTermsOfService.objects.filter(is_current=True).update(is_current=False)
+        super().save(*args, **kwargs)
+
+
 class EmergingAuthor(models.Model):
     """
     Perfil de autor emergente na plataforma
+    IMPORTANTE: Requer aprovação manual do admin antes de poder publicar
     """
     user = models.OneToOneField(
         User,
@@ -40,35 +86,171 @@ class EmergingAuthor(models.Model):
         related_name='emerging_author_profile'
     )
 
-    # Informações do autor
-    bio = models.TextField(
-        'Biografia',
-        max_length=2000,
-        help_text='Conte sua história como escritor'
+    # ========== INFORMAÇÕES PESSOAIS OBRIGATÓRIAS ==========
+    full_name = models.CharField(
+        'Nome Completo',
+        max_length=200,
+        blank=True,
+        default='',
+        help_text='Nome completo como aparecerá nas publicações (obrigatório para aprovação)'
     )
+    cpf = models.CharField(
+        'CPF',
+        max_length=14,
+        blank=True,
+        default='',
+        help_text='CPF para validação (formato: 000.000.000-00) - obrigatório para aprovação'
+    )
+    birth_date = models.DateField(
+        'Data de Nascimento',
+        null=True,
+        blank=True,
+        help_text='Você deve ter no mínimo 18 anos (obrigatório para aprovação)'
+    )
+    phone = models.CharField(
+        'Telefone/Celular',
+        max_length=20,
+        blank=True,
+        default='',
+        help_text='Formato: (00) 00000-0000 (obrigatório para aprovação)'
+    )
+
+    # ========== ENDEREÇO ==========
+    cep = models.CharField('CEP', max_length=9, blank=True, default='', help_text='Formato: 00000-000 (obrigatório para aprovação)')
+    street = models.CharField('Rua/Avenida', max_length=200, blank=True, default='')
+    number = models.CharField('Número', max_length=10, blank=True, default='')
+    complement = models.CharField('Complemento', max_length=100, blank=True, default='')
+    neighborhood = models.CharField('Bairro', max_length=100, blank=True, default='')
+    city = models.CharField('Cidade', max_length=100, blank=True, default='')
+    state = models.CharField('Estado', max_length=2, blank=True, default='', help_text='UF (ex: SP, RJ, MG)')
+
+    # ========== INFORMAÇÕES PROFISSIONAIS ==========
+    bio = models.TextField(
+        'Biografia Literária',
+        max_length=2000,
+        blank=True,
+        default='',
+        help_text='Conte sua história como escritor, experiências e objetivos (obrigatório para aprovação)'
+    )
+    literary_experience = models.TextField(
+        'Experiência Literária',
+        max_length=1000,
+        blank=True,
+        default='',
+        help_text='Descreva sua experiência anterior: prêmios, publicações, cursos, etc.'
+    )
+    writing_genres = models.JSONField(
+        'Gêneros de Escrita',
+        default=list,
+        blank=True,
+        help_text='Gêneros literários que você escreve'
+    )
+
     photo = models.ImageField(
         'Foto do Autor',
         upload_to=author_photo_path,
         blank=True,
-        null=True
+        null=True,
+        help_text='Foto profissional (obrigatória para aprovação)'
     )
 
-    # Redes sociais e contato
-    website = models.URLField('Website', blank=True)
+    # ========== DOCUMENTAÇÃO ==========
+    identity_document = models.FileField(
+        'Documento de Identidade',
+        upload_to='new_authors/documents/',
+        blank=True,
+        null=True,
+        help_text='Upload de RG ou CNH (frente e verso em PDF) - obrigatório para aprovação'
+    )
+    cpf_document = models.FileField(
+        'Comprovante de CPF',
+        upload_to='new_authors/documents/',
+        help_text='Upload do CPF em PDF',
+        blank=True,
+        null=True
+    )
+    proof_of_address = models.FileField(
+        'Comprovante de Residência',
+        upload_to='new_authors/documents/',
+        blank=True,
+        null=True,
+        help_text='Conta de luz, água ou telefone (últimos 3 meses) - obrigatório para aprovação'
+    )
+
+    # ========== REDES SOCIAIS E CONTATO ==========
+    website = models.URLField('Website Pessoal', blank=True)
     twitter = models.CharField('Twitter/X', max_length=100, blank=True)
     instagram = models.CharField('Instagram', max_length=100, blank=True)
     facebook = models.CharField('Facebook', max_length=100, blank=True)
+    linkedin = models.CharField('LinkedIn', max_length=100, blank=True)
 
-    # Estatísticas
+    # ========== ESTATÍSTICAS ==========
     total_views = models.IntegerField('Total de Visualizações', default=0)
     total_books = models.IntegerField('Total de Livros', default=0)
     total_followers = models.IntegerField('Total de Seguidores', default=0)
 
-    # Aprovação e status
-    is_verified = models.BooleanField('Verificado', default=False)
-    is_active = models.BooleanField('Ativo', default=True)
+    # ========== APROVAÇÃO E STATUS ==========
+    STATUS_CHOICES = [
+        ('pending', 'Pendente de Aprovação'),
+        ('reviewing', 'Em Análise'),
+        ('approved', 'Aprovado'),
+        ('rejected', 'Rejeitado'),
+        ('suspended', 'Suspenso'),
+    ]
 
-    # Metadata
+    status = models.CharField(
+        'Status de Aprovação',
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        help_text='Status do cadastro perante o admin'
+    )
+    is_verified = models.BooleanField('E-mail Verificado', default=False)
+    is_active = models.BooleanField('Ativo', default=False)
+
+    # Justificativa do admin
+    admin_notes = models.TextField(
+        'Observações do Admin',
+        blank=True,
+        help_text='Notas internas sobre a aprovação/rejeição'
+    )
+    rejection_reason = models.TextField(
+        'Motivo da Rejeição',
+        blank=True,
+        help_text='Motivo caso o cadastro seja rejeitado'
+    )
+
+    # Datas importantes
+    approved_at = models.DateTimeField('Aprovado em', null=True, blank=True)
+    rejected_at = models.DateTimeField('Rejeitado em', null=True, blank=True)
+
+    # ========== TERMO DE RESPONSABILIDADE ==========
+    accepted_terms = models.BooleanField(
+        'Aceito os Termos de Uso',
+        default=False,
+        help_text='É obrigatório aceitar os termos para continuar'
+    )
+    accepted_terms_version = models.ForeignKey(
+        'AuthorTermsOfService',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='accepted_by_authors',
+        verbose_name='Versão do Termo Aceita',
+        help_text='Versão específica do termo que foi aceita'
+    )
+    accepted_terms_at = models.DateTimeField(
+        'Termos Aceitos em',
+        null=True,
+        blank=True
+    )
+    terms_ip_address = models.GenericIPAddressField(
+        'IP de Aceitação dos Termos',
+        null=True,
+        blank=True
+    )
+
+    # ========== METADATA ==========
     created_at = models.DateTimeField('Criado em', auto_now_add=True)
     updated_at = models.DateTimeField('Atualizado em', auto_now=True)
 
@@ -84,13 +266,43 @@ class EmergingAuthor(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.user.get_full_name() or self.user.username}"
+        return f"{self.full_name} ({self.user.username}) - {self.get_status_display()}"
+
+    def save(self, *args, **kwargs):
+        """Atualiza datas de aprovação/rejeição"""
+        if self.status == 'approved' and not self.approved_at:
+            self.approved_at = timezone.now()
+            self.is_active = True
+        elif self.status == 'rejected' and not self.rejected_at:
+            self.rejected_at = timezone.now()
+            self.is_active = False
+        elif self.status in ['pending', 'reviewing']:
+            self.is_active = False
+
+        super().save(*args, **kwargs)
 
     def update_statistics(self):
         """Atualiza as estatísticas do autor"""
         self.total_books = self.books.filter(status='published').count()
         self.total_views = sum(book.views_count for book in self.books.all())
         self.save()
+
+    def can_publish(self):
+        """Verifica se o autor pode publicar livros"""
+        return self.status == 'approved' and self.is_active and self.accepted_terms
+
+    def is_adult(self):
+        """Verifica se o autor tem 18 anos ou mais"""
+        from datetime import date
+        today = date.today()
+        age = today.year - self.birth_date.year - ((today.month, today.day) < (self.birth_date.month, self.birth_date.day))
+        return age >= 18
+
+    def validate_cpf(self):
+        """Validação básica de CPF (apenas formato)"""
+        import re
+        cpf = re.sub(r'[^0-9]', '', self.cpf)
+        return len(cpf) == 11
 
 
 class AuthorBook(models.Model):
