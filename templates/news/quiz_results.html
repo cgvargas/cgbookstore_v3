@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Resultado - {{ quiz.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/news.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h1 class="card-title">🎯 Resultado do Quiz</h1>
+                    <h3 class="mb-4">{{ quiz.title }}</h3>
+
+                    <div class="alert {% if score_percentage >= 70 %}alert-success{% elif score_percentage >= 50 %}alert-warning{% else %}alert-danger{% endif %} mb-4">
+                        <h2 class="mb-3">
+                            {% if score_percentage >= 70 %}
+                            🎉 Parabéns!
+                            {% elif score_percentage >= 50 %}
+                            👍 Bom trabalho!
+                            {% else %}
+                            💪 Continue tentando!
+                            {% endif %}
+                        </h2>
+                        <p class="lead mb-0">
+                            Você acertou <strong>{{ correct_answers }}</strong> de <strong>{{ total_questions }}</strong> perguntas
+                            <br>
+                            <strong>{{ score_percentage|floatformat:0 }}%</strong> de acertos
+                        </p>
+                    </div>
+
+                    <h4 class="text-start mb-3">Respostas Detalhadas:</h4>
+
+                    {% for result in results %}
+                    <div class="card mb-3 text-start">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ forloop.counter }}. {{ result.question }}</h5>
+
+                            <p class="mb-2">
+                                <strong>Sua resposta:</strong>
+                                <span class="{% if result.is_correct %}text-success{% else %}text-danger{% endif %}">
+                                    {{ result.user_answer }}
+                                    {% if result.is_correct %}
+                                    ✓
+                                    {% else %}
+                                    ✗
+                                    {% endif %}
+                                </span>
+                            </p>
+
+                            {% if not result.is_correct %}
+                            <p class="mb-2">
+                                <strong>Resposta correta:</strong>
+                                <span class="text-success">{{ result.correct_answer }}</span>
+                            </p>
+                            {% endif %}
+
+                            {% if result.explanation %}
+                            <div class="alert alert-info mb-0">
+                                <strong>Explicação:</strong> {{ result.explanation }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <div class="mt-4">
+                        <a href="{% url 'news:quiz_detail' quiz.slug %}" class="btn btn-primary me-2">
+                            <i class="fas fa-redo"></i> Tentar Novamente
+                        </a>
+                        <a href="{% url 'news:home' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home"></i> Voltar para Notícias
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

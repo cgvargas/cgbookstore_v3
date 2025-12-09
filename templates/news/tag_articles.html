@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}#{{ tag.name }} - Notícias{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/news.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'news:home' %}">Notícias</a></li>
+                <li class="breadcrumb-item active">#{{ tag.name }}</li>
+            </ol>
+        </nav>
+
+        <h1 class="section-title">
+            <i class="fas fa-tag"></i> #{{ tag.name }}
+        </h1>
+        <p class="text-muted">{{ articles.paginator.count }} artigo{{ articles.paginator.count|pluralize }} encontrado{{ articles.paginator.count|pluralize }}</p>
+    </div>
+
+    {% if articles %}
+    <div class="news-grid">
+        {% for article in articles %}
+        <div class="news-card">
+            <a href="{% url 'news:article_detail' article.slug %}">
+                <img src="{{ article.featured_image.url }}" alt="{{ article.title }}">
+                <div class="news-card-body">
+                    <span class="news-category">{{ article.get_content_type_display }}</span>
+                    <h4>{{ article.title }}</h4>
+                    <p>{{ article.excerpt|truncatewords:15 }}</p>
+                    <div class="news-meta">
+                        <span>{{ article.published_at|date:"d/m/Y" }}</span>
+                        <span>•</span>
+                        <span>{{ article.views_count }} leituras</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Paginação -->
+    {% if articles.has_other_pages %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if articles.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ articles.previous_page_number }}">Anterior</a>
+            </li>
+            {% endif %}
+
+            {% for num in articles.paginator.page_range %}
+            <li class="page-item {% if articles.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+
+            {% if articles.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ articles.next_page_number }}">Próxima</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> Ainda não há artigos com a tag <strong>#{{ tag.name }}</strong>.
+        <br><br>
+        <a href="{% url 'news:home' %}" class="btn btn-primary">Voltar para Notícias</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

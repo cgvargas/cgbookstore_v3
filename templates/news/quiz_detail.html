@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ quiz.title }} - Quiz{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/news.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'news:home' %}">Notícias</a></li>
+                    <li class="breadcrumb-item active">Quiz</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow">
+                <div class="card-body">
+                    <h1 class="card-title">🎯 {{ quiz.title }}</h1>
+                    <p class="lead">{{ quiz.description }}</p>
+
+                    {% if quiz.featured_image %}
+                    <img src="{{ quiz.featured_image.url }}" class="img-fluid rounded mb-4" alt="{{ quiz.title }}">
+                    {% endif %}
+
+                    <form method="post" action="{% url 'news:submit_quiz' quiz.slug %}">
+                        {% csrf_token %}
+
+                        {% for question in questions %}
+                        <div class="mb-4 p-3 bg-light rounded">
+                            <h5>{{ forloop.counter }}. {{ question.question_text }}</h5>
+
+                            {% if question.question_image %}
+                            <img src="{{ question.question_image.url }}" class="img-fluid rounded my-2" style="max-height: 300px;">
+                            {% endif %}
+
+                            <div class="mt-3">
+                                {% for option in question.options.all %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="option_{{ option.id }}" value="{{ option.id }}" required>
+                                    <label class="form-check-label" for="option_{{ option.id }}">
+                                        {{ option.option_text }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-check"></i> Enviar Respostas
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

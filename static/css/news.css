@@ -584,3 +584,121 @@
         font-size: 1.8rem;
     }
 }
+
+/* ===== TEMA ESCURO ===== */
+[data-theme="dark"] .news-card {
+    background: #2a2a2a;
+    border: 1px solid #444;
+}
+
+[data-theme="dark"] .news-card h4,
+[data-theme="dark"] .article-title,
+[data-theme="dark"] .section-title,
+[data-theme="dark"] .article-content {
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .news-card p,
+[data-theme="dark"] .article-subtitle,
+[data-theme="dark"] .article-content p {
+    color: #b0b0b0;
+}
+
+[data-theme="dark"] .interview-card,
+[data-theme="dark"] .tip-of-week-card,
+[data-theme="dark"] .events-sidebar,
+[data-theme="dark"] .quizzes-sidebar,
+[data-theme="dark"] .newsletter-sidebar {
+    background: #2a2a2a;
+    border: 1px solid #444;
+}
+
+[data-theme="dark"] .tip-of-week-card h4,
+[data-theme="dark"] .events-sidebar h4,
+[data-theme="dark"] .quizzes-sidebar h4,
+[data-theme="dark"] .newsletter-sidebar h4 {
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .event-info p,
+[data-theme="dark"] .quiz-item p {
+    color: #999;
+}
+
+[data-theme="dark"] .event-item {
+    border-bottom-color: #444;
+}
+
+[data-theme="dark"] .quiz-item {
+    border-bottom-color: #444;
+}
+
+[data-theme="dark"] .newsletter-sidebar input {
+    background: #1a1a1a;
+    border-color: #444;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .guide-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+}
+
+[data-theme="dark"] .related-article-card {
+    background: #2a2a2a;
+    border: 1px solid #444;
+}
+
+[data-theme="dark"] .related-article-card h5 {
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .event-info-box,
+[data-theme="dark"] .related-book-box {
+    background: #2a2a2a;
+    border-left-color: #e74c3c;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .breadcrumb {
+    background: #2a2a2a;
+}
+
+[data-theme="dark"] .breadcrumb-item a {
+    color: #5dcdeb;
+}
+
+[data-theme="dark"] .breadcrumb-item.active {
+    color: #b0b0b0;
+}
+
+[data-theme="dark"] .tag-badge {
+    background: #333;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .tag-badge:hover {
+    background: #3498db;
+    color: white;
+}
+
+[data-theme="dark"] .article-content h2,
+[data-theme="dark"] .article-content h3,
+[data-theme="dark"] .article-content h4 {
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .card {
+    background: #2a2a2a;
+    border-color: #444;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .card .bg-light {
+    background: #1a1a1a !important;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .form-check-label {
+    color: #e0e0e0;
+}
