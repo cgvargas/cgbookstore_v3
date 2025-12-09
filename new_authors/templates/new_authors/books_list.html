@@ -8,6 +8,26 @@
         <h1 class="display-4 fw-bold mb-3">Descubra Novos Talentos Literários</h1>
         <p class="lead mb-4">Explore obras inéditas de autores emergentes e faça parte da jornada deles</p>
 
+        <!-- Banner para Autores Emergentes -->
+        {% if user.is_authenticated and not user.emerging_author_profile %}
+            <div class="alert alert-success border border-success-subtle shadow-sm d-inline-block mx-auto mb-4" style="max-width: 600px;">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-pen text-success me-3" style="font-size: 2rem;"></i>
+                    <div class="text-start">
+                        <h6 class="mb-1">
+                            <strong>Você é Escritor?</strong>
+                        </h6>
+                        <p class="mb-2 small">
+                            Publique suas obras na plataforma e alcance milhares de leitores. <strong>Serviço pago</strong> com planos acessíveis.
+                        </p>
+                        <a href="{% url 'new_authors:become_author' %}" class="btn btn-sm btn-success">
+                            <i class="bi bi-arrow-right"></i> Tornar-se Autor
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
         <!-- Banner para Editoras -->
         {% if not user.is_authenticated or not user.publisher_profile %}
             <div class="alert alert-light border border-white shadow-sm d-inline-block mx-auto mb-4" style="max-width: 600px;">
