@@ -2,6 +2,25 @@
 
 {% block title %}{{ is_editing|yesno:"Editar,Novo" }} Capítulo - {{ book.title }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Form text e labels no tema escuro */
+    [data-theme="dark"] .form-text {
+        color: var(--text-muted) !important;
+    }
+
+    [data-theme="dark"] label,
+    [data-theme="dark"] .form-label,
+    [data-theme="dark"] .form-check-label {
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .text-muted {
+        color: var(--text-muted) !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container my-5">
     <div class="row">

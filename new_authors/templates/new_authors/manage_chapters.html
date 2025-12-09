@@ -2,6 +2,19 @@
 
 {% block title %}Gerenciar Capítulos - {{ book.title }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Text muted no tema escuro */
+    [data-theme="dark"] .text-muted {
+        color: var(--text-muted) !important;
+    }
+
+    [data-theme="dark"] small.text-muted {
+        color: var(--text-muted) !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container my-5">
     <div class="row">

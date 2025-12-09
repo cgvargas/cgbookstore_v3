@@ -2,6 +2,27 @@
 
 {% block title %}{{ is_editing|yesno:"Editar,Criar" }} Livro{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Form text e labels no tema escuro */
+    [data-theme="dark"] .form-text {
+        color: var(--text-muted) !important;
+    }
+
+    [data-theme="dark"] .form-text strong {
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] label {
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .small.text-muted {
+        color: var(--text-muted) !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container my-5">
     <div class="row">
