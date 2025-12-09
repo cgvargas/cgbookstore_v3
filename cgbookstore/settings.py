@@ -60,9 +60,11 @@ INSTALLED_APPS = [
     'recommendations',
     'finance.apps.FinanceConfig',
     'new_authors.apps.NewAuthorsConfig',
+    'news',
 
     # Third-party Apps
     'rest_framework',
+    'ckeditor',  # Editor WYSIWYG para notícias
     # 'django_extensions',  # HTTPS em desenvolvimento - COMENTADO TEMPORARIAMENTE
 ]
 

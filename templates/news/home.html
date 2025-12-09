@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notícias Literárias - CG Bookstore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/news.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="news-journal">
+    <!-- HEADER DO JORNAL -->
+    <div class="journal-header">
+        <div class="container">
+            <h1 class="journal-title">📰 Notícias Literárias</h1>
+            <p class="journal-subtitle">Seu portal de cultura, livros e eventos</p>
+
+            <!-- Navegação de Categorias -->
+            <nav class="categories-nav">
+                <a href="{% url 'news:home' %}" class="category-link active">Todas</a>
+                {% for category in categories %}
+                <a href="{% url 'news:category_articles' category.slug %}" class="category-link">
+                    {% if category.icon %}<i class="{{ category.icon }}"></i>{% endif %}
+                    {{ category.name }}
+                </a>
+                {% endfor %}
+            </nav>
+        </div>
+    </div>
+
+    <div class="container my-4">
+        <!-- BREAKING NEWS -->
+        {% if breaking_news %}
+        <div class="breaking-news-banner">
+            <span class="breaking-badge">🔴 ÚLTIMA HORA</span>
+            <a href="{% url 'news:article_detail' breaking_news.slug %}" class="breaking-title">
+                {{ breaking_news.title }}
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- DESTAQUE PRINCIPAL -->
+        {% if featured_main %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="featured-main-card">
+                    <a href="{% url 'news:article_detail' featured_main.slug %}">
+                        <img src="{{ featured_main.featured_image.url }}" alt="{{ featured_main.title }}">
+                        <div class="featured-main-overlay">
+                            <span class="featured-badge">⭐ DESTAQUE</span>
+                            <h2>{{ featured_main.title }}</h2>
+                            <p>{{ featured_main.excerpt|truncatewords:30 }}</p>
+                            <div class="article-meta">
+                                <span>{{ featured_main.get_content_type_display }}</span>
+                                <span>•</span>
+                                <span>{{ featured_main.published_at|date:"d/m/Y" }}</span>
+                                <span>•</span>
+                                <span>{{ featured_main.views_count }} leituras</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- GRID DE NOTÍCIAS -->
+        <div class="row">
+            <!-- COLUNA ESQUERDA - Últimas Notícias -->
+            <div class="col-lg-8">
+                <h3 class="section-title">📰 Últimas Notícias</h3>
+                <div class="news-grid">
+                    {% for article in latest_news %}
+                    <div class="news-card">
+                        <a href="{% url 'news:article_detail' article.slug %}">
+                            <img src="{{ article.featured_image.url }}" alt="{{ article.title }}">
+                            <div class="news-card-body">
+                                <span class="news-category">{{ article.get_content_type_display }}</span>
+                                <h4>{{ article.title }}</h4>
+                                <p>{{ article.excerpt|truncatewords:15 }}</p>
+                                <div class="news-meta">
+                                    <span>{{ article.published_at|date:"d/m" }}</span>
+                                    <span>•</span>
+                                    <span>{{ article.views_count }} leituras</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- ENTREVISTAS -->
+                {% if interviews %}
+                <h3 class="section-title mt-5">🎤 Entrevistas</h3>
+                <div class="interviews-section">
+                    {% for interview in interviews %}
+                    <div class="interview-card">
+                        <a href="{% url 'news:article_detail' interview.slug %}">
+                            <img src="{{ interview.featured_image.url }}" alt="{{ interview.title }}">
+                            <div class="interview-content">
+                                <h4>{{ interview.title }}</h4>
+                                <p>{{ interview.subtitle }}</p>
+                                <span class="read-more">Ler entrevista →</span>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- COLUNA DIREITA - Sidebar -->
+            <div class="col-lg-4">
+                <!-- DICA DA SEMANA -->
+                {% if tip_of_week %}
+                <div class="tip-of-week-card">
+                    <h4>💡 Dica da Semana</h4>
+                    <a href="{% url 'news:article_detail' tip_of_week.slug %}">
+                        <img src="{{ tip_of_week.featured_image.url }}" alt="{{ tip_of_week.title }}">
+                        <h5>{{ tip_of_week.title }}</h5>
+                        <p>{{ tip_of_week.excerpt|truncatewords:20 }}</p>
+                    </a>
+                </div>
+                {% endif %}
+
+                <!-- PRÓXIMOS EVENTOS -->
+                {% if events %}
+                <div class="events-sidebar">
+                    <h4>📅 Próximos Eventos</h4>
+                    {% for event in events %}
+                    <div class="event-item">
+                        <div class="event-date">
+                            <span class="day">{{ event.event_date|date:"d" }}</span>
+                            <span class="month">{{ event.event_date|date:"M" }}</span>
+                        </div>
+                        <div class="event-info">
+                            <a href="{% url 'news:article_detail' event.slug %}">
+                                <h6>{{ event.title }}</h6>
+                                <p>{{ event.event_location }}</p>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- QUIZZES -->
+                {% if quizzes %}
+                <div class="quizzes-sidebar">
+                    <h4>🎯 Quizzes e Testes</h4>
+                    {% for quiz in quizzes %}
+                    <div class="quiz-item">
+                        <a href="{% url 'news:quiz_detail' quiz.slug %}">
+                            <h6>{{ quiz.title }}</h6>
+                            <p>{{ quiz.description|truncatewords:10 }}</p>
+                            <span class="quiz-cta">Fazer teste →</span>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- NEWSLETTER -->
+                <div class="newsletter-sidebar">
+                    <h4>📧 Newsletter</h4>
+                    <p>Receba as últimas notícias literárias no seu e-mail!</p>
+                    <form method="post" action="{% url 'news:subscribe_newsletter' %}">
+                        {% csrf_token %}
+                        <input type="email" name="email" placeholder="Seu e-mail" required>
+                        <button type="submit" class="btn btn-primary">Inscrever</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- GUIAS E ARTIGOS -->
+        {% if guides %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <h3 class="section-title">📖 Guias e Artigos</h3>
+                <div class="guides-grid">
+                    {% for guide in guides %}
+                    <div class="guide-card">
+                        <a href="{% url 'news:article_detail' guide.slug %}">
+                            <img src="{{ guide.featured_image.url }}" alt="{{ guide.title }}">
+                            <div class="guide-overlay">
+                                <span class="guide-type">{{ guide.get_content_type_display }}</span>
+                                <h5>{{ guide.title }}</h5>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ article.title }} - Notícias{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/news.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <article class="article-detail">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'news:home' %}">Notícias</a></li>
+                {% if article.category %}
+                <li class="breadcrumb-item"><a href="{% url 'news:category_articles' article.category.slug %}">{{ article.category.name }}</a></li>
+                {% endif %}
+                <li class="breadcrumb-item active">{{ article.title|truncatewords:5 }}</li>
+            </ol>
+        </nav>
+
+        <!-- Header do Artigo -->
+        <header class="article-header">
+            <span class="article-type-badge">{{ article.get_content_type_display }}</span>
+            {% if article.is_breaking %}
+            <span class="breaking-badge">🔴 ÚLTIMA HORA</span>
+            {% endif %}
+
+            <h1 class="article-title">{{ article.title }}</h1>
+
+            {% if article.subtitle %}
+            <p class="article-subtitle">{{ article.subtitle }}</p>
+            {% endif %}
+
+            <div class="article-meta">
+                {% if article.author %}
+                <span>Por {{ article.author.get_full_name|default:article.author.username }}</span>
+                <span>•</span>
+                {% endif %}
+                <span>{{ article.published_at|date:"d/m/Y às H:i" }}</span>
+                <span>•</span>
+                <span>{{ article.views_count }} leituras</span>
+            </div>
+
+            <!-- Tags -->
+            {% if article.tags.exists %}
+            <div class="article-tags">
+                {% for tag in article.tags.all %}
+                <a href="{% url 'news:tag_articles' tag.slug %}" class="tag-badge">#{{ tag.name }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </header>
+
+        <!-- Imagem Destaque -->
+        <figure class="article-featured-image">
+            <img src="{{ article.featured_image.url }}" alt="{{ article.title }}">
+            {% if article.image_caption %}
+            <figcaption>{{ article.image_caption }}</figcaption>
+            {% endif %}
+        </figure>
+
+        <!-- Conteúdo -->
+        <div class="article-content">
+            {{ article.content|safe }}
+        </div>
+
+        <!-- Vídeo (se houver) -->
+        {% if article.video_url %}
+        <div class="article-video">
+            <h3>Assista ao vídeo</h3>
+            <div class="video-embed">
+                {% if 'youtube.com' in article.video_url or 'youtu.be' in article.video_url %}
+                <iframe src="{{ article.video_url }}" frameborder="0" allowfullscreen></iframe>
+                {% else %}
+                <a href="{{ article.video_url }}" target="_blank" class="btn btn-primary">Assistir vídeo</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Evento Info (se for evento) -->
+        {% if article.content_type == 'event' and article.event_date %}
+        <div class="event-info-box">
+            <h3>📅 Informações do Evento</h3>
+            <p><strong>Data:</strong> {{ article.event_date|date:"d/m/Y às H:i" }}</p>
+            {% if article.event_location %}
+            <p><strong>Local:</strong> {{ article.event_location }}</p>
+            {% endif %}
+            {% if article.event_link %}
+            <a href="{{ article.event_link }}" target="_blank" class="btn btn-primary">Mais informações / Inscrever-se</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Livro Relacionado -->
+        {% if article.related_book %}
+        <div class="related-book-box">
+            <h3>📚 Livro Relacionado</h3>
+            <div class="book-card-horizontal">
+                <img src="{{ article.related_book.cover_image.url }}" alt="{{ article.related_book.title }}">
+                <div>
+                    <h4>{{ article.related_book.title }}</h4>
+                    <p>{{ article.related_book.author }}</p>
+                    <a href="{% url 'core:book_detail' article.related_book.id %}" class="btn btn-sm btn-outline-primary">Ver livro</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Artigos Relacionados -->
+        {% if related_articles %}
+        <div class="related-articles">
+            <h3>📰 Leia também</h3>
+            <div class="row">
+                {% for related in related_articles %}
+                <div class="col-md-6 col-lg-3">
+                    <div class="related-article-card">
+                        <a href="{% url 'news:article_detail' related.slug %}">
+                            <img src="{{ related.featured_image.url }}" alt="{{ related.title }}">
+                            <h5>{{ related.title }}</h5>
+                            <span>{{ related.get_content_type_display }}</span>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </article>
+</div>
+{% endblock %}

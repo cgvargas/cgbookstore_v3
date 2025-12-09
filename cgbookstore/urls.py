@@ -20,6 +20,7 @@ urlpatterns = [
     path('recommendations/', include('recommendations.urls', namespace='recommendations')),
     path('finance/', include('finance.urls', namespace='finance')),
     path('novos-autores/', include('new_authors.urls', namespace='new_authors')),
+    path('noticias/', include('news.urls', namespace='news')),
     path('', include('core.urls', namespace='core')),
 ]
 

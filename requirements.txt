@@ -101,6 +101,7 @@ pytesseract==0.3.13
 # ========== FORMULÁRIOS E UI ==========
 django-bootstrap4==24.4
 django-crispy-forms==2.3
+django-ckeditor==6.7.0
 
 # ========== TIMEZONE ==========
 django-timezone-field==7.1
