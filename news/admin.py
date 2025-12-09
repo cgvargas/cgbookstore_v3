@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
-from .models import Category, Tag, Article, Quiz, QuizQuestion, QuizOption, Newsletter
+from .models import Category, Tag, Article, Quiz, QuizQuestion, QuizOption, Newsletter, QuizAttempt
 
 
 @admin.register(Category)
@@ -231,6 +231,42 @@ class QuizAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+
+@admin.register(QuizAttempt)
+class QuizAttemptAdmin(admin.ModelAdmin):
+    list_display = ['user', 'quiz', 'score_display', 'xp_earned', 'level_change', 'completed_at']
+    list_filter = ['leveled_up', 'completed_at', 'quiz']
+    search_fields = ['user__username', 'quiz__title']
+    readonly_fields = ['user', 'quiz', 'score', 'total_questions', 'score_percentage',
+                       'xp_earned', 'leveled_up', 'level_before', 'level_after', 'completed_at']
+    date_hierarchy = 'completed_at'
+    list_per_page = 50
+
+    def has_add_permission(self, request):
+        return False  # Não permitir adicionar manualmente
+
+    def score_display(self, obj):
+        color = '#27ae60' if obj.score_percentage >= 70 else '#e67e22' if obj.score_percentage >= 50 else '#e74c3c'
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 3px; font-weight: bold;">'
+            '{}/{} ({}%)</span>',
+            color,
+            obj.score,
+            obj.total_questions,
+            int(obj.score_percentage)
+        )
+    score_display.short_description = 'Pontuação'
+
+    def level_change(self, obj):
+        if obj.leveled_up:
+            return format_html(
+                '<span style="color: #f39c12; font-weight: bold;">⬆️ {} → {}</span>',
+                obj.level_before,
+                obj.level_after
+            )
+        return f'Nível {obj.level_after}'
+    level_change.short_description = 'Nível'
 
 
 @admin.register(Newsletter)

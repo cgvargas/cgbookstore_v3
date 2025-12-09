@@ -5,7 +5,7 @@ from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from .models import Article, Category, Tag, Quiz, QuizQuestion, Newsletter
+from .models import Article, Category, Tag, Quiz, QuizQuestion, Newsletter, QuizAttempt
 
 
 def news_home(request):
@@ -296,6 +296,19 @@ def submit_quiz(request, slug):
 
         # Adicionar XP ao perfil
         new_level, leveled_up = profile.add_xp(xp_earned)
+
+        # Registrar tentativa no histórico
+        QuizAttempt.objects.create(
+            user=request.user,
+            quiz=quiz,
+            score=correct_answers,
+            total_questions=total_questions,
+            score_percentage=score_percentage,
+            xp_earned=xp_earned,
+            leveled_up=leveled_up,
+            level_before=old_level,
+            level_after=new_level
+        )
 
         # Mensagem de sucesso
         if leveled_up:

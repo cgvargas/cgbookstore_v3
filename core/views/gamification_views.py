@@ -110,6 +110,38 @@ def dashboard_view(request):
 
     reviews_count = BookReview.objects.filter(user=user).count()
 
+    # ===== ESTATÍSTICAS DE QUIZZES =====
+    try:
+        from news.models import QuizAttempt
+
+        # Total de quizzes completados
+        quizzes_completed = QuizAttempt.objects.filter(user=user).count()
+
+        # XP total ganho em quizzes
+        quiz_xp_earned = QuizAttempt.objects.filter(user=user).aggregate(
+            total=Sum('xp_earned')
+        )['total'] or 0
+
+        # Média de acertos
+        avg_quiz_score = QuizAttempt.objects.filter(user=user).aggregate(
+            avg=Avg('score_percentage')
+        )['avg'] or 0
+
+        # Últimas 3 tentativas
+        recent_quiz_attempts = QuizAttempt.objects.filter(user=user).select_related('quiz').order_by('-completed_at')[:3]
+
+        # Melhor pontuação
+        best_quiz_score = QuizAttempt.objects.filter(user=user).aggregate(
+            best=Count('score_percentage')
+        )['best'] or 0
+
+    except ImportError:
+        quizzes_completed = 0
+        quiz_xp_earned = 0
+        avg_quiz_score = 0
+        recent_quiz_attempts = []
+        best_quiz_score = 0
+
     # Conquistas próximas de desbloquear (progresso >= 50%)
     all_achievements = Achievement.objects.filter(is_active=True).exclude(
         id__in=user_achievements.values_list('achievement_id', flat=True)
@@ -155,6 +187,12 @@ def dashboard_view(request):
         'books_reading': books_reading,
         'total_pages_read': total_pages_read,
         'reviews_count': reviews_count,
+
+        # Estatísticas de Quizzes
+        'quizzes_completed': quizzes_completed,
+        'quiz_xp_earned': quiz_xp_earned,
+        'avg_quiz_score': round(avg_quiz_score, 1),
+        'recent_quiz_attempts': recent_quiz_attempts,
 
         'near_achievements': near_achievements,
 

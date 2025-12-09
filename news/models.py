@@ -328,6 +328,52 @@ class QuizOption(models.Model):
         return f"{self.question.question_text[:30]}... - {self.option_text}"
 
 
+class QuizAttempt(models.Model):
+    """Registro de tentativas de quiz com pontuação e XP ganho"""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='quiz_attempts',
+        verbose_name="Usuário"
+    )
+    quiz = models.ForeignKey(
+        Quiz,
+        on_delete=models.CASCADE,
+        related_name='attempts',
+        verbose_name="Quiz"
+    )
+
+    # Resultados
+    score = models.PositiveIntegerField(verbose_name="Pontuação (acertos)")
+    total_questions = models.PositiveIntegerField(verbose_name="Total de Perguntas")
+    score_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        verbose_name="Percentual de Acertos"
+    )
+
+    # Gamificação
+    xp_earned = models.PositiveIntegerField(default=0, verbose_name="XP Ganho")
+    leveled_up = models.BooleanField(default=False, verbose_name="Subiu de Nível")
+    level_before = models.PositiveIntegerField(default=1, verbose_name="Nível Anterior")
+    level_after = models.PositiveIntegerField(default=1, verbose_name="Nível Após")
+
+    # Timestamp
+    completed_at = models.DateTimeField(auto_now_add=True, verbose_name="Completado em")
+
+    class Meta:
+        verbose_name = "Tentativa de Quiz"
+        verbose_name_plural = "Tentativas de Quiz"
+        ordering = ['-completed_at']
+        indexes = [
+            models.Index(fields=['user', '-completed_at']),
+            models.Index(fields=['quiz', '-completed_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.quiz.title} - {self.score_percentage}%"
+
+
 class Newsletter(models.Model):
     """Inscrições na newsletter"""
     email = models.EmailField(unique=True, verbose_name="E-mail")
