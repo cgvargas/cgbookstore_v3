@@ -49,13 +49,12 @@ def books_list(request):
     # Anotar estatísticas para cada autor
     authors = authors.annotate(
         books_count=Count('books', filter=Q(books__status='published')),
-        total_views=Count('books__views_count', filter=Q(books__status='published')),
         avg_rating=Avg('books__rating_average', filter=Q(books__status='published'))
     )
 
     # Ordenação
     valid_sorts = {
-        'popular': '-total_views',
+        'popular': '-total_views',  # Usa o campo do modelo EmergingAuthor
         'books': '-books_count',
         'rating': '-avg_rating',
         'name': 'user__username'
