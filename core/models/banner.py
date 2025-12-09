@@ -40,10 +40,11 @@ class Banner(models.Model):
     )
 
     # Link de ação
-    link_url = models.URLField(
+    link_url = models.CharField(
+        max_length=500,
         blank=True,
         verbose_name="Link de Destino",
-        help_text="URL para onde o usuário será direcionado ao clicar (opcional)"
+        help_text="URL para onde o usuário será direcionado ao clicar. Ex: /novos-autores/ ou https://site.com"
     )
 
     link_text = models.CharField(
