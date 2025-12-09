@@ -209,6 +209,31 @@
         margin-bottom: 0;
         text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
     }
+
+    /* Link "Ver todos" no banner da seção */
+    .view-all-link-banner {
+        display: inline-block;
+        margin-top: 0.75rem;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 0.5rem 1.25rem;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    }
+
+    .view-all-link-banner:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
 </style>
 {% endblock %}
 
@@ -248,6 +273,11 @@
                 </h2>
                 {% if section.subtitle %}
                     <p>{{ section.subtitle }}</p>
+                {% endif %}
+                {% if section.show_see_more and section.see_more_url %}
+                    <a href="{{ section.see_more_url }}" class="view-all-link-banner">
+                        Ver todos <i class="fas fa-chevron-right ms-1"></i>
+                    </a>
                 {% endif %}
             </div>
         </div>
