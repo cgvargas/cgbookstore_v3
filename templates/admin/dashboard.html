@@ -415,6 +415,18 @@
         </div>
     </a>
 
+    <!-- NOTÍCIAS/JORNAL LITERÁRIO CARD -->
+    <a href="{% url 'admin:news_article_changelist' %}" class="stat-card-link">
+        <div class="stat-card" style="border-left-color: #e74c3c;">
+            <div class="stat-card-header">
+                <span class="stat-card-title">Notícias Literárias</span>
+                <span class="stat-card-icon">📰</span>
+            </div>
+            <div class="stat-card-value">{{ news_stats.total_articles|default:0 }}</div>
+            <div class="stat-card-label">{{ news_stats.published_articles|default:0 }} publicadas • {{ news_stats.total_quizzes|default:0 }} quizzes</div>
+        </div>
+    </a>
+
     {% if chatbot_stats %}
     <!-- CHATBOT LITERÁRIO CARD -->
     <a href="{% url 'admin:chatbot_literario_chatsession_changelist' %}" class="stat-card-link">
@@ -492,6 +504,12 @@
         <a href="{% url 'admin:core_video_add' %}" class="action-btn">
             🎥 Adicionar Vídeo
         </a>
+        <a href="{% url 'admin:news_article_add' %}" class="action-btn" style="background: #e74c3c;">
+            📰 Publicar Notícia
+        </a>
+        <a href="{% url 'admin:news_quiz_add' %}" class="action-btn" style="background: #3498db;">
+            🎯 Criar Quiz
+        </a>
         <a href="{% url 'admin:new_authors_authorbook_add' %}" class="action-btn success" style="background: #8b5cf6;">
             ✨ Publicar Livro de Autor Emergente
         </a>
@@ -531,6 +549,9 @@
         </a>
         <a href="{% url 'admin:app_list' 'new_authors' %}" class="action-btn" style="background: #8b5cf6;">
             ✨ Autores Emergentes
+        </a>
+        <a href="{% url 'admin:app_list' 'news' %}" class="action-btn" style="background: #e74c3c;">
+            📰 Notícias e Jornal
         </a>
         {% if chatbot_stats %}
         <a href="{% url 'admin:app_list' 'chatbot_literario' %}" class="action-btn" style="background: #17a2b8;">

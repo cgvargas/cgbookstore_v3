@@ -34,6 +34,15 @@ except ImportError:
     ChatMessage = None
     ChatbotKnowledge = None
 
+# Importar modelos do News (Jornal Literário)
+try:
+    from news.models import Article, Quiz, Category as NewsCategory, Newsletter
+except ImportError:
+    Article = None
+    Quiz = None
+    NewsCategory = None
+    Newsletter = None
+
 
 @staff_member_required
 def admin_dashboard(request):
@@ -251,6 +260,48 @@ def admin_dashboard(request):
         # Últimas 5 sessões
         recent_chat_sessions = ChatSession.objects.select_related('user').order_by('-updated_at')[:5]
 
+    # ============================================
+    # ESTATÍSTICAS DO NEWS (JORNAL LITERÁRIO)
+    # ============================================
+    news_stats = {}
+
+    if Article and Quiz:
+        # Estatísticas de Artigos
+        total_articles = Article.objects.count()
+        published_articles = Article.objects.filter(is_published=True).count()
+        breaking_news_count = Article.objects.filter(is_breaking=True, is_published=True).count()
+
+        # Artigos por tipo
+        articles_by_type = Article.objects.values('content_type').annotate(
+            count=Count('id')
+        ).order_by('-count')
+
+        # Estatísticas de Quizzes
+        total_quizzes = Quiz.objects.count()
+        active_quizzes = Quiz.objects.filter(is_active=True).count()
+        total_quiz_completions = Quiz.objects.aggregate(total=Sum('times_completed'))['total'] or 0
+
+        # Newsletter
+        if Newsletter:
+            total_subscribers = Newsletter.objects.filter(is_active=True).count()
+        else:
+            total_subscribers = 0
+
+        # Visualizações totais
+        total_views = Article.objects.aggregate(total=Sum('views_count'))['total'] or 0
+
+        news_stats = {
+            'total_articles': total_articles,
+            'published_articles': published_articles,
+            'breaking_news_count': breaking_news_count,
+            'total_quizzes': total_quizzes,
+            'active_quizzes': active_quizzes,
+            'total_quiz_completions': total_quiz_completions,
+            'total_subscribers': total_subscribers,
+            'total_views': total_views,
+            'articles_by_type': articles_by_type,
+        }
+
     context = {
         'title': 'Dashboard',
         'stats': stats,
@@ -272,6 +323,8 @@ def admin_dashboard(request):
         # Chatbot data
         'chatbot_stats': chatbot_stats,
         'recent_chat_sessions': recent_chat_sessions,
+        # News data
+        'news_stats': news_stats,
     }
 
     return render(request, 'admin/dashboard.html', context)
