@@ -343,7 +343,10 @@
             <div class="section-blur-bottom" style="height: {{ section.banner_blur_intensity|default:80 }}px;"></div>
             {% endif %}
 
+            <!-- Overlay com textos (só exibe se houver título ou botão Ver todos) -->
+            {% if section.title or section.subtitle or section.show_see_more %}
             <div class="section-banner-overlay">
+                {% if section.title %}
                 <h2>
                     {% if section.content_type == 'books' %}
                         <i class="fas fa-book me-2"></i>
@@ -358,6 +361,7 @@
                     {% endif %}
                     {{ section.title }}
                 </h2>
+                {% endif %}
                 {% if section.subtitle %}
                     <p>{{ section.subtitle }}</p>
                 {% endif %}
@@ -367,6 +371,7 @@
                     </a>
                 {% endif %}
             </div>
+            {% endif %}
         </div>
         {% endif %}
 
@@ -374,8 +379,8 @@
         <div class="section-background" style="background-color: {% if section.background_color %}{{ section.background_color }}{% else %}var(--card-bg){% endif %}; opacity: {{ section.container_opacity|default:1.0|floatformat:2 }};"></div>
 
         <div class="container position-relative" style="z-index: 1;">
-            <!-- Cabeçalho da Seção (só exibe se não tiver banner) -->
-            {% if not section.banner_image_url %}
+            <!-- Cabeçalho da Seção (só exibe se não tiver banner E se houver título) -->
+            {% if not section.banner_image_url and section.title %}
             <div class="carousel-header">
                 <h2>
                     {% if section.content_type == 'books' %}

@@ -35,8 +35,9 @@ class Section(models.Model):
     # Campos básicos
     title = models.CharField(
         max_length=200,
+        blank=True,
         verbose_name="Título",
-        help_text="Título da seção (ex: 'Mais Vendidos', 'Lançamentos')"
+        help_text="Título da seção (ex: 'Mais Vendidos', 'Lançamentos'). Deixe vazio para seções apenas com banner."
     )
 
     subtitle = models.CharField(
@@ -251,7 +252,8 @@ class Section(models.Model):
         ordering = ['order', '-created_at']
 
     def __str__(self):
-        return f"{self.title} ({self.get_content_type_display()} - {self.get_layout_display()})"
+        title_display = self.title if self.title else "Seção sem título"
+        return f"{title_display} ({self.get_content_type_display()} - {self.get_layout_display()})"
 
     def get_items(self):
         """Retorna os itens da seção ordenados"""
