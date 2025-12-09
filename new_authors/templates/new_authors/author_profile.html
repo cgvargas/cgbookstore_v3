@@ -3,117 +3,190 @@
 {% block title %}{{ author }} - Perfil do Autor{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-    <div class="row">
-        <div class="col-md-4 text-center">
-            {% if author.photo %}
-                <img src="{{ author.photo.url }}" class="img-fluid rounded-circle mb-3" alt="{{ author }}" style="max-width: 250px;">
-            {% else %}
-                <div class="bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
-                     style="width: 250px; height: 250px;">
-                    <i class="bi bi-person-circle" style="font-size: 8rem;"></i>
-                </div>
-            {% endif %}
-
-            <h2>{{ author }}
-                {% if author.is_verified %}
-                    <i class="bi bi-patch-check-fill text-primary" title="Autor Verificado"></i>
-                {% endif %}
-            </h2>
-
-            <p class="text-muted">@{{ author.user.username }}</p>
-
-            <div class="d-flex justify-content-center gap-3 mb-3">
-                {% if author.website %}
-                    <a href="{{ author.website }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-globe"></i>
-                    </a>
-                {% endif %}
-                {% if author.twitter %}
-                    <a href="https://twitter.com/{{ author.twitter }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-twitter"></i>
-                    </a>
-                {% endif %}
-                {% if author.instagram %}
-                    <a href="https://instagram.com/{{ author.instagram }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-instagram"></i>
-                    </a>
-                {% endif %}
-                {% if author.facebook %}
-                    <a href="https://facebook.com/{{ author.facebook }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-facebook"></i>
-                    </a>
+<!-- Header do Perfil -->
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center">
+                {% if author.photo %}
+                    <img src="{{ author.photo.url }}" class="img-fluid rounded-circle shadow" alt="{{ author }}" style="max-width: 200px; width: 100%; height: 200px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-primary text-white rounded-circle mx-auto shadow d-flex align-items-center justify-content-center"
+                         style="width: 200px; height: 200px;">
+                        <i class="bi bi-person-circle" style="font-size: 6rem;"></i>
+                    </div>
                 {% endif %}
             </div>
 
-            <div class="card mt-4">
-                <div class="card-body">
-                    <h5 class="card-title">Estatísticas</h5>
-                    <div class="row text-center">
-                        <div class="col-6 border-end">
-                            <h3 class="text-primary mb-0">{{ stats.total_books }}</h3>
-                            <small class="text-muted">Livros</small>
-                        </div>
-                        <div class="col-6">
-                            <h3 class="text-primary mb-0">{{ stats.total_views }}</h3>
-                            <small class="text-muted">Leituras</small>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="row text-center">
-                        <div class="col-6 border-end">
-                            <h3 class="text-primary mb-0">{{ stats.avg_rating|floatformat:1 }}</h3>
-                            <small class="text-muted">Avaliação Média</small>
-                        </div>
-                        <div class="col-6">
-                            <h3 class="text-primary mb-0">{{ stats.total_chapters }}</h3>
-                            <small class="text-muted">Capítulos</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+            <div class="col-md-9">
+                <h1 class="display-5 fw-bold mb-2">
+                    {{ author }}
+                    {% if author.is_verified %}
+                        <i class="bi bi-patch-check-fill text-primary" title="Autor Verificado"></i>
+                    {% endif %}
+                </h1>
+                <p class="text-muted h5 mb-3">@{{ author.user.username }}</p>
 
-        <div class="col-md-8">
-            <h3>Sobre o Autor</h3>
-            <p style="white-space: pre-line;">{{ author.bio }}</p>
+                <!-- Redes Sociais -->
+                {% if author.website or author.twitter or author.instagram or author.facebook %}
+                    <div class="d-flex gap-2 mb-3">
+                        {% if author.website %}
+                            <a href="{{ author.website }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-globe"></i> Website
+                            </a>
+                        {% endif %}
+                        {% if author.twitter %}
+                            <a href="https://twitter.com/{{ author.twitter }}" target="_blank" class="btn btn-outline-info btn-sm">
+                                <i class="bi bi-twitter"></i> Twitter
+                            </a>
+                        {% endif %}
+                        {% if author.instagram %}
+                            <a href="https://instagram.com/{{ author.instagram }}" target="_blank" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-instagram"></i> Instagram
+                            </a>
+                        {% endif %}
+                        {% if author.facebook %}
+                            <a href="https://facebook.com/{{ author.facebook }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-facebook"></i> Facebook
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
 
-            <h3 class="mt-5">Obras Publicadas ({{ books.count }})</h3>
-            <div class="row g-4">
-                {% for book in books %}
-                    <div class="col-md-4">
-                        <div class="card h-100 book-card" onclick="window.location='{% url 'new_authors:book_detail' book.slug %}'">
-                            {% if book.cover_image %}
-                                <img src="{{ book.cover_image.url }}" class="card-img-top" style="height: 300px; object-fit: cover;" alt="{{ book.title }}">
-                            {% else %}
-                                <div class="bg-gradient text-white d-flex align-items-center justify-content-center"
-                                     style="height: 300px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                    <i class="bi bi-book" style="font-size: 4rem;"></i>
-                                </div>
-                            {% endif %}
-                            <div class="card-body">
-                                <h5 class="card-title">{{ book.title }}</h5>
-                                <p class="card-text small text-muted">{{ book.synopsis|truncatewords:15 }}</p>
-                                <div class="d-flex justify-content-between">
-                                    <span class="rating-stars small">
-                                        {% for i in "12345" %}
-                                            {% if forloop.counter <= book.rating_average %}⭐{% endif %}
-                                        {% endfor %}
-                                    </span>
-                                    <small class="text-muted"><i class="bi bi-eye"></i> {{ book.views_count }}</small>
-                                </div>
+                <!-- Estatísticas em Linha -->
+                <div class="row text-center g-3">
+                    <div class="col-6 col-md-3">
+                        <div class="card shadow-sm">
+                            <div class="card-body p-3">
+                                <h3 class="text-primary mb-0">{{ stats.total_books }}</h3>
+                                <small class="text-muted">
+                                    {% if stats.total_books == 1 %}Livro{% else %}Livros{% endif %}
+                                </small>
                             </div>
                         </div>
                     </div>
-                {% empty %}
-                    <div class="col-12">
-                        <div class="alert alert-info">
-                            Este autor ainda não publicou nenhum livro.
+                    <div class="col-6 col-md-3">
+                        <div class="card shadow-sm">
+                            <div class="card-body p-3">
+                                <h3 class="text-primary mb-0">{{ stats.total_views }}</h3>
+                                <small class="text-muted">Leituras</small>
+                            </div>
                         </div>
                     </div>
-                {% endfor %}
+                    <div class="col-6 col-md-3">
+                        <div class="card shadow-sm">
+                            <div class="card-body p-3">
+                                <h3 class="text-primary mb-0">{{ stats.avg_rating|floatformat:1 }}</h3>
+                                <small class="text-muted">Avaliação</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card shadow-sm">
+                            <div class="card-body p-3">
+                                <h3 class="text-primary mb-0">{{ stats.total_chapters }}</h3>
+                                <small class="text-muted">Capítulos</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<div class="container my-5">
+    <!-- Sobre o Autor -->
+    {% if author.bio %}
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h3 class="card-title mb-3">
+                            <i class="bi bi-person"></i> Sobre o Autor
+                        </h3>
+                        <p class="card-text" style="white-space: pre-line; font-size: 1.1rem; line-height: 1.8;">{{ author.bio }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Obras Publicadas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="bi bi-book-half"></i> Obras Publicadas
+                <span class="badge bg-primary">{{ books.count }}</span>
+            </h2>
+        </div>
+    </div>
+
+    {% if books %}
+        <div class="row g-4">
+            {% for book in books %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card book-card h-100 shadow-sm" onclick="window.location='{% url 'new_authors:book_detail' book.slug %}'" style="cursor: pointer; transition: transform 0.2s;">
+                        <div class="row g-0">
+                            <div class="col-5">
+                                {% if book.cover_image %}
+                                    <img src="{{ book.cover_image.url }}" class="img-fluid h-100" style="object-fit: cover; border-radius: 0.375rem 0 0 0.375rem;" alt="{{ book.title }}">
+                                {% else %}
+                                    <div class="bg-gradient text-white h-100 d-flex align-items-center justify-content-center"
+                                         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 0.375rem 0 0 0.375rem;">
+                                        <i class="bi bi-book" style="font-size: 3rem;"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-7">
+                                <div class="card-body p-3">
+                                    <h5 class="card-title mb-2">{{ book.title }}</h5>
+                                    <p class="card-text small text-muted mb-2">{{ book.synopsis|truncatewords:12 }}</p>
+
+                                    <!-- Rating -->
+                                    <div class="mb-2">
+                                        <span class="rating-stars small">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= book.rating_average %}
+                                                    <i class="bi bi-star-fill text-warning"></i>
+                                                {% else %}
+                                                    <i class="bi bi-star text-warning"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </span>
+                                        <small class="text-muted">({{ book.rating_count }})</small>
+                                    </div>
+
+                                    <!-- Info -->
+                                    <div class="d-flex justify-content-between small text-muted">
+                                        <span><i class="bi bi-eye"></i> {{ book.views_count }}</span>
+                                        <span><i class="bi bi-book"></i> {{ book.chapters.count }} caps</span>
+                                    </div>
+
+                                    <!-- Badge de gênero -->
+                                    <div class="mt-2">
+                                        <span class="badge bg-secondary">{{ book.get_genre_display }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center py-5">
+            <i class="bi bi-info-circle" style="font-size: 3rem;"></i>
+            <h4 class="mt-3">Nenhuma obra publicada ainda</h4>
+            <p>Este autor ainda não publicou nenhum livro na plataforma.</p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.book-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+}
+</style>
 {% endblock %}

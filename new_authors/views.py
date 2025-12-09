@@ -27,47 +27,48 @@ from .models import (
 # ========== VIEWS PÚBLICAS ==========
 
 def books_list(request):
-    """Lista todos os livros publicados de autores emergentes"""
-    books = AuthorBook.objects.filter(
-        status='published'
-    ).select_related('author__user').order_by('-published_at')
+    """Lista todos os autores emergentes com seus livros"""
+    # Buscar autores ativos que têm livros publicados
+    authors = EmergingAuthor.objects.filter(
+        is_active=True,
+        books__status='published'
+    ).select_related('user').distinct()
 
     # Filtros
-    genre_filter = request.GET.get('genre')
     search = request.GET.get('search')
-    sort = request.GET.get('sort', '-published_at')
-
-    if genre_filter:
-        books = books.filter(genre=genre_filter)
+    sort = request.GET.get('sort', 'popular')
 
     if search:
-        books = books.filter(
-            Q(title__icontains=search) |
-            Q(synopsis__icontains=search) |
-            Q(author__user__username__icontains=search)
+        authors = authors.filter(
+            Q(user__username__icontains=search) |
+            Q(user__first_name__icontains=search) |
+            Q(user__last_name__icontains=search) |
+            Q(bio__icontains=search)
         )
+
+    # Anotar estatísticas para cada autor
+    authors = authors.annotate(
+        books_count=Count('books', filter=Q(books__status='published')),
+        total_views=Count('books__views_count', filter=Q(books__status='published')),
+        avg_rating=Avg('books__rating_average', filter=Q(books__status='published'))
+    )
 
     # Ordenação
     valid_sorts = {
-        'recent': '-published_at',
-        'popular': '-views_count',
-        'rating': '-rating_average',
-        'title': 'title'
+        'popular': '-total_views',
+        'books': '-books_count',
+        'rating': '-avg_rating',
+        'name': 'user__username'
     }
-    books = books.order_by(valid_sorts.get(sort, '-published_at'))
+    authors = authors.order_by(valid_sorts.get(sort, '-total_views'))
 
     # Paginação
-    paginator = Paginator(books, 12)
+    paginator = Paginator(authors, 12)
     page = request.GET.get('page')
-    books_page = paginator.get_page(page)
-
-    # Gêneros para filtro
-    genres = AuthorBook.GENRE_CHOICES
+    authors_page = paginator.get_page(page)
 
     context = {
-        'books': books_page,
-        'genres': genres,
-        'current_genre': genre_filter,
+        'authors': authors_page,
         'current_sort': sort,
         'search_query': search or '',
     }
