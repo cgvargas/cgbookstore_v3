@@ -9,9 +9,6 @@ app_name = 'new_authors'
 urlpatterns = [
     # Páginas públicas
     path('', views.books_list, name='books_list'),
-    path('livro/<slug:slug>/', views.book_detail, name='book_detail'),
-    path('livro/<slug:book_slug>/capitulo/<int:chapter_number>/', views.chapter_read, name='chapter_read'),
-    path('autor/<str:username>/', views.author_profile, name='author_profile'),
 
     # Busca e filtros
     path('buscar/', views.search_books, name='search_books'),
@@ -22,10 +19,15 @@ urlpatterns = [
     path('termos-autor/', views.author_terms, name='author_terms'),
     path('dashboard/', views.author_dashboard, name='author_dashboard'),
 
-    # Gerenciamento de livros (autor)
+    # Gerenciamento de livros (autor) - IMPORTANTE: devem vir antes das rotas com slug
     path('livro/novo/', views.manage_book, name='create_book'),
     path('livro/<int:book_id>/editar/', views.manage_book, name='manage_book'),
     path('livro/<int:book_id>/deletar/', views.delete_book, name='delete_book'),
+
+    # Rotas públicas de livros (com slug) - DEVEM VIR DEPOIS das rotas específicas acima
+    path('livro/<slug:slug>/', views.book_detail, name='book_detail'),
+    path('livro/<slug:book_slug>/capitulo/<int:chapter_number>/', views.chapter_read, name='chapter_read'),
+    path('autor/<str:username>/', views.author_profile, name='author_profile'),
 
     # Gerenciamento de capítulos (autor)
     path('livro/<int:book_id>/capitulos/', views.manage_chapters, name='manage_chapters'),
