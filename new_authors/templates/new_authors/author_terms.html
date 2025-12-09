@@ -1,0 +1,42 @@
+{% extends 'new_authors/base.html' %}
+
+{% block title %}Termos de Responsabilidade - Autores Emergentes{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <h2 class="mb-0">{{ terms.title }}</h2>
+                    <small>Versão {{ terms.version }} - Vigente desde {{ terms.effective_date|date:"d/m/Y" }}</small>
+                </div>
+                <div class="card-body p-4">
+                    {% if terms.summary_points %}
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading"><i class="bi bi-info-circle-fill me-2"></i>Pontos Principais</h5>
+                        <ul class="mb-0">
+                            {% for point in terms.summary_points %}
+                            <li>{{ point }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="terms-content" style="white-space: pre-wrap; line-height: 1.8;">
+                        {{ terms.content }}
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="text-center">
+                        <a href="{% url 'new_authors:become_author' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-arrow-left me-2"></i>Voltar ao Cadastro
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

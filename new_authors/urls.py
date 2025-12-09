@@ -19,6 +19,7 @@ urlpatterns = [
 
     # Área do autor
     path('tornar-se-autor/', views.become_author, name='become_author'),
+    path('termos-autor/', views.author_terms, name='author_terms'),
     path('dashboard/', views.author_dashboard, name='author_dashboard'),
 
     # Gerenciamento de livros (autor)

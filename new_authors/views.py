@@ -20,8 +20,10 @@ from .models import (
     BookFollower,
     BookLike,
     PublisherProfile,
-    PublisherInterest
+    PublisherInterest,
+    AuthorTermsOfService
 )
+from .forms import EmergingAuthorRegistrationForm
 
 
 # ========== VIEWS PÚBLICAS ==========
@@ -229,26 +231,72 @@ def author_profile(request, username):
 
 @login_required
 def become_author(request):
-    """Página para se tornar um autor emergente"""
+    """Página para se tornar um autor emergente - Cadastro completo"""
     # Verificar se já é autor
     try:
         author = request.user.emerging_author_profile
+        messages.info(request, 'Você já é um autor emergente!')
         return redirect('new_authors:author_dashboard')
     except EmergingAuthor.DoesNotExist:
         pass
 
+    # Obter termos de serviço atuais
+    current_terms = AuthorTermsOfService.objects.filter(is_current=True).first()
+
     if request.method == 'POST':
-        bio = request.POST.get('bio')
+        form = EmergingAuthorRegistrationForm(request.POST, request.FILES)
 
-        author = EmergingAuthor.objects.create(
-            user=request.user,
-            bio=bio
-        )
+        if form.is_valid():
+            # Criar perfil de autor
+            author = form.save(commit=False)
+            author.user = request.user
 
-        messages.success(request, 'Parabéns! Agora você é um autor emergente na plataforma!')
-        return redirect('new_authors:author_dashboard')
+            # Capturar IP do usuário
+            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+            if x_forwarded_for:
+                ip = x_forwarded_for.split(',')[0]
+            else:
+                ip = request.META.get('REMOTE_ADDR')
+            author.terms_ip_address = ip
 
-    return render(request, 'new_authors/become_author.html')
+            # Vincular termos aceitos
+            if current_terms:
+                author.accepted_terms_version = current_terms
+                author.accepted_terms_at = timezone.now()
+
+            # Salvar
+            author.save()
+
+            messages.success(
+                request,
+                'Cadastro enviado com sucesso! Sua solicitação será analisada por nossa equipe. '
+                'Você receberá um e-mail com o resultado em breve.'
+            )
+            return redirect('new_authors:author_dashboard')
+        else:
+            messages.error(request, 'Por favor, corrija os erros no formulário.')
+    else:
+        form = EmergingAuthorRegistrationForm()
+
+    context = {
+        'form': form,
+        'current_terms': current_terms,
+    }
+    return render(request, 'new_authors/become_author.html', context)
+
+
+def author_terms(request):
+    """Visualizar termos de responsabilidade"""
+    current_terms = AuthorTermsOfService.objects.filter(is_current=True).first()
+
+    if not current_terms:
+        messages.warning(request, 'Não há termos de serviço disponíveis no momento.')
+        return redirect('new_authors:become_author')
+
+    context = {
+        'terms': current_terms,
+    }
+    return render(request, 'new_authors/author_terms.html', context)
 
 
 @login_required

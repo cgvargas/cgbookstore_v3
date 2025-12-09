@@ -1,46 +1,450 @@
 {% extends 'new_authors/base.html' %}
+{% load static %}
 
 {% block title %}Tornar-se Autor Emergente{% endblock %}
+
+{% block extra_css %}
+<style>
+    .section-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px 8px 0 0;
+        margin-top: 30px;
+    }
+    .section-header:first-child {
+        margin-top: 0;
+    }
+    .section-body {
+        background: #f8f9fa;
+        padding: 25px;
+        border: 1px solid #dee2e6;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+    }
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+    .terms-box {
+        background: white;
+        border: 2px solid #667eea;
+        border-radius: 8px;
+        padding: 20px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .form-check-input:checked {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container my-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-10">
+            <!-- Header -->
             <div class="text-center mb-5">
-                <h1 class="display-4">Torne-se um Autor Emergente</h1>
-                <p class="lead">Compartilhe suas histórias com milhares de leitores</p>
-            </div>
-
-            <div class="card shadow">
-                <div class="card-body p-5">
-                    <h3 class="mb-4">Benefícios</h3>
-                    <ul class="list-unstyled mb-5">
-                        <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> Publique seus livros gratuitamente</li>
-                        <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> Receba feedback de leitores</li>
-                        <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> Conecte-se com editoras</li>
-                        <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> Acompanhe estatísticas de leitura</li>
-                        <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> Construa sua audiência</li>
-                    </ul>
-
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="mb-4">
-                            <label for="bio" class="form-label">Conte-nos sobre você</label>
-                            <textarea name="bio" id="bio" class="form-control" rows="6"
-                                      placeholder="Escreva sua biografia como escritor. Conte sobre suas inspirações, experiências e o que você ama escrever..."
-                                      required></textarea>
-                            <div class="form-text">Mínimo 100 caracteres</div>
-                        </div>
-
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                Tornar-me Autor Emergente
-                            </button>
-                        </div>
-                    </form>
+                <h1 class="display-4">Cadastro de Autor Emergente</h1>
+                <p class="lead">Preencha o formulário completo para se tornar um autor em nossa plataforma</p>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <strong>Importante:</strong> Todos os campos marcados com <span class="text-danger">*</span> são obrigatórios para a aprovação do seu cadastro.
                 </div>
             </div>
+
+            <!-- Benefícios -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h4 class="mb-3"><i class="bi bi-star-fill text-warning me-2"></i>Benefícios de ser um Autor Emergente</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Publique seus livros na plataforma</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Receba feedback de leitores</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Conecte-se com editoras</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Acompanhe estatísticas detalhadas</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Construa sua audiência</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Monetize seu conteúdo</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulário -->
+            <form method="post" enctype="multipart/form-data" id="author-registration-form">
+                {% csrf_token %}
+
+                <!-- Seção 1: Informações Pessoais -->
+                <div class="section-header">
+                    <h4 class="mb-0"><i class="bi bi-person-fill me-2"></i>1. Informações Pessoais</h4>
+                </div>
+                <div class="section-body">
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            {{ form.full_name.label_tag }}
+                            {{ form.full_name }}
+                            {% if form.full_name.errors %}
+                                <div class="invalid-feedback d-block">{{ form.full_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.cpf.label_tag }}
+                            {{ form.cpf }}
+                            {% if form.cpf.errors %}
+                                <div class="invalid-feedback d-block">{{ form.cpf.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.birth_date.label_tag }}
+                            {{ form.birth_date }}
+                            <div class="form-text">Você deve ter 18 anos ou mais</div>
+                            {% if form.birth_date.errors %}
+                                <div class="invalid-feedback d-block">{{ form.birth_date.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.phone.label_tag }}
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                                <div class="invalid-feedback d-block">{{ form.phone.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 2: Endereço -->
+                <div class="section-header">
+                    <h4 class="mb-0"><i class="bi bi-geo-alt-fill me-2"></i>2. Endereço Residencial</h4>
+                </div>
+                <div class="section-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            {{ form.cep.label_tag }}
+                            {{ form.cep }}
+                            <div class="form-text">Digite o CEP para buscar o endereço</div>
+                            {% if form.cep.errors %}
+                                <div class="invalid-feedback d-block">{{ form.cep.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            {{ form.street.label_tag }}
+                            {{ form.street }}
+                            {% if form.street.errors %}
+                                <div class="invalid-feedback d-block">{{ form.street.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.number.label_tag }}
+                            {{ form.number }}
+                            {% if form.number.errors %}
+                                <div class="invalid-feedback d-block">{{ form.number.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            {{ form.complement.label_tag }}
+                            {{ form.complement }}
+                            {% if form.complement.errors %}
+                                <div class="invalid-feedback d-block">{{ form.complement.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.neighborhood.label_tag }}
+                            {{ form.neighborhood }}
+                            {% if form.neighborhood.errors %}
+                                <div class="invalid-feedback d-block">{{ form.neighborhood.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.city.label_tag }}
+                            {{ form.city }}
+                            {% if form.city.errors %}
+                                <div class="invalid-feedback d-block">{{ form.city.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            {{ form.state.label_tag }}
+                            {{ form.state }}
+                            {% if form.state.errors %}
+                                <div class="invalid-feedback d-block">{{ form.state.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 3: Perfil Literário -->
+                <div class="section-header">
+                    <h4 class="mb-0"><i class="bi bi-book-fill me-2"></i>3. Perfil Literário</h4>
+                </div>
+                <div class="section-body">
+                    <div class="mb-3">
+                        {{ form.bio.label_tag }}
+                        {{ form.bio }}
+                        <div class="form-text">Conte sua trajetória como escritor, suas inspirações e objetivos (máximo 2000 caracteres)</div>
+                        {% if form.bio.errors %}
+                            <div class="invalid-feedback d-block">{{ form.bio.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.literary_experience.label_tag }}
+                        {{ form.literary_experience }}
+                        <div class="form-text">Prêmios, publicações anteriores, cursos, oficinas literárias, etc.</div>
+                        {% if form.literary_experience.errors %}
+                            <div class="invalid-feedback d-block">{{ form.literary_experience.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.writing_genres.label }}</label>
+                        {{ form.writing_genres }}
+                        {% if form.writing_genres.errors %}
+                            <div class="invalid-feedback d-block">{{ form.writing_genres.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Seção 4: Documentação -->
+                <div class="section-header">
+                    <h4 class="mb-0"><i class="bi bi-file-earmark-text-fill me-2"></i>4. Documentação</h4>
+                </div>
+                <div class="section-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Atenção:</strong> Todos os documentos devem estar em formato PDF. As fotos devem ser em JPG ou PNG.
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.photo.label_tag }}
+                            {{ form.photo }}
+                            <div class="form-text">Foto profissional (máximo 5MB)</div>
+                            {% if form.photo.errors %}
+                                <div class="invalid-feedback d-block">{{ form.photo.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.identity_document.label_tag }}
+                            {{ form.identity_document }}
+                            <div class="form-text">RG ou CNH em PDF (máximo 10MB)</div>
+                            {% if form.identity_document.errors %}
+                                <div class="invalid-feedback d-block">{{ form.identity_document.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.cpf_document.label_tag }}
+                            {{ form.cpf_document }}
+                            <div class="form-text">Comprovante de CPF em PDF (opcional)</div>
+                            {% if form.cpf_document.errors %}
+                                <div class="invalid-feedback d-block">{{ form.cpf_document.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.proof_of_address.label_tag }}
+                            {{ form.proof_of_address }}
+                            <div class="form-text">Conta de luz, água, etc. em PDF (máximo 10MB)</div>
+                            {% if form.proof_of_address.errors %}
+                                <div class="invalid-feedback d-block">{{ form.proof_of_address.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 5: Redes Sociais -->
+                <div class="section-header">
+                    <h4 class="mb-0"><i class="bi bi-share-fill me-2"></i>5. Redes Sociais (Opcional)</h4>
+                </div>
+                <div class="section-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.website.label_tag }}
+                            {{ form.website }}
+                            {% if form.website.errors %}
+                                <div class="invalid-feedback d-block">{{ form.website.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.twitter.label_tag }}
+                            {{ form.twitter }}
+                            {% if form.twitter.errors %}
+                                <div class="invalid-feedback d-block">{{ form.twitter.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.instagram.label_tag }}
+                            {{ form.instagram }}
+                            {% if form.instagram.errors %}
+                                <div class="invalid-feedback d-block">{{ form.instagram.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.facebook.label_tag }}
+                            {{ form.facebook }}
+                            {% if form.facebook.errors %}
+                                <div class="invalid-feedback d-block">{{ form.facebook.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.linkedin.label_tag }}
+                            {{ form.linkedin }}
+                            {% if form.linkedin.errors %}
+                                <div class="invalid-feedback d-block">{{ form.linkedin.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 6: Termos de Responsabilidade -->
+                <div class="section-header">
+                    <h4 class="mb-0"><i class="bi bi-shield-check-fill me-2"></i>6. Termos de Responsabilidade</h4>
+                </div>
+                <div class="section-body">
+                    {% if current_terms %}
+                    <div class="terms-box mb-3">
+                        <h5>{{ current_terms.title }}</h5>
+                        <p><small class="text-muted">Versão {{ current_terms.version }}</small></p>
+
+                        {% if current_terms.summary_points %}
+                        <div class="alert alert-light">
+                            <strong>Resumo dos pontos principais:</strong>
+                            <ul class="mb-0 mt-2">
+                                {% for point in current_terms.summary_points %}
+                                <li>{{ point }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <div class="mt-3" style="white-space: pre-wrap; line-height: 1.8;">
+                            {{ current_terms.content }}
+                        </div>
+                    </div>
+
+                    <div class="form-check">
+                        {{ form.accept_terms }}
+                        <label class="form-check-label" for="{{ form.accept_terms.id_for_label }}">
+                            <strong>{{ form.accept_terms.label }}</strong>
+                            <p class="text-muted small mb-0">
+                                Li e aceito integralmente os termos acima. Estou ciente de minhas responsabilidades como autor na plataforma.
+                            </p>
+                        </label>
+                        {% if form.accept_terms.errors %}
+                            <div class="invalid-feedback d-block">{{ form.accept_terms.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-3">
+                        <a href="{% url 'new_authors:author_terms' %}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Abrir termos em nova aba
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Não há termos de serviço disponíveis no momento. Por favor, entre em contato com o suporte.
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Botão de Envio -->
+                <div class="text-center my-4">
+                    <button type="submit" class="btn btn-primary btn-lg px-5" {% if not current_terms %}disabled{% endif %}>
+                        <i class="bi bi-check-circle-fill me-2"></i>Enviar Cadastro para Aprovação
+                    </button>
+                    <p class="text-muted mt-3">
+                        <small>Após o envio, seu cadastro será analisado por nossa equipe. Você receberá um e-mail com o resultado da análise.</small>
+                    </p>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Máscara para CPF
+document.getElementById('id_cpf').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 11) {
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        e.target.value = value;
+    }
+});
+
+// Máscara para Telefone
+document.getElementById('id_phone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 11) {
+        value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
+        value = value.replace(/(\d)(\d{4})$/, '$1-$2');
+        e.target.value = value;
+    }
+});
+
+// Máscara para CEP
+document.getElementById('id_cep').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 8) {
+        value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+        e.target.value = value;
+    }
+});
+
+// Buscar endereço pelo CEP
+document.getElementById('id_cep').addEventListener('blur', function(e) {
+    const cep = e.target.value.replace(/\D/g, '');
+
+    if (cep.length === 8) {
+        fetch(`https://viacep.com.br/ws/${cep}/json/`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.erro) {
+                    document.getElementById('id_street').value = data.logradouro;
+                    document.getElementById('id_neighborhood').value = data.bairro;
+                    document.getElementById('id_city').value = data.localidade;
+                    document.getElementById('id_state').value = data.uf;
+                    document.getElementById('id_number').focus();
+                } else {
+                    alert('CEP não encontrado.');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao buscar CEP:', error);
+            });
+    }
+});
+
+// Validação de formulário antes do envio
+document.getElementById('author-registration-form').addEventListener('submit', function(e) {
+    const acceptTerms = document.getElementById('id_accept_terms');
+
+    if (!acceptTerms.checked) {
+        e.preventDefault();
+        alert('Você deve aceitar os Termos de Responsabilidade para continuar.');
+        acceptTerms.focus();
+        return false;
+    }
+});
+</script>
 {% endblock %}
