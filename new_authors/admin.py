@@ -5,6 +5,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
 from django.contrib import messages
+from django import forms
 from .models import (
     AuthorTermsOfService,
     EmergingAuthor,
@@ -42,8 +43,58 @@ class AuthorTermsOfServiceAdmin(admin.ModelAdmin):
     )
 
 
+class EmergingAuthorAdminForm(forms.ModelForm):
+    """Formulário customizado para o admin de EmergingAuthor"""
+
+    GENRE_CHOICES = [
+        ('fiction', 'Ficção'),
+        ('romance', 'Romance'),
+        ('fantasy', 'Fantasia'),
+        ('scifi', 'Ficção Científica'),
+        ('mystery', 'Mistério'),
+        ('thriller', 'Thriller'),
+        ('horror', 'Terror'),
+        ('adventure', 'Aventura'),
+        ('historical', 'Histórico'),
+        ('biography', 'Biografia'),
+        ('poetry', 'Poesia'),
+        ('self_help', 'Autoajuda'),
+        ('young_adult', 'Jovem Adulto'),
+        ('children', 'Infantil'),
+        ('other', 'Outro'),
+    ]
+
+    writing_genres = forms.MultipleChoiceField(
+        choices=GENRE_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label='Gêneros de Escrita',
+        help_text='Selecione os gêneros literários que o autor escreve'
+    )
+
+    class Meta:
+        model = EmergingAuthor
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pré-seleciona os gêneros já salvos
+        if self.instance and self.instance.pk and self.instance.writing_genres:
+            self.initial['writing_genres'] = self.instance.writing_genres
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # Converte a lista de strings para o formato JSON esperado
+        instance.writing_genres = self.cleaned_data.get('writing_genres', [])
+        if commit:
+            instance.save()
+        return instance
+
+
 @admin.register(EmergingAuthor)
 class EmergingAuthorAdmin(admin.ModelAdmin):
+    form = EmergingAuthorAdminForm  # Usa o formulário customizado
+
     list_display = [
         'user',
         'full_name',
