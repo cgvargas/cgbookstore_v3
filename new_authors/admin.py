@@ -435,6 +435,7 @@ class BookLikeAdmin(admin.ModelAdmin):
 class PublisherProfileAdmin(admin.ModelAdmin):
     list_display = [
         'company_name',
+        'cnpj',
         'user',
         'user_type_display',
         'email',
@@ -444,7 +445,7 @@ class PublisherProfileAdmin(admin.ModelAdmin):
         'created_at'
     ]
     list_filter = ['is_verified', 'is_active', 'created_at']
-    search_fields = ['company_name', 'user__username', 'email', 'description']
+    search_fields = ['company_name', 'cnpj', 'user__username', 'email', 'description']
     readonly_fields = ['authors_contacted', 'created_at', 'updated_at']
 
     fieldsets = (
@@ -457,7 +458,7 @@ class PublisherProfileAdmin(admin.ModelAdmin):
                           '• O usuário foi criado especificamente para esta editora'
         }),
         ('Informações da Editora', {
-            'fields': ('company_name', 'description', 'logo')
+            'fields': ('company_name', 'cnpj', 'description', 'logo')
         }),
         ('Contato', {
             'fields': ('website', 'email', 'phone')

@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 from django.urls import reverse
 import os
+import re
 
 
 def author_photo_path(instance, filename):
@@ -714,6 +715,14 @@ class PublisherProfile(models.Model):
 
     # Informações da editora
     company_name = models.CharField('Nome da Editora', max_length=200)
+    cnpj = models.CharField(
+        'CNPJ',
+        max_length=18,
+        unique=True,
+        blank=True,
+        default='',
+        help_text='CNPJ da editora (formato: XX.XXX.XXX/XXXX-XX)'
+    )
     description = models.TextField('Descrição', max_length=1000)
     logo = models.ImageField('Logo', upload_to='new_authors/publishers/', blank=True)
 
@@ -740,10 +749,21 @@ class PublisherProfile(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['is_verified', 'is_active'], name='idx_publisher_status'),
+            models.Index(fields=['cnpj'], name='idx_publisher_cnpj'),
         ]
 
     def __str__(self):
         return self.company_name
+
+    def save(self, *args, **kwargs):
+        """Formata CNPJ antes de salvar"""
+        if self.cnpj:
+            # Remove pontuação
+            cnpj_clean = re.sub(r'[^\d]', '', self.cnpj)
+            # Formata: XX.XXX.XXX/XXXX-XX
+            if len(cnpj_clean) == 14:
+                self.cnpj = f"{cnpj_clean[:2]}.{cnpj_clean[2:5]}.{cnpj_clean[5:8]}/{cnpj_clean[8:12]}-{cnpj_clean[12:]}"
+        super().save(*args, **kwargs)
 
 
 class PublisherInterest(models.Model):

@@ -80,6 +80,23 @@
                             </div>
 
                             <div class="mb-4">
+                                <label for="cnpj" class="form-label fw-bold">
+                                    <i class="bi bi-card-text"></i> CNPJ da Editora *
+                                </label>
+                                <input type="text"
+                                       class="form-control form-control-lg"
+                                       id="cnpj"
+                                       name="cnpj"
+                                       placeholder="00.000.000/0000-00"
+                                       required
+                                       maxlength="18"
+                                       pattern="[\d]{2}\.[\d]{3}\.[\d]{3}/[\d]{4}-[\d]{2}">
+                                <div class="form-text">
+                                    CNPJ da editora no formato XX.XXX.XXX/XXXX-XX (obrigatório para verificação)
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
                                 <label for="description" class="form-label fw-bold">
                                     <i class="bi bi-file-text"></i> Descrição da Editora *
                                 </label>
@@ -270,6 +287,30 @@
 
 {% block extra_js %}
 <script>
+// Formatação automática de CNPJ
+document.getElementById('cnpj')?.addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, ''); // Remove não-dígitos
+
+    if (value.length <= 14) {
+        // Formata: XX.XXX.XXX/XXXX-XX
+        value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+        value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+        value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+        value = value.replace(/(\d{4})(\d)/, '$1-$2');
+    }
+
+    e.target.value = value;
+
+    // Validação visual
+    const helpText = e.target.nextElementSibling;
+    if (value.length === 18) {
+        helpText.classList.remove('text-danger');
+        helpText.classList.add('text-success');
+    } else {
+        helpText.classList.remove('text-success');
+    }
+});
+
 // Contador de caracteres para descrição
 document.getElementById('description')?.addEventListener('input', function() {
     const length = this.value.length;

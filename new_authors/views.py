@@ -24,6 +24,7 @@ from .models import (
     AuthorTermsOfService
 )
 from .forms import EmergingAuthorRegistrationForm
+from .validators import validate_cnpj
 
 
 # ========== VIEWS PÚBLICAS ==========
@@ -441,6 +442,7 @@ def become_publisher(request):
 
     if request.method == 'POST':
         company_name = request.POST.get('company_name')
+        cnpj = request.POST.get('cnpj')
         description = request.POST.get('description')
         email = request.POST.get('email')
         website = request.POST.get('website', '')
@@ -449,6 +451,22 @@ def become_publisher(request):
         # Validações
         if not company_name or len(company_name) < 3:
             messages.error(request, 'Nome da editora deve ter pelo menos 3 caracteres.')
+            return render(request, 'new_authors/become_publisher.html')
+
+        if not cnpj:
+            messages.error(request, 'CNPJ é obrigatório.')
+            return render(request, 'new_authors/become_publisher.html')
+
+        # Validar CNPJ
+        try:
+            validate_cnpj(cnpj)
+        except Exception as e:
+            messages.error(request, f'CNPJ inválido: {str(e)}')
+            return render(request, 'new_authors/become_publisher.html')
+
+        # Verificar se CNPJ já está cadastrado
+        if PublisherProfile.objects.filter(cnpj=cnpj).exists():
+            messages.error(request, 'Este CNPJ já está cadastrado no sistema.')
             return render(request, 'new_authors/become_publisher.html')
 
         if not description or len(description) < 50:
@@ -463,6 +481,7 @@ def become_publisher(request):
         publisher = PublisherProfile.objects.create(
             user=request.user,
             company_name=company_name,
+            cnpj=cnpj,
             description=description,
             email=email,
             website=website,
