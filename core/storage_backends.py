@@ -12,8 +12,45 @@ from core.utils.supabase_storage import supabase_storage_admin
 import os
 import logging
 from io import BytesIO
+import unicodedata
+import re
 
 logger = logging.getLogger(__name__)
+
+
+def normalize_filename(filename):
+    """
+    Normaliza nome de arquivo removendo acentos e caracteres especiais
+    que podem causar problemas no Supabase Storage
+
+    Args:
+        filename: Nome original do arquivo
+
+    Returns:
+        str: Nome normalizado (apenas ASCII, sem acentos)
+    """
+    # Separar nome e extensão
+    name, ext = os.path.splitext(filename)
+
+    # Remover acentos usando NFD (Normalization Form Decomposition)
+    name = unicodedata.normalize('NFD', name)
+    name = name.encode('ascii', 'ignore').decode('ascii')
+
+    # Substituir espaços e caracteres especiais por underscore
+    name = re.sub(r'[^\w\-]', '_', name)
+
+    # Remover underscores múltiplos
+    name = re.sub(r'_+', '_', name)
+
+    # Remover underscores no início e fim
+    name = name.strip('_')
+
+    # Garantir que não está vazio
+    if not name:
+        name = 'file'
+
+    # Juntar nome normalizado com extensão
+    return f"{name}{ext}"
 
 
 @deconstructible
@@ -120,6 +157,19 @@ class SupabaseMediaStorage(Storage):
             str: Path do arquivo salvo
         """
         try:
+            # Normalizar o nome do arquivo antes de processar
+            folder = os.path.dirname(name)
+            filename = os.path.basename(name)
+            normalized_filename = normalize_filename(filename)
+
+            # Reconstruir o path completo com nome normalizado
+            if folder:
+                name = os.path.join(folder, normalized_filename).replace('\\', '/')
+            else:
+                name = normalized_filename
+
+            logger.info(f"Nome normalizado: {filename} -> {normalized_filename}")
+
             bucket, path = self._get_bucket_and_path(name)
 
             # Garantir que content é um arquivo
