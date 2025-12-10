@@ -127,7 +127,11 @@ class HomeView(TemplateView):
         videos_map = {}
 
         if book_ids:
-            books = Book.objects.filter(id__in=book_ids).select_related('category', 'author')
+            # Otimização: usar only() para carregar apenas campos necessários e evitar timeout
+            books = Book.objects.filter(id__in=book_ids).select_related('category', 'author').only(
+                'id', 'title', 'slug', 'cover', 'price', 'discount_price',
+                'category__name', 'author__name', 'author__slug'
+            )
             books_map = {book.id: book for book in books}
 
         if author_ids:

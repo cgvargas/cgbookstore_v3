@@ -179,6 +179,9 @@ if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
             logger.info(f"✅ Detectado Supabase conexão DIRETA: {db_host}")
             logger.info("ℹ️ Conexão direta requer IPv4 configurado em DATABASE_IPV4")
 
+    # Adicionar timeout de statement para prevenir queries lentas travarem o servidor
+    db_options['options'] = '-c statement_timeout=25000'  # 25 segundos (antes do timeout do gunicorn de 30s)
+
     DATABASES['default']['OPTIONS'] = db_options
     logger.info(f"✅ Configurações PostgreSQL aplicadas: {list(db_options.keys())}")
 
