@@ -51,6 +51,15 @@ class UserAdmin(BaseUserAdmin):
     list_display = ('username', 'email', 'first_name', 'last_name',
                     'is_staff', 'get_level', 'get_xp')
 
+    # Adicionar email no formulário de criação
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'email', 'password1', 'password2'),
+            'description': '<strong>💡 Dica:</strong> Para criar contas de editoras, use um email específico da editora e NÃO marque "Staff" ou "Superuser".'
+        }),
+    )
+
     def get_level(self, obj):
         """Exibe o nível do usuário."""
         if hasattr(obj, 'profile'):
