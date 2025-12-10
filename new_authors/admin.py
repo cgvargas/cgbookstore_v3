@@ -138,6 +138,7 @@ class EmergingAuthorAdmin(admin.ModelAdmin):
             author.status = 'approved'
             author.approved_at = timezone.now()
             author.is_active = True
+            author.is_verified = True  # Marca como verificado ao aprovar
             author.save()
             count += 1
 
@@ -150,7 +151,8 @@ class EmergingAuthorAdmin(admin.ModelAdmin):
         count = queryset.update(
             status='rejected',
             rejected_at=timezone.now(),
-            is_active=False
+            is_active=False,
+            is_verified=False
         )
         self.message_user(request, f'{count} autor(es) rejeitado(s).', messages.WARNING)
     reject_authors.short_description = '❌ Rejeitar autores selecionados'
@@ -163,7 +165,7 @@ class EmergingAuthorAdmin(admin.ModelAdmin):
 
     def suspend_authors(self, request, queryset):
         """Suspende autores"""
-        count = queryset.update(status='suspended', is_active=False)
+        count = queryset.update(status='suspended', is_active=False, is_verified=False)
         self.message_user(request, f'{count} autor(es) suspenso(s).', messages.ERROR)
     suspend_authors.short_description = '🚫 Suspender autores'
 
