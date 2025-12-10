@@ -436,6 +436,7 @@ class PublisherProfileAdmin(admin.ModelAdmin):
     list_display = [
         'company_name',
         'user',
+        'user_type_display',
         'email',
         'is_verified',
         'is_active',
@@ -448,7 +449,12 @@ class PublisherProfileAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Usuário', {
-            'fields': ('user',)
+            'fields': ('user',),
+            'description': '<strong>⚠️ ATENÇÃO:</strong> O usuário selecionado será o responsável por esta editora. '
+                          'Certifique-se de que:<br>'
+                          '• O usuário NÃO é um autor emergente (evite usar sua conta pessoal)<br>'
+                          '• O usuário NÃO é um superusuário/admin<br>'
+                          '• O usuário foi criado especificamente para esta editora'
         }),
         ('Informações da Editora', {
             'fields': ('company_name', 'description', 'logo')
@@ -468,6 +474,49 @@ class PublisherProfileAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    def user_type_display(self, obj):
+        """Exibe o tipo de usuário vinculado"""
+        user = obj.user
+        badges = []
+
+        if user.is_superuser:
+            badges.append('<span style="background-color: #e74c3c; color: white; padding: 2px 8px; border-radius: 3px; font-weight: bold;">⚠️ SUPERUSUÁRIO</span>')
+
+        if hasattr(user, 'emerging_author_profile'):
+            badges.append('<span style="background-color: #f39c12; color: white; padding: 2px 8px; border-radius: 3px; font-weight: bold;">⚠️ AUTOR</span>')
+
+        if user.is_staff:
+            badges.append('<span style="background-color: #3498db; color: white; padding: 2px 8px; border-radius: 3px;">STAFF</span>')
+
+        if not badges:
+            badges.append('<span style="background-color: #27ae60; color: white; padding: 2px 8px; border-radius: 3px;">✓ USUÁRIO COMUM</span>')
+
+        return format_html(' '.join(badges))
+    user_type_display.short_description = 'Tipo de Usuário'
+
+    def save_model(self, request, obj, form, change):
+        """Valida antes de salvar"""
+        user = obj.user
+
+        # Aviso se é superusuário
+        if user.is_superuser:
+            messages.warning(
+                request,
+                f'⚠️ ATENÇÃO: Você está vinculando a editora "{obj.company_name}" ao superusuário "{user.username}". '
+                'Isso pode causar confusão. Recomenda-se criar um usuário específico para cada editora.'
+            )
+
+        # Aviso se é autor emergente
+        if hasattr(user, 'emerging_author_profile'):
+            messages.warning(
+                request,
+                f'⚠️ ATENÇÃO: O usuário "{user.username}" já é um autor emergente. '
+                'Um usuário não deveria ser autor E editora ao mesmo tempo. '
+                'Recomenda-se criar um usuário separado para a editora.'
+            )
+
+        super().save_model(request, obj, form, change)
 
     actions = ['verify_publishers', 'unverify_publishers']
 
