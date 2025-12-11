@@ -78,6 +78,11 @@ class ArticleAdmin(admin.ModelAdmin):
     date_hierarchy = 'published_at'
     list_per_page = 25
 
+    class Media:
+        css = {
+            'all': ('css/ckeditor5_dark.css',)
+        }
+
     readonly_fields = ['views_count', 'created_at', 'updated_at', 'image_preview']
 
     fieldsets = (

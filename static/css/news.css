@@ -15,7 +15,7 @@
     font-weight: 700;
     text-align: center;
     margin: 0;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .journal-subtitle {
@@ -85,8 +85,15 @@
 }
 
 @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
-    50% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+    }
+
+    50% {
+        box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+    }
 }
 
 /* ===== DESTAQUE PRINCIPAL ===== */
@@ -95,7 +102,7 @@
     height: 500px;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .featured-main-card img {
@@ -109,7 +116,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, transparent 100%);
     padding: 2rem;
     color: white;
 }
@@ -168,13 +175,13 @@
     background: white;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
 
 .news-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .news-card img {
@@ -228,13 +235,13 @@
     background: white;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     transition: all 0.3s ease;
 }
 
 .interview-card:hover {
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .interview-card img {
@@ -267,6 +274,84 @@
     font-size: 0.9rem;
 }
 
+/* ===== NAVEGADOR DE DESTAQUES ===== */
+.highlights-nav {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 100px;
+}
+
+.highlights-nav h4 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #f39c12;
+    padding-bottom: 0.5rem;
+}
+
+.highlight-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #ecf0f1;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.highlight-item:last-child {
+    border-bottom: none;
+}
+
+.highlight-item:hover {
+    background: rgba(243, 156, 18, 0.1);
+    margin: 0 -0.5rem;
+    padding: 0.75rem 0.5rem;
+    border-radius: 8px;
+}
+
+.highlight-image {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.highlight-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.highlight-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.highlight-type {
+    font-size: 0.7rem;
+    color: #3498db;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.highlight-info h6 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0.25rem 0 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 /* ===== SIDEBAR ===== */
 .tip-of-week-card,
 .events-sidebar,
@@ -275,7 +360,7 @@
     background: white;
     padding: 1.5rem;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 1.5rem;
 }
 
@@ -399,7 +484,7 @@
     height: 250px;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .guide-card img {
@@ -413,7 +498,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, transparent 100%);
     padding: 1rem;
     color: white;
 }
@@ -522,13 +607,168 @@
     margin: 1.5rem 0;
 }
 
+/* ===== LAYOUT DE JORNAL - COLUNAS ===== */
+
+/* Primeira letra grande (Drop Cap) - estilo jornal */
+.article-content p:first-of-type::first-letter {
+    font-size: 4rem;
+    font-weight: 700;
+    float: left;
+    line-height: 1;
+    margin-right: 0.5rem;
+    margin-top: 0.1rem;
+    color: #e74c3c;
+    font-family: 'Georgia', 'Times New Roman', serif;
+}
+
+/* Classes para colunas no editor - usar via HTML no CKEditor */
+.newspaper-2col {
+    column-count: 2;
+    column-gap: 2rem;
+    column-rule: 1px solid #ecf0f1;
+}
+
+.newspaper-3col {
+    column-count: 3;
+    column-gap: 1.5rem;
+    column-rule: 1px solid #ecf0f1;
+}
+
+/* Destaque editorial - caixa de citação grande */
+.article-content blockquote {
+    font-size: 1.4rem;
+    font-style: italic;
+    color: #2c3e50;
+    border-left: 4px solid #e74c3c;
+    padding: 1rem 1.5rem;
+    margin: 2rem 0;
+    background: #f8f9fa;
+    position: relative;
+}
+
+.article-content blockquote::before {
+    content: '"';
+    font-size: 4rem;
+    color: #e74c3c;
+    position: absolute;
+    left: 0.5rem;
+    top: -0.5rem;
+    opacity: 0.3;
+    font-family: 'Georgia', serif;
+}
+
+/* Caixa de destaque (pullquote) */
+.pullquote {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    text-align: center;
+    padding: 2rem;
+    margin: 2rem -2rem;
+    border-top: 3px solid #e74c3c;
+    border-bottom: 3px solid #e74c3c;
+    background: linear-gradient(to right, transparent, rgba(231, 76, 60, 0.05), transparent);
+}
+
+/* Imagem flutuante à esquerda */
+.img-float-left {
+    float: left;
+    max-width: 40%;
+    margin: 0 1.5rem 1rem 0;
+    border-radius: 8px;
+}
+
+/* Imagem flutuante à direita */
+.img-float-right {
+    float: right;
+    max-width: 40%;
+    margin: 0 0 1rem 1.5rem;
+    border-radius: 8px;
+}
+
+/* Legenda de imagem estilo jornal */
+.img-caption {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: #7f8c8d;
+    text-align: center;
+    margin-top: 0.5rem;
+    border-bottom: 1px solid #ecf0f1;
+    padding-bottom: 0.5rem;
+}
+
+/* Linha divisória decorativa */
+.article-content hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #e74c3c, transparent);
+    margin: 2rem 0;
+}
+
+/* Caixa informativa (sidebar) */
+.info-box {
+    background: #f0f8ff;
+    border-left: 4px solid #3498db;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 0 8px 8px 0;
+}
+
+.info-box h4 {
+    color: #3498db;
+    margin-top: 0;
+    font-size: 1rem;
+}
+
+/* Caixa de alerta/importante */
+.alert-box {
+    background: #fff3cd;
+    border-left: 4px solid #f39c12;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 0 8px 8px 0;
+}
+
+/* Responsivo - colunas para mobile */
+@media (max-width: 768px) {
+
+    .newspaper-2col,
+    .newspaper-3col {
+        column-count: 1;
+    }
+
+    .img-float-left,
+    .img-float-right {
+        float: none;
+        max-width: 100%;
+        margin: 1rem 0;
+    }
+
+    .article-content p:first-of-type::first-letter {
+        font-size: 3rem;
+    }
+
+    .pullquote {
+        margin: 2rem 0;
+        padding: 1.5rem;
+        font-size: 1.2rem;
+    }
+}
+
 .event-info-box,
-.related-book-box {
+.related-book-box,
+.related-quiz-box {
     background: #f8f9fa;
     padding: 1.5rem;
     border-left: 4px solid #e74c3c;
-    margin: 2rem 0;
+    margin: 0;
     border-radius: 4px;
+}
+
+.related-quiz-box {
+    padding: 0;
+    border-left: none;
+    background: transparent;
 }
 
 .related-articles {
@@ -541,7 +781,7 @@
     background: white;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 1rem;
 }
 
@@ -607,7 +847,7 @@
 [data-theme="dark"] .interview-card,
 [data-theme="dark"] .tip-of-week-card,
 [data-theme="dark"] .events-sidebar,
-[data-theme="dark"] .quizzes-sidebar,
+[data-theme="dark"] .highlights-nav,
 [data-theme="dark"] .newsletter-sidebar {
     background: #2a2a2a;
     border: 1px solid #444;
@@ -615,22 +855,26 @@
 
 [data-theme="dark"] .tip-of-week-card h4,
 [data-theme="dark"] .events-sidebar h4,
-[data-theme="dark"] .quizzes-sidebar h4,
+[data-theme="dark"] .highlights-nav h4,
 [data-theme="dark"] .newsletter-sidebar h4 {
     color: #e0e0e0;
 }
 
-[data-theme="dark"] .event-info p,
-[data-theme="dark"] .quiz-item p {
+[data-theme="dark"] .event-info p {
     color: #999;
 }
 
-[data-theme="dark"] .event-item {
+[data-theme="dark"] .event-item,
+[data-theme="dark"] .highlight-item {
     border-bottom-color: #444;
 }
 
-[data-theme="dark"] .quiz-item {
-    border-bottom-color: #444;
+[data-theme="dark"] .highlight-info h6 {
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .highlight-type {
+    color: #5dcdeb;
 }
 
 [data-theme="dark"] .newsletter-sidebar input {
@@ -641,7 +885,7 @@
 
 [data-theme="dark"] .guide-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
 }
 
 [data-theme="dark"] .related-article-card {
@@ -701,4 +945,119 @@
 
 [data-theme="dark"] .form-check-label {
     color: #e0e0e0;
+}
+
+/* Dark theme - Layout de jornal */
+[data-theme="dark"] .article-content blockquote {
+    background: #2a2a2a;
+    color: #b0b0b0;
+    border-left-color: #e74c3c;
+}
+
+[data-theme="dark"] .pullquote {
+    color: #e0e0e0;
+    background: linear-gradient(to right, transparent, rgba(231, 76, 60, 0.1), transparent);
+}
+
+[data-theme="dark"] .info-box {
+    background: #1a2a3a;
+    color: #b0b0b0;
+}
+
+[data-theme="dark"] .alert-box {
+    background: #3a3020;
+    color: #e0d0a0;
+}
+
+[data-theme="dark"] .newspaper-2col,
+[data-theme="dark"] .newspaper-3col {
+    column-rule-color: #444;
+}
+
+[data-theme="dark"] .article-content hr {
+    background: linear-gradient(to right, transparent, #e74c3c, transparent);
+}
+
+/* ===== TEMA CLARO - Artigos ===== */
+[data-theme="light"] .article-detail,
+[data-theme="light"] .article-header,
+[data-theme="light"] .article-body {
+    background-color: #ffffff;
+    color: #333333;
+}
+
+[data-theme="light"] .article-title {
+    color: #1a1a1a;
+}
+
+[data-theme="light"] .article-subtitle {
+    color: #555555;
+}
+
+[data-theme="light"] .article-meta {
+    color: #666666;
+}
+
+[data-theme="light"] .article-content,
+[data-theme="light"] .article-content p,
+[data-theme="light"] .article-content li {
+    color: #333333;
+}
+
+[data-theme="light"] .article-content h2,
+[data-theme="light"] .article-content h3,
+[data-theme="light"] .article-content h4 {
+    color: #1a1a1a;
+}
+
+[data-theme="light"] .article-content blockquote {
+    background: #f8f9fa;
+    color: #555555;
+    border-left-color: #ff6b35;
+}
+
+[data-theme="light"] .breadcrumb {
+    background: transparent;
+}
+
+[data-theme="light"] .breadcrumb-item a {
+    color: #ff6b35;
+}
+
+[data-theme="light"] .breadcrumb-item.active {
+    color: #666666;
+}
+
+[data-theme="light"] .event-info-box,
+[data-theme="light"] .related-book-box,
+[data-theme="light"] .quiz-related-box {
+    background: #f8f9fa;
+    color: #333333;
+    border: 1px solid #dee2e6;
+}
+
+[data-theme="light"] .event-info-box h3,
+[data-theme="light"] .related-book-box h3,
+[data-theme="light"] .quiz-related-box h3 {
+    color: #1a1a1a;
+}
+
+[data-theme="light"] .article-type-badge {
+    background: #e9ecef;
+    color: #495057;
+}
+
+[data-theme="light"] .pullquote {
+    color: #333333;
+    background: linear-gradient(to right, transparent, rgba(255, 107, 53, 0.1), transparent);
+}
+
+[data-theme="light"] .info-box {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+[data-theme="light"] .alert-box {
+    background: #fff3e0;
+    color: #e65100;
 }

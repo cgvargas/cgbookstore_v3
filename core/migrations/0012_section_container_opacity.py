@@ -7,28 +7,45 @@ from django.db import migrations, models
 def add_container_opacity_if_not_exists(apps, schema_editor):
     """
     Adiciona o campo container_opacity apenas se ele não existir.
-    Isso resolve o problema quando a coluna já existe no banco de dados.
+    Compatível com PostgreSQL e SQLite.
     """
     from django.db import connection
 
     with connection.cursor() as cursor:
-        # Verificar se a coluna já existe
-        cursor.execute("""
-            SELECT column_name
-            FROM information_schema.columns
-            WHERE table_name='core_section' AND column_name='container_opacity';
-        """)
+        vendor = connection.vendor  # 'postgresql' ou 'sqlite'
 
-        if not cursor.fetchone():
-            # Coluna não existe, criar com ALTER TABLE
-            cursor.execute("""
-                ALTER TABLE core_section
-                ADD COLUMN container_opacity DOUBLE PRECISION DEFAULT 1.0 NOT NULL
-                CHECK (container_opacity >= 0.0 AND container_opacity <= 1.0);
-            """)
-            print("✅ Coluna container_opacity criada com sucesso")
+        if vendor == 'sqlite':
+            # SQLite: usa PRAGMA table_info
+            cursor.execute("PRAGMA table_info(core_section);")
+            columns = [row[1] for row in cursor.fetchall()]
+            column_exists = 'container_opacity' in columns
+
+            if not column_exists:
+                cursor.execute("""
+                    ALTER TABLE core_section
+                    ADD COLUMN container_opacity REAL DEFAULT 1.0 NOT NULL;
+                """)
+                print("[OK] Coluna container_opacity criada com sucesso (SQLite)")
+            else:
+                print("[INFO] Coluna container_opacity ja existe, pulando criacao")
+
         else:
-            print("ℹ️  Coluna container_opacity já existe, pulando criação")
+            # PostgreSQL: usa information_schema
+            cursor.execute("""
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name='core_section' AND column_name='container_opacity';
+            """)
+
+            if not cursor.fetchone():
+                cursor.execute("""
+                    ALTER TABLE core_section
+                    ADD COLUMN container_opacity DOUBLE PRECISION DEFAULT 1.0 NOT NULL
+                    CHECK (container_opacity >= 0.0 AND container_opacity <= 1.0);
+                """)
+                print("[OK] Coluna container_opacity criada com sucesso (PostgreSQL)")
+            else:
+                print("[INFO] Coluna container_opacity ja existe, pulando criacao")
 
 
 def reverse_add_container_opacity(apps, schema_editor):
@@ -36,7 +53,15 @@ def reverse_add_container_opacity(apps, schema_editor):
     from django.db import connection
 
     with connection.cursor() as cursor:
-        cursor.execute("ALTER TABLE core_section DROP COLUMN IF EXISTS container_opacity;")
+        if connection.vendor == 'sqlite':
+            # SQLite não suporta DROP COLUMN diretamente em versões antigas
+            # Mas versões mais novas (3.35+) suportam
+            try:
+                cursor.execute("ALTER TABLE core_section DROP COLUMN container_opacity;")
+            except Exception:
+                print("[WARN] SQLite nao suporta DROP COLUMN, ignorando")
+        else:
+            cursor.execute("ALTER TABLE core_section DROP COLUMN IF EXISTS container_opacity;")
 
 
 class Migration(migrations.Migration):

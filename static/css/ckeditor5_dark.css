@@ -1,0 +1,159 @@
+/* ========== TEMA ESCURO PARA CKEDITOR 5 NO ADMIN ========== */
+
+/* Container principal do editor */
+.ck.ck-editor {
+    --ck-color-base-background: #1e1e1e;
+    --ck-color-base-border: #444;
+    --ck-color-base-foreground: #2a2a2a;
+    --ck-color-base-text: #e0e0e0;
+    --ck-color-focus-border: #3498db;
+    --ck-color-shadow-drop: rgba(0, 0, 0, 0.5);
+    --ck-color-shadow-inner: rgba(0, 0, 0, 0.3);
+}
+
+/* Toolbar */
+.ck.ck-toolbar {
+    background: #2a2a2a !important;
+    border-color: #444 !important;
+}
+
+.ck.ck-toolbar .ck-toolbar__items {
+    background: #2a2a2a !important;
+}
+
+/* Botões da toolbar */
+.ck.ck-button {
+    color: #e0e0e0 !important;
+}
+
+.ck.ck-button:hover:not(.ck-disabled) {
+    background: #3a3a3a !important;
+}
+
+.ck.ck-button.ck-on {
+    background: #444 !important;
+    color: #fff !important;
+}
+
+/* Área de edição */
+.ck.ck-editor__main {
+    background: #1e1e1e !important;
+}
+
+.ck.ck-editor__editable {
+    background: #1e1e1e !important;
+    color: #e0e0e0 !important;
+    border-color: #444 !important;
+}
+
+.ck.ck-editor__editable:focus {
+    border-color: #3498db !important;
+}
+
+/* Texto placeholder */
+.ck.ck-editor__editable.ck-placeholder::before {
+    color: #666 !important;
+}
+
+/* Dropdown menus */
+.ck.ck-dropdown__panel {
+    background: #2a2a2a !important;
+    border-color: #444 !important;
+}
+
+.ck.ck-list {
+    background: #2a2a2a !important;
+}
+
+.ck.ck-list__item {
+    color: #e0e0e0 !important;
+}
+
+.ck.ck-list__item:hover:not(.ck-disabled) {
+    background: #3a3a3a !important;
+}
+
+/* Separadores */
+.ck.ck-toolbar__separator {
+    background: #444 !important;
+}
+
+/* Input fields em dialogs */
+.ck.ck-input {
+    background: #1e1e1e !important;
+    color: #e0e0e0 !important;
+    border-color: #444 !important;
+}
+
+.ck.ck-input:focus {
+    border-color: #3498db !important;
+}
+
+/* Labels */
+.ck.ck-label {
+    color: #b0b0b0 !important;
+}
+
+/* Balloon panels (tooltips, popups) */
+.ck.ck-balloon-panel {
+    background: #2a2a2a !important;
+    border-color: #444 !important;
+}
+
+/* Headings dropdown */
+.ck.ck-heading_heading1 {
+    color: #e0e0e0 !important;
+}
+
+.ck.ck-heading_heading2 {
+    color: #e0e0e0 !important;
+}
+
+.ck.ck-heading_heading3 {
+    color: #e0e0e0 !important;
+}
+
+/* Source editing mode */
+.ck.ck-source-editing-area textarea {
+    background: #1e1e1e !important;
+    color: #00ff00 !important;
+    font-family: 'Consolas', 'Monaco', monospace !important;
+}
+
+/* Blockquote dentro do editor */
+.ck-content blockquote {
+    border-left: 4px solid #e74c3c;
+    background: #2a2a2a;
+    color: #b0b0b0;
+}
+
+/* Links dentro do editor */
+.ck-content a {
+    color: #5dcdeb !important;
+}
+
+/* Tabelas */
+.ck-content table {
+    border-color: #444 !important;
+}
+
+.ck-content th {
+    background: #2a2a2a !important;
+    color: #e0e0e0 !important;
+}
+
+.ck-content td {
+    background: #1e1e1e !important;
+    color: #e0e0e0 !important;
+    border-color: #444 !important;
+}
+
+/* Widget selecionado */
+.ck.ck-widget.ck-widget_selected {
+    outline-color: #3498db !important;
+}
+
+/* Resize handler */
+.ck.ck-widget__resizer {
+    --ck-color-resizer: #3498db;
+}

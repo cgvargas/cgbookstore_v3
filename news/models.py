@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 from django.urls import reverse
-from ckeditor.fields import RichTextField
+from django_ckeditor_5.fields import CKEditor5Field
 
 User = get_user_model()
 
@@ -103,7 +103,7 @@ class Article(models.Model):
         verbose_name="Resumo",
         help_text="Texto curto para exibição em cards e listas (máx 500 caracteres)"
     )
-    content = RichTextField(verbose_name="Conteúdo Completo")
+    content = CKEditor5Field(verbose_name="Conteúdo Completo", config_name='extends')
 
     # Mídia
     featured_image = models.ImageField(

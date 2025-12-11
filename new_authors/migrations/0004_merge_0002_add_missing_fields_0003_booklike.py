@@ -7,8 +7,9 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('new_authors', '0002_add_missing_fields'),
-        ('new_authors', '0003_booklike'),
+        ('new_authors', '0002_chapter_author_notes_alter_authorbook_description_and_more'),
     ]
 
     operations = [
     ]
+

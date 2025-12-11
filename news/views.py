@@ -31,6 +31,12 @@ def news_home(request):
         priority__in=[3, 4]
     ).order_by('-published_at')[:3]
 
+    # Destaques para navegador lateral esquerdo (todos os artigos em destaque)
+    sidebar_highlights = Article.objects.filter(
+        is_published=True,
+        is_featured=True
+    ).order_by('-priority', '-published_at')[:8]
+
     # Últimas notícias
     latest_news = Article.objects.filter(
         is_published=True,
@@ -62,23 +68,38 @@ def news_home(request):
         content_type='tip'
     ).order_by('-published_at').first()
 
-    # Quizzes ativos
-    quizzes = Quiz.objects.filter(is_active=True).order_by('-created_at')[:3]
-
     # Categorias ativas
     categories = Category.objects.filter(is_active=True).order_by('order', 'name')
+
+    # Verificar se usuário está inscrito na newsletter
+    is_newsletter_subscribed = False
+    if request.user.is_authenticated:
+        # Verificar pelo e-mail do usuário logado
+        is_newsletter_subscribed = Newsletter.objects.filter(
+            email=request.user.email,
+            is_active=True
+        ).exists()
+    else:
+        # Verificar via sessão (para usuários anônimos que acabaram de se inscrever)
+        subscribed_email = request.session.get('newsletter_subscribed_email')
+        if subscribed_email:
+            is_newsletter_subscribed = Newsletter.objects.filter(
+                email=subscribed_email,
+                is_active=True
+            ).exists()
 
     context = {
         'breaking_news': breaking_news,
         'featured_main': featured_main,
         'featured_secondary': featured_secondary,
+        'sidebar_highlights': sidebar_highlights,
         'latest_news': latest_news,
         'interviews': interviews,
         'events': events,
         'guides': guides,
         'tip_of_week': tip_of_week,
-        'quizzes': quizzes,
         'categories': categories,
+        'is_newsletter_subscribed': is_newsletter_subscribed,
     }
 
     return render(request, 'news/home.html', context)
@@ -354,13 +375,19 @@ def subscribe_newsletter(request):
 
     if created:
         messages.success(request, 'Inscrição realizada com sucesso! Você receberá nossas novidades.')
+        # Salvar e-mail na sessão para ocultar o card de newsletter
+        request.session['newsletter_subscribed_email'] = email
     else:
         if not newsletter.is_active:
             newsletter.is_active = True
             newsletter.unsubscribed_at = None
             newsletter.save()
             messages.success(request, 'Sua inscrição foi reativada!')
+            # Salvar e-mail na sessão para ocultar o card de newsletter
+            request.session['newsletter_subscribed_email'] = email
         else:
             messages.info(request, 'Este e-mail já está inscrito em nossa newsletter.')
+            # Salvar na sessão mesmo que já esteja inscrito
+            request.session['newsletter_subscribed_email'] = email
 
     return redirect(request.META.get('HTTP_REFERER', 'news:home'))

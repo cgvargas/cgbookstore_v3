@@ -64,7 +64,7 @@ INSTALLED_APPS = [
 
     # Third-party Apps
     'rest_framework',
-    'ckeditor',  # Editor WYSIWYG para notícias
+    'django_ckeditor_5',  # Editor WYSIWYG CKEditor 5
     # 'django_extensions',  # HTTPS em desenvolvimento - COMENTADO TEMPORARIAMENTE
 ]
 
@@ -575,3 +575,47 @@ LOGGING = {
     },
 }
 
+# ==============================================================================
+# CKEDITOR 5 CONFIGURATION
+# ==============================================================================
+
+CKEDITOR_5_FILE_UPLOAD_PERMISSION = "authenticated"
+
+CKEDITOR_5_CONFIGS = {
+    'default': {
+        'toolbar': [
+            'heading', '|',
+            'bold', 'italic', 'underline', 'strikethrough', '|',
+            'link', 'bulletedList', 'numberedList', '|',
+            'blockQuote', 'insertTable', '|',
+            'imageUpload', 'mediaEmbed', '|',
+            'undo', 'redo'
+        ],
+        'language': 'pt-br',
+        'height': '400px',
+        'width': '100%',
+    },
+    'extends': {
+        'blockToolbar': [
+            'paragraph', 'heading1', 'heading2', 'heading3', '|',
+            'bulletedList', 'numberedList', '|',
+            'blockQuote',
+        ],
+        'toolbar': [
+            'heading', '|',
+            'outdent', 'indent', '|',
+            'bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', 'highlight', '|',
+            'link', 'imageUpload', 'mediaEmbed', 'insertTable', 'blockQuote', 'codeBlock', '|',
+            'bulletedList', 'numberedList', 'todoList', '|',
+            'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+            'alignment', '|',
+            'removeFormat', 'sourceEditing'
+        ],
+        'language': 'pt-br',
+        'height': '500px',
+        'width': '100%',
+        'mediaEmbed': {
+            'previewsInData': True,
+        },
+    },
+}

@@ -80,6 +80,7 @@ urlpatterns = [
     # ==========================================
     path('', HomeView.as_view(), name='home'),
     path('livros/', BookListView.as_view(), name='book_list'),
+    path('livros/<int:book_id>/', BookRedirectView.as_view(), name='book_detail_by_id'),
     path('livros/<slug:slug>/', BookDetailView.as_view(), name='book_detail'),
     path('autores/', AuthorListView.as_view(), name='author_list'),
     path('autores/<slug:slug>/', AuthorDetailView.as_view(), name='author_detail'),

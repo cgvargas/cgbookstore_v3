@@ -66,8 +66,28 @@
 
         <!-- GRID DE NOTÍCIAS -->
         <div class="row">
-            <!-- COLUNA ESQUERDA - Últimas Notícias -->
-            <div class="col-lg-8">
+            <!-- COLUNA ESQUERDA - Navegador de Destaques -->
+            <div class="col-lg-3">
+                {% if sidebar_highlights %}
+                <div class="highlights-nav">
+                    <h4>⭐ Destaques</h4>
+                    {% for article in sidebar_highlights %}
+                    <a href="{% url 'news:article_detail' article.slug %}" class="highlight-item">
+                        <div class="highlight-image">
+                            <img src="{{ article.featured_image.url }}" alt="{{ article.title }}">
+                        </div>
+                        <div class="highlight-info">
+                            <span class="highlight-type">{{ article.get_content_type_display }}</span>
+                            <h6>{{ article.title|truncatewords:8 }}</h6>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- COLUNA CENTRAL - Últimas Notícias -->
+            <div class="col-lg-6">
                 <h3 class="section-title">📰 Últimas Notícias</h3>
                 <div class="news-grid">
                     {% for article in latest_news %}
@@ -110,7 +130,7 @@
             </div>
 
             <!-- COLUNA DIREITA - Sidebar -->
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <!-- DICA DA SEMANA -->
                 {% if tip_of_week %}
                 <div class="tip-of-week-card">
@@ -144,23 +164,8 @@
                 </div>
                 {% endif %}
 
-                <!-- QUIZZES -->
-                {% if quizzes %}
-                <div class="quizzes-sidebar">
-                    <h4>🎯 Quizzes e Testes</h4>
-                    {% for quiz in quizzes %}
-                    <div class="quiz-item">
-                        <a href="{% url 'news:quiz_detail' quiz.slug %}">
-                            <h6>{{ quiz.title }}</h6>
-                            <p>{{ quiz.description|truncatewords:10 }}</p>
-                            <span class="quiz-cta">Fazer teste →</span>
-                        </a>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                <!-- NEWSLETTER -->
+                <!-- NEWSLETTER (só mostra se não inscrito) -->
+                {% if not is_newsletter_subscribed %}
                 <div class="newsletter-sidebar">
                     <h4>📧 Newsletter</h4>
                     <p>Receba as últimas notícias literárias no seu e-mail!</p>
@@ -170,6 +175,7 @@
                         <button type="submit" class="btn btn-primary">Inscrever</button>
                     </form>
                 </div>
+                {% endif %}
             </div>
         </div>
 
