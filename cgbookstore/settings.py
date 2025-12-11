@@ -409,19 +409,16 @@ ACCOUNT_LOGIN_METHODS = {'email', 'username'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 
 # Verificação de email: 'optional', 'mandatory', ou 'none'
-# 'mandatory' = exige verificação E bloqueia login (muito restritivo)
-# 'optional' = envia email de verificação mas permite login (RECOMENDADO)
+# 'mandatory' = exige verificação E bloqueia login até confirmar
+# 'optional' = envia email de verificação mas permite login
 # 'none' = não pede verificação
 #
-# Usando 'optional' porque:
-# - Envia email de verificação para novos usuários
-# - MAS não bloqueia o acesso (melhor UX)
-# - Usuários podem usar o sistema imediatamente
-# - Verificação fica como "incentivo" não como "obrigação"
-ACCOUNT_EMAIL_VERIFICATION = 'optional'
-
-# Email é obrigatório no cadastro
-ACCOUNT_EMAIL_REQUIRED = True
+# Usando 'mandatory' porque:
+# - Garante emails válidos para comunicação (Premium, recuperação de senha)
+# - Reduz criação de contas spam/bots
+# - Padrão de mercado para plataformas com pagamento
+# - E-mails de Premium só funcionam com emails confirmados
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 # Impedir que usuários logados acessem páginas de signup/login
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True

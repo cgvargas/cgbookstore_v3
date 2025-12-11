@@ -104,13 +104,14 @@ class Subscription(models.Model):
             return False
         return True
 
-    def activate(self, duration_days=30, is_free_campaign=False):
+    def activate(self, duration_days=30, is_free_campaign=False, send_email=True):
         """
         Ativa a assinatura por um período específico
 
         Args:
             duration_days (int): Duração em dias (padrão: 30)
             is_free_campaign (bool): Se é uma campanha gratuita (não cobra)
+            send_email (bool): Se deve enviar e-mail de boas-vindas (padrão: True)
         """
         self.status = 'ativa'
         self.start_date = timezone.now()
@@ -123,6 +124,23 @@ class Subscription(models.Model):
             self.next_billing_date = None  # Campanhas gratuitas não têm cobrança
 
         self.save()
+
+        # Enviar e-mail de boas-vindas Premium (apenas para pagamentos, não campanhas)
+        if send_email and not is_free_campaign:
+            try:
+                from finance.email_service import PremiumEmailService
+                price = f"{float(self.price):.2f}".replace('.', ',')
+                PremiumEmailService.send_welcome_email(
+                    user=self.user,
+                    expires_at=self.expiration_date,
+                    price=price
+                )
+            except Exception as e:
+                # Não falhar se o e-mail não for enviado
+                import logging
+                logging.getLogger(__name__).warning(
+                    f"Erro ao enviar e-mail Premium para {self.user.email}: {e}"
+                )
 
     def cancel(self):
         """Cancela a assinatura"""

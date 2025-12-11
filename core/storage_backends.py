@@ -84,6 +84,8 @@ class SupabaseMediaStorage(Storage):
                 'authors/photos/': self._supabase.AUTHOR_PHOTOS_BUCKET,
                 'events/': self._supabase.BOOK_COVERS_BUCKET,  # Usando mesmo bucket
                 'users/': self._supabase.USER_AVATARS_BUCKET,
+                'banners/': self._supabase.BOOK_COVERS_BUCKET,  # Banners da home
+                'videos/': self._supabase.BOOK_COVERS_BUCKET,   # Thumbnails de vídeos
             }
         else:
             # Fallback se Supabase não estiver configurado
@@ -92,6 +94,8 @@ class SupabaseMediaStorage(Storage):
                 'authors/photos/': 'author-photos',
                 'events/': 'book-covers',
                 'users/': 'user-avatars',
+                'banners/': 'book-covers',  # Banners da home
+                'videos/': 'book-covers',   # Thumbnails de vídeos
             }
 
     def _get_bucket_and_path(self, name):
@@ -115,7 +119,7 @@ class SupabaseMediaStorage(Storage):
                 return bucket, path
 
         # Default: usar bucket de book covers
-        logger.warning(f"Path '{name}' não mapeado, usando bucket padrão")
+        logger.debug(f"Path '{name}' não mapeado, usando bucket padrão")
         return self._supabase.BOOK_COVERS_BUCKET, name
 
     def _open(self, name, mode='rb'):

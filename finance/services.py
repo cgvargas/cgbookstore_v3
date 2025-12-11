@@ -281,6 +281,18 @@ class CampaignService:
                 except Exception as e:
                     logger.warning(f"Erro ao enviar notificação para {user.username}: {str(e)}")
 
+            # Enviar e-mail de boas-vindas Premium
+            try:
+                from .email_service import PremiumEmailService
+                PremiumEmailService.send_welcome_email(
+                    user=user,
+                    expires_at=expires_at,
+                    price="0,00 (Campanha)"
+                )
+                logger.info(f"E-mail Premium enviado para {user.email}")
+            except Exception as e:
+                logger.warning(f"Erro ao enviar e-mail Premium para {user.username}: {str(e)}")
+
             logger.info(f"Premium concedido: {user.username} via campanha {campaign.name}")
 
             return {
