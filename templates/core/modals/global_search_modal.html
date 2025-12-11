@@ -1,14 +1,8 @@
 {% load static %}
 <!-- Modal: Busca Global de Livros -->
-<div
-    class="modal fade"
-    id="globalSearchModal"
-    tabindex="-1"
-    aria-labelledby="globalSearchModalLabel"
-    aria-hidden="true"
+<div class="modal fade" id="globalSearchModal" tabindex="-1" aria-labelledby="globalSearchModalLabel" aria-hidden="true"
     data-default-cover="{% static 'images/no-cover-placeholder.svg' %}"
-    data-book-detail-url="{% url 'core:book_detail' 'BOOK_SLUG_PLACEHOLDER' %}"
->
+    data-book-detail-url="{% url 'core:book_detail' 'BOOK_SLUG_PLACEHOLDER' %}">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <!-- Header -->
@@ -26,13 +20,8 @@
                 <div class="search-section mb-4">
                     <div class="row g-2">
                         <div class="col-md-10">
-                            <input
-                                type="text"
-                                id="globalSearchInput"
-                                class="form-control form-control-lg"
-                                placeholder="Digite o título, autor ou ISBN do livro..."
-                                autocomplete="off"
-                            >
+                            <input type="text" id="globalSearchInput" class="form-control form-control-lg"
+                                placeholder="Digite o título, autor ou ISBN do livro..." autocomplete="off">
                         </div>
                         <div class="col-md-2">
                             <button id="btnGlobalSearch" class="btn btn-primary btn-lg w-100">
@@ -49,27 +38,15 @@
                 <!-- Abas de Navegação -->
                 <ul class="nav nav-tabs mb-3" id="globalSearchTabs" role="tablist" style="display: none;">
                     <li class="nav-item" role="presentation">
-                        <button
-                            class="nav-link active"
-                            id="global-local-tab"
-                            data-bs-toggle="tab"
-                            data-bs-target="#global-local-results"
-                            type="button"
-                            role="tab"
-                        >
+                        <button class="nav-link active" id="global-local-tab" data-bs-toggle="tab"
+                            data-bs-target="#global-local-results" type="button" role="tab">
                             <i class="fas fa-store"></i> Nossa Loja
                             <span class="badge bg-primary ms-2" id="globalLocalCount">0</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button
-                            class="nav-link"
-                            id="global-google-tab"
-                            data-bs-toggle="tab"
-                            data-bs-target="#global-google-results"
-                            type="button"
-                            role="tab"
-                        >
+                        <button class="nav-link" id="global-google-tab" data-bs-toggle="tab"
+                            data-bs-target="#global-google-results" type="button" role="tab">
                             <i class="fas fa-globe"></i> Google Books
                             <span class="badge bg-info ms-2" id="globalGoogleCount">0</span>
                         </button>
@@ -118,7 +95,8 @@
                 </div>
 
                 <!-- Mensagem de Feedback -->
-                <div id="globalFeedbackMessage" class="alert alert-dismissible fade" role="alert" style="display: none;">
+                <div id="globalFeedbackMessage" class="alert alert-dismissible fade" role="alert"
+                    style="display: none;">
                     <span id="globalFeedbackText"></span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
@@ -202,107 +180,170 @@
 </template>
 
 <style>
-/* ==========================================
+    /* ==========================================
    ESTILOS PARA O MODAL DE BUSCA GLOBAL
 ========================================== */
 
-#globalSearchModal .modal-dialog {
-    max-width: 1200px;
-}
+    #globalSearchModal .modal-dialog {
+        max-width: 1200px;
+    }
 
-/* ==========================================
+    /* ==========================================
    CARDS DE RESULTADOS
 ========================================== */
 
-.book-result-card {
-    padding: 1.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    background: var(--card-bg);
-    margin-bottom: 1rem;
-    transition: all 0.3s ease;
-}
+    .book-result-card {
+        padding: 1.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        background: var(--card-bg);
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
 
-.book-result-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-}
+    .book-result-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
 
-.book-cover-img {
-    width: 100%;
-    height: auto;
-    max-height: 180px;
-    object-fit: cover;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-sm);
-}
+    .book-cover-img {
+        width: 100%;
+        height: auto;
+        max-height: 180px;
+        object-fit: cover;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+    }
 
-.book-title {
-    color: var(--text-primary);
-    font-weight: 600;
-    line-height: 1.3;
-}
+    .book-title {
+        color: var(--text-primary);
+        font-weight: 600;
+        line-height: 1.3;
+    }
 
-.book-author,
-.book-category,
-.book-publisher {
-    font-size: 0.9rem;
-}
+    .book-author,
+    .book-category,
+    .book-publisher {
+        font-size: 0.9rem;
+    }
 
-.book-actions {
-    text-align: center;
-}
+    .book-actions {
+        text-align: center;
+    }
 
-/* ==========================================
+    /* ==========================================
    CONTAINER DE RESULTADOS
 ========================================== */
 
-.results-container {
-    max-height: 500px;
-    overflow-y: auto;
-}
+    .results-container {
+        max-height: 500px;
+        overflow-y: auto;
+    }
 
-.results-container::-webkit-scrollbar {
-    width: 8px;
-}
+    .results-container::-webkit-scrollbar {
+        width: 8px;
+    }
 
-.results-container::-webkit-scrollbar-track {
-    background: var(--sidebar-bg);
-    border-radius: 4px;
-}
+    .results-container::-webkit-scrollbar-track {
+        background: var(--sidebar-bg);
+        border-radius: 4px;
+    }
 
-.results-container::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 4px;
-}
+    .results-container::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 4px;
+    }
 
-.results-container::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
-}
+    .results-container::-webkit-scrollbar-thumb:hover {
+        background: var(--text-secondary);
+    }
 
-/* ==========================================
+    /* ==========================================
    LOADING STATES
 ========================================== */
 
-.spinner-border {
-    width: 3rem;
-    height: 3rem;
-}
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
 
-/* ==========================================
+    /* ==========================================
    BADGES
 ========================================== */
 
-.badge {
-    font-weight: 500;
-    padding: 0.4em 0.8em;
-}
+    .badge {
+        font-weight: 500;
+        padding: 0.4em 0.8em;
+    }
 
-/* ==========================================
+    /* ==========================================
    BOTÕES - TAMANHO BASE
 ========================================== */
 
-.btn-view-details {
-    min-width: 150px;
-}
+    .btn-view-details {
+        min-width: 150px;
+    }
+
+    /* ==========================================
+   TEMA ESCURO - Modal de Busca
+========================================== */
+
+    [data-theme="dark"] #globalSearchModal .modal-content {
+        background: #1a1d1f;
+        border-color: #2d3135;
+    }
+
+    [data-theme="dark"] #globalSearchModal .modal-header {
+        background: #1a1d1f;
+        border-bottom-color: #2d3135;
+    }
+
+    [data-theme="dark"] #globalSearchModal .modal-header .modal-title {
+        color: #e0e0e0;
+    }
+
+    [data-theme="dark"] #globalSearchModal .modal-body {
+        background: #1a1d1f;
+    }
+
+    [data-theme="dark"] #globalSearchModal .modal-footer {
+        background: #1a1d1f;
+        border-top-color: #2d3135;
+    }
+
+    [data-theme="dark"] #globalSearchInput {
+        background: #252829;
+        color: #e0e0e0;
+        border-color: #2d3135;
+    }
+
+    [data-theme="dark"] #globalSearchInput::placeholder {
+        color: #888;
+    }
+
+    [data-theme="dark"] #globalSearchInput:focus {
+        background: #1a1d1f;
+        border-color: #ff6b35;
+        color: #e0e0e0;
+        box-shadow: 0 0 0 0.25rem rgba(255, 107, 53, 0.25);
+    }
+
+    [data-theme="dark"] .book-result-card {
+        background: #252829;
+        border-color: #2d3135;
+    }
+
+    [data-theme="dark"] .book-title {
+        color: #e0e0e0;
+    }
+
+    [data-theme="dark"] .nav-tabs .nav-link {
+        color: #b0b0b0;
+    }
+
+    [data-theme="dark"] .nav-tabs .nav-link.active {
+        background: #1a1d1f;
+        border-color: #2d3135;
+        color: #ff6b35;
+    }
 </style>

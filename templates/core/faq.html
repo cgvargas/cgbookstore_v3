@@ -50,7 +50,7 @@
         font-size: 3rem;
         font-weight: 700;
         margin-bottom: 1rem;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     }
 
     .faq-hero p {
@@ -72,11 +72,11 @@
         padding: 1rem 1.5rem;
         border: none;
         font-size: 1rem;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
 
     .faq-search-input:focus {
-        box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
         outline: none;
     }
 
@@ -97,7 +97,7 @@
         padding: 2rem;
         text-align: center;
         transition: all 0.3s ease;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         border: 2px solid transparent;
         cursor: pointer;
         text-decoration: none;
@@ -107,7 +107,7 @@
 
     .faq-category-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
         border-color: var(--primary-color);
     }
 
@@ -158,7 +158,7 @@
         background: white;
         border-radius: 15px;
         overflow: hidden;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     }
 
     .faq-item {
@@ -268,12 +268,12 @@
         border-radius: 50px;
         text-decoration: none;
         transition: all 0.3s ease;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
 
     .faq-cta-button:hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         color: var(--primary-color);
     }
 
@@ -306,6 +306,90 @@
             font-size: 1.5rem;
         }
     }
+
+    /* ===== TEMA ESCURO - FAQ ===== */
+    [data-theme="dark"] .faq-category-card {
+        background: #1a1d1f;
+        border-color: #2d3135;
+    }
+
+    [data-theme="dark"] .faq-category-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-theme="dark"] .faq-category-title {
+        color: #e0e0e0;
+    }
+
+    [data-theme="dark"] .faq-category-count {
+        color: #888;
+    }
+
+    [data-theme="dark"] .faq-section-title {
+        color: #e0e0e0;
+    }
+
+    [data-theme="dark"] .faq-section-header {
+        border-bottom-color: #2d3135;
+    }
+
+    [data-theme="dark"] .faq-accordion {
+        background: #1a1d1f;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-theme="dark"] .faq-item {
+        border-bottom-color: #2d3135;
+    }
+
+    [data-theme="dark"] .faq-question {
+        background: #1a1d1f;
+        color: #e0e0e0;
+    }
+
+    [data-theme="dark"] .faq-question:hover {
+        background: #252829;
+        color: var(--primary-color);
+    }
+
+    [data-theme="dark"] .faq-question.active {
+        background: #252829;
+        color: var(--primary-color);
+    }
+
+    [data-theme="dark"] .faq-answer {
+        background: #1a1d1f;
+    }
+
+    [data-theme="dark"] .faq-answer-content {
+        color: #b0b0b0;
+    }
+
+    [data-theme="dark"] .faq-answer-content code {
+        background: #252829;
+        color: var(--primary-color);
+    }
+
+    [data-theme="dark"] .faq-search-input {
+        background: #1a1d1f;
+        color: #e0e0e0;
+        border: 1px solid #2d3135;
+    }
+
+    [data-theme="dark"] .faq-search-input::placeholder {
+        color: #888;
+    }
+
+    [data-theme="dark"] .faq-search-input:focus {
+        background: #252829;
+        border-color: var(--primary-color);
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-theme="dark"] .no-results {
+        color: #888;
+    }
 </style>
 {% endblock %}
 
@@ -318,10 +402,8 @@
             <p>Encontre respostas rápidas para as perguntas mais comuns sobre a CG.BookStore</p>
 
             <div class="faq-search-box">
-                <input type="text"
-                       class="form-control faq-search-input"
-                       id="faqSearch"
-                       placeholder="Busque sua dúvida aqui...">
+                <input type="text" class="form-control faq-search-input" id="faqSearch"
+                    placeholder="Busque sua dúvida aqui...">
             </div>
         </div>
     </div>
@@ -429,7 +511,8 @@
                                 <li>Clique no link de recuperação</li>
                                 <li>Crie uma nova senha</li>
                             </ul>
-                            <p><strong>Dica:</strong> Verifique também sua pasta de spam se não receber o email em alguns minutos.</p>
+                            <p><strong>Dica:</strong> Verifique também sua pasta de spam se não receber o email em
+                                alguns minutos.</p>
                         </div>
                     </div>
                 </div>
@@ -466,7 +549,8 @@
                                 <li>Clique em "Excluir minha conta"</li>
                                 <li>Confirme a ação</li>
                             </ul>
-                            <p><strong>Atenção:</strong> Esta ação é irreversível e todos os seus dados serão permanentemente removidos.</p>
+                            <p><strong>Atenção:</strong> Esta ação é irreversível e todos os seus dados serão
+                                permanentemente removidos.</p>
                         </div>
                     </div>
                 </div>
@@ -562,7 +646,8 @@
                     </button>
                     <div class="faq-answer">
                         <div class="faq-answer-content">
-                            <p>Atualmente, a CG.BookStore funciona como uma plataforma de <strong>descoberta e organização</strong> de livros.</p>
+                            <p>Atualmente, a CG.BookStore funciona como uma plataforma de <strong>descoberta e
+                                    organização</strong> de livros.</p>
                             <ul>
                                 <li>✅ Explore nosso catálogo completo</li>
                                 <li>✅ Organize sua biblioteca pessoal</li>
@@ -695,7 +780,8 @@
                                 <li>Selecione "Cancelar"</li>
                                 <li>Confirme o cancelamento</li>
                             </ul>
-                            <p><strong>Importante:</strong> Você continuará com acesso Premium até o fim do período pago.</p>
+                            <p><strong>Importante:</strong> Você continuará com acesso Premium até o fim do período
+                                pago.</p>
                         </div>
                     </div>
                 </div>
@@ -781,7 +867,8 @@
                                 <li>📚 Sugere séries e sagas</li>
                                 <li>🎯 Entende linguagem natural</li>
                             </ul>
-                            <p><strong>Exemplo:</strong> "Me recomende livros de fantasia parecidos com Harry Potter"</p>
+                            <p><strong>Exemplo:</strong> "Me recomende livros de fantasia parecidos com Harry Potter"
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -818,7 +905,8 @@
                                 <li>✅ Recomendações personalizadas</li>
                                 <li>✅ Histórico salvo</li>
                             </ul>
-                            <p>👑 <strong>Premium:</strong> Recebe respostas priorizadas e sugestões ainda mais precisas.</p>
+                            <p>👑 <strong>Premium:</strong> Recebe respostas priorizadas e sugestões ainda mais
+                                precisas.</p>
                         </div>
                     </div>
                 </div>
@@ -1061,90 +1149,90 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // FAQ Accordion
-    const faqQuestions = document.querySelectorAll('.faq-question');
+    document.addEventListener('DOMContentLoaded', function () {
+        // FAQ Accordion
+        const faqQuestions = document.querySelectorAll('.faq-question');
 
-    faqQuestions.forEach(question => {
-        question.addEventListener('click', () => {
-            const answer = question.nextElementSibling;
-            const isActive = question.classList.contains('active');
+        faqQuestions.forEach(question => {
+            question.addEventListener('click', () => {
+                const answer = question.nextElementSibling;
+                const isActive = question.classList.contains('active');
 
-            // Close all other answers
-            document.querySelectorAll('.faq-question').forEach(q => {
-                q.classList.remove('active');
-                q.nextElementSibling.classList.remove('active');
+                // Close all other answers
+                document.querySelectorAll('.faq-question').forEach(q => {
+                    q.classList.remove('active');
+                    q.nextElementSibling.classList.remove('active');
+                });
+
+                // Toggle current answer
+                if (!isActive) {
+                    question.classList.add('active');
+                    answer.classList.add('active');
+                }
+            });
+        });
+
+        // Search functionality
+        const searchInput = document.getElementById('faqSearch');
+        const faqItems = document.querySelectorAll('.faq-item');
+        const faqSections = document.querySelectorAll('.faq-section');
+        const noResults = document.getElementById('noResults');
+
+        searchInput.addEventListener('input', function () {
+            const searchTerm = this.value.toLowerCase().trim();
+            let hasResults = false;
+
+            if (searchTerm === '') {
+                // Show all items
+                faqItems.forEach(item => item.style.display = 'block');
+                faqSections.forEach(section => section.style.display = 'block');
+                noResults.style.display = 'none';
+                return;
+            }
+
+            // Search in questions and answers
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question span').textContent.toLowerCase();
+                const answer = item.querySelector('.faq-answer-content').textContent.toLowerCase();
+
+                if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    hasResults = true;
+                } else {
+                    item.style.display = 'none';
+                }
             });
 
-            // Toggle current answer
-            if (!isActive) {
-                question.classList.add('active');
-                answer.classList.add('active');
-            }
-        });
-    });
+            // Hide empty sections
+            faqSections.forEach(section => {
+                const visibleItems = section.querySelectorAll('.faq-item[style="display: block;"]');
+                section.style.display = visibleItems.length > 0 ? 'block' : 'none';
+            });
 
-    // Search functionality
-    const searchInput = document.getElementById('faqSearch');
-    const faqItems = document.querySelectorAll('.faq-item');
-    const faqSections = document.querySelectorAll('.faq-section');
-    const noResults = document.getElementById('noResults');
-
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase().trim();
-        let hasResults = false;
-
-        if (searchTerm === '') {
-            // Show all items
-            faqItems.forEach(item => item.style.display = 'block');
-            faqSections.forEach(section => section.style.display = 'block');
-            noResults.style.display = 'none';
-            return;
-        }
-
-        // Search in questions and answers
-        faqItems.forEach(item => {
-            const question = item.querySelector('.faq-question span').textContent.toLowerCase();
-            const answer = item.querySelector('.faq-answer-content').textContent.toLowerCase();
-
-            if (question.includes(searchTerm) || answer.includes(searchTerm)) {
-                item.style.display = 'block';
-                hasResults = true;
-            } else {
-                item.style.display = 'none';
-            }
+            // Show/hide no results message
+            noResults.style.display = hasResults ? 'none' : 'block';
         });
 
-        // Hide empty sections
-        faqSections.forEach(section => {
-            const visibleItems = section.querySelectorAll('.faq-item[style="display: block;"]');
-            section.style.display = visibleItems.length > 0 ? 'block' : 'none';
-        });
+        // Smooth scroll to sections
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId !== '#') {
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        const offset = 80; // Account for fixed navbar
+                        const elementPosition = targetElement.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - offset;
 
-        // Show/hide no results message
-        noResults.style.display = hasResults ? 'none' : 'block';
-    });
-
-    // Smooth scroll to sections
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href');
-            if (targetId !== '#') {
-                const targetElement = document.querySelector(targetId);
-                if (targetElement) {
-                    const offset = 80; // Account for fixed navbar
-                    const elementPosition = targetElement.getBoundingClientRect().top;
-                    const offsetPosition = elementPosition + window.pageYOffset - offset;
-
-                    window.scrollTo({
-                        top: offsetPosition,
-                        behavior: 'smooth'
-                    });
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
                 }
-            }
+            });
         });
     });
-});
 </script>
 {% endblock %}
