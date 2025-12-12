@@ -268,6 +268,10 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+# Token secreto para endpoints de cron externos (cron-job.org)
+# Configure no Render: CRON_SECRET_TOKEN=seu_token_aleatorio_aqui
+CRON_SECRET_TOKEN = config('CRON_SECRET_TOKEN', default=None)
+
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'

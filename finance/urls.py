@@ -14,4 +14,6 @@ urlpatterns = [
     path('subscription/failure/', views.subscription_failure, name='subscription_failure'),
     path('subscription/pending/', views.subscription_pending, name='subscription_pending'),
     path('webhook/mercadopago/', views.mercadopago_webhook, name='mercadopago_webhook'),
+    # Endpoint para cron externo (cron-job.org)
+    path('cron/check-subscriptions/', views.cron_check_subscriptions, name='cron_check_subscriptions'),
 ]
