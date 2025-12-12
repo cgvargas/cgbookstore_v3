@@ -30,7 +30,7 @@ SEUS BENEFÍCIOS PREMIUM:
 
 ═══════════════════════════════════════════════════════
 
-Acesse sua conta: {{ site_url }}/dashboard/
+Acesse sua conta: {{ site_url }}/biblioteca/
 
 Se tiver qualquer dúvida sobre sua assinatura, responda este email.
 

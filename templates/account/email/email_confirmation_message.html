@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,31 +14,37 @@
             margin: 0;
             padding: 0;
         }
+
         .container {
             max-width: 600px;
             margin: 20px auto;
             background-color: #ffffff;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #ffffff;
             padding: 30px 20px;
             text-align: center;
         }
+
         .header h1 {
             margin: 0;
             font-size: 28px;
         }
+
         .content {
             padding: 30px 20px;
         }
+
         .content h2 {
             color: #667eea;
             margin-top: 0;
         }
+
         .button {
             display: inline-block;
             padding: 15px 30px;
@@ -49,9 +56,11 @@
             margin: 20px 0;
             text-align: center;
         }
+
         .button:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
+
         .footer {
             background-color: #f8f9fa;
             padding: 20px;
@@ -60,6 +69,7 @@
             color: #6c757d;
             border-top: 1px solid #dee2e6;
         }
+
         .warning {
             background-color: #fff3cd;
             border-left: 4px solid #ffc107;
@@ -67,6 +77,7 @@
             margin: 20px 0;
             border-radius: 4px;
         }
+
         .info-box {
             background-color: #e7f3ff;
             border-left: 4px solid #2196F3;
@@ -76,6 +87,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -88,10 +100,12 @@
 
             <p>Obrigado por se cadastrar na <strong>CGBookStore</strong>!</p>
 
-            <p>Estamos muito felizes em tê-lo(a) conosco. Para completar seu cadastro e começar a explorar nossa incrível biblioteca de livros, você precisa confirmar seu endereço de email.</p>
+            <p>Estamos muito felizes em tê-lo(a) conosco. Para completar seu cadastro e começar a explorar nossa
+                incrível biblioteca de livros, você precisa confirmar seu endereço de email.</p>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{{ activate_url }}" class="button">
+                <a href="{{ activate_url }}"
+                    style="display: inline-block; padding: 15px 30px; background-color: #667eea; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
                     ✅ Confirmar meu Email
                 </a>
             </div>
@@ -106,13 +120,15 @@
             </div>
 
             <div class="warning">
-                <strong>⚠️ Atenção:</strong> Se você não se cadastrou na CGBookStore, pode ignorar este email com segurança.
+                <strong>⚠️ Atenção:</strong> Se você não se cadastrou na CGBookStore, pode ignorar este email com
+                segurança.
             </div>
 
             <p style="margin-top: 30px; color: #6c757d; font-size: 14px;">
                 Se o botão acima não funcionar, copie e cole o seguinte link no seu navegador:
             </p>
-            <p style="word-break: break-all; background-color: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 12px;">
+            <p
+                style="word-break: break-all; background-color: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 12px;">
                 {{ activate_url }}
             </p>
         </div>
@@ -126,4 +142,5 @@
         </div>
     </div>
 </body>
+
 </html>
