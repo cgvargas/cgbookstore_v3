@@ -258,6 +258,16 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutos
 CELERY_RESULT_EXPIRES = 3600  # 1 hora
 
+# Tarefas agendadas (Celery Beat)
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    'check-expiring-subscriptions-daily': {
+        'task': 'finance.check_expiring_subscriptions',
+        'schedule': crontab(hour=8, minute=0),  # 8h da manhã
+        'options': {'expires': 60 * 60},  # Expira após 1h se não executar
+    },
+}
+
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
