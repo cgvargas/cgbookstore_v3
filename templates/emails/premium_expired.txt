@@ -1,0 +1,31 @@
+💔 Seu Premium expirou... Mas ainda dá tempo de voltar!
+
+Olá {{ username }},
+
+Seu acesso Premium à CGBookStore expirou em {{ expired_at }}. Sentimos muito sua falta na nossa comunidade de leitores Premium!
+
+═══════════════════════════════════════════════════════
+
+📚 ENQUANTO ISSO, VOCÊ ESTÁ PERDENDO:
+
+🤖 Conversas ilimitadas com nosso Chatbot Literário
+🎨 Temas e backgrounds exclusivos para sua biblioteca
+📊 Estatísticas avançadas do seu progresso de leitura
+⭐ Seu Badge Premium que te destaca na comunidade
+
+═══════════════════════════════════════════════════════
+
+🚀 VOLTE A SER PREMIUM!
+
+Apenas R$ 9,90/mês para ter tudo isso de volta!
+
+Acesse: {{ site_url }}/finance/subscription/checkout/
+
+═══════════════════════════════════════════════════════
+
+📖 SEUS DADOS CONTINUAM SEGUROS!
+Sua biblioteca, progresso de leitura e todas as suas informações estão esperando por você. Basta voltar a ser Premium para continuar de onde parou!
+
+---
+Equipe CGBookStore
+Estamos aqui torcendo pelo seu retorno! 💜

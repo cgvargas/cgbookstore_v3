@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentimos sua falta! - CGBookStore</title>
+</head>
+
+<body
+    style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 0;">
+    <div
+        style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+        <!-- Header emocional -->
+        <div
+            style="background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); color: #fff; padding: 30px 20px; text-align: center;">
+            <h1 style="margin: 0; font-size: 28px;">💔 Seu Premium expirou...</h1>
+            <p style="margin: 10px 0 0 0; font-size: 16px;">Mas ainda dá tempo de voltar!</p>
+        </div>
+
+        <div style="padding: 30px 20px;">
+            <p>Olá <strong>{{ username }}</strong>,</p>
+
+            <p>Seu acesso Premium à CGBookStore expirou em {{ expired_at }}. Sentimos muito sua falta na nossa
+                comunidade de leitores Premium!</p>
+
+            <!-- O que o usuário está perdendo -->
+            <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                <h3 style="margin-top: 0; color: #6c5ce7;">📚 Enquanto isso, você está perdendo:</h3>
+
+                <div style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                    <span style="font-size: 20px; margin-right: 10px;">🤖</span>
+                    <span><strong>Conversas ilimitadas</strong> com nosso Chatbot Literário</span>
+                </div>
+
+                <div style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                    <span style="font-size: 20px; margin-right: 10px;">🎨</span>
+                    <span><strong>Temas e backgrounds</strong> exclusivos para sua biblioteca</span>
+                </div>
+
+                <div style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                    <span style="font-size: 20px; margin-right: 10px;">📊</span>
+                    <span><strong>Estatísticas avançadas</strong> do seu progresso de leitura</span>
+                </div>
+
+                <div style="padding: 10px 0;">
+                    <span style="font-size: 20px; margin-right: 10px;">⭐</span>
+                    <span>Seu <strong>Badge Premium</strong> que te destaca na comunidade</span>
+                </div>
+            </div>
+
+            <!-- CTA principal -->
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ site_url }}/finance/subscription/checkout/"
+                    style="display: inline-block; padding: 18px 45px; background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 18px;">
+                    🚀 Voltar a Ser Premium
+                </a>
+            </div>
+
+            <p style="text-align: center; color: #6c757d; font-size: 16px;">
+                Apenas <strong>R$ 9,90/mês</strong> para ter tudo isso de volta!
+            </p>
+
+            <!-- Mensagem motivacional -->
+            <div
+                style="background-color: #e8f5e9; border-left: 4px solid #4caf50; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                <p style="margin: 0; color: #2e7d32;">
+                    📖 <strong>Seus dados continuam seguros!</strong><br>
+                    Sua biblioteca, progresso de leitura e todas as suas informações estão esperando por você. Basta
+                    voltar a ser Premium para continuar de onde parou!
+                </p>
+            </div>
+        </div>
+
+        <div
+            style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d; border-top: 1px solid #dee2e6;">
+            <p><strong>Equipe CGBookStore</strong></p>
+            <p>Estamos aqui torcendo pelo seu retorno! 💜</p>
+            <p style="margin-top: 10px;">© {{ current_year }} CGBookStore. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -86,38 +86,25 @@ class PremiumEmailService:
             bool: True se enviado com sucesso, False caso contrário
         """
         try:
-            # Determinar urgência
+            # Determinar urgência e subject
             if days_left <= 1:
                 subject = '[CGBookStore] ⚠️ Seu Premium expira AMANHÃ!'
-                urgency = 'critical'
             elif days_left <= 3:
                 subject = f'[CGBookStore] ⏰ Seu Premium expira em {days_left} dias'
-                urgency = 'high'
             else:
                 subject = f'[CGBookStore] ℹ️ Seu Premium expira em {days_left} dias'
-                urgency = 'normal'
             
             context = {
                 'username': user.get_full_name() or user.username,
                 'days_left': days_left,
                 'expires_at': expires_at.strftime('%d/%m/%Y às %H:%M'),
-                'urgency': urgency,
                 'site_url': settings.SITE_URL,
                 'current_year': timezone.now().year,
             }
             
-            # TODO: Criar templates premium_expiring.html e .txt
-            # Por enquanto, usar e-mail simples
-            text_body = f"""
-Olá {context['username']},
-
-Seu Premium expira em {days_left} dia(s), no dia {context['expires_at']}.
-
-Para continuar aproveitando todos os benefícios exclusivos, renove sua assinatura:
-{settings.SITE_URL}/finance/subscription/checkout/
-
-Equipe CGBookStore
-"""
+            # Renderizar templates
+            html_body = render_to_string('emails/premium_expiring.html', context)
+            text_body = render_to_string('emails/premium_expiring.txt', context)
             
             msg = EmailMultiAlternatives(
                 subject=subject,
@@ -125,6 +112,7 @@ Equipe CGBookStore
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 to=[user.email]
             )
+            msg.attach_alternative(html_body, "text/html")
             msg.send()
             
             logger.info(f"E-mail de lembrete Premium enviado para {user.email} ({days_left} dias)")
@@ -191,6 +179,48 @@ Equipe CGBookStore
             
         except Exception as e:
             logger.error(f"Erro ao enviar confirmação de pagamento para {user.email}: {e}")
+            return False
+
+    @staticmethod
+    def send_winback_email(user, expired_at):
+        """
+        Envia email de win-back para usuários que deixaram o Premium expirar.
+        
+        Args:
+            user: Instância do modelo User
+            expired_at: Data em que o Premium expirou (datetime)
+            
+        Returns:
+            bool: True se enviado com sucesso, False caso contrário
+        """
+        try:
+            subject = '[CGBookStore] 💔 Sentimos sua falta... Volte a ser Premium!'
+            
+            context = {
+                'username': user.get_full_name() or user.username,
+                'expired_at': expired_at.strftime('%d/%m/%Y'),
+                'site_url': settings.SITE_URL,
+                'current_year': timezone.now().year,
+            }
+            
+            # Renderizar templates
+            html_body = render_to_string('emails/premium_expired.html', context)
+            text_body = render_to_string('emails/premium_expired.txt', context)
+            
+            msg = EmailMultiAlternatives(
+                subject=subject,
+                body=text_body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user.email]
+            )
+            msg.attach_alternative(html_body, "text/html")
+            msg.send()
+            
+            logger.info(f"E-mail de win-back enviado para {user.email}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Erro ao enviar e-mail de win-back para {user.email}: {e}")
             return False
 
 
