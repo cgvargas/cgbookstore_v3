@@ -209,13 +209,10 @@ CACHES = {
     }
 }
 
-# Cache de sessões (reduz carga no banco)
-# TEMPORARIAMENTE DESABILITADO - Usar sessões em banco até resolver Redis
-# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-# SESSION_CACHE_ALIAS = 'default'
-
-# Sessões em banco de dados (padrão Django)
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+# Cache de sessões em Redis (MUITO mais rápido que banco)
+# Reduz latência em ~20-50ms por request
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
 
 
 # Password validation

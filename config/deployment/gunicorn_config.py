@@ -1,11 +1,11 @@
 """
-Configuração ULTRA-OTIMIZADA do Gunicorn para Render FREE (512MB RAM)
+Configuração OTIMIZADA do Gunicorn para Render STARTER (1GB RAM)
 
-Esta configuração maximiza performance com recursos mínimos:
-- 1 worker = economia de ~120MB RAM
-- 8 threads = alta concorrência com baixo consumo
-- Preload app = compartilha código entre threads
-- Timeouts reduzidos = mais responsivo
+Esta configuração maximiza performance com recursos do Starter:
+- 2 workers = melhor concorrência
+- 4 threads = balanceado para Django
+- Preload app = compartilha código entre workers
+- Timeouts ajustados = responsivo
 """
 
 import multiprocessing
@@ -14,17 +14,16 @@ import os
 # Bind
 bind = f"0.0.0.0:{os.getenv('PORT', '8000')}"
 
-# ⚡ CRITICAL: Workers configurados para 512MB RAM
+# ⚡ STARTER TIER: 2 workers (1GB RAM)
 # Cada worker Django usa ~100-150MB RAM
-# 1 worker = 100-150MB base
-# 8 threads = ~80MB adicional
-# Total: ~180-230MB (deixa 300MB para sistema, cache, etc)
-workers = 1  # OTIMIZADO: 1 worker ao invés de 2 (economiza ~120MB RAM)
+# 2 workers = ~300MB base
+# 4 threads cada = ~80MB adicional
+# Total: ~380-450MB (deixa ~500MB para sistema, cache, etc)
+workers = 2  # STARTER: 2 workers (era 1 no FREE)
 
-# ⚡ CRITICAL: Threads aumentadas para compensar menos workers
-# Threads consomem MUITO menos RAM que workers (~10MB vs ~120MB)
-# 8 threads = boa concorrência para Django
-threads = 8  # OTIMIZADO: 8 threads ao invés de 4 (2x mais concorrência)
+# ⚡ Threads por worker
+# 4 threads = bom equilíbrio performance/RAM
+threads = 4  # STARTER: 4 threads (era 8 no FREE com 1 worker)
 
 # Worker class: gthread (threads + baixo consumo de RAM)
 worker_class = 'gthread'
