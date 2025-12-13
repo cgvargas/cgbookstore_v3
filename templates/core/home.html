@@ -439,11 +439,8 @@
                                                     </span>
                                                     {% if obj.average_rating %}
                                                     <div class="rating-compact-home">
-                                                        <span class="stars-small-home">
-                                                            {% for i in 5|range %}
-                                                                {% if i < obj.average_rating %}<i class="fas fa-star text-warning"></i>{% else %}<i class="far fa-star text-muted"></i>{% endif %}
-                                                            {% endfor %}
-                                                        </span>
+                                                        <i class="fas fa-star text-warning"></i>
+                                                        <span class="rating-number">({{ obj.average_rating|floatformat:1 }})</span>
                                                     </div>
                                                     {% else %}<span class="text-muted small">Sem avaliações</span>{% endif %}
                                                 </div>
@@ -608,8 +605,9 @@
     // Inicializar todos os carrosseis Swiper
     document.querySelectorAll('.books-swiper').forEach((swiperEl) => {
         new Swiper(swiperEl, {
-            slidesPerView: 1,
-            spaceBetween: 20,
+            // Mobile: 2 cards por tela (estilo Crunchyroll)
+            slidesPerView: 2,
+            spaceBetween: 5,
             navigation: {
                 nextEl: swiperEl.querySelector('.swiper-button-next'),
                 prevEl: swiperEl.querySelector('.swiper-button-prev'),
@@ -619,18 +617,22 @@
                 clickable: true,
             },
             breakpoints: {
+                // >= 640px: 2 cards (tablets pequenos)
                 640: {
                     slidesPerView: 2,
-                    spaceBetween: 20,
+                    spaceBetween: 15,
                 },
+                // >= 768px: 3 cards (tablets)
                 768: {
                     slidesPerView: 3,
-                    spaceBetween: 30,
+                    spaceBetween: 20,
                 },
+                // >= 1024px: 4 cards (laptops)
                 1024: {
                     slidesPerView: 4,
-                    spaceBetween: 30,
+                    spaceBetween: 25,
                 },
+                // >= 1280px: 5 cards (desktops)
                 1280: {
                     slidesPerView: 5,
                     spaceBetween: 30,

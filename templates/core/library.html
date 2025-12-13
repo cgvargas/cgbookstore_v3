@@ -49,31 +49,31 @@
                 <div class="library-nav-item active" data-shelf="favorites" onclick="showShelf('favorites')">
                     <i class="fas fa-heart text-danger"></i>
                     <span>Favoritos</span>
-                    <span class="count" id="favorites-count">{{ favorites_count }}</span>
+                    <span class="count" id="favorites-count">({{ favorites_count }})</span>
                 </div>
 
                 <div class="library-nav-item" data-shelf="to_read" onclick="showShelf('to_read')">
                     <i class="fas fa-bookmark text-primary"></i>
                     <span>Quero Ler</span>
-                    <span class="count" id="to-read-count">{{ to_read_count }}</span>
+                    <span class="count" id="to-read-count">({{ to_read_count }})</span>
                 </div>
 
                 <div class="library-nav-item" data-shelf="reading" onclick="showShelf('reading')">
                     <i class="fas fa-book-open text-success"></i>
                     <span>Lendo</span>
-                    <span class="count" id="reading-count">{{ reading_count }}</span>
+                    <span class="count" id="reading-count">({{ reading_count }})</span>
                 </div>
 
                 <div class="library-nav-item" data-shelf="read" onclick="showShelf('read')">
                     <i class="fas fa-check-circle text-info"></i>
                     <span>Lidos</span>
-                    <span class="count" id="read-count">{{ read_count }}</span>
+                    <span class="count" id="read-count">({{ read_count }})</span>
                 </div>
 
                 <div class="library-nav-item" data-shelf="abandoned" onclick="showShelf('abandoned')">
                     <i class="fas fa-trash-alt text-warning"></i>
                     <span>Abandonados</span>
-                    <span class="count" id="abandoned-count">{{ abandoned_count }}</span>
+                    <span class="count" id="abandoned-count">({{ abandoned_count }})</span>
                 </div>
 
                 <hr class="my-3">
@@ -118,7 +118,7 @@
                      onclick="showShelf('custom', '{{ shelf.name }}')">
                     <i class="fas fa-folder"></i>
                     <span>{{ shelf.name }}</span>
-                    <span class="count">{{ shelf.count }}</span>
+                    <span class="count">({{ shelf.count }})</span>
                 </div>
                 {% endfor %}
                 {% else %}

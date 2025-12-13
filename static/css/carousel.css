@@ -7,7 +7,8 @@
     margin: 3rem 0;
     /* Background controlado por div separada no template */
     padding: 2rem 0;
-    position: relative; /* Necessário para z-index funcionar */
+    position: relative;
+    /* Necessário para z-index funcionar */
 }
 
 /* Background da seção (permite transparência sem afetar conteúdo) */
@@ -17,8 +18,10 @@
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0; /* Fica atrás do conteúdo */
-    pointer-events: none; /* Não interfere em cliques */
+    z-index: 0;
+    /* Fica atrás do conteúdo */
+    pointer-events: none;
+    /* Não interfere em cliques */
 }
 
 .carousel-header {
@@ -185,10 +188,193 @@
     .swiper-button-prev::after {
         font-size: 1rem;
     }
-.video-thumbnail {        height: 250px;    }
+
+    .video-thumbnail {
+        height: 250px;
+    }
 }
 
-/* ===== VÍDEOS NAS SEÇÕES ===== */
+/* =============================================
+   ESTILO CRUNCHYROLL - MOBILE (< 640px)
+   2 cards por tela com corpo inteiro
+   ============================================= */
+@media (max-width: 639px) {
+
+    /* Container do carrossel mais compacto */
+    .books-swiper {
+        padding: 0.5rem 0.25rem;
+    }
+
+    /* Cards menores e mais compactos */
+    .swiper-slide .book-card {
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    /* Capa de corpo inteiro - estilo Crunchyroll */
+    .swiper-slide .book-cover {
+        height: 260px;
+        width: 100%;
+        border-radius: 0;
+        object-fit: contain;
+        object-position: center center;
+    }
+
+    /* Card body mais compacto e transparente */
+    .swiper-slide .card-body {
+        padding: 0.5rem 0.3rem;
+        gap: 0.15rem;
+        background: transparent;
+        border-radius: 0;
+    }
+
+    /* Título menor */
+    .swiper-slide .card-title {
+        font-size: 0.8rem;
+        height: 2.4em;
+        -webkit-line-clamp: 2;
+        line-height: 1.2;
+    }
+
+    /* Texto de autor menor */
+    .swiper-slide .card-text {
+        font-size: 0.7rem;
+        margin-bottom: 0.15rem;
+    }
+
+    /* Informações compactas */
+    .book-info-compact {
+        font-size: 0.7rem;
+        gap: 0.15rem;
+        margin-top: 0.15rem;
+    }
+
+    .price-tag-compact {
+        font-size: 0.75rem;
+    }
+
+    .stars-small-home i {
+        font-size: 0.55rem;
+    }
+
+    .rating-compact-home small {
+        font-size: 0.6rem;
+    }
+
+    /* Número da avaliação ao lado da estrela */
+    .rating-number {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-left: 0.2rem;
+    }
+
+    .rating-compact-home i {
+        font-size: 0.7rem;
+    }
+
+    /* Botões de navegação ocultos em mobile - usar swipe */
+    .swiper-button-next,
+    .swiper-button-prev {
+        display: none;
+    }
+
+    /* Paginação mais discreta */
+    .swiper-pagination {
+        bottom: 0 !important;
+    }
+
+    .swiper-pagination-bullet {
+        width: 6px;
+        height: 6px;
+    }
+
+    /* Ocultar paginação em mobile */
+    .swiper-pagination {
+        display: none;
+    }
+
+    /* Video cards também compactos */
+    .video-thumbnail {
+        height: 220px;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .video-card {
+        border-radius: 12px;
+    }
+
+    .video-card .card-body {
+        padding: 0.5rem 0.6rem !important;
+        min-height: 45px;
+    }
+
+    .video-card .card-title {
+        font-size: 0.8rem;
+    }
+
+    .play-overlay {
+        font-size: 2.5rem;
+    }
+
+    /* Seção mais compacta */
+    .books-carousel-section {
+        margin: 1.5rem 0;
+        padding: 1rem 0;
+    }
+
+    /* Cabeçalho menor */
+    .carousel-header {
+        margin-bottom: 0.75rem;
+        padding: 0 0.5rem;
+    }
+
+    .carousel-header h2 {
+        font-size: 1.1rem;
+    }
+
+    /* Ocultar texto "Ver todos", mostrando só a seta */
+    .carousel-header .view-all-link {
+        font-size: 0;
+    }
+
+    .carousel-header .view-all-link i {
+        font-size: 1rem;
+    }
+
+    /* Ocultar subtítulos em mobile para tela mais limpa */
+    .carousel-header p,
+    .section-banner-overlay p {
+        display: none;
+    }
+
+    /* Banners das seções ajustados para mobile */
+    .section-banner-wrapper {
+        height: 180px !important;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .section-banner-wrapper img {
+        object-fit: cover;
+        object-position: center center;
+    }
+
+    .section-banner-overlay {
+        padding: 1rem !important;
+    }
+
+    .section-banner-overlay h2 {
+        font-size: 1.2rem !important;
+    }
+
+    .view-all-link-banner {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.85rem !important;
+    }
+}
+
 .video-card {
     background: transparent;
     border: none;
@@ -209,7 +395,8 @@
     position: relative;
     display: block;
     text-decoration: none;
-    flex-shrink: 0; /* Não deixa comprimir */
+    flex-shrink: 0;
+    /* Não deixa comprimir */
 }
 
 .video-thumbnail {
@@ -239,7 +426,7 @@
     transform: translate(-50%, -50%);
     font-size: 4rem;
     color: white;
-    text-shadow: 0 4px 12px rgba(0,0,0,0.8);
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
     opacity: 0.85;
     transition: all 0.3s;
     pointer-events: none;
@@ -253,8 +440,10 @@
 /* Card body do vídeo */
 .video-card .card-body {
     padding: 12px !important;
-    flex-grow: 0; /* Não cresce */
-    min-height: 60px; /* Altura mínima para o título */
+    flex-grow: 0;
+    /* Não cresce */
+    min-height: 60px;
+    /* Altura mínima para o título */
 }
 
 /* Título do vídeo */
@@ -265,7 +454,8 @@
     line-height: 1.4;
     margin: 0;
     display: -webkit-box;
-    -webkit-line-clamp: 2; /* Máximo 2 linhas */
+    -webkit-line-clamp: 2;
+    /* Máximo 2 linhas */
     -webkit-box-orient: vertical;
     overflow: hidden;
 }

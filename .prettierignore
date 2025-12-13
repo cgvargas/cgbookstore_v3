@@ -1,0 +1,4 @@
+# Django templates - não formatar com Prettier
+# (tags Django são quebradas pelo Prettier)
+templates/**/*.html
+**/templates/**/*.html
