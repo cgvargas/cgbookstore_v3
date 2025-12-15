@@ -343,7 +343,7 @@
             {% if user.is_authenticated %}
             <a href="{% url 'core:library' %}" class="d-lg-none text-decoration-none me-2 mobile-user-avatar">
                 {% if user.profile.avatar %}
-                <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="rounded-circle user-avatar-img" style="width: 32px; height: 32px; object-fit: cover;">
+                <img src="{{ user.profile.cached_avatar_url }}" alt="{{ user.username }}" class="rounded-circle user-avatar-img" style="width: 32px; height: 32px; object-fit: cover;">
                 {% else %}
                 <div class="rounded-circle d-flex align-items-center justify-content-center user-avatar-placeholder" style="width: 32px; height: 32px; background-color: #6c757d; color: white; font-size: 14px; font-weight: bold;">
                     {{ user.username|first|upper }}
@@ -391,6 +391,7 @@
                             <li><a class="dropdown-item fw-semibold" href="{% url 'news:home' %}"
                                     style="color: #ff6b35;">Notícias</a></li>
                             <li><a class="dropdown-item" href="{% url 'debates:list' %}">Debates</a></li>
+                            <li><a class="dropdown-item" href="{% url 'core:events' %}"><i class="fas fa-calendar-alt me-2 text-primary"></i>Eventos</a></li>
                             {% if user.is_authenticated %}
                             <li>
                                 <hr class="dropdown-divider">
@@ -494,7 +495,7 @@
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown"
                             role="button" data-bs-toggle="dropdown">
                             {% if user.profile.avatar %}
-                            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}"
+                            <img src="{{ user.profile.cached_avatar_url }}" alt="{{ user.username }}"
                                 class="rounded-circle me-2 user-avatar-img"
                                 style="width: 32px; height: 32px; object-fit: cover;">
                             {% else %}

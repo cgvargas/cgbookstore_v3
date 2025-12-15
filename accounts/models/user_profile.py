@@ -59,6 +59,30 @@ class UserProfile(models.Model):
         help_text="Foto de perfil (máx. 5MB, 500x500px)"
     )
 
+    @property
+    def cached_avatar_url(self):
+        """
+        Retorna URL do avatar usando cache para memória (5 min).
+        Evita chamada de rede bloqueante do SupabaseStorage.url em cada request.
+        """
+        if not self.avatar:
+            return None
+            
+        from django.core.cache import cache
+        cache_key = f"user_avatar_url_{self.user.id}"
+        url = cache.get(cache_key)
+        
+        if not url:
+            try:
+                # Gera URL (blocking network call)
+                url = self.avatar.url
+                # Cache por 5 minutos
+                cache.set(cache_key, url, 300)
+            except Exception:
+                return None
+                
+        return url
+
     banner = models.ImageField(
         upload_to='users/banners/',
         storage=SupabaseMediaStorage(),
