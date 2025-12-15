@@ -43,14 +43,35 @@ class HomeView(TemplateView):
 
         logger.info("[HOME] Cache MISS - construindo contexto...")
 
-        # === BANNERS ===
+        # === BANNERS (Serializados como Dicts) ===
         start = time.time()
-        banners = list(Banner.objects.filter(active=True).filter(
+        banners_qs = list(Banner.objects.filter(active=True).filter(
             Q(start_date__isnull=True) | Q(start_date__lte=now)
         ).filter(
             Q(end_date__isnull=True) | Q(end_date__gte=now)
         ).order_by('order'))
-        logger.info(f"[HOME] Banners: {len(banners)} - {(time.time() - start)*1000:.0f}ms")
+        
+        # OTIMIZAÇÃO: Serializar para dicts para pré-calcular .url e evitar chamadas de storage no template
+        banners = []
+        for b in banners_qs:
+            banners.append({
+                'id': b.id,
+                'title': b.title,
+                'subtitle': b.subtitle,
+                'description': b.description,
+                'height': b.height,
+                'image': {'url': b.image.url} if b.image else None,  # Estrutura compatível com template {{ b.image.url }}
+                'image_position_horizontal': b.image_position_horizontal,
+                'image_position_vertical': b.image_position_vertical,
+                'overlay_opacity': b.overlay_opacity,
+                'blur_edges': b.blur_edges,
+                'blur_intensity': b.blur_intensity,
+                'link_url': b.link_url,
+                'link_text': b.link_text,
+                'open_in_new_tab': b.open_in_new_tab,
+            })
+
+        logger.info(f"[HOME] Banners: {len(banners)} (serialized) - {(time.time() - start)*1000:.0f}ms")
 
         # === SEÇÕES COM OBJETOS PRÉ-CARREGADOS (como dicts) ===
         start = time.time()
