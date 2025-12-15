@@ -11,9 +11,11 @@
                  data-banner-id="{{ banner.id }}"
                  style="height: {{ banner.height|default:700 }}px;">
                     <div class="banner-image-wrapper">
+                        <!-- OTIMIZAÇÃO LCP: primeiro banner com prioridade alta -->
                         <img src="{{ banner.image.url }}"
                              alt="{{ banner.title }}"
                              class="banner-image"
+                             {% if forloop.first %}fetchpriority="high" loading="eager"{% else %}loading="lazy"{% endif %}
                              style="object-position: {{ banner.image_position_horizontal|default:'center' }} {{ banner.image_position_vertical|default:'center' }};">
 
                         <!-- Overlay com opacidade controlável -->

@@ -2,6 +2,11 @@
 {% load static %}
 {% load custom_filters %}
 
+{# OTIMIZAÇÃO LCP: Preload da imagem do primeiro banner #}
+{% if banners and banners.0.image %}
+<link rel="preload" as="image" href="{{ banners.0.image.url }}" fetchpriority="high">
+{% endif %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/carousel.css' %}">
 <link rel="stylesheet" href="{% static 'css/banner-carousel.css' %}">
@@ -308,6 +313,356 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
+
+    /* ============================================
+       SEÇÃO TOLKIEN - DESIGN PREMIUM
+       ============================================ */
+    .tolkien-section {
+        position: relative;
+        margin: 3rem 0;
+        overflow: hidden;
+    }
+
+    /* Banner Tolkien */
+    .tolkien-banner {
+        position: relative;
+        height: 450px;
+        overflow: hidden;
+    }
+
+    .tolkien-banner > img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+
+    .tolkien-banner-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            135deg,
+            rgba(15, 15, 25, 0.85) 0%,
+            rgba(30, 25, 15, 0.75) 50%,
+            rgba(45, 35, 20, 0.85) 100%
+        );
+        z-index: 1;
+    }
+
+    .tolkien-banner-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 2;
+        color: white;
+    }
+
+    /* Ícone do Anel */
+    .tolkien-icon-ring {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        background: linear-gradient(135deg, #c9a227 0%, #f4d03f 50%, #c9a227 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #1a1a1a;
+        box-shadow: 
+            0 0 30px rgba(201, 162, 39, 0.5),
+            0 0 60px rgba(201, 162, 39, 0.3),
+            inset 0 0 20px rgba(255, 255, 255, 0.3);
+        animation: ring-glow 3s ease-in-out infinite;
+    }
+
+    @keyframes ring-glow {
+        0%, 100% { 
+            box-shadow: 
+                0 0 30px rgba(201, 162, 39, 0.5),
+                0 0 60px rgba(201, 162, 39, 0.3),
+                inset 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+        50% { 
+            box-shadow: 
+                0 0 50px rgba(201, 162, 39, 0.7),
+                0 0 100px rgba(201, 162, 39, 0.5),
+                inset 0 0 30px rgba(255, 255, 255, 0.5);
+        }
+    }
+
+    .tolkien-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+        font-family: 'Georgia', 'Times New Roman', serif;
+        letter-spacing: 2px;
+        background: linear-gradient(to right, #c9a227, #f4d03f, #c9a227);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .tolkien-subtitle {
+        display: block;
+        font-size: 1rem;
+        font-weight: 400;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.8);
+        -webkit-text-fill-color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 0.5rem;
+    }
+
+    .tolkien-description {
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 1.5rem;
+        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+    }
+
+    .tolkien-stats {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .tolkien-stat {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.9);
+        background: rgba(201, 162, 39, 0.2);
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        border: 1px solid rgba(201, 162, 39, 0.3);
+    }
+
+    .tolkien-stat i {
+        color: #f4d03f;
+    }
+
+    .tolkien-stat-divider {
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Container dos Livros */
+    .tolkien-books-container {
+        margin-top: -80px;
+        position: relative;
+        z-index: 10;
+        padding-bottom: 2rem;
+    }
+
+    /* Cards de Livros Tolkien */
+    .tolkien-book-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+    .tolkien-book-card {
+        background: linear-gradient(145deg, 
+            rgba(30, 25, 20, 0.95) 0%, 
+            rgba(45, 35, 25, 0.95) 100%);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        border: 1px solid rgba(201, 162, 39, 0.2);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+    }
+
+    .tolkien-book-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        border-color: rgba(201, 162, 39, 0.5);
+        box-shadow: 
+            0 20px 50px rgba(0, 0, 0, 0.4),
+            0 0 30px rgba(201, 162, 39, 0.2);
+    }
+
+    .tolkien-book-cover-wrapper {
+        position: relative;
+        overflow: hidden;
+        height: 280px;
+    }
+
+    .tolkien-book-cover {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .tolkien-book-card:hover .tolkien-book-cover {
+        transform: scale(1.08);
+    }
+
+    .tolkien-book-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #2a2520 0%, #3d352a 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: rgba(201, 162, 39, 0.5);
+    }
+
+    /* Efeito de brilho no hover */
+    .tolkien-book-shine {
+        position: absolute;
+        top: -100%;
+        left: -100%;
+        width: 300%;
+        height: 300%;
+        background: linear-gradient(
+            135deg,
+            transparent 30%,
+            rgba(255, 255, 255, 0.1) 50%,
+            transparent 70%
+        );
+        transform: rotate(45deg);
+        transition: all 0.6s ease;
+        pointer-events: none;
+    }
+
+    .tolkien-book-card:hover .tolkien-book-shine {
+        top: -50%;
+        left: -50%;
+    }
+
+    .tolkien-book-info {
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .tolkien-book-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #f4d03f;
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+    }
+
+    .tolkien-book-pages {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.3rem;
+    }
+
+    .tolkien-book-pages i {
+        font-size: 0.65rem;
+    }
+
+    /* Navegação do Swiper Tolkien */
+    .tolkien-nav-prev,
+    .tolkien-nav-next {
+        color: #f4d03f !important;
+        background: rgba(30, 25, 20, 0.8);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        transition: all 0.3s ease;
+    }
+
+    .tolkien-nav-prev:hover,
+    .tolkien-nav-next:hover {
+        background: rgba(201, 162, 39, 0.3);
+        transform: scale(1.1);
+    }
+
+    .tolkien-nav-prev::after,
+    .tolkien-nav-next::after {
+        font-size: 1.2rem !important;
+    }
+
+    .tolkien-pagination .swiper-pagination-bullet {
+        background: rgba(201, 162, 39, 0.5);
+    }
+
+    .tolkien-pagination .swiper-pagination-bullet-active {
+        background: #f4d03f;
+    }
+
+    /* Responsividade Tolkien */
+    @media (max-width: 992px) {
+        .tolkien-banner {
+            height: 380px;
+        }
+        .tolkien-title {
+            font-size: 2.2rem;
+        }
+        .tolkien-books-container {
+            margin-top: -60px;
+        }
+        .tolkien-book-cover-wrapper {
+            height: 240px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .tolkien-banner {
+            height: 320px;
+        }
+        .tolkien-title {
+            font-size: 1.8rem;
+        }
+        .tolkien-subtitle {
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+        }
+        .tolkien-description {
+            font-size: 0.95rem;
+            padding: 0 1rem;
+        }
+        .tolkien-icon-ring {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+        .tolkien-books-container {
+            margin-top: -50px;
+        }
+        .tolkien-book-cover-wrapper {
+            height: 220px;
+        }
+        .tolkien-stats {
+            gap: 0.5rem;
+        }
+        .tolkien-stat {
+            font-size: 0.75rem;
+            padding: 0.3rem 0.7rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .tolkien-banner {
+            height: 280px;
+        }
+        .tolkien-title {
+            font-size: 1.5rem;
+        }
+        .tolkien-book-cover-wrapper {
+            height: 200px;
+        }
+        .tolkien-nav-prev,
+        .tolkien-nav-next {
+            display: none;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -484,6 +839,7 @@
                                            data-video-embed="{{ obj.get_embed_url|default:'' }}"
                                            data-video-title="{{ obj.title }}"
                                            data-video-url="{{ obj.video_url }}"
+                                           data-video-file="{% if obj.video_file %}{{ obj.video_file.url }}{% endif %}"
                                            onclick="openVideoModal(this); return false;">
                                             {% if obj.get_thumbnail %}<img src="{{ obj.get_thumbnail }}" class="video-thumbnail" alt="{{ obj.title }}">{% else %}<div class="video-placeholder"><i class="fas fa-video"></i></div>{% endif %}
                                             <div class="play-overlay"><i class="fas fa-play-circle"></i></div>
@@ -585,6 +941,81 @@
     </div>
     {% endif %}
 
+    <!-- ============================================
+         SEÇÃO ESPECIAL: MUNDO DE J.R.R. TOLKIEN
+         ============================================ -->
+    {% if tolkien_books %}
+    <section class="tolkien-section">
+        <!-- Banner Épico -->
+        <div class="tolkien-banner">
+            <img src="{% static 'images/tolkien_banner.png' %}" alt="Mundo de Tolkien" loading="lazy">
+            <div class="tolkien-banner-overlay"></div>
+            <div class="tolkien-banner-content">
+                <div class="tolkien-icon-ring">
+                    <i class="fas fa-ring"></i>
+                </div>
+                <h2 class="tolkien-title">
+                    <span class="tolkien-subtitle">Explore o Mundo de</span>
+                    J.R.R. Tolkien
+                </h2>
+                <p class="tolkien-description">
+                    Descubra a Terra-média através das obras do mestre da fantasia
+                </p>
+                <div class="tolkien-stats">
+                    <span class="tolkien-stat">
+                        <i class="fas fa-book"></i> {{ tolkien_books|length }} Livros
+                    </span>
+                    <span class="tolkien-stat-divider">•</span>
+                    <span class="tolkien-stat">
+                        <i class="fas fa-scroll"></i> Épicos
+                    </span>
+                    <span class="tolkien-stat-divider">•</span>
+                    <span class="tolkien-stat">
+                        <i class="fas fa-crown"></i> Lendários
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carrossel de Livros -->
+        <div class="container tolkien-books-container">
+            <div class="swiper tolkien-swiper">
+                <div class="swiper-wrapper">
+                    {% for book in tolkien_books %}
+                    <div class="swiper-slide">
+                        <a href="{% url 'core:book_detail' book.slug %}" class="tolkien-book-card-link">
+                            <div class="tolkien-book-card">
+                                <div class="tolkien-book-cover-wrapper">
+                                    {% if book.cover_image %}
+                                    <img src="{{ book.cover_image.url }}" class="tolkien-book-cover" alt="{{ book.title }}">
+                                    {% else %}
+                                    <div class="tolkien-book-placeholder">
+                                        <i class="fas fa-book-open"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div class="tolkien-book-shine"></div>
+                                </div>
+                                <div class="tolkien-book-info">
+                                    <h5 class="tolkien-book-title">{{ book.title|truncatewords:6 }}</h5>
+                                    {% if book.page_count %}
+                                    <span class="tolkien-book-pages">
+                                        <i class="fas fa-file-alt"></i> {{ book.page_count }} páginas
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="swiper-button-prev tolkien-nav-prev"></div>
+                <div class="swiper-button-next tolkien-nav-next"></div>
+                <div class="swiper-pagination tolkien-pagination"></div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
     <!-- Seção de Recomendações Inteligentes -->
     {% include 'recommendations/recommendations_section.html' %}
 
@@ -640,6 +1071,47 @@
             },
         });
     });
+
+    // Inicializar Swiper Tolkien (seção especial)
+    const tolkienSwiper = document.querySelector('.tolkien-swiper');
+    if (tolkienSwiper) {
+        new Swiper(tolkienSwiper, {
+            slidesPerView: 2,
+            spaceBetween: 15,
+            loop: true,
+            autoplay: {
+                delay: 4000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+            },
+            navigation: {
+                nextEl: '.tolkien-nav-next',
+                prevEl: '.tolkien-nav-prev',
+            },
+            pagination: {
+                el: '.tolkien-pagination',
+                clickable: true,
+            },
+            breakpoints: {
+                640: {
+                    slidesPerView: 2,
+                    spaceBetween: 20,
+                },
+                768: {
+                    slidesPerView: 3,
+                    spaceBetween: 25,
+                },
+                1024: {
+                    slidesPerView: 4,
+                    spaceBetween: 30,
+                },
+                1280: {
+                    slidesPerView: 5,
+                    spaceBetween: 35,
+                },
+            },
+        });
+    }
 </script>
 
 <!-- Modal de Vídeo -->
@@ -811,6 +1283,7 @@ function openVideoModal(element) {
     const platform = element.getAttribute('data-video-platform');
     const embedUrl = element.getAttribute('data-video-embed');
     const videoUrl = element.getAttribute('data-video-url');
+    const videoFile = element.getAttribute('data-video-file');
 
     const modalTitle = document.getElementById('videoModalTitle');
     const embedContainer = document.getElementById('videoEmbedContainer');
@@ -819,8 +1292,18 @@ function openVideoModal(element) {
 
     modalTitle.textContent = title;
 
-    // Verifica se pode fazer embed (YouTube ou Vimeo)
-    if (embedUrl && embedUrl.trim() !== '' && embedUrl !== 'None' && (platform === 'youtube' || platform === 'vimeo')) {
+    // Prioridade 1: Vídeo upado localmente (player HTML5)
+    if (platform === 'upload' && videoFile && videoFile.trim() !== '') {
+        embedContainer.style.display = 'block';
+        fallback.style.display = 'none';
+        embedContainer.innerHTML = `<video controls autoplay style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
+                                        <source src="${videoFile}" type="video/mp4">
+                                        <source src="${videoFile}" type="video/webm">
+                                        Seu navegador não suporta vídeo HTML5.
+                                    </video>`;
+    }
+    // Prioridade 2: YouTube ou Vimeo (iframe embed)
+    else if (embedUrl && embedUrl.trim() !== '' && embedUrl !== 'None' && (platform === 'youtube' || platform === 'vimeo')) {
         // Mostra player integrado
         embedContainer.style.display = 'block';
         fallback.style.display = 'none';

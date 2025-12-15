@@ -68,11 +68,35 @@ class HomeView(TemplateView):
         ).order_by('start_date').first()
         logger.info(f"[HOME] Event: {'found' if featured_event else 'none'} - {(time.time() - start)*1000:.0f}ms")
 
+        # === SEÇÃO ESPECIAL: LIVROS DE TOLKIEN ===
+        # OTIMIZADO: Evitar ORDER BY RANDOM() que é muito lento em PostgreSQL
+        start = time.time()
+        import random
+        
+        # Buscar todos os IDs de livros Tolkien (query leve, sem join)
+        tolkien_ids = list(Book.objects.filter(
+            author__name__icontains='tolkien'
+        ).values_list('id', flat=True))
+        
+        # Aleatorizar em Python (instantâneo)
+        if len(tolkien_ids) > 12:
+            tolkien_ids = random.sample(tolkien_ids, 12)
+        
+        # Buscar apenas os livros selecionados com dados completos
+        tolkien_books = list(Book.objects.filter(
+            id__in=tolkien_ids
+        ).select_related('author', 'category'))
+        
+        # Embaralhar resultado final
+        random.shuffle(tolkien_books)
+        logger.info(f"[HOME] Tolkien Books: {len(tolkien_books)} - {(time.time() - start)*1000:.0f}ms")
+
         # Montar contexto
         home_context = {
             'banners': banners,
             'sections': sections_data,
             'featured_event': featured_event,
+            'tolkien_books': tolkien_books,
         }
 
         # Cachear contexto completo
