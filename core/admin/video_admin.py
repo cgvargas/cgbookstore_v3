@@ -53,10 +53,13 @@ class VideoAdmin(admin.ModelAdmin):
             'fields': (
                 'platform',
                 'video_url',
+                'video_file',
                 'embed_code',
+                'thumbnail_image',
                 'thumbnail_url',
                 'duration'
-            )
+            ),
+            'description': 'Para YouTube, Vimeo, Instagram ou TikTok: use URL do Vídeo. Para arquivos locais: selecione "Upload de Arquivo" e envie o arquivo MP4/WebM.'
         }),
         ('Relacionamentos', {
             'fields': (

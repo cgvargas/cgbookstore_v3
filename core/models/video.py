@@ -3,6 +3,7 @@ Model Video - Representa vídeos (YouTube, entrevistas, book trailers, resenhas)
 """
 from django.db import models
 from django.utils.text import slugify
+from django.core.validators import FileExtensionValidator
 
 
 class Video(models.Model):
@@ -16,6 +17,7 @@ class Video(models.Model):
         ('vimeo', 'Vimeo'),
         ('instagram', 'Instagram'),
         ('tiktok', 'TikTok'),
+        ('upload', 'Upload de Arquivo'),
     ]
 
     VIDEO_TYPE_CHOICES = [
@@ -56,8 +58,20 @@ class Video(models.Model):
     )
 
     video_url = models.URLField(
+        blank=True,
         verbose_name="URL do Vídeo",
-        help_text="URL completa do vídeo (ex: https://www.youtube.com/watch?v=...)"
+        help_text="URL completa do vídeo (para YouTube, Vimeo, Instagram, TikTok)"
+    )
+
+    video_file = models.FileField(
+        upload_to='videos/uploads/',
+        blank=True,
+        null=True,
+        verbose_name="Arquivo de Vídeo",
+        help_text="Upload de arquivo MP4 ou WebM (máx. 100MB recomendado)",
+        validators=[
+            FileExtensionValidator(allowed_extensions=['mp4', 'webm', 'mov', 'avi'])
+        ]
     )
 
     embed_code = models.CharField(
@@ -203,6 +217,8 @@ class Video(models.Model):
             return f"https://www.youtube.com/embed/{self.embed_code}"
         elif self.platform == 'vimeo' and self.embed_code:
             return f"https://player.vimeo.com/video/{self.embed_code}"
+        elif self.platform == 'upload' and self.video_file:
+            return self.video_file.url
         return None
 
     def get_embed_html(self):
@@ -221,4 +237,31 @@ class Video(models.Model):
                         allow="autoplay; fullscreen; picture-in-picture"
                         allowfullscreen>
                        </iframe>'''
+        elif self.platform == 'upload' and self.video_file:
+            # Player HTML5 nativo para arquivos upados
+            file_ext = self.video_file.name.split('.')[-1].lower()
+            mime_types = {
+                'mp4': 'video/mp4',
+                'webm': 'video/webm',
+                'mov': 'video/quicktime',
+                'avi': 'video/x-msvideo'
+            }
+            mime_type = mime_types.get(file_ext, 'video/mp4')
+            return f'''<video width="100%" height="100%" controls>
+                        <source src="{self.video_file.url}" type="{mime_type}">
+                        Seu navegador não suporta o elemento de vídeo.
+                       </video>'''
         return None
+
+    def is_uploaded_video(self):
+        """Retorna True se o vídeo é um arquivo upado localmente"""
+        return self.platform == 'upload' and self.video_file
+
+    def get_video_source(self):
+        """
+        Retorna a fonte do vídeo (URL ou arquivo).
+        Prioriza: 1) video_file (upload), 2) video_url
+        """
+        if self.video_file:
+            return self.video_file.url
+        return self.video_url
