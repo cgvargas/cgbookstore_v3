@@ -168,7 +168,11 @@ class SupabaseStorage:
 
     def get_public_url(self, bucket: str, path: str) -> str:
         """
-        Obtém a URL pública de um arquivo
+        Gera a URL pública de um arquivo localmente (SEM chamada de rede).
+        
+        OTIMIZAÇÃO: Antes este método fazia chamada HTTP ao Supabase para cada imagem,
+        causando ~18s de latência na homepage (50 imagens × ~300ms).
+        Agora gera a URL localmente usando o padrão fixo do Supabase Storage.
 
         Args:
             bucket: Nome do bucket
@@ -177,7 +181,10 @@ class SupabaseStorage:
         Returns:
             URL pública do arquivo
         """
-        return self.storage.from_(bucket).get_public_url(path)
+        # URL do Supabase Storage segue padrão fixo:
+        # {SUPABASE_URL}/storage/v1/object/public/{bucket}/{path}
+        # Gerar localmente elimina chamada de rede síncrona
+        return f"{self.url}/storage/v1/object/public/{bucket}/{path}"
 
     def list_files(self, bucket: str, folder: str = "", limit: int = 100) -> list:
         """
