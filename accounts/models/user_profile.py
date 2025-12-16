@@ -83,6 +83,19 @@ class UserProfile(models.Model):
                 
         return url
 
+    @property
+    def has_avatar(self):
+        """
+        Verifica se o usuário tem avatar SEM fazer I/O ao storage.
+        
+        OTIMIZAÇÃO: A verificação `if self.avatar` em templates Django pode
+        disparar I/O ao storage (ex: verificar se arquivo existe no Supabase).
+        Esta property verifica apenas se o campo tem valor no banco de dados.
+        """
+        # Verifica apenas se o campo tem um valor (string não-vazia)
+        # Não acessa o storage, não faz chamadas de rede
+        return bool(self.avatar.name) if self.avatar else False
+
     banner = models.ImageField(
         upload_to='users/banners/',
         storage=SupabaseMediaStorage(),
