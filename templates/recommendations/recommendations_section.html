@@ -94,10 +94,26 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     {% if user.is_authenticated %}
-    // Carregar recomendações após a página estar pronta
-    setTimeout(() => {
-        loadRecommendations();
-    }, 100);
+    // LAZY-LOAD: Recomendações só carregam quando a seção for visível
+    // Isso evita bloquear o LCP da página enquanto a API está lenta
+    const section = document.getElementById('recommendations-for-you');
+    if (section) {
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Seção visível, carregar recomendações
+                    loadRecommendations();
+                    // Parar de observar após carregar
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            root: null,
+            rootMargin: '200px', // Carrega 200px antes de aparecer
+            threshold: 0.1
+        });
+        observer.observe(section);
+    }
     {% endif %}
 });
 
