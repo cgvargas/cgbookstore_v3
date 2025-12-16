@@ -17,6 +17,45 @@ import io
 import sys
 
 
+def redis_test_view(request):
+    """
+    Endpoint PÚBLICO para testar conexão com Redis.
+    Não requer login - para diagnóstico rápido em produção.
+    Acesse: /api/redis-test/
+    """
+    import time
+    from django.core.cache import cache
+    
+    result = {
+        'redis_url_configured': bool(settings.CACHES.get('default', {}).get('LOCATION')),
+        'redis_url': settings.CACHES.get('default', {}).get('LOCATION', 'NOT SET')[:50] + '...',
+    }
+    
+    try:
+        start = time.time()
+        # Testar escrita
+        cache.set('redis_test_key', 'test_value_123', timeout=30)
+        # Testar leitura
+        value = cache.get('redis_test_key')
+        elapsed = (time.time() - start) * 1000
+        
+        if value == 'test_value_123':
+            result['status'] = 'OK'
+            result['message'] = f'Redis funcionando! ({elapsed:.1f}ms)'
+            result['cache_working'] = True
+        else:
+            result['status'] = 'ERROR'
+            result['message'] = f'Redis retornou valor incorreto: {value}'
+            result['cache_working'] = False
+    except Exception as e:
+        result['status'] = 'ERROR'
+        result['message'] = f'Redis não conectou: {str(e)}'
+        result['cache_working'] = False
+        result['error_type'] = type(e).__name__
+    
+    return JsonResponse(result)
+
+
 @staff_member_required
 @require_http_methods(["GET", "POST"])
 def setup_initial_data_view(request):
