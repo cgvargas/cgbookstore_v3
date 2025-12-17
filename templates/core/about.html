@@ -232,7 +232,11 @@
                     <i class="bi bi-bookshelf feature-icon"></i>
                     <h3 class="feature-title">Sua Biblioteca, Suas Regras</h3>
                     <p class="feature-text">Organize sua vida literária com prateleiras virtuais. Separe o que está lendo, o que já leu e seus próximos alvos. Tenha o controle total da sua jornada de leitura em um só lugar.</p>
+                    {% if user.is_authenticated %}
                     <a href="{% url 'core:library' %}" class="btn btn-outline-primary mt-3">Conheça sua biblioteca</a>
+                    {% else %}
+                    <a href="{% url 'account_signup' %}" class="btn btn-outline-primary mt-3">Crie sua biblioteca</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
