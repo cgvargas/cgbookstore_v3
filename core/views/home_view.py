@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.db.models import Q, Prefetch
 from django.core.cache import cache
 from django.contrib.contenttypes.models import ContentType
-from core.models import Section, SectionItem, Event, Book, Banner, Author, Video
+from core.models import Section, SectionItem, Event, Book, Banner, Author, Video, FeaturedAuthorSettings
 import logging
 import time
 
@@ -89,35 +89,44 @@ class HomeView(TemplateView):
         ).order_by('start_date').first()
         logger.info(f"[HOME] Event: {'found' if featured_event else 'none'} - {(time.time() - start)*1000:.0f}ms")
 
-        # === SEÇÃO ESPECIAL: LIVROS DE TOLKIEN ===
-        # OTIMIZADO: Evitar ORDER BY RANDOM() que é muito lento em PostgreSQL
+        # === SEÇÃO ESPECIAL: AUTOR EM DESTAQUE ===
+        # Buscar configurações ativas de autor em destaque
         start = time.time()
         import random
         
-        # Buscar todos os IDs de livros Tolkien (query leve, sem join)
-        tolkien_ids = list(Book.objects.filter(
-            author__name__icontains='tolkien'
-        ).values_list('id', flat=True))
+        featured_author_settings = FeaturedAuthorSettings.get_active()
+        featured_author_books = []
         
-        # Aleatorizar em Python (instantâneo)
-        if len(tolkien_ids) > 12:
-            tolkien_ids = random.sample(tolkien_ids, 12)
+        if featured_author_settings and featured_author_settings.author:
+            author = featured_author_settings.author
+            # Buscar todos os IDs de livros do autor (query leve, sem join)
+            author_book_ids = list(Book.objects.filter(
+                author=author
+            ).values_list('id', flat=True))
+            
+            # Aleatorizar em Python (instantâneo)
+            if len(author_book_ids) > 12:
+                author_book_ids = random.sample(author_book_ids, 12)
+            
+            # Buscar apenas os livros selecionados com dados completos
+            featured_author_books = list(Book.objects.filter(
+                id__in=author_book_ids
+            ).select_related('author', 'category'))
+            
+            # Embaralhar resultado final
+            random.shuffle(featured_author_books)
         
-        # Buscar apenas os livros selecionados com dados completos
-        tolkien_books = list(Book.objects.filter(
-            id__in=tolkien_ids
-        ).select_related('author', 'category'))
-        
-        # Embaralhar resultado final
-        random.shuffle(tolkien_books)
-        logger.info(f"[HOME] Tolkien Books: {len(tolkien_books)} - {(time.time() - start)*1000:.0f}ms")
+        logger.info(f"[HOME] Featured Author Books: {len(featured_author_books)} - {(time.time() - start)*1000:.0f}ms")
 
         # Montar contexto
         home_context = {
             'banners': banners,
             'sections': sections_data,
             'featured_event': featured_event,
-            'tolkien_books': tolkien_books,
+            'featured_author': featured_author_settings,
+            'featured_author_books': featured_author_books,
+            # Manter tolkien_books para retrocompatibilidade
+            'tolkien_books': featured_author_books,
         }
 
         # Cachear contexto completo

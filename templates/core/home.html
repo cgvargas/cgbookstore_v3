@@ -326,7 +326,7 @@
     /* Banner Tolkien */
     .tolkien-banner {
         position: relative;
-        height: 450px;
+        height: 520px;
         overflow: hidden;
     }
 
@@ -943,38 +943,49 @@
     {% endif %}
 
     <!-- ============================================
-         SEÇÃO ESPECIAL: MUNDO DE J.R.R. TOLKIEN
+         SEÇÃO ESPECIAL: AUTOR EM DESTAQUE
          ============================================ -->
-    {% if tolkien_books %}
+    {% if featured_author and featured_author_books %}
     <section class="tolkien-section">
         <!-- Banner Épico -->
         <div class="tolkien-banner">
-            <img src="{% static 'images/tolkien_banner.png' %}" alt="Mundo de Tolkien" loading="lazy">
+            {% if featured_author.home_banner_image %}
+            <img src="{{ featured_author.home_banner_image.url }}" alt="{{ featured_author.home_title }}" loading="lazy">
+            {% else %}
+            <img src="{% static 'images/tolkien_banner.png' %}" alt="{{ featured_author.home_title|default:'Mundo de Tolkien' }}" loading="lazy">
+            {% endif %}
             <div class="tolkien-banner-overlay"></div>
             <div class="tolkien-banner-content">
                 <div class="tolkien-icon-ring">
                     <i class="fas fa-ring"></i>
                 </div>
                 <h2 class="tolkien-title">
-                    <span class="tolkien-subtitle">Explore o Mundo de</span>
-                    J.R.R. Tolkien
+                    <span class="tolkien-subtitle">{{ featured_author.home_subtitle|default:'Explore o Mundo de' }}</span>
+                    {{ featured_author.home_title|default:'J.R.R. Tolkien' }}
                 </h2>
                 <p class="tolkien-description">
-                    Descubra a Terra-média através das obras do mestre da fantasia
+                    {{ featured_author.home_description|default:'Descubra a Terra-média através das obras do mestre da fantasia' }}
                 </p>
                 <div class="tolkien-stats">
                     <span class="tolkien-stat">
-                        <i class="fas fa-book"></i> {{ tolkien_books|length }} Livros
+                        <i class="fas fa-book"></i> {{ featured_author_books|length }} Livros
                     </span>
+                    {% if featured_author.stat_badge_1 %}
                     <span class="tolkien-stat-divider">•</span>
                     <span class="tolkien-stat">
-                        <i class="fas fa-scroll"></i> Épicos
+                        <i class="fas fa-scroll"></i> {{ featured_author.stat_badge_1 }}
                     </span>
+                    {% endif %}
+                    {% if featured_author.stat_badge_2 %}
                     <span class="tolkien-stat-divider">•</span>
                     <span class="tolkien-stat">
-                        <i class="fas fa-crown"></i> Lendários
+                        <i class="fas fa-crown"></i> {{ featured_author.stat_badge_2 }}
                     </span>
+                    {% endif %}
                 </div>
+                <a href="{% url 'core:tolkien_world' %}" class="btn mt-3" style="background: linear-gradient(135deg, #f4d03f, #c9a227); color: #1a1a2e; font-weight: 600; padding: 0.6rem 1.5rem; border-radius: 50px; text-decoration: none; display: inline-block; transition: all 0.3s ease;">
+                    <i class="fas {{ featured_author.home_button_icon|default:'fa-compass' }} me-2"></i>{{ featured_author.home_button_text|default:'Explorar Mundo de Tolkien' }}
+                </a>
             </div>
         </div>
 

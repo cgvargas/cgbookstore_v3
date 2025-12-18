@@ -10,6 +10,7 @@ from .video_admin import VideoAdmin
 from .section_admin import SectionAdmin
 from .event_admin import EventAdmin
 from .banner_admin import BannerAdmin
+from .featured_author_settings_admin import FeaturedAuthorSettingsAdmin
 
 __all__ = [
     'CategoryAdmin',
@@ -19,6 +20,7 @@ __all__ = [
     'SectionAdmin',
     'EventAdmin',
     'BannerAdmin',
+    'FeaturedAuthorSettingsAdmin',
 ]
 
 # URLs customizadas para Google Books

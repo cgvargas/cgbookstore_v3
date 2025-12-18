@@ -144,3 +144,6 @@ websockets==15.0.1
 deprecation==2.1.0
 StrEnum==0.4.15
 cachetools==6.2.1
+
+# ========== NEWS AGENT SYSTEM ==========
+feedparser==6.0.11           # RSS/Atom feed parser (6.0.11+ required for Python 3.13)

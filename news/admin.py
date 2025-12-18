@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
-from .models import Category, Tag, Article, Quiz, QuizQuestion, QuizOption, Newsletter, QuizAttempt
+from .models import Category, Tag, Article, Quiz, QuizQuestion, QuizOption, Newsletter, QuizAttempt, NewsSource
 
 
 @admin.register(Category)
@@ -58,6 +58,7 @@ class ArticleAdmin(admin.ModelAdmin):
         'category',
         'author',
         'priority_badge',
+        'ai_badge',
         'is_published',
         'published_at',
         'views_count'
@@ -68,6 +69,7 @@ class ArticleAdmin(admin.ModelAdmin):
         'is_published',
         'is_featured',
         'is_breaking',
+        'ai_generated',
         'priority',
         'published_at',
         'created_at'
@@ -115,6 +117,11 @@ class ArticleAdmin(admin.ModelAdmin):
         ('Estatísticas', {
             'fields': ('views_count', 'created_at', 'updated_at'),
             'classes': ('collapse',)
+        }),
+        ('Metadados de IA', {
+            'fields': ('ai_generated', 'ai_model', 'ai_processing_time', 'source_url', 'source_name', 'meta_description'),
+            'classes': ('collapse',),
+            'description': 'Campos preenchidos automaticamente quando o artigo é gerado por IA'
         }),
     )
 
@@ -185,6 +192,18 @@ class ArticleAdmin(admin.ModelAdmin):
         updated = queryset.update(is_breaking=True)
         self.message_user(request, f'{updated} artigo(s) marcado(s) como última hora.')
     mark_as_breaking.short_description = 'Marcar como última hora'
+
+    def ai_badge(self, obj):
+        if obj.ai_generated:
+            return format_html(
+                '<span style="background-color: #9b59b6; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">'
+                '🤖 IA</span>'
+            )
+        return format_html(
+            '<span style="background-color: #95a5a6; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">'
+            '✍️ Manual</span>'
+        )
+    ai_badge.short_description = 'Origem'
 
 
 class QuizOptionInline(admin.TabularInline):
@@ -293,3 +312,55 @@ class NewsletterAdmin(admin.ModelAdmin):
         updated = queryset.update(is_active=False, unsubscribed_at=timezone.now())
         self.message_user(request, f'{updated} inscrição(ões) desativada(s).')
     deactivate_subscriptions.short_description = 'Desativar inscrições'
+
+
+@admin.register(NewsSource)
+class NewsSourceAdmin(admin.ModelAdmin):
+    list_display = [
+        'name',
+        'source_type',
+        'is_active',
+        'priority',
+        'success_rate_display',
+        'last_fetch_at',
+        'last_fetch_status'
+    ]
+    list_filter = ['is_active', 'source_type', 'priority']
+    search_fields = ['name', 'url']
+    list_editable = ['is_active', 'priority']
+    readonly_fields = ['last_fetch_at', 'last_fetch_status', 'total_items_fetched', 'total_items_published', 'created_at', 'updated_at']
+    list_per_page = 25
+
+    fieldsets = (
+        ('Informações Básicas', {
+            'fields': ('name', 'url', 'source_type')
+        }),
+        ('Configurações', {
+            'fields': ('is_active', 'priority')
+        }),
+        ('Filtros de Palavras-chave', {
+            'fields': ('keywords_include', 'keywords_exclude'),
+            'classes': ('collapse',),
+            'description': 'Configure palavras-chave para filtrar notícias relevantes'
+        }),
+        ('Estatísticas', {
+            'fields': ('last_fetch_at', 'last_fetch_status', 'total_items_fetched', 'total_items_published'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def success_rate_display(self, obj):
+        rate = obj.success_rate
+        if obj.total_items_fetched == 0:
+            return '-'
+        color = '#27ae60' if rate >= 50 else '#e67e22' if rate >= 25 else '#e74c3c'
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{:.1f}%</span>',
+            color,
+            rate
+        )
+    success_rate_display.short_description = 'Taxa de Sucesso'

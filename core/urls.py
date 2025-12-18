@@ -13,6 +13,7 @@ from core.views import (
     FAQView,
     LibraryView,
     EventListView,
+    TolkienWorldView,
     # Views AJAX - Biblioteca Pessoal
     add_to_shelf,
     remove_from_shelf,
@@ -91,6 +92,7 @@ urlpatterns = [
     path('faq/', FAQView.as_view(), name='faq'),
     path('biblioteca/', LibraryView.as_view(), name='library'),
     path('eventos/', EventListView.as_view(), name='events'),
+    path('tolkien/', TolkienWorldView.as_view(), name='tolkien_world'),
     # Redirecionamento para URLs antigas (compatibilidade)
     path('book/<int:book_id>/', BookRedirectView.as_view(), name='book_redirect'),
 

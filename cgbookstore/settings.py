@@ -264,7 +264,15 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=8, minute=0),  # 8h da manhã
         'options': {'expires': 60 * 60},  # Expira após 1h se não executar
     },
+    # News Agent System - Geração automática de notícias com IA
+    'generate-daily-news': {
+        'task': 'news.generate_daily_news',
+        'schedule': crontab(hour=6, minute=0),  # Todo dia às 6h
+        'kwargs': {'limit': 5, 'hours_back': 24},
+        'options': {'expires': 60 * 60 * 2},  # Expira após 2h
+    },
 }
+
 
 # Token secreto para endpoints de cron externos (cron-job.org)
 # Configure no Render: CRON_SECRET_TOKEN=seu_token_aleatorio_aqui
@@ -353,6 +361,10 @@ GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
 # Groq AI (Recomendado - Mais rápido e free tier generoso)
 # Crie sua chave em: https://console.groq.com/keys
 GROQ_API_KEY = config('GROQ_API_KEY', default='')
+
+# Unsplash API (para imagens em posts gerados por IA)
+# Criar conta gratuita em: https://unsplash.com/developers
+UNSPLASH_ACCESS_KEY = config('UNSPLASH_ACCESS_KEY', default='')
 
 # ==============================================================================
 # MERCADO PAGO - MÓDULO FINANCEIRO

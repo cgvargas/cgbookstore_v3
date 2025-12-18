@@ -11,6 +11,7 @@ from .section import Section
 from .section_item import SectionItem
 from .event import Event
 from .banner import Banner
+from .featured_author_settings import FeaturedAuthorSettings
 
 __all__ = [
     'Category',
@@ -21,4 +22,5 @@ __all__ = [
     'SectionItem',
     'Event',
     'Banner',
+    'FeaturedAuthorSettings',
 ]

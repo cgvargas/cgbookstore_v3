@@ -1,0 +1,941 @@
+5229; 0 0 ACL - SCHEMA public pg_database_owner
+375; 1259 50555 TABLE public account_emailaddress postgres
+5368; 0 0 ACL public TABLE account_emailaddress postgres
+374; 1259 50554 SEQUENCE public account_emailaddress_id_seq postgres
+5369; 0 0 ACL public SEQUENCE account_emailaddress_id_seq postgres
+377; 1259 50563 TABLE public account_emailconfirmation postgres
+5370; 0 0 ACL public TABLE account_emailconfirmation postgres
+376; 1259 50562 SEQUENCE public account_emailconfirmation_id_seq postgres
+5371; 0 0 ACL public SEQUENCE account_emailconfirmation_id_seq postgres
+415; 1259 70977 TABLE public accounts_accountdeletion postgres
+5372; 0 0 ACL public TABLE accounts_accountdeletion postgres
+414; 1259 70976 SEQUENCE public accounts_accountdeletion_id_seq postgres
+5373; 0 0 ACL public SEQUENCE accounts_accountdeletion_id_seq postgres
+331; 1259 42382 TABLE public accounts_achievement postgres
+5374; 0 0 ACL public TABLE accounts_achievement postgres
+330; 1259 42381 SEQUENCE public accounts_achievement_id_seq postgres
+5375; 0 0 ACL public SEQUENCE accounts_achievement_id_seq postgres
+333; 1259 42394 TABLE public accounts_badge postgres
+5376; 0 0 ACL public TABLE accounts_badge postgres
+332; 1259 42393 SEQUENCE public accounts_badge_id_seq postgres
+5377; 0 0 ACL public SEQUENCE accounts_badge_id_seq postgres
+319; 1259 23279 TABLE public accounts_bookreview postgres
+5378; 0 0 ACL public TABLE accounts_bookreview postgres
+318; 1259 23278 SEQUENCE public accounts_bookreview_id_seq postgres
+5379; 0 0 ACL public SEQUENCE accounts_bookreview_id_seq postgres
+321; 1259 23289 TABLE public accounts_bookshelf postgres
+5380; 0 0 ACL public TABLE accounts_bookshelf postgres
+320; 1259 23288 SEQUENCE public accounts_bookshelf_id_seq postgres
+5381; 0 0 ACL public SEQUENCE accounts_bookshelf_id_seq postgres
+373; 1259 50520 TABLE public accounts_campaignnotification postgres
+5382; 0 0 ACL public TABLE accounts_campaignnotification postgres
+372; 1259 50519 SEQUENCE public accounts_campaignnotification_id_seq postgres
+5383; 0 0 ACL public SEQUENCE accounts_campaignnotification_id_seq postgres
+337; 1259 42416 TABLE public accounts_monthlyranking postgres
+5384; 0 0 ACL public TABLE accounts_monthlyranking postgres
+336; 1259 42415 SEQUENCE public accounts_monthlyranking_id_seq postgres
+5385; 0 0 ACL public SEQUENCE accounts_monthlyranking_id_seq postgres
+327; 1259 37907 TABLE public accounts_readingnotification postgres
+5386; 0 0 ACL public TABLE accounts_readingnotification postgres
+326; 1259 37906 SEQUENCE public accounts_readingnotification_id_seq postgres
+5387; 0 0 ACL public SEQUENCE accounts_readingnotification_id_seq postgres
+323; 1259 23297 TABLE public accounts_readingprogress postgres
+5388; 0 0 ACL public TABLE accounts_readingprogress postgres
+322; 1259 23296 SEQUENCE public accounts_readingprogress_id_seq postgres
+5389; 0 0 ACL public SEQUENCE accounts_readingprogress_id_seq postgres
+329; 1259 40150 TABLE public accounts_systemnotification postgres
+5390; 0 0 ACL public TABLE accounts_systemnotification postgres
+328; 1259 40149 SEQUENCE public accounts_systemnotification_id_seq postgres
+5391; 0 0 ACL public SEQUENCE accounts_systemnotification_id_seq postgres
+339; 1259 42422 TABLE public accounts_userachievement postgres
+5392; 0 0 ACL public TABLE accounts_userachievement postgres
+338; 1259 42421 SEQUENCE public accounts_userachievement_id_seq postgres
+5393; 0 0 ACL public SEQUENCE accounts_userachievement_id_seq postgres
+341; 1259 42428 TABLE public accounts_userbadge postgres
+5394; 0 0 ACL public TABLE accounts_userbadge postgres
+340; 1259 42427 SEQUENCE public accounts_userbadge_id_seq postgres
+5395; 0 0 ACL public SEQUENCE accounts_userbadge_id_seq postgres
+317; 1259 23267 TABLE public accounts_userprofile postgres
+5396; 0 0 ACL public TABLE accounts_userprofile postgres
+316; 1259 23266 SEQUENCE public accounts_userprofile_id_seq postgres
+5397; 0 0 ACL public SEQUENCE accounts_userprofile_id_seq postgres
+335; 1259 42406 TABLE public accounts_xpmultiplier postgres
+5398; 0 0 ACL public TABLE accounts_xpmultiplier postgres
+334; 1259 42405 SEQUENCE public accounts_xpmultiplier_id_seq postgres
+5399; 0 0 ACL public SEQUENCE accounts_xpmultiplier_id_seq postgres
+286; 1259 18511 TABLE public auth_group postgres
+5400; 0 0 ACL public TABLE auth_group postgres
+285; 1259 18510 SEQUENCE public auth_group_id_seq postgres
+5401; 0 0 ACL public SEQUENCE auth_group_id_seq postgres
+288; 1259 18519 TABLE public auth_group_permissions postgres
+5402; 0 0 ACL public TABLE auth_group_permissions postgres
+287; 1259 18518 SEQUENCE public auth_group_permissions_id_seq postgres
+5403; 0 0 ACL public SEQUENCE auth_group_permissions_id_seq postgres
+284; 1259 18505 TABLE public auth_permission postgres
+5404; 0 0 ACL public TABLE auth_permission postgres
+283; 1259 18504 SEQUENCE public auth_permission_id_seq postgres
+5405; 0 0 ACL public SEQUENCE auth_permission_id_seq postgres
+290; 1259 18525 TABLE public auth_user postgres
+5406; 0 0 ACL public TABLE auth_user postgres
+292; 1259 18533 TABLE public auth_user_groups postgres
+5407; 0 0 ACL public TABLE auth_user_groups postgres
+291; 1259 18532 SEQUENCE public auth_user_groups_id_seq postgres
+5408; 0 0 ACL public SEQUENCE auth_user_groups_id_seq postgres
+289; 1259 18524 SEQUENCE public auth_user_id_seq postgres
+5409; 0 0 ACL public SEQUENCE auth_user_id_seq postgres
+294; 1259 18539 TABLE public auth_user_user_permissions postgres
+5410; 0 0 ACL public TABLE auth_user_user_permissions postgres
+293; 1259 18538 SEQUENCE public auth_user_user_permissions_id_seq postgres
+5411; 0 0 ACL public SEQUENCE auth_user_user_permissions_id_seq postgres
+413; 1259 69834 TABLE public chatbot_literario_chatbotknowledge postgres
+5412; 0 0 ACL public TABLE chatbot_literario_chatbotknowledge postgres
+412; 1259 69833 SEQUENCE public chatbot_literario_chatbotknowledge_id_seq postgres
+5413; 0 0 ACL public SEQUENCE chatbot_literario_chatbotknowledge_id_seq postgres
+393; 1259 61812 TABLE public chatbot_literario_chatmessage postgres
+5414; 0 0 ACL public TABLE chatbot_literario_chatmessage postgres
+392; 1259 61811 SEQUENCE public chatbot_literario_chatmessage_id_seq postgres
+5415; 0 0 ACL public SEQUENCE chatbot_literario_chatmessage_id_seq postgres
+391; 1259 61806 TABLE public chatbot_literario_chatsession postgres
+5416; 0 0 ACL public TABLE chatbot_literario_chatsession postgres
+390; 1259 61805 SEQUENCE public chatbot_literario_chatsession_id_seq postgres
+5417; 0 0 ACL public SEQUENCE chatbot_literario_chatsession_id_seq postgres
+395; 1259 61820 TABLE public chatbot_literario_conversationcontext postgres
+5418; 0 0 ACL public TABLE chatbot_literario_conversationcontext postgres
+394; 1259 61819 SEQUENCE public chatbot_literario_conversationcontext_id_seq postgres
+5419; 0 0 ACL public SEQUENCE chatbot_literario_conversationcontext_id_seq postgres
+298; 1259 18626 TABLE public core_author postgres
+5420; 0 0 ACL public TABLE core_author postgres
+297; 1259 18625 SEQUENCE public core_author_id_seq postgres
+5421; 0 0 ACL public SEQUENCE core_author_id_seq postgres
+357; 1259 48174 TABLE public core_banner postgres
+5422; 0 0 ACL public TABLE core_banner postgres
+356; 1259 48173 SEQUENCE public core_banner_id_seq postgres
+5423; 0 0 ACL public SEQUENCE core_banner_id_seq postgres
+302; 1259 18646 TABLE public core_book postgres
+5424; 0 0 ACL public TABLE core_book postgres
+301; 1259 18645 SEQUENCE public core_book_id_seq postgres
+5425; 0 0 ACL public SEQUENCE core_book_id_seq postgres
+300; 1259 18636 TABLE public core_category postgres
+5426; 0 0 ACL public TABLE core_category postgres
+299; 1259 18635 SEQUENCE public core_category_id_seq postgres
+5427; 0 0 ACL public SEQUENCE core_category_id_seq postgres
+311; 1259 18794 TABLE public core_event postgres
+5428; 0 0 ACL public TABLE core_event postgres
+310; 1259 18793 SEQUENCE public core_event_id_seq postgres
+5429; 0 0 ACL public SEQUENCE core_event_id_seq postgres
+313; 1259 18805 TABLE public core_event_related_authors postgres
+5430; 0 0 ACL public TABLE core_event_related_authors postgres
+312; 1259 18804 SEQUENCE public core_event_related_authors_id_seq postgres
+5431; 0 0 ACL public SEQUENCE core_event_related_authors_id_seq postgres
+315; 1259 18811 TABLE public core_event_related_books postgres
+5432; 0 0 ACL public TABLE core_event_related_books postgres
+314; 1259 18810 SEQUENCE public core_event_related_books_id_seq postgres
+5433; 0 0 ACL public SEQUENCE core_event_related_books_id_seq postgres
+305; 1259 18733 TABLE public core_section postgres
+5434; 0 0 ACL public TABLE core_section postgres
+304; 1259 18732 SEQUENCE public core_section_id_seq postgres
+5435; 0 0 ACL public SEQUENCE core_section_id_seq postgres
+309; 1259 18754 TABLE public core_sectionitem postgres
+5436; 0 0 ACL public TABLE core_sectionitem postgres
+308; 1259 18753 SEQUENCE public core_sectionitem_id_seq postgres
+5437; 0 0 ACL public SEQUENCE core_sectionitem_id_seq postgres
+307; 1259 18743 TABLE public core_video postgres
+5438; 0 0 ACL public TABLE core_video postgres
+306; 1259 18742 SEQUENCE public core_video_id_seq postgres
+5439; 0 0 ACL public SEQUENCE core_video_id_seq postgres
+345; 1259 43602 TABLE public debates_debatepost postgres
+5440; 0 0 ACL public TABLE debates_debatepost postgres
+344; 1259 43601 SEQUENCE public debates_debatepost_id_seq postgres
+5441; 0 0 ACL public SEQUENCE debates_debatepost_id_seq postgres
+343; 1259 43592 TABLE public debates_debatetopic postgres
+5442; 0 0 ACL public TABLE debates_debatetopic postgres
+342; 1259 43591 SEQUENCE public debates_debatetopic_id_seq postgres
+5443; 0 0 ACL public SEQUENCE debates_debatetopic_id_seq postgres
+347; 1259 43610 TABLE public debates_debatevote postgres
+5444; 0 0 ACL public TABLE debates_debatevote postgres
+346; 1259 43609 SEQUENCE public debates_debatevote_id_seq postgres
+5445; 0 0 ACL public SEQUENCE debates_debatevote_id_seq postgres
+296; 1259 18597 TABLE public django_admin_log postgres
+5446; 0 0 ACL public TABLE django_admin_log postgres
+295; 1259 18596 SEQUENCE public django_admin_log_id_seq postgres
+5447; 0 0 ACL public SEQUENCE django_admin_log_id_seq postgres
+282; 1259 18497 TABLE public django_content_type postgres
+5448; 0 0 ACL public TABLE django_content_type postgres
+281; 1259 18496 SEQUENCE public django_content_type_id_seq postgres
+5449; 0 0 ACL public SEQUENCE django_content_type_id_seq postgres
+280; 1259 18489 TABLE public django_migrations postgres
+5450; 0 0 ACL public TABLE django_migrations postgres
+279; 1259 18488 SEQUENCE public django_migrations_id_seq postgres
+5451; 0 0 ACL public SEQUENCE django_migrations_id_seq postgres
+303; 1259 18722 TABLE public django_session postgres
+5452; 0 0 ACL public TABLE django_session postgres
+379; 1259 50595 TABLE public django_site postgres
+5453; 0 0 ACL public TABLE django_site postgres
+378; 1259 50594 SEQUENCE public django_site_id_seq postgres
+5454; 0 0 ACL public SEQUENCE django_site_id_seq postgres
+369; 1259 49371 TABLE public finance_campaign postgres
+5455; 0 0 ACL public TABLE finance_campaign postgres
+368; 1259 49370 SEQUENCE public finance_campaign_id_seq postgres
+5456; 0 0 ACL public SEQUENCE finance_campaign_id_seq postgres
+371; 1259 49379 TABLE public finance_campaigngrant postgres
+5457; 0 0 ACL public TABLE finance_campaigngrant postgres
+370; 1259 49378 SEQUENCE public finance_campaigngrant_id_seq postgres
+5458; 0 0 ACL public SEQUENCE finance_campaigngrant_id_seq postgres
+361; 1259 49298 TABLE public finance_order postgres
+5459; 0 0 ACL public TABLE finance_order postgres
+360; 1259 49297 SEQUENCE public finance_order_id_seq postgres
+5460; 0 0 ACL public SEQUENCE finance_order_id_seq postgres
+363; 1259 49306 TABLE public finance_orderitem postgres
+5461; 0 0 ACL public TABLE finance_orderitem postgres
+362; 1259 49305 SEQUENCE public finance_orderitem_id_seq postgres
+5462; 0 0 ACL public SEQUENCE finance_orderitem_id_seq postgres
+359; 1259 49290 TABLE public finance_product postgres
+5463; 0 0 ACL public TABLE finance_product postgres
+358; 1259 49289 SEQUENCE public finance_product_id_seq postgres
+5464; 0 0 ACL public SEQUENCE finance_product_id_seq postgres
+365; 1259 49312 TABLE public finance_subscription postgres
+5465; 0 0 ACL public TABLE finance_subscription postgres
+364; 1259 49311 SEQUENCE public finance_subscription_id_seq postgres
+5466; 0 0 ACL public SEQUENCE finance_subscription_id_seq postgres
+367; 1259 49322 TABLE public finance_transactionlog postgres
+5467; 0 0 ACL public TABLE finance_transactionlog postgres
+366; 1259 49321 SEQUENCE public finance_transactionlog_id_seq postgres
+5468; 0 0 ACL public SEQUENCE finance_transactionlog_id_seq postgres
+399; 1259 65213 TABLE public new_authors_book postgres
+5469; 0 0 ACL public TABLE new_authors_book postgres
+398; 1259 65212 SEQUENCE public new_authors_book_id_seq postgres
+5470; 0 0 ACL public SEQUENCE new_authors_book_id_seq postgres
+411; 1259 65366 TABLE public new_authors_book_like postgres
+5471; 0 0 ACL public TABLE new_authors_book_like postgres
+410; 1259 65365 SEQUENCE public new_authors_book_like_id_seq postgres
+5472; 0 0 ACL public SEQUENCE new_authors_book_like_id_seq postgres
+409; 1259 65255 TABLE public new_authors_chapter postgres
+5473; 0 0 ACL public TABLE new_authors_chapter postgres
+408; 1259 65254 SEQUENCE public new_authors_chapter_id_seq postgres
+5474; 0 0 ACL public SEQUENCE new_authors_chapter_id_seq postgres
+397; 1259 65203 TABLE public new_authors_emerging_author postgres
+5475; 0 0 ACL public TABLE new_authors_emerging_author postgres
+396; 1259 65202 SEQUENCE public new_authors_emerging_author_id_seq postgres
+5476; 0 0 ACL public SEQUENCE new_authors_emerging_author_id_seq postgres
+407; 1259 65249 TABLE public new_authors_follower postgres
+5477; 0 0 ACL public TABLE new_authors_follower postgres
+406; 1259 65248 SEQUENCE public new_authors_follower_id_seq postgres
+5478; 0 0 ACL public SEQUENCE new_authors_follower_id_seq postgres
+401; 1259 65223 TABLE public new_authors_publisher postgres
+5479; 0 0 ACL public TABLE new_authors_publisher postgres
+400; 1259 65222 SEQUENCE public new_authors_publisher_id_seq postgres
+5480; 0 0 ACL public SEQUENCE new_authors_publisher_id_seq postgres
+403; 1259 65233 TABLE public new_authors_publisher_interest postgres
+5481; 0 0 ACL public TABLE new_authors_publisher_interest postgres
+402; 1259 65232 SEQUENCE public new_authors_publisher_interest_id_seq postgres
+5482; 0 0 ACL public SEQUENCE new_authors_publisher_interest_id_seq postgres
+405; 1259 65241 TABLE public new_authors_review postgres
+5483; 0 0 ACL public TABLE new_authors_review postgres
+404; 1259 65240 SEQUENCE public new_authors_review_id_seq postgres
+5484; 0 0 ACL public SEQUENCE new_authors_review_id_seq postgres
+435; 1259 75809 TABLE public new_authors_terms_of_service postgres
+5485; 0 0 ACL public TABLE new_authors_terms_of_service postgres
+434; 1259 75808 SEQUENCE public new_authors_terms_of_service_id_seq postgres
+5486; 0 0 ACL public SEQUENCE new_authors_terms_of_service_id_seq postgres
+423; 1259 75660 TABLE public news_article postgres
+5487; 0 0 ACL public TABLE news_article postgres
+422; 1259 75659 SEQUENCE public news_article_id_seq postgres
+5488; 0 0 ACL public SEQUENCE news_article_id_seq postgres
+425; 1259 75671 TABLE public news_article_tags postgres
+5489; 0 0 ACL public TABLE news_article_tags postgres
+424; 1259 75670 SEQUENCE public news_article_tags_id_seq postgres
+5490; 0 0 ACL public SEQUENCE news_article_tags_id_seq postgres
+417; 1259 75629 TABLE public news_category postgres
+5491; 0 0 ACL public TABLE news_category postgres
+416; 1259 75628 SEQUENCE public news_category_id_seq postgres
+5492; 0 0 ACL public SEQUENCE news_category_id_seq postgres
+419; 1259 75642 TABLE public news_newsletter postgres
+5493; 0 0 ACL public TABLE news_newsletter postgres
+418; 1259 75641 SEQUENCE public news_newsletter_id_seq postgres
+5494; 0 0 ACL public SEQUENCE news_newsletter_id_seq postgres
+427; 1259 75677 TABLE public news_quiz postgres
+5495; 0 0 ACL public TABLE news_quiz postgres
+426; 1259 75676 SEQUENCE public news_quiz_id_seq postgres
+5496; 0 0 ACL public SEQUENCE news_quiz_id_seq postgres
+433; 1259 75784 TABLE public news_quizattempt postgres
+5497; 0 0 ACL public TABLE news_quizattempt postgres
+432; 1259 75783 SEQUENCE public news_quizattempt_id_seq postgres
+5498; 0 0 ACL public SEQUENCE news_quizattempt_id_seq postgres
+431; 1259 75697 TABLE public news_quizoption postgres
+5499; 0 0 ACL public TABLE news_quizoption postgres
+430; 1259 75696 SEQUENCE public news_quizoption_id_seq postgres
+5500; 0 0 ACL public SEQUENCE news_quizoption_id_seq postgres
+429; 1259 75688 TABLE public news_quizquestion postgres
+5501; 0 0 ACL public TABLE news_quizquestion postgres
+428; 1259 75687 SEQUENCE public news_quizquestion_id_seq postgres
+5502; 0 0 ACL public SEQUENCE news_quizquestion_id_seq postgres
+421; 1259 75650 TABLE public news_tag postgres
+5503; 0 0 ACL public TABLE news_tag postgres
+420; 1259 75649 SEQUENCE public news_tag_id_seq postgres
+5504; 0 0 ACL public SEQUENCE news_tag_id_seq postgres
+353; 1259 44789 TABLE public recommendations_interaction postgres
+5505; 0 0 ACL public TABLE recommendations_interaction postgres
+352; 1259 44788 SEQUENCE public recommendations_interaction_id_seq postgres
+5506; 0 0 ACL public SEQUENCE recommendations_interaction_id_seq postgres
+351; 1259 44781 TABLE public recommendations_recommendation postgres
+5507; 0 0 ACL public TABLE recommendations_recommendation postgres
+350; 1259 44780 SEQUENCE public recommendations_recommendation_id_seq postgres
+5508; 0 0 ACL public SEQUENCE recommendations_recommendation_id_seq postgres
+349; 1259 44775 TABLE public recommendations_similarity postgres
+5509; 0 0 ACL public TABLE recommendations_similarity postgres
+348; 1259 44774 SEQUENCE public recommendations_similarity_id_seq postgres
+5510; 0 0 ACL public SEQUENCE recommendations_similarity_id_seq postgres
+355; 1259 44795 TABLE public recommendations_userprofile postgres
+5511; 0 0 ACL public TABLE recommendations_userprofile postgres
+354; 1259 44794 SEQUENCE public recommendations_userprofile_id_seq postgres
+5512; 0 0 ACL public SEQUENCE recommendations_userprofile_id_seq postgres
+381; 1259 50604 TABLE public socialaccount_socialaccount postgres
+5513; 0 0 ACL public TABLE socialaccount_socialaccount postgres
+380; 1259 50603 SEQUENCE public socialaccount_socialaccount_id_seq postgres
+5514; 0 0 ACL public SEQUENCE socialaccount_socialaccount_id_seq postgres
+383; 1259 50612 TABLE public socialaccount_socialapp postgres
+5515; 0 0 ACL public TABLE socialaccount_socialapp postgres
+382; 1259 50611 SEQUENCE public socialaccount_socialapp_id_seq postgres
+5516; 0 0 ACL public SEQUENCE socialaccount_socialapp_id_seq postgres
+385; 1259 50618 TABLE public socialaccount_socialapp_sites postgres
+5517; 0 0 ACL public TABLE socialaccount_socialapp_sites postgres
+384; 1259 50617 SEQUENCE public socialaccount_socialapp_sites_id_seq postgres
+5518; 0 0 ACL public SEQUENCE socialaccount_socialapp_sites_id_seq postgres
+387; 1259 50624 TABLE public socialaccount_socialtoken postgres
+5519; 0 0 ACL public TABLE socialaccount_socialtoken postgres
+386; 1259 50623 SEQUENCE public socialaccount_socialtoken_id_seq postgres
+5520; 0 0 ACL public SEQUENCE socialaccount_socialtoken_id_seq postgres
+5156; 0 50555 TABLE DATA public account_emailaddress postgres
+5158; 0 50563 TABLE DATA public account_emailconfirmation postgres
+5196; 0 70977 TABLE DATA public accounts_accountdeletion postgres
+5112; 0 42382 TABLE DATA public accounts_achievement postgres
+5114; 0 42394 TABLE DATA public accounts_badge postgres
+5100; 0 23279 TABLE DATA public accounts_bookreview postgres
+5102; 0 23289 TABLE DATA public accounts_bookshelf postgres
+5154; 0 50520 TABLE DATA public accounts_campaignnotification postgres
+5118; 0 42416 TABLE DATA public accounts_monthlyranking postgres
+5108; 0 37907 TABLE DATA public accounts_readingnotification postgres
+5104; 0 23297 TABLE DATA public accounts_readingprogress postgres
+5110; 0 40150 TABLE DATA public accounts_systemnotification postgres
+5120; 0 42422 TABLE DATA public accounts_userachievement postgres
+5122; 0 42428 TABLE DATA public accounts_userbadge postgres
+5098; 0 23267 TABLE DATA public accounts_userprofile postgres
+5116; 0 42406 TABLE DATA public accounts_xpmultiplier postgres
+5067; 0 18511 TABLE DATA public auth_group postgres
+5069; 0 18519 TABLE DATA public auth_group_permissions postgres
+5065; 0 18505 TABLE DATA public auth_permission postgres
+5071; 0 18525 TABLE DATA public auth_user postgres
+5073; 0 18533 TABLE DATA public auth_user_groups postgres
+5075; 0 18539 TABLE DATA public auth_user_user_permissions postgres
+5194; 0 69834 TABLE DATA public chatbot_literario_chatbotknowledge postgres
+5174; 0 61812 TABLE DATA public chatbot_literario_chatmessage postgres
+5172; 0 61806 TABLE DATA public chatbot_literario_chatsession postgres
+5176; 0 61820 TABLE DATA public chatbot_literario_conversationcontext postgres
+5079; 0 18626 TABLE DATA public core_author postgres
+5138; 0 48174 TABLE DATA public core_banner postgres
+5083; 0 18646 TABLE DATA public core_book postgres
+5081; 0 18636 TABLE DATA public core_category postgres
+5092; 0 18794 TABLE DATA public core_event postgres
+5094; 0 18805 TABLE DATA public core_event_related_authors postgres
+5096; 0 18811 TABLE DATA public core_event_related_books postgres
+5086; 0 18733 TABLE DATA public core_section postgres
+5090; 0 18754 TABLE DATA public core_sectionitem postgres
+5088; 0 18743 TABLE DATA public core_video postgres
+5126; 0 43602 TABLE DATA public debates_debatepost postgres
+5124; 0 43592 TABLE DATA public debates_debatetopic postgres
+5128; 0 43610 TABLE DATA public debates_debatevote postgres
+5077; 0 18597 TABLE DATA public django_admin_log postgres
+5063; 0 18497 TABLE DATA public django_content_type postgres
+5061; 0 18489 TABLE DATA public django_migrations postgres
+5084; 0 18722 TABLE DATA public django_session postgres
+5160; 0 50595 TABLE DATA public django_site postgres
+5150; 0 49371 TABLE DATA public finance_campaign postgres
+5152; 0 49379 TABLE DATA public finance_campaigngrant postgres
+5142; 0 49298 TABLE DATA public finance_order postgres
+5144; 0 49306 TABLE DATA public finance_orderitem postgres
+5140; 0 49290 TABLE DATA public finance_product postgres
+5146; 0 49312 TABLE DATA public finance_subscription postgres
+5148; 0 49322 TABLE DATA public finance_transactionlog postgres
+5180; 0 65213 TABLE DATA public new_authors_book postgres
+5192; 0 65366 TABLE DATA public new_authors_book_like postgres
+5190; 0 65255 TABLE DATA public new_authors_chapter postgres
+5178; 0 65203 TABLE DATA public new_authors_emerging_author postgres
+5188; 0 65249 TABLE DATA public new_authors_follower postgres
+5182; 0 65223 TABLE DATA public new_authors_publisher postgres
+5184; 0 65233 TABLE DATA public new_authors_publisher_interest postgres
+5186; 0 65241 TABLE DATA public new_authors_review postgres
+5216; 0 75809 TABLE DATA public new_authors_terms_of_service postgres
+5204; 0 75660 TABLE DATA public news_article postgres
+5206; 0 75671 TABLE DATA public news_article_tags postgres
+5198; 0 75629 TABLE DATA public news_category postgres
+5200; 0 75642 TABLE DATA public news_newsletter postgres
+5208; 0 75677 TABLE DATA public news_quiz postgres
+5214; 0 75784 TABLE DATA public news_quizattempt postgres
+5212; 0 75697 TABLE DATA public news_quizoption postgres
+5210; 0 75688 TABLE DATA public news_quizquestion postgres
+5202; 0 75650 TABLE DATA public news_tag postgres
+5134; 0 44789 TABLE DATA public recommendations_interaction postgres
+5132; 0 44781 TABLE DATA public recommendations_recommendation postgres
+5130; 0 44775 TABLE DATA public recommendations_similarity postgres
+5136; 0 44795 TABLE DATA public recommendations_userprofile postgres
+5162; 0 50604 TABLE DATA public socialaccount_socialaccount postgres
+5164; 0 50612 TABLE DATA public socialaccount_socialapp postgres
+5166; 0 50618 TABLE DATA public socialaccount_socialapp_sites postgres
+5168; 0 50624 TABLE DATA public socialaccount_socialtoken postgres
+5538; 0 0 SEQUENCE SET public account_emailaddress_id_seq postgres
+5539; 0 0 SEQUENCE SET public account_emailconfirmation_id_seq postgres
+5540; 0 0 SEQUENCE SET public accounts_accountdeletion_id_seq postgres
+5541; 0 0 SEQUENCE SET public accounts_achievement_id_seq postgres
+5542; 0 0 SEQUENCE SET public accounts_badge_id_seq postgres
+5543; 0 0 SEQUENCE SET public accounts_bookreview_id_seq postgres
+5544; 0 0 SEQUENCE SET public accounts_bookshelf_id_seq postgres
+5545; 0 0 SEQUENCE SET public accounts_campaignnotification_id_seq postgres
+5546; 0 0 SEQUENCE SET public accounts_monthlyranking_id_seq postgres
+5547; 0 0 SEQUENCE SET public accounts_readingnotification_id_seq postgres
+5548; 0 0 SEQUENCE SET public accounts_readingprogress_id_seq postgres
+5549; 0 0 SEQUENCE SET public accounts_systemnotification_id_seq postgres
+5550; 0 0 SEQUENCE SET public accounts_userachievement_id_seq postgres
+5551; 0 0 SEQUENCE SET public accounts_userbadge_id_seq postgres
+5552; 0 0 SEQUENCE SET public accounts_userprofile_id_seq postgres
+5553; 0 0 SEQUENCE SET public accounts_xpmultiplier_id_seq postgres
+5554; 0 0 SEQUENCE SET public auth_group_id_seq postgres
+5555; 0 0 SEQUENCE SET public auth_group_permissions_id_seq postgres
+5556; 0 0 SEQUENCE SET public auth_permission_id_seq postgres
+5557; 0 0 SEQUENCE SET public auth_user_groups_id_seq postgres
+5558; 0 0 SEQUENCE SET public auth_user_id_seq postgres
+5559; 0 0 SEQUENCE SET public auth_user_user_permissions_id_seq postgres
+5560; 0 0 SEQUENCE SET public chatbot_literario_chatbotknowledge_id_seq postgres
+5561; 0 0 SEQUENCE SET public chatbot_literario_chatmessage_id_seq postgres
+5562; 0 0 SEQUENCE SET public chatbot_literario_chatsession_id_seq postgres
+5563; 0 0 SEQUENCE SET public chatbot_literario_conversationcontext_id_seq postgres
+5564; 0 0 SEQUENCE SET public core_author_id_seq postgres
+5565; 0 0 SEQUENCE SET public core_banner_id_seq postgres
+5566; 0 0 SEQUENCE SET public core_book_id_seq postgres
+5567; 0 0 SEQUENCE SET public core_category_id_seq postgres
+5568; 0 0 SEQUENCE SET public core_event_id_seq postgres
+5569; 0 0 SEQUENCE SET public core_event_related_authors_id_seq postgres
+5570; 0 0 SEQUENCE SET public core_event_related_books_id_seq postgres
+5571; 0 0 SEQUENCE SET public core_section_id_seq postgres
+5572; 0 0 SEQUENCE SET public core_sectionitem_id_seq postgres
+5573; 0 0 SEQUENCE SET public core_video_id_seq postgres
+5574; 0 0 SEQUENCE SET public debates_debatepost_id_seq postgres
+5575; 0 0 SEQUENCE SET public debates_debatetopic_id_seq postgres
+5576; 0 0 SEQUENCE SET public debates_debatevote_id_seq postgres
+5577; 0 0 SEQUENCE SET public django_admin_log_id_seq postgres
+5578; 0 0 SEQUENCE SET public django_content_type_id_seq postgres
+5579; 0 0 SEQUENCE SET public django_migrations_id_seq postgres
+5580; 0 0 SEQUENCE SET public django_site_id_seq postgres
+5581; 0 0 SEQUENCE SET public finance_campaign_id_seq postgres
+5582; 0 0 SEQUENCE SET public finance_campaigngrant_id_seq postgres
+5583; 0 0 SEQUENCE SET public finance_order_id_seq postgres
+5584; 0 0 SEQUENCE SET public finance_orderitem_id_seq postgres
+5585; 0 0 SEQUENCE SET public finance_product_id_seq postgres
+5586; 0 0 SEQUENCE SET public finance_subscription_id_seq postgres
+5587; 0 0 SEQUENCE SET public finance_transactionlog_id_seq postgres
+5588; 0 0 SEQUENCE SET public new_authors_book_id_seq postgres
+5589; 0 0 SEQUENCE SET public new_authors_book_like_id_seq postgres
+5590; 0 0 SEQUENCE SET public new_authors_chapter_id_seq postgres
+5591; 0 0 SEQUENCE SET public new_authors_emerging_author_id_seq postgres
+5592; 0 0 SEQUENCE SET public new_authors_follower_id_seq postgres
+5593; 0 0 SEQUENCE SET public new_authors_publisher_id_seq postgres
+5594; 0 0 SEQUENCE SET public new_authors_publisher_interest_id_seq postgres
+5595; 0 0 SEQUENCE SET public new_authors_review_id_seq postgres
+5596; 0 0 SEQUENCE SET public new_authors_terms_of_service_id_seq postgres
+5597; 0 0 SEQUENCE SET public news_article_id_seq postgres
+5598; 0 0 SEQUENCE SET public news_article_tags_id_seq postgres
+5599; 0 0 SEQUENCE SET public news_category_id_seq postgres
+5600; 0 0 SEQUENCE SET public news_newsletter_id_seq postgres
+5601; 0 0 SEQUENCE SET public news_quiz_id_seq postgres
+5602; 0 0 SEQUENCE SET public news_quizattempt_id_seq postgres
+5603; 0 0 SEQUENCE SET public news_quizoption_id_seq postgres
+5604; 0 0 SEQUENCE SET public news_quizquestion_id_seq postgres
+5605; 0 0 SEQUENCE SET public news_tag_id_seq postgres
+5606; 0 0 SEQUENCE SET public recommendations_interaction_id_seq postgres
+5607; 0 0 SEQUENCE SET public recommendations_recommendation_id_seq postgres
+5608; 0 0 SEQUENCE SET public recommendations_similarity_id_seq postgres
+5609; 0 0 SEQUENCE SET public recommendations_userprofile_id_seq postgres
+5610; 0 0 SEQUENCE SET public socialaccount_socialaccount_id_seq postgres
+5611; 0 0 SEQUENCE SET public socialaccount_socialapp_id_seq postgres
+5612; 0 0 SEQUENCE SET public socialaccount_socialapp_sites_id_seq postgres
+5613; 0 0 SEQUENCE SET public socialaccount_socialtoken_id_seq postgres
+4516; 2606 50559 CONSTRAINT public account_emailaddress account_emailaddress_pkey postgres
+4519; 2606 50588 CONSTRAINT public account_emailaddress account_emailaddress_user_id_email_987c8728_uniq postgres
+4525; 2606 50569 CONSTRAINT public account_emailconfirmation account_emailconfirmation_key_key postgres
+4527; 2606 50567 CONSTRAINT public account_emailconfirmation account_emailconfirmation_pkey postgres
+4659; 2606 70983 CONSTRAINT public accounts_accountdeletion accounts_accountdeletion_pkey postgres
+4372; 2606 42390 CONSTRAINT public accounts_achievement accounts_achievement_name_key postgres
+4374; 2606 42388 CONSTRAINT public accounts_achievement accounts_achievement_pkey postgres
+4377; 2606 42392 CONSTRAINT public accounts_achievement accounts_achievement_slug_key postgres
+4382; 2606 42402 CONSTRAINT public accounts_badge accounts_badge_name_key postgres
+4384; 2606 42400 CONSTRAINT public accounts_badge accounts_badge_pkey postgres
+4387; 2606 42404 CONSTRAINT public accounts_badge accounts_badge_slug_key postgres
+4310; 2606 23287 CONSTRAINT public accounts_bookreview accounts_bookreview_pkey postgres
+4313; 2606 23312 CONSTRAINT public accounts_bookreview accounts_bookreview_user_id_book_id_401693c1_uniq postgres
+4318; 2606 23295 CONSTRAINT public accounts_bookshelf accounts_bookshelf_pkey postgres
+4320; 2606 23329 CONSTRAINT public accounts_bookshelf accounts_bookshelf_user_id_book_id_shelf_ty_bebb853e_uniq postgres
+4510; 2606 50526 CONSTRAINT public accounts_campaignnotification accounts_campaignnotification_pkey postgres
+4398; 2606 42420 CONSTRAINT public accounts_monthlyranking accounts_monthlyranking_pkey postgres
+4401; 2606 42445 CONSTRAINT public accounts_monthlyranking accounts_monthlyranking_user_id_month_year_01f895a9_uniq postgres
+4354; 2606 37913 CONSTRAINT public accounts_readingnotification accounts_readingnotification_pkey postgres
+4328; 2606 23305 CONSTRAINT public accounts_readingprogress accounts_readingprogress_pkey postgres
+4330; 2606 23345 CONSTRAINT public accounts_readingprogress accounts_readingprogress_user_id_book_id_56ed4f98_uniq postgres
+4365; 2606 40156 CONSTRAINT public accounts_systemnotification accounts_systemnotification_pkey postgres
+4406; 2606 42426 CONSTRAINT public accounts_userachievement accounts_userachievement_pkey postgres
+4409; 2606 42455 CONSTRAINT public accounts_userachievement accounts_userachievement_user_id_achievement_id_f99a1129_uniq postgres
+4414; 2606 42432 CONSTRAINT public accounts_userbadge accounts_userbadge_pkey postgres
+4417; 2606 42471 CONSTRAINT public accounts_userbadge accounts_userbadge_user_id_badge_id_2100acda_uniq postgres
+4302; 2606 23275 CONSTRAINT public accounts_userprofile accounts_userprofile_pkey postgres
+4304; 2606 23277 CONSTRAINT public accounts_userprofile accounts_userprofile_user_id_key postgres
+4392; 2606 42414 CONSTRAINT public accounts_xpmultiplier accounts_xpmultiplier_name_key postgres
+4394; 2606 42412 CONSTRAINT public accounts_xpmultiplier accounts_xpmultiplier_pkey postgres
+4205; 2606 18623 CONSTRAINT public auth_group auth_group_name_key postgres
+4210; 2606 18554 CONSTRAINT public auth_group_permissions auth_group_permissions_group_id_permission_id_0cd325b0_uniq postgres
+4213; 2606 18523 CONSTRAINT public auth_group_permissions auth_group_permissions_pkey postgres
+4207; 2606 18515 CONSTRAINT public auth_group auth_group_pkey postgres
+4200; 2606 18545 CONSTRAINT public auth_permission auth_permission_content_type_id_codename_01ab375a_uniq postgres
+4202; 2606 18509 CONSTRAINT public auth_permission auth_permission_pkey postgres
+4221; 2606 18537 CONSTRAINT public auth_user_groups auth_user_groups_pkey postgres
+4224; 2606 18569 CONSTRAINT public auth_user_groups auth_user_groups_user_id_group_id_94350c0c_uniq postgres
+4215; 2606 18529 CONSTRAINT public auth_user auth_user_pkey postgres
+4227; 2606 18543 CONSTRAINT public auth_user_user_permissions auth_user_user_permissions_pkey postgres
+4230; 2606 18583 CONSTRAINT public auth_user_user_permissions auth_user_user_permissions_user_id_permission_id_14a6b632_uniq postgres
+4218; 2606 18618 CONSTRAINT public auth_user auth_user_username_key postgres
+4651; 2606 69840 CONSTRAINT public chatbot_literario_chatbotknowledge chatbot_literario_chatbotknowledge_pkey postgres
+4567; 2606 61818 CONSTRAINT public chatbot_literario_chatmessage chatbot_literario_chatmessage_pkey postgres
+4560; 2606 61810 CONSTRAINT public chatbot_literario_chatsession chatbot_literario_chatsession_pkey postgres
+4570; 2606 61826 CONSTRAINT public chatbot_literario_conversationcontext chatbot_literario_conversationcontext_pkey postgres
+4572; 2606 61828 CONSTRAINT public chatbot_literario_conversationcontext chatbot_literario_conversationcontext_user_id_key postgres
+4236; 2606 18632 CONSTRAINT public core_author core_author_pkey postgres
+4239; 2606 18684 CONSTRAINT public core_author core_author_slug_key postgres
+4471; 2606 48183 CONSTRAINT public core_banner core_banner_pkey postgres
+4254; 2606 18677 CONSTRAINT public core_book core_book_google_books_id_key postgres
+4258; 2606 18656 CONSTRAINT public core_book core_book_isbn_key postgres
+4260; 2606 18652 CONSTRAINT public core_book core_book_pkey postgres
+4263; 2606 18700 CONSTRAINT public core_book core_book_slug_key postgres
+4242; 2606 18642 CONSTRAINT public core_category core_category_name_key postgres
+4244; 2606 18640 CONSTRAINT public core_category core_category_pkey postgres
+4247; 2606 18703 CONSTRAINT public core_category core_category_slug_key postgres
+4284; 2606 18801 CONSTRAINT public core_event core_event_pkey postgres
+4291; 2606 18818 CONSTRAINT public core_event_related_authors core_event_related_authors_event_id_author_id_e90bbf96_uniq postgres
+4293; 2606 18809 CONSTRAINT public core_event_related_authors core_event_related_authors_pkey postgres
+4297; 2606 18832 CONSTRAINT public core_event_related_books core_event_related_books_event_id_book_id_f368338c_uniq postgres
+4299; 2606 18815 CONSTRAINT public core_event_related_books core_event_related_books_pkey postgres
+4287; 2606 18803 CONSTRAINT public core_event core_event_slug_key postgres
+4269; 2606 18741 CONSTRAINT public core_section core_section_pkey postgres
+4279; 2606 18762 CONSTRAINT public core_sectionitem core_sectionitem_pkey postgres
+4281; 2606 18777 CONSTRAINT public core_sectionitem core_sectionitem_section_id_content_type__aff25d6a_uniq postgres
+4271; 2606 18750 CONSTRAINT public core_video core_video_pkey postgres
+4276; 2606 18752 CONSTRAINT public core_video core_video_slug_key postgres
+4432; 2606 43608 CONSTRAINT public debates_debatepost debates_debatepost_pkey postgres
+4423; 2606 43598 CONSTRAINT public debates_debatetopic debates_debatetopic_pkey postgres
+4426; 2606 43600 CONSTRAINT public debates_debatetopic debates_debatetopic_slug_key postgres
+4436; 2606 43614 CONSTRAINT public debates_debatevote debates_debatevote_pkey postgres
+4439; 2606 43621 CONSTRAINT public debates_debatevote debates_debatevote_post_id_user_id_ffd66294_uniq postgres
+4233; 2606 18604 CONSTRAINT public django_admin_log django_admin_log_pkey postgres
+4195; 2606 18503 CONSTRAINT public django_content_type django_content_type_app_label_model_76bd3d3b_uniq postgres
+4197; 2606 18501 CONSTRAINT public django_content_type django_content_type_pkey postgres
+4193; 2606 18495 CONSTRAINT public django_migrations django_migrations_pkey postgres
+4266; 2606 18728 CONSTRAINT public django_session django_session_pkey postgres
+4530; 2606 50601 CONSTRAINT public django_site django_site_domain_a2e37b91_uniq postgres
+4532; 2606 50599 CONSTRAINT public django_site django_site_pkey postgres
+4492; 2606 49377 CONSTRAINT public finance_campaign finance_campaign_pkey postgres
+4495; 2606 49393 CONSTRAINT public finance_campaigngrant finance_campaigngrant_campaign_id_user_id_3c1adfbe_uniq postgres
+4497; 2606 49385 CONSTRAINT public finance_campaigngrant finance_campaigngrant_pkey postgres
+4475; 2606 49304 CONSTRAINT public finance_order finance_order_pkey postgres
+4479; 2606 49310 CONSTRAINT public finance_orderitem finance_orderitem_pkey postgres
+4473; 2606 49296 CONSTRAINT public finance_product finance_product_pkey postgres
+4482; 2606 49318 CONSTRAINT public finance_subscription finance_subscription_pkey postgres
+4484; 2606 49320 CONSTRAINT public finance_subscription finance_subscription_user_id_key postgres
+4487; 2606 49328 CONSTRAINT public finance_transactionlog finance_transactionlog_pkey postgres
+4641; 2606 65372 CONSTRAINT public new_authors_book_like new_authors_book_like_book_id_user_id_f971afb3_uniq postgres
+4643; 2606 65370 CONSTRAINT public new_authors_book_like new_authors_book_like_pkey postgres
+4589; 2606 65219 CONSTRAINT public new_authors_book new_authors_book_pkey postgres
+4592; 2606 65221 CONSTRAINT public new_authors_book new_authors_book_slug_key postgres
+4632; 2606 65341 CONSTRAINT public new_authors_chapter new_authors_chapter_book_id_number_df135419_uniq postgres
+4634; 2606 65262 CONSTRAINT public new_authors_chapter new_authors_chapter_pkey postgres
+4578; 2606 65209 CONSTRAINT public new_authors_emerging_author new_authors_emerging_author_pkey postgres
+4580; 2606 65211 CONSTRAINT public new_authors_emerging_author new_authors_emerging_author_user_id_key postgres
+4624; 2606 65325 CONSTRAINT public new_authors_follower new_authors_follower_book_id_user_id_b4396983_uniq postgres
+4626; 2606 65253 CONSTRAINT public new_authors_follower new_authors_follower_pkey postgres
+4597; 2606 76950 CONSTRAINT public new_authors_publisher new_authors_publisher_cnpj_key postgres
+4606; 2606 65277 CONSTRAINT public new_authors_publisher_interest new_authors_publisher_in_publisher_id_book_id_7febb144_uniq postgres
+4609; 2606 65239 CONSTRAINT public new_authors_publisher_interest new_authors_publisher_interest_pkey postgres
+4599; 2606 65229 CONSTRAINT public new_authors_publisher new_authors_publisher_pkey postgres
+4601; 2606 65231 CONSTRAINT public new_authors_publisher new_authors_publisher_user_id_key postgres
+4616; 2606 65308 CONSTRAINT public new_authors_review new_authors_review_book_id_user_id_d29c8e2d_uniq postgres
+4618; 2606 65247 CONSTRAINT public new_authors_review new_authors_review_pkey postgres
+4718; 2606 75815 CONSTRAINT public new_authors_terms_of_service new_authors_terms_of_service_pkey postgres
+4721; 2606 75817 CONSTRAINT public new_authors_terms_of_service new_authors_terms_of_service_version_key postgres
+4687; 2606 75667 CONSTRAINT public news_article news_article_pkey postgres
+4691; 2606 75669 CONSTRAINT public news_article news_article_slug_key postgres
+4694; 2606 75731 CONSTRAINT public news_article_tags news_article_tags_article_id_tag_id_e8bdf741_uniq postgres
+4696; 2606 75675 CONSTRAINT public news_article_tags news_article_tags_pkey postgres
+4662; 2606 75638 CONSTRAINT public news_category news_category_name_key postgres
+4664; 2606 75636 CONSTRAINT public news_category news_category_pkey postgres
+4667; 2606 75640 CONSTRAINT public news_category news_category_slug_key postgres
+4670; 2606 75648 CONSTRAINT public news_newsletter news_newsletter_email_key postgres
+4672; 2606 75646 CONSTRAINT public news_newsletter news_newsletter_pkey postgres
+4700; 2606 75684 CONSTRAINT public news_quiz news_quiz_pkey postgres
+4704; 2606 75686 CONSTRAINT public news_quiz news_quiz_slug_key postgres
+4714; 2606 75793 CONSTRAINT public news_quizattempt news_quizattempt_pkey postgres
+4709; 2606 75702 CONSTRAINT public news_quizoption news_quizoption_pkey postgres
+4706; 2606 75695 CONSTRAINT public news_quizquestion news_quizquestion_pkey postgres
+4675; 2606 75656 CONSTRAINT public news_tag news_tag_name_key postgres
+4677; 2606 75654 CONSTRAINT public news_tag news_tag_pkey postgres
+4680; 2606 75658 CONSTRAINT public news_tag news_tag_slug_key postgres
+4463; 2606 44793 CONSTRAINT public recommendations_interaction recommendations_interaction_pkey postgres
+4456; 2606 44787 CONSTRAINT public recommendations_recommendation recommendations_recommendation_pkey postgres
+4445; 2606 44805 CONSTRAINT public recommendations_similarity recommendations_similari_book_a_id_book_b_id_meth_40fc0027_uniq postgres
+4449; 2606 44779 CONSTRAINT public recommendations_similarity recommendations_similarity_pkey postgres
+4467; 2606 44801 CONSTRAINT public recommendations_userprofile recommendations_userprofile_pkey postgres
+4469; 2606 44803 CONSTRAINT public recommendations_userprofile recommendations_userprofile_user_id_key postgres
+4534; 2606 50610 CONSTRAINT public socialaccount_socialaccount socialaccount_socialaccount_pkey postgres
+4536; 2606 50672 CONSTRAINT public socialaccount_socialaccount socialaccount_socialaccount_provider_uid_fc810c6e_uniq postgres
+4541; 2606 50642 CONSTRAINT public socialaccount_socialapp_sites socialaccount_socialapp__socialapp_id_site_id_71a9a768_uniq postgres
+4539; 2606 50616 CONSTRAINT public socialaccount_socialapp socialaccount_socialapp_pkey postgres
+4543; 2606 50622 CONSTRAINT public socialaccount_socialapp_sites socialaccount_socialapp_sites_pkey postgres
+4549; 2606 50632 CONSTRAINT public socialaccount_socialtoken socialaccount_socialtoken_app_id_account_id_fca4e0ac_uniq postgres
+4551; 2606 50630 CONSTRAINT public socialaccount_socialtoken socialaccount_socialtoken_pkey postgres
+4513; 1259 50591 INDEX public account_emailaddress_email_03be32b2 postgres
+4514; 1259 50592 INDEX public account_emailaddress_email_03be32b2_like postgres
+4517; 1259 50576 INDEX public account_emailaddress_user_id_2c513194 postgres
+4522; 1259 50583 INDEX public account_emailconfirmation_email_address_id_5b7f8c58 postgres
+4523; 1259 50582 INDEX public account_emailconfirmation_key_f43612bd_like postgres
+4368; 1259 42435 INDEX public accounts_ac_categor_417a4d_idx postgres
+4654; 1259 70984 INDEX public accounts_ac_deleted_137bf1_idx postgres
+4655; 1259 70985 INDEX public accounts_ac_deletio_20f133_idx postgres
+4369; 1259 42436 INDEX public accounts_ac_difficu_a5d6f6_idx postgres
+4656; 1259 70987 INDEX public accounts_ac_email_s_131c56_idx postgres
+4657; 1259 70986 INDEX public accounts_ac_was_pre_c63c22_idx postgres
+4370; 1259 42433 INDEX public accounts_achievement_name_606868ca_like postgres
+4375; 1259 42434 INDEX public accounts_achievement_slug_86df06b1_like postgres
+4378; 1259 42440 INDEX public accounts_ba_categor_ac7c79_idx postgres
+4379; 1259 42439 INDEX public accounts_ba_rarity_b5ad2f_idx postgres
+4380; 1259 42437 INDEX public accounts_badge_name_9f181b1d_like postgres
+4385; 1259 42438 INDEX public accounts_badge_slug_3fd36153_like postgres
+4305; 1259 25571 INDEX public accounts_bo_book_id_e590ea_idx postgres
+4306; 1259 25572 INDEX public accounts_bo_is_publ_ea4236_idx postgres
+4314; 1259 23343 INDEX public accounts_bo_user_id_1d34bc_idx postgres
+4307; 1259 23325 INDEX public accounts_bo_user_id_dcbf04_idx postgres
+4315; 1259 23342 INDEX public accounts_bo_user_id_fa3bf7_idx postgres
+4308; 1259 23323 INDEX public accounts_bookreview_book_id_1b4bfe77 postgres
+4311; 1259 23324 INDEX public accounts_bookreview_user_id_61ab355b postgres
+4316; 1259 23340 INDEX public accounts_bookshelf_book_id_c9d8ec11 postgres
+4321; 1259 23341 INDEX public accounts_bookshelf_user_id_f4fc5a37 postgres
+4500; 1259 50551 INDEX public accounts_ca_campaig_15e3e4_idx postgres
+4501; 1259 64064 INDEX public accounts_ca_user_id_db7d9d_idx postgres
+4502; 1259 50550 INDEX public accounts_ca_user_id_eb2f17_idx postgres
+4503; 1259 50548 INDEX public accounts_campaignnotification_campaign_grant_id_fd4cc055 postgres
+4504; 1259 50547 INDEX public accounts_campaignnotification_campaign_id_d3517d64 postgres
+4505; 1259 50546 INDEX public accounts_campaignnotification_created_at_761f5bd8 postgres
+4506; 1259 50544 INDEX public accounts_campaignnotification_is_read_a2e57101 postgres
+4507; 1259 50542 INDEX public accounts_campaignnotification_notification_type_97bd4966 postgres
+4508; 1259 50543 INDEX public accounts_campaignnotification_notification_type_97bd4966_like postgres
+4511; 1259 50545 INDEX public accounts_campaignnotification_priority_86ead13b postgres
+4512; 1259 50549 INDEX public accounts_campaignnotification_user_id_49088b5f postgres
+4395; 1259 42452 INDEX public accounts_mo_month_ecce53_idx postgres
+4396; 1259 42453 INDEX public accounts_mo_total_s_2100aa_idx postgres
+4399; 1259 42451 INDEX public accounts_monthlyranking_user_id_e47d28b9 postgres
+4322; 1259 37904 INDEX public accounts_re_deadlin_77e1da_idx postgres
+4323; 1259 37905 INDEX public accounts_re_is_aban_973bab_idx postgres
+4346; 1259 37928 INDEX public accounts_re_reading_d74dbe_idx postgres
+4347; 1259 37927 INDEX public accounts_re_user_id_173d99_idx postgres
+4348; 1259 37926 INDEX public accounts_re_user_id_2c6011_idx postgres
+4324; 1259 25573 INDEX public accounts_re_user_id_b930ea_idx postgres
+4325; 1259 23358 INDEX public accounts_re_user_id_ca7973_idx postgres
+4349; 1259 40145 INDEX public accounts_readingnotification_created_at_854df7eb postgres
+4350; 1259 40146 INDEX public accounts_readingnotification_is_read_2285b161 postgres
+4351; 1259 40147 INDEX public accounts_readingnotification_notification_type_4f2548ee postgres
+4352; 1259 40148 INDEX public accounts_readingnotification_notification_type_4f2548ee_like postgres
+4355; 1259 40157 INDEX public accounts_readingnotification_priority_0645a7a3 postgres
+4356; 1259 37924 INDEX public accounts_readingnotification_reading_progress_id_78f9a051 postgres
+4357; 1259 37925 INDEX public accounts_readingnotification_user_id_f73c6bb2 postgres
+4326; 1259 23356 INDEX public accounts_readingprogress_book_id_d2bc27f4 postgres
+4331; 1259 23357 INDEX public accounts_readingprogress_user_id_c7df15f7 postgres
+4358; 1259 40169 INDEX public accounts_sy_user_id_3c17f4_idx postgres
+4359; 1259 40170 INDEX public accounts_sy_user_id_d5055e_idx postgres
+4360; 1259 40167 INDEX public accounts_systemnotification_created_at_8f16a959 postgres
+4361; 1259 40165 INDEX public accounts_systemnotification_is_read_78fd2675 postgres
+4362; 1259 40163 INDEX public accounts_systemnotification_notification_type_2cd4f44f postgres
+4363; 1259 40164 INDEX public accounts_systemnotification_notification_type_2cd4f44f_like postgres
+4366; 1259 40166 INDEX public accounts_systemnotification_priority_e4d51734 postgres
+4367; 1259 40168 INDEX public accounts_systemnotification_user_id_02b7e7a9 postgres
+4402; 1259 42469 INDEX public accounts_us_achieve_0f9987_idx postgres
+4410; 1259 42485 INDEX public accounts_us_badge_i_b7f024_idx postgres
+4411; 1259 42484 INDEX public accounts_us_user_id_6b32a0_idx postgres
+4403; 1259 42468 INDEX public accounts_us_user_id_fef049_idx postgres
+4404; 1259 42466 INDEX public accounts_userachievement_achievement_id_7389200a postgres
+4407; 1259 42467 INDEX public accounts_userachievement_user_id_81301e5d postgres
+4412; 1259 42482 INDEX public accounts_userbadge_badge_id_2a4f5388 postgres
+4415; 1259 42483 INDEX public accounts_userbadge_user_id_78d08762 postgres
+4300; 1259 28952 INDEX public accounts_userprofile_favorite_genre_id_ffa66b04 postgres
+4388; 1259 42443 INDEX public accounts_xp_applies_b12e45_idx postgres
+4389; 1259 42442 INDEX public accounts_xp_is_acti_5fdac5_idx postgres
+4390; 1259 42441 INDEX public accounts_xpmultiplier_name_2dd4040c_like postgres
+4203; 1259 18624 INDEX public auth_group_name_a6ea08ec_like postgres
+4208; 1259 18565 INDEX public auth_group_permissions_group_id_b120cbf9 postgres
+4211; 1259 18566 INDEX public auth_group_permissions_permission_id_84c5c92e postgres
+4198; 1259 18551 INDEX public auth_permission_content_type_id_2f476e4b postgres
+4219; 1259 18581 INDEX public auth_user_groups_group_id_97559544 postgres
+4222; 1259 18580 INDEX public auth_user_groups_user_id_6a12ed8b postgres
+4225; 1259 18595 INDEX public auth_user_user_permissions_permission_id_1fbb5f2c postgres
+4228; 1259 18594 INDEX public auth_user_user_permissions_user_id_a95ead1b postgres
+4216; 1259 18619 INDEX public auth_user_username_6821ab7c_like postgres
+4645; 1259 69849 INDEX public chatbot_lit_is_acti_9fa751_idx postgres
+4646; 1259 69846 INDEX public chatbot_lit_knowled_ce8249_idx postgres
+4647; 1259 69847 INDEX public chatbot_lit_related_321c53_idx postgres
+4648; 1259 69848 INDEX public chatbot_lit_related_81f9b3_idx postgres
+4562; 1259 61832 INDEX public chatbot_lit_role_bddf29_idx postgres
+4563; 1259 61831 INDEX public chatbot_lit_session_3cd273_idx postgres
+4557; 1259 61830 INDEX public chatbot_lit_user_id_02c54c_idx postgres
+4558; 1259 61829 INDEX public chatbot_lit_user_id_d22924_idx postgres
+4649; 1259 69866 INDEX public chatbot_literario_chatbotknowledge_created_by_id_4892fb26 postgres
+4652; 1259 69867 INDEX public chatbot_literario_chatbotknowledge_related_author_id_ec17940d postgres
+4653; 1259 69868 INDEX public chatbot_literario_chatbotknowledge_related_book_id_b42fd793 postgres
+4564; 1259 69850 INDEX public chatbot_literario_chatmessage_corrected_by_id_1f91f97d postgres
+4565; 1259 69869 INDEX public chatbot_literario_chatmessage_knowledge_base_used_id_e577a3d1 postgres
+4568; 1259 61844 INDEX public chatbot_literario_chatmessage_session_id_4a51b7c0 postgres
+4561; 1259 61838 INDEX public chatbot_literario_chatsession_user_id_06708105 postgres
+4237; 1259 18685 INDEX public core_author_slug_3da241de_like postgres
+4248; 1259 18672 INDEX public core_book_author_id_0bd1ce68 postgres
+4249; 1259 18673 INDEX public core_book_category_id_cea0e710 postgres
+4250; 1259 25570 INDEX public core_book_created_3b4e00_idx postgres
+4251; 1259 18714 INDEX public core_book_google__7b9268_idx postgres
+4252; 1259 18716 INDEX public core_book_google_books_id_9f1bd3b4_like postgres
+4255; 1259 18671 INDEX public core_book_isbn_5f14912c_like postgres
+4256; 1259 18713 INDEX public core_book_isbn_79f84d_idx postgres
+4261; 1259 18701 INDEX public core_book_slug_d62cdd35_like postgres
+4240; 1259 18658 INDEX public core_category_name_55b68161_like postgres
+4245; 1259 18704 INDEX public core_category_slug_384eca9c_like postgres
+4288; 1259 18830 INDEX public core_event_related_authors_author_id_6a388178 postgres
+4289; 1259 18829 INDEX public core_event_related_authors_event_id_24aa8f4a postgres
+4294; 1259 18844 INDEX public core_event_related_books_book_id_d3b85d82 postgres
+4295; 1259 18843 INDEX public core_event_related_books_event_id_85ecc47a postgres
+4285; 1259 18816 INDEX public core_event_slug_cb4996eb_like postgres
+4277; 1259 18788 INDEX public core_sectionitem_content_type_id_d18c1b3c postgres
+4282; 1259 18789 INDEX public core_sectionitem_section_id_dc86f33e postgres
+4272; 1259 18774 INDEX public core_video_related_author_id_adedb217 postgres
+4273; 1259 18775 INDEX public core_video_related_book_id_4a0cad95 postgres
+4274; 1259 18773 INDEX public core_video_slug_7d268743_like postgres
+4427; 1259 43618 INDEX public debates_deb_author__830818_idx postgres
+4418; 1259 43616 INDEX public debates_deb_book_id_703bb8_idx postgres
+4419; 1259 43615 INDEX public debates_deb_created_9024b3_idx postgres
+4434; 1259 43619 INDEX public debates_deb_post_id_0b38fa_idx postgres
+4428; 1259 43617 INDEX public debates_deb_topic_i_93e984_idx postgres
+4429; 1259 43650 INDEX public debates_debatepost_author_id_40914505 postgres
+4430; 1259 43651 INDEX public debates_debatepost_parent_id_27d21bf4 postgres
+4433; 1259 43652 INDEX public debates_debatepost_topic_id_74e522e8 postgres
+4420; 1259 43633 INDEX public debates_debatetopic_book_id_51452be0 postgres
+4421; 1259 43634 INDEX public debates_debatetopic_creator_id_e63a16d9 postgres
+4424; 1259 43632 INDEX public debates_debatetopic_slug_537c83a7_like postgres
+4437; 1259 43663 INDEX public debates_debatevote_post_id_08c71cf7 postgres
+4440; 1259 43664 INDEX public debates_debatevote_user_id_4c4b60f1 postgres
+4231; 1259 18615 INDEX public django_admin_log_content_type_id_c4bce8eb postgres
+4234; 1259 18616 INDEX public django_admin_log_user_id_c564eba6 postgres
+4264; 1259 18730 INDEX public django_session_expire_date_a5c62663 postgres
+4267; 1259 18729 INDEX public django_session_session_key_c0390e0f_like postgres
+4528; 1259 50602 INDEX public django_site_domain_a2e37b91_like postgres
+4490; 1259 49391 INDEX public finance_campaign_created_by_id_9aab4dca postgres
+4493; 1259 49409 INDEX public finance_campaigngrant_campaign_id_caad8e5d postgres
+4498; 1259 49410 INDEX public finance_campaigngrant_subscription_id_2b9335fa postgres
+4499; 1259 49411 INDEX public finance_campaigngrant_user_id_fe2843c9 postgres
+4476; 1259 49334 INDEX public finance_order_user_id_09e4023a postgres
+4477; 1259 49345 INDEX public finance_orderitem_order_id_b173bbe5 postgres
+4480; 1259 49346 INDEX public finance_orderitem_product_id_5f7130da postgres
+4485; 1259 49367 INDEX public finance_transactionlog_order_id_64c410c8 postgres
+4488; 1259 49368 INDEX public finance_transactionlog_subscription_id_84f1cdc9 postgres
+4489; 1259 49369 INDEX public finance_transactionlog_user_id_5f67bd83 postgres
+4581; 1259 65266 INDEX public idx_book_author_date postgres
+4582; 1259 65268 INDEX public idx_book_genre postgres
+4583; 1259 65269 INDEX public idx_book_rating postgres
+4584; 1259 65271 INDEX public idx_book_slug postgres
+4585; 1259 65267 INDEX public idx_book_status postgres
+4586; 1259 65270 INDEX public idx_book_views postgres
+4628; 1259 65350 INDEX public idx_chapter_book_num postgres
+4629; 1259 65351 INDEX public idx_chapter_published postgres
+4573; 1259 65265 INDEX public idx_emerging_author_status postgres
+4574; 1259 65263 INDEX public idx_emerging_author_user postgres
+4575; 1259 65264 INDEX public idx_emerging_author_views postgres
+4620; 1259 65338 INDEX public idx_follower_book postgres
+4621; 1259 65339 INDEX public idx_follower_user postgres
+4458; 1259 44850 INDEX public idx_interaction_book_date postgres
+4459; 1259 44851 INDEX public idx_interaction_type postgres
+4460; 1259 44849 INDEX public idx_interaction_user_date postgres
+4602; 1259 65274 INDEX public idx_interest_book postgres
+4603; 1259 65273 INDEX public idx_interest_publisher postgres
+4604; 1259 65275 INDEX public idx_interest_status postgres
+4637; 1259 65385 INDEX public idx_like_book postgres
+4638; 1259 65386 INDEX public idx_like_user postgres
+4593; 1259 76951 INDEX public idx_publisher_cnpj postgres
+4594; 1259 65272 INDEX public idx_publisher_status postgres
+4450; 1259 44834 INDEX public idx_rec_book postgres
+4451; 1259 44836 INDEX public idx_rec_expires postgres
+4452; 1259 44835 INDEX public idx_rec_type postgres
+4453; 1259 44833 INDEX public idx_rec_user_score postgres
+4611; 1259 65323 INDEX public idx_review_approved postgres
+4612; 1259 65321 INDEX public idx_review_book_date postgres
+4613; 1259 65322 INDEX public idx_review_user postgres
+4441; 1259 44818 INDEX public idx_similarity_book_a postgres
+4442; 1259 44819 INDEX public idx_similarity_book_b postgres
+4443; 1259 44820 INDEX public idx_similarity_method postgres
+4465; 1259 44857 INDEX public idx_userprofile_user postgres
+4587; 1259 65289 INDEX public new_authors_book_author_id_0ba46f63 postgres
+4639; 1259 65383 INDEX public new_authors_book_like_book_id_d8465805 postgres
+4644; 1259 65384 INDEX public new_authors_book_like_user_id_3ab76241 postgres
+4590; 1259 65288 INDEX public new_authors_book_slug_8bd62725_like postgres
+4630; 1259 65349 INDEX public new_authors_chapter_book_id_ee37ced1 postgres
+4635; 1259 65347 INDEX public new_authors_chapter_slug_a8193a76 postgres
+4636; 1259 65348 INDEX public new_authors_chapter_slug_a8193a76_like postgres
+4576; 1259 75841 INDEX public new_authors_emerging_author_accepted_terms_version_id_b99140f1 postgres
+4622; 1259 65336 INDEX public new_authors_follower_book_id_e2567d63 postgres
+4627; 1259 65337 INDEX public new_authors_follower_user_id_8019e579 postgres
+4595; 1259 76952 INDEX public new_authors_publisher_cnpj_3e3a9e0b_like postgres
+4607; 1259 65305 INDEX public new_authors_publisher_interest_book_id_75b7d453 postgres
+4610; 1259 65306 INDEX public new_authors_publisher_interest_publisher_id_cf48a80b postgres
+4614; 1259 65319 INDEX public new_authors_review_book_id_36972b3b postgres
+4619; 1259 65320 INDEX public new_authors_review_user_id_85bc8f0f postgres
+4719; 1259 75840 INDEX public new_authors_terms_of_service_version_7017e94c_like postgres
+4681; 1259 75704 INDEX public news_articl_content_48bd61_idx postgres
+4682; 1259 75705 INDEX public news_articl_is_feat_7be6d2_idx postgres
+4683; 1259 75703 INDEX public news_articl_publish_62720b_idx postgres
+4684; 1259 75727 INDEX public news_article_author_id_11c60ced postgres
+4685; 1259 75729 INDEX public news_article_category_id_7ede7614 postgres
+4688; 1259 75728 INDEX public news_article_related_book_id_6a870cac postgres
+4689; 1259 75726 INDEX public news_article_slug_5328fdc5_like postgres
+4692; 1259 75742 INDEX public news_article_tags_article_id_6c2f9e1e postgres
+4697; 1259 75743 INDEX public news_article_tags_tag_id_8c2bd5d5 postgres
+4660; 1259 75706 INDEX public news_category_name_6c0b36c6_like postgres
+4665; 1259 75707 INDEX public news_category_slug_8bf24efd_like postgres
+4668; 1259 75708 INDEX public news_newsletter_email_5f922cfc_like postgres
+4698; 1259 75755 INDEX public news_quiz_category_id_7356eaeb postgres
+4701; 1259 75756 INDEX public news_quiz_related_article_id_0641297d postgres
+4702; 1259 75754 INDEX public news_quiz_slug_72ab5574_like postgres
+4711; 1259 75807 INDEX public news_quizat_quiz_id_4be47a_idx postgres
+4712; 1259 75806 INDEX public news_quizat_user_id_485b8f_idx postgres
+4715; 1259 75804 INDEX public news_quizattempt_quiz_id_13de60fe postgres
+4716; 1259 75805 INDEX public news_quizattempt_user_id_6d4bf96c postgres
+4710; 1259 75768 INDEX public news_quizoption_question_id_438d9280 postgres
+4707; 1259 75762 INDEX public news_quizquestion_quiz_id_6a544473 postgres
+4673; 1259 75709 INDEX public news_tag_name_8821d338_like postgres
+4678; 1259 75710 INDEX public news_tag_slug_7e2d3f68_like postgres
+4461; 1259 44847 INDEX public recommendations_interaction_book_id_1418473c postgres
+4464; 1259 44848 INDEX public recommendations_interaction_user_id_921630be postgres
+4454; 1259 44831 INDEX public recommendations_recommendation_book_id_2825a2e8 postgres
+4457; 1259 44832 INDEX public recommendations_recommendation_user_id_3bb3c837 postgres
+4446; 1259 44816 INDEX public recommendations_similarity_book_a_id_77b5aba2 postgres
+4447; 1259 44817 INDEX public recommendations_similarity_book_b_id_af7303cc postgres
+4537; 1259 50640 INDEX public socialaccount_socialaccount_user_id_8146e70c postgres
+4544; 1259 50654 INDEX public socialaccount_socialapp_sites_site_id_2579dee5 postgres
+4545; 1259 50653 INDEX public socialaccount_socialapp_sites_socialapp_id_97fb6e7d postgres
+4546; 1259 50665 INDEX public socialaccount_socialtoken_account_id_951f210e postgres
+4547; 1259 50666 INDEX public socialaccount_socialtoken_app_id_636a42d7 postgres
+4520; 1259 50593 INDEX public unique_primary_email postgres
+4521; 1259 50589 INDEX public unique_verified_email postgres
+4809; 2606 50570 FK CONSTRAINT public account_emailaddress account_emailaddress_user_id_2c513194_fk_auth_user_id postgres
+4810; 2606 50577 FK CONSTRAINT public account_emailconfirmation account_emailconfirm_email_address_id_5b7f8c58_fk_account_e postgres
+4763; 2606 23313 FK CONSTRAINT public accounts_bookreview accounts_bookreview_book_id_1b4bfe77_fk_core_book_id postgres
+4764; 2606 23318 FK CONSTRAINT public accounts_bookreview accounts_bookreview_user_id_61ab355b_fk_auth_user_id postgres
+4765; 2606 23330 FK CONSTRAINT public accounts_bookshelf accounts_bookshelf_book_id_c9d8ec11_fk_core_book_id postgres
+4766; 2606 23335 FK CONSTRAINT public accounts_bookshelf accounts_bookshelf_user_id_f4fc5a37_fk_auth_user_id postgres
+4806; 2606 50532 FK CONSTRAINT public accounts_campaignnotification accounts_campaignnot_campaign_grant_id_fd4cc055_fk_finance_c postgres
+4807; 2606 50527 FK CONSTRAINT public accounts_campaignnotification accounts_campaignnot_campaign_id_d3517d64_fk_finance_c postgres
+4808; 2606 50537 FK CONSTRAINT public accounts_campaignnotification accounts_campaignnotification_user_id_49088b5f_fk_auth_user_id postgres
+4776; 2606 42446 FK CONSTRAINT public accounts_monthlyranking accounts_monthlyranking_user_id_e47d28b9_fk_auth_user_id postgres
+4773; 2606 37914 FK CONSTRAINT public accounts_readingnotification accounts_readingnoti_reading_progress_id_78f9a051_fk_accounts_ postgres
+4774; 2606 37919 FK CONSTRAINT public accounts_readingnotification accounts_readingnotification_user_id_f73c6bb2_fk_auth_user_id postgres
+4767; 2606 23346 FK CONSTRAINT public accounts_readingprogress accounts_readingprogress_book_id_d2bc27f4_fk_core_book_id postgres
+4768; 2606 23351 FK CONSTRAINT public accounts_readingprogress accounts_readingprogress_user_id_c7df15f7_fk_auth_user_id postgres
+4775; 2606 40158 FK CONSTRAINT public accounts_systemnotification accounts_systemnotification_user_id_02b7e7a9_fk_auth_user_id postgres
+4777; 2606 42456 FK CONSTRAINT public accounts_userachievement accounts_userachieve_achievement_id_7389200a_fk_accounts_ postgres
+4778; 2606 42461 FK CONSTRAINT public accounts_userachievement accounts_userachievement_user_id_81301e5d_fk_auth_user_id postgres
+4779; 2606 42472 FK CONSTRAINT public accounts_userbadge accounts_userbadge_badge_id_2a4f5388_fk_accounts_badge_id postgres
+4780; 2606 42477 FK CONSTRAINT public accounts_userbadge accounts_userbadge_user_id_78d08762_fk_auth_user_id postgres
+4761; 2606 28940 FK CONSTRAINT public accounts_userprofile accounts_userprofile_favorite_genre_id_ffa66b04_fk_core_cate postgres
+4762; 2606 23306 FK CONSTRAINT public accounts_userprofile accounts_userprofile_user_id_92240672_fk_auth_user_id postgres
+4743; 2606 18560 FK CONSTRAINT public auth_group_permissions auth_group_permissio_permission_id_84c5c92e_fk_auth_perm postgres
+4744; 2606 18555 FK CONSTRAINT public auth_group_permissions auth_group_permissions_group_id_b120cbf9_fk_auth_group_id postgres
+4742; 2606 18546 FK CONSTRAINT public auth_permission auth_permission_content_type_id_2f476e4b_fk_django_co postgres
+4745; 2606 18575 FK CONSTRAINT public auth_user_groups auth_user_groups_group_id_97559544_fk_auth_group_id postgres
+4746; 2606 18570 FK CONSTRAINT public auth_user_groups auth_user_groups_user_id_6a12ed8b_fk_auth_user_id postgres
+4747; 2606 18589 FK CONSTRAINT public auth_user_user_permissions auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm postgres
+4748; 2606 18584 FK CONSTRAINT public auth_user_user_permissions auth_user_user_permissions_user_id_a95ead1b_fk_auth_user_id postgres
+4818; 2606 69824 FK CONSTRAINT public chatbot_literario_chatmessage chatbot_literario_ch_corrected_by_id_1f91f97d_fk_auth_user postgres
+4835; 2606 69851 FK CONSTRAINT public chatbot_literario_chatbotknowledge chatbot_literario_ch_created_by_id_4892fb26_fk_auth_user postgres
+4819; 2606 69841 FK CONSTRAINT public chatbot_literario_chatmessage chatbot_literario_ch_knowledge_base_used__e577a3d1_fk_chatbot_l postgres
+4836; 2606 69856 FK CONSTRAINT public chatbot_literario_chatbotknowledge chatbot_literario_ch_related_author_id_ec17940d_fk_core_auth postgres
+4837; 2606 69861 FK CONSTRAINT public chatbot_literario_chatbotknowledge chatbot_literario_ch_related_book_id_b42fd793_fk_core_book postgres
+4820; 2606 61839 FK CONSTRAINT public chatbot_literario_chatmessage chatbot_literario_ch_session_id_4a51b7c0_fk_chatbot_l postgres
+4817; 2606 61833 FK CONSTRAINT public chatbot_literario_chatsession chatbot_literario_chatsession_user_id_06708105_fk_auth_user_id postgres
+4821; 2606 61845 FK CONSTRAINT public chatbot_literario_conversationcontext chatbot_literario_co_user_id_b80a7f9e_fk_auth_user postgres
+4751; 2606 18717 FK CONSTRAINT public core_book core_book_author_id_0bd1ce68_fk_core_author_id postgres
+4752; 2606 18665 FK CONSTRAINT public core_book core_book_category_id_cea0e710_fk_core_category_id postgres
+4757; 2606 18824 FK CONSTRAINT public core_event_related_authors core_event_related_authors_author_id_6a388178_fk_core_author_id postgres
+4758; 2606 18819 FK CONSTRAINT public core_event_related_authors core_event_related_authors_event_id_24aa8f4a_fk_core_event_id postgres
+4759; 2606 18838 FK CONSTRAINT public core_event_related_books core_event_related_books_book_id_d3b85d82_fk_core_book_id postgres
+4760; 2606 18833 FK CONSTRAINT public core_event_related_books core_event_related_books_event_id_85ecc47a_fk_core_event_id postgres
+4755; 2606 18778 FK CONSTRAINT public core_sectionitem core_sectionitem_content_type_id_d18c1b3c_fk_django_co postgres
+4756; 2606 18783 FK CONSTRAINT public core_sectionitem core_sectionitem_section_id_dc86f33e_fk_core_section_id postgres
+4753; 2606 18763 FK CONSTRAINT public core_video core_video_related_author_id_adedb217_fk_core_author_id postgres
+4754; 2606 18768 FK CONSTRAINT public core_video core_video_related_book_id_4a0cad95_fk_core_book_id postgres
+4783; 2606 43635 FK CONSTRAINT public debates_debatepost debates_debatepost_author_id_40914505_fk_auth_user_id postgres
+4784; 2606 43640 FK CONSTRAINT public debates_debatepost debates_debatepost_parent_id_27d21bf4_fk_debates_debatepost_id postgres
+4785; 2606 43645 FK CONSTRAINT public debates_debatepost debates_debatepost_topic_id_74e522e8_fk_debates_debatetopic_id postgres
+4781; 2606 43622 FK CONSTRAINT public debates_debatetopic debates_debatetopic_book_id_51452be0_fk_core_book_id postgres
+4782; 2606 43627 FK CONSTRAINT public debates_debatetopic debates_debatetopic_creator_id_e63a16d9_fk_auth_user_id postgres
+4786; 2606 43653 FK CONSTRAINT public debates_debatevote debates_debatevote_post_id_08c71cf7_fk_debates_debatepost_id postgres
+4787; 2606 43658 FK CONSTRAINT public debates_debatevote debates_debatevote_user_id_4c4b60f1_fk_auth_user_id postgres
+4749; 2606 18605 FK CONSTRAINT public django_admin_log django_admin_log_content_type_id_c4bce8eb_fk_django_co postgres
+4750; 2606 18610 FK CONSTRAINT public django_admin_log django_admin_log_user_id_c564eba6_fk_auth_user_id postgres
+4802; 2606 49386 FK CONSTRAINT public finance_campaign finance_campaign_created_by_id_9aab4dca_fk_auth_user_id postgres
+4803; 2606 49394 FK CONSTRAINT public finance_campaigngrant finance_campaigngran_campaign_id_caad8e5d_fk_finance_c postgres
+4804; 2606 49399 FK CONSTRAINT public finance_campaigngrant finance_campaigngran_subscription_id_2b9335fa_fk_finance_s postgres
+4805; 2606 49404 FK CONSTRAINT public finance_campaigngrant finance_campaigngrant_user_id_fe2843c9_fk_auth_user_id postgres
+4795; 2606 49329 FK CONSTRAINT public finance_order finance_order_user_id_09e4023a_fk_auth_user_id postgres
+4796; 2606 49335 FK CONSTRAINT public finance_orderitem finance_orderitem_order_id_b173bbe5_fk_finance_order_id postgres
+4797; 2606 49340 FK CONSTRAINT public finance_orderitem finance_orderitem_product_id_5f7130da_fk_finance_product_id postgres
+4798; 2606 49347 FK CONSTRAINT public finance_subscription finance_subscription_user_id_7cc6a5c0_fk_auth_user_id postgres
+4799; 2606 49357 FK CONSTRAINT public finance_transactionlog finance_transactionl_subscription_id_84f1cdc9_fk_finance_s postgres
+4800; 2606 49352 FK CONSTRAINT public finance_transactionlog finance_transactionlog_order_id_64c410c8_fk_finance_order_id postgres
+4801; 2606 49362 FK CONSTRAINT public finance_transactionlog finance_transactionlog_user_id_5f67bd83_fk_auth_user_id postgres
+4824; 2606 65283 FK CONSTRAINT public new_authors_book new_authors_book_author_id_0ba46f63_fk_new_autho postgres
+4833; 2606 65373 FK CONSTRAINT public new_authors_book_like new_authors_book_like_book_id_d8465805_fk_new_authors_book_id postgres
+4834; 2606 65378 FK CONSTRAINT public new_authors_book_like new_authors_book_like_user_id_3ab76241_fk_auth_user_id postgres
+4832; 2606 65342 FK CONSTRAINT public new_authors_chapter new_authors_chapter_book_id_ee37ced1_fk_new_authors_book_id postgres
+4822; 2606 75835 FK CONSTRAINT public new_authors_emerging_author new_authors_emerging_accepted_terms_versi_b99140f1_fk_new_autho postgres
+4823; 2606 65278 FK CONSTRAINT public new_authors_emerging_author new_authors_emerging_author_user_id_f52d1431_fk_auth_user_id postgres
+4830; 2606 65326 FK CONSTRAINT public new_authors_follower new_authors_follower_book_id_e2567d63_fk_new_authors_book_id postgres
+4831; 2606 65331 FK CONSTRAINT public new_authors_follower new_authors_follower_user_id_8019e579_fk_auth_user_id postgres
+4826; 2606 65295 FK CONSTRAINT public new_authors_publisher_interest new_authors_publishe_book_id_75b7d453_fk_new_autho postgres
+4827; 2606 65300 FK CONSTRAINT public new_authors_publisher_interest new_authors_publishe_publisher_id_cf48a80b_fk_new_autho postgres
+4825; 2606 65290 FK CONSTRAINT public new_authors_publisher new_authors_publisher_user_id_9ece844d_fk_auth_user_id postgres
+4828; 2606 65309 FK CONSTRAINT public new_authors_review new_authors_review_book_id_36972b3b_fk_new_authors_book_id postgres
+4829; 2606 65314 FK CONSTRAINT public new_authors_review new_authors_review_user_id_85bc8f0f_fk_auth_user_id postgres
+4838; 2606 75711 FK CONSTRAINT public news_article news_article_author_id_11c60ced_fk_auth_user_id postgres
+4839; 2606 75721 FK CONSTRAINT public news_article news_article_category_id_7ede7614_fk_news_category_id postgres
+4840; 2606 75716 FK CONSTRAINT public news_article news_article_related_book_id_6a870cac_fk_core_book_id postgres
+4841; 2606 75732 FK CONSTRAINT public news_article_tags news_article_tags_article_id_6c2f9e1e_fk_news_article_id postgres
+4842; 2606 75737 FK CONSTRAINT public news_article_tags news_article_tags_tag_id_8c2bd5d5_fk_news_tag_id postgres
+4843; 2606 75744 FK CONSTRAINT public news_quiz news_quiz_category_id_7356eaeb_fk_news_category_id postgres
+4844; 2606 75749 FK CONSTRAINT public news_quiz news_quiz_related_article_id_0641297d_fk_news_article_id postgres
+4847; 2606 75794 FK CONSTRAINT public news_quizattempt news_quizattempt_quiz_id_13de60fe_fk_news_quiz_id postgres
+4848; 2606 75799 FK CONSTRAINT public news_quizattempt news_quizattempt_user_id_6d4bf96c_fk_auth_user_id postgres
+4846; 2606 75763 FK CONSTRAINT public news_quizoption news_quizoption_question_id_438d9280_fk_news_quizquestion_id postgres
+4845; 2606 75757 FK CONSTRAINT public news_quizquestion news_quizquestion_quiz_id_6a544473_fk_news_quiz_id postgres
+4792; 2606 44837 FK CONSTRAINT public recommendations_interaction recommendations_interaction_book_id_1418473c_fk_core_book_id postgres
+4793; 2606 44842 FK CONSTRAINT public recommendations_interaction recommendations_interaction_user_id_921630be_fk_auth_user_id postgres
+4790; 2606 44821 FK CONSTRAINT public recommendations_recommendation recommendations_recommendation_book_id_2825a2e8_fk_core_book_id postgres
+4791; 2606 44826 FK CONSTRAINT public recommendations_recommendation recommendations_recommendation_user_id_3bb3c837_fk_auth_user_id postgres
+4788; 2606 44806 FK CONSTRAINT public recommendations_similarity recommendations_similarity_book_a_id_77b5aba2_fk_core_book_id postgres
+4789; 2606 44811 FK CONSTRAINT public recommendations_similarity recommendations_similarity_book_b_id_af7303cc_fk_core_book_id postgres
+4794; 2606 44852 FK CONSTRAINT public recommendations_userprofile recommendations_userprofile_user_id_0b22e0c2_fk_auth_user_id postgres
+4814; 2606 50655 FK CONSTRAINT public socialaccount_socialtoken socialaccount_social_account_id_951f210e_fk_socialacc postgres
+4815; 2606 50673 FK CONSTRAINT public socialaccount_socialtoken socialaccount_social_app_id_636a42d7_fk_socialacc postgres
+4812; 2606 50648 FK CONSTRAINT public socialaccount_socialapp_sites socialaccount_social_site_id_2579dee5_fk_django_si postgres
+4813; 2606 50643 FK CONSTRAINT public socialaccount_socialapp_sites socialaccount_social_socialapp_id_97fb6e7d_fk_socialacc postgres
+4811; 2606 50635 FK CONSTRAINT public socialaccount_socialaccount socialaccount_socialaccount_user_id_8146e70c_fk_auth_user_id postgres
+2754; 826 16490 DEFAULT ACL public DEFAULT PRIVILEGES FOR SEQUENCES postgres
+2755; 826 16491 DEFAULT ACL public DEFAULT PRIVILEGES FOR SEQUENCES supabase_admin
+2753; 826 16489 DEFAULT ACL public DEFAULT PRIVILEGES FOR FUNCTIONS postgres
+2757; 826 16493 DEFAULT ACL public DEFAULT PRIVILEGES FOR FUNCTIONS supabase_admin
+2752; 826 16488 DEFAULT ACL public DEFAULT PRIVILEGES FOR TABLES postgres
+2756; 826 16492 DEFAULT ACL public DEFAULT PRIVILEGES FOR TABLES supabase_admin

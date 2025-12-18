@@ -185,6 +185,40 @@ class Article(models.Model):
         help_text="Link para inscrição/mais informações"
     )
 
+    # Campos de IA (para geração automática)
+    ai_generated = models.BooleanField(
+        default=False,
+        verbose_name="Gerado por IA",
+        help_text="Indica se o artigo foi gerado automaticamente por IA"
+    )
+    ai_model = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="Modelo IA",
+        help_text="Ex: gemini-pro, gemini-1.5-flash"
+    )
+    ai_processing_time = models.FloatField(
+        null=True,
+        blank=True,
+        verbose_name="Tempo de Processamento (segundos)"
+    )
+    source_url = models.URLField(
+        blank=True,
+        verbose_name="URL da Fonte Original",
+        help_text="Link para a notícia original"
+    )
+    source_name = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="Nome da Fonte"
+    )
+    meta_description = models.CharField(
+        max_length=160,
+        blank=True,
+        verbose_name="Meta Descrição (SEO)",
+        help_text="Descrição para mecanismos de busca (máx 160 caracteres)"
+    )
+
     # Estatísticas
     views_count = models.PositiveIntegerField(default=0, verbose_name="Visualizações")
 
@@ -389,3 +423,100 @@ class Newsletter(models.Model):
 
     def __str__(self):
         return self.email
+
+
+class NewsSource(models.Model):
+    """Fontes RSS para agregação automática de notícias literárias"""
+    
+    SOURCE_TYPE_CHOICES = [
+        ('rss', 'RSS Feed'),
+        ('atom', 'Atom Feed'),
+        ('json', 'JSON Feed'),
+    ]
+    
+    # Informações básicas
+    name = models.CharField(
+        max_length=100,
+        verbose_name="Nome da Fonte"
+    )
+    url = models.URLField(
+        unique=True,
+        verbose_name="URL do Feed"
+    )
+    source_type = models.CharField(
+        max_length=10,
+        choices=SOURCE_TYPE_CHOICES,
+        default='rss',
+        verbose_name="Tipo de Feed"
+    )
+    
+    # Configurações
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Ativo"
+    )
+    priority = models.IntegerField(
+        default=5,
+        verbose_name="Prioridade",
+        help_text="1-10, quanto maior mais importante"
+    )
+    
+    # Filtros de palavras-chave
+    keywords_include = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="Palavras-chave (incluir)",
+        help_text="Notícias devem conter pelo menos uma dessas palavras"
+    )
+    keywords_exclude = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="Palavras-chave (excluir)",
+        help_text="Notícias com essas palavras serão ignoradas"
+    )
+    
+    # Estatísticas de fetch
+    last_fetch_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Última Busca"
+    )
+    last_fetch_status = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="Status da Última Busca"
+    )
+    total_items_fetched = models.IntegerField(
+        default=0,
+        verbose_name="Total de Itens Buscados"
+    )
+    total_items_published = models.IntegerField(
+        default=0,
+        verbose_name="Total de Itens Publicados"
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Criado em"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Atualizado em"
+    )
+    
+    class Meta:
+        verbose_name = "Fonte de Notícias"
+        verbose_name_plural = "Fontes de Notícias"
+        ordering = ['-priority', 'name']
+    
+    def __str__(self):
+        status = "✓" if self.is_active else "✗"
+        return f"{status} {self.name} (Prioridade: {self.priority})"
+    
+    @property
+    def success_rate(self):
+        """Calcula taxa de sucesso (publicados/buscados)"""
+        if self.total_items_fetched == 0:
+            return 0
+        return (self.total_items_published / self.total_items_fetched) * 100
