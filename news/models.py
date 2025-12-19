@@ -520,3 +520,141 @@ class NewsSource(models.Model):
         if self.total_items_fetched == 0:
             return 0
         return (self.total_items_published / self.total_items_fetched) * 100
+
+
+class NewsAgentConfig(models.Model):
+    """
+    Configuração centralizada do Agente de Notícias.
+    Singleton - apenas uma instância ativa por vez.
+    """
+    
+    MODE_CHOICES = [
+        ('manual', '🔧 Manual'),
+        ('automatic', '🤖 Automático'),
+        ('paused', '⏸️ Pausado'),
+    ]
+    
+    SCHEDULE_CHOICES = [
+        ('hourly', 'A cada hora'),
+        ('every_6h', 'A cada 6 horas'),
+        ('every_12h', 'A cada 12 horas'),
+        ('daily', 'Diário'),
+        ('twice_daily', '2x ao dia'),
+        ('weekly', 'Semanal'),
+    ]
+    
+    # Configurações de Modo
+    name = models.CharField(
+        max_length=100,
+        default="Configuração Principal",
+        verbose_name="Nome da Configuração"
+    )
+    mode = models.CharField(
+        max_length=20,
+        choices=MODE_CHOICES,
+        default='manual',
+        verbose_name="Modo de Operação"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Configuração Ativa",
+        help_text="Apenas uma configuração pode estar ativa"
+    )
+    
+    # Configurações de Pesquisa
+    articles_per_run = models.PositiveIntegerField(
+        default=5,
+        verbose_name="Artigos por Execução",
+        help_text="Quantos artigos gerar por vez"
+    )
+    hours_lookback = models.PositiveIntegerField(
+        default=24,
+        verbose_name="Período de Busca (horas)",
+        help_text="Buscar notícias das últimas X horas"
+    )
+    include_images = models.BooleanField(
+        default=True,
+        verbose_name="Incluir Imagens",
+        help_text="Buscar imagens do Unsplash para os artigos"
+    )
+    
+    # Agendamento
+    schedule = models.CharField(
+        max_length=20,
+        choices=SCHEDULE_CHOICES,
+        default='daily',
+        verbose_name="Frequência"
+    )
+    schedule_hour = models.PositiveIntegerField(
+        default=6,
+        verbose_name="Horário (hora)",
+        help_text="Hora do dia para execução automática (0-23)"
+    )
+    schedule_minute = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Horário (minuto)",
+        help_text="Minuto da hora (0-59)"
+    )
+    
+    # Temas Específicos
+    specific_themes = models.TextField(
+        blank=True,
+        verbose_name="Temas Específicos",
+        help_text="Um tema por linha. Ex: Stephen King, Tolkien, Manga"
+    )
+    category_filter = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Filtrar por Categoria",
+        help_text="Gerar artigos apenas para esta categoria"
+    )
+    
+    # Estatísticas
+    last_run = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Última Execução"
+    )
+    last_run_articles = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Artigos na Última Execução"
+    )
+    total_articles_generated = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Total de Artigos Gerados"
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "⚙️ Configuração do Agente"
+        verbose_name_plural = "⚙️ Configurações do Agente"
+    
+    def __str__(self):
+        mode_icon = dict(self.MODE_CHOICES).get(self.mode, '')
+        return f"{self.name} - {mode_icon}"
+    
+    def save(self, *args, **kwargs):
+        # Garantir apenas uma configuração ativa
+        if self.is_active:
+            NewsAgentConfig.objects.exclude(pk=self.pk).update(is_active=False)
+        super().save(*args, **kwargs)
+    
+    @classmethod
+    def get_active(cls):
+        """Retorna a configuração ativa ou cria uma padrão."""
+        config, created = cls.objects.get_or_create(
+            is_active=True,
+            defaults={'name': 'Configuração Principal'}
+        )
+        return config
+    
+    def get_themes_list(self):
+        """Retorna lista de temas específicos."""
+        if not self.specific_themes:
+            return []
+        return [t.strip() for t in self.specific_themes.split('\n') if t.strip()]

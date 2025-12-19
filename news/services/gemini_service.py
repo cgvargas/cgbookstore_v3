@@ -145,6 +145,7 @@ class GeminiNewsService:
     def create_article(self, news_data: Dict) -> Dict:
         """
         Cria artigo completo a partir de dados da notícia.
+        Inclui validação anti-alucinação.
         """
         if not self.is_available():
             raise Exception("Nenhuma API de IA disponível. Configure GROQ_API_KEY ou GEMINI_API_KEY.")
@@ -153,9 +154,16 @@ class GeminiNewsService:
             start_time = time.time()
             
             prompt = self._build_article_prompt(news_data)
-            response_text = self._call_ai(prompt, temperature=0.7, max_tokens=8192)
+            # Usar temperatura baixa para respostas mais factuais
+            response_text = self._call_ai(prompt, temperature=0.3, max_tokens=4096)
             
             article = self._parse_json_response(response_text)
+            
+            # Validar conteúdo contra alucinações
+            content = article.get('content', '')
+            if self._has_hallucination_patterns(content):
+                logger.warning("⚠️ Conteúdo com possíveis alucinações detectadas, rejeitando...")
+                raise ValueError("Artigo contém padrões de alucinação")
             
             # Adicionar metadados
             article['processing_time'] = time.time() - start_time
@@ -168,6 +176,57 @@ class GeminiNewsService:
         except Exception as e:
             logger.error(f"Erro ao criar artigo com {self.provider}: {str(e)}")
             raise
+    
+    def _has_hallucination_patterns(self, content: str) -> bool:
+        """Detecta padrões de alucinação e conteúdo genérico vazio."""
+        
+        content_lower = content.lower()
+        
+        # Padrões de placeholder
+        placeholder_patterns = [
+            'nome do autor', 'nome de autor', 'nomes de autores',
+            'título do livro', 'título de livro', 'títulos de livros',
+            '[nome]', '[autor]', '[título]', '[data]',
+            'nome de poeta', 'título de quadrinho',
+            'autores como', 'livros como', 'obras como',
+            'exemplo de autor', 'exemplo de livro',
+        ]
+        
+        for pattern in placeholder_patterns:
+            if pattern in content_lower:
+                logger.warning(f"Padrão de placeholder detectado: '{pattern}'")
+                return True
+        
+        # Padrões de conteúdo genérico/vazio
+        generic_patterns = [
+            'lista com 100 títulos',
+            'lista de 100 títulos', 
+            'mais detalhes podem ser encontrados na fonte',
+            'para saber mais, consulte',
+            'para mais informações, acesse',
+            'novos autores e obras',
+            'visão geral dos lançamentos',
+            'ferramenta valiosa para quem busca',
+        ]
+        
+        generic_count = 0
+        for pattern in generic_patterns:
+            if pattern in content_lower:
+                generic_count += 1
+                logger.warning(f"Padrão genérico detectado: '{pattern}'")
+        
+        # Se tem 2+ padrões genéricos, é conteúdo vazio
+        if generic_count >= 2:
+            logger.warning(f"Conteúdo muito genérico ({generic_count} padrões)")
+            return True
+        
+        # Verificar se conteúdo é muito curto (menos de 300 palavras)
+        word_count = len(content.split())
+        if word_count < 150:
+            logger.warning(f"Conteúdo muito curto: {word_count} palavras")
+            return True
+        
+        return False
     
     def _build_filter_prompt(self, news_items: List[Dict], limit: int) -> str:
         """Constrói prompt para filtrar notícias."""
@@ -211,68 +270,57 @@ RETORNE APENAS JSON válido:
         return prompt
     
     def _build_article_prompt(self, news_data: Dict) -> str:
-        """Constrói prompt para criar artigo, com enriquecimento para adaptações."""
+        """Constrói prompt para criar artigo com regras anti-alucinação."""
         
-        # Detectar se é notícia de adaptação
-        title = news_data.get('title', '').lower()
-        summary = news_data.get('summary', news_data.get('description', '')).lower()
-        text = f"{title} {summary}"
+        title = news_data.get('title', '')
+        summary = news_data.get('summary', news_data.get('description', ''))
+        source_name = news_data.get('source_name', '')
+        link = news_data.get('link', '')
         
-        is_adaptation = any(word in text for word in [
-            'adaptação', 'adaptation', 'filme', 'movie', 'série', 'series',
-            'netflix', 'hbo', 'disney', 'amazon prime', 'anime', 'manga',
-            'game', 'jogo', 'baseado', 'based on', 'livro para'
-        ])
-        
-        category = news_data.get('suggested_category', 'Geral')
-        if category == 'Adaptações':
-            is_adaptation = True
-        
-        # Instruções para adaptações
-        adaptation_instructions = ""
-        if is_adaptation:
-            adaptation_instructions = """
-CONTEÚDO ESPECIAL PARA ADAPTAÇÕES:
-Como esta é sobre uma ADAPTAÇÃO, inclua obrigatoriamente:
+        prompt = f"""Você é um jornalista literário do blog CGBookStore.
 
-📚 SOBRE O LIVRO: autor, ano, descrição breve
-🎬 SOBRE A ADAPTAÇÃO: elenco, diretor, estúdio, plataforma, data
-🎵 TRILHA SONORA: compositor (se conhecido)
-💡 CURIOSIDADES: bastidores, diferenças do livro
-📊 COMPARAÇÃO: o que esperar
-
-Use seções com <h2> para organizar.
-"""
-        
-        prompt = f"""Você é um escritor especializado em literatura para o blog CGBookStore.
-
-INFORMAÇÕES DA NOTÍCIA:
-Título: {news_data.get('title', '')}
-Resumo: {news_data.get('summary', news_data.get('description', ''))}
-Fonte: {news_data.get('source_name', '')}
-Link: {news_data.get('link', '')}
+NOTÍCIA ORIGINAL:
+Título: {title}
+Resumo: {summary}
+Fonte: {source_name}
+Link: {link}
 
 ---
 
-CRIE um artigo ORIGINAL em português brasileiro sobre esta notícia.
+REGRAS OBRIGATÓRIAS (SIGA RIGOROSAMENTE):
 
-ESTRUTURA:
-1. Título cativante (máximo 70 caracteres)
-2. Introdução (2-3 parágrafos)
-3. Desenvolvimento (4-6 parágrafos)
-4. Conclusão (1-2 parágrafos)
+⚠️ REGRA ANTI-ALUCINAÇÃO:
+1. Use APENAS informações presentes na notícia original acima
+2. NÃO invente nomes de autores, títulos de livros, datas ou dados
+3. NÃO use placeholders como "nome do autor", "título do livro"
+4. Se não souber uma informação específica, NÃO mencione
+5. NUNCA afirme fatos que não estejam na notícia original
 
-ESTILO: Profissional mas acessível, 800-1200 palavras.
-FORMATAÇÃO: Use HTML semântico (<p>, <h2>, <h3>, <strong>, <em>, <blockquote>)
-IMPORTANTE: NÃO copie texto da fonte. Adicione contexto e análise.
-{adaptation_instructions}
+📝 FORMATO DO ARTIGO:
+- Título: Máximo 70 caracteres, baseado no conteúdo real
+- Conteúdo: 400-600 palavras (NÃO invente para preencher)
+- Use HTML: <p>, <h2>, <strong>, <em>
+- Escreva em português brasileiro
+
+✅ O QUE VOCÊ PODE FAZER:
+- Resumir e reformular a informação original
+- Adicionar contexto GERAL sobre o tema (sem inventar fatos específicos)
+- Opinar sobre a relevância da notícia
+- Mencionar que "mais detalhes podem ser encontrados na fonte"
+
+❌ O QUE VOCÊ NÃO PODE FAZER:
+- Inventar nomes de autores que não estão na notícia
+- Criar listas de livros fictícias
+- Afirmar datas ou números não confirmados
+- Usar expressões genéricas como "autores como [nome]"
+
 RETORNE APENAS JSON válido:
 {{
-  "title": "Título do artigo (máx 70 chars)",
-  "content": "Conteúdo completo em HTML...",
-  "excerpt": "Resumo de 200-300 caracteres",
-  "meta_description": "Meta description (150-160 chars)",
-  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
+  "title": "Título baseado na notícia real",
+  "content": "Conteúdo em HTML baseado APENAS na notícia",
+  "excerpt": "Resumo de 150-200 caracteres",
+  "meta_description": "Meta description 150 chars",
+  "tags": ["tag1", "tag2", "tag3"]
 }}
 """
         return prompt

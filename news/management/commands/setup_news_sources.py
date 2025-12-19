@@ -98,13 +98,40 @@ class Command(BaseCommand):
                 'keywords_include': ['netflix', 'amazon', 'streaming', 'adaptação', 'série'],
                 'keywords_exclude': [],
             },
-            # Google News - Anime e Manga
+            # Google News - Anime e Manga (PT-BR)
             {
-                'name': 'Google News - Anime Manga',
-                'url': 'https://news.google.com/rss/search?q=anime+adaptação+manga+OR+light+novel&hl=pt-BR&gl=BR&ceid=BR:pt-419',
+                'name': 'Google News - Anime BR',
+                'url': 'https://news.google.com/rss/search?q=anime+novo+estreia+temporada&hl=pt-BR&gl=BR&ceid=BR:pt-419',
+                'source_type': 'rss',
+                'priority': 9,
+                'keywords_include': ['anime', 'temporada', 'episódio', 'crunchyroll', 'netflix anime'],
+                'keywords_exclude': [],
+            },
+            # Google News - Mangá (PT-BR)
+            {
+                'name': 'Google News - Mangá BR',
+                'url': 'https://news.google.com/rss/search?q=mangá+lançamento+one+piece+OR+dragon+ball+OR+naruto&hl=pt-BR&gl=BR&ceid=BR:pt-419',
+                'source_type': 'rss',
+                'priority': 9,
+                'keywords_include': ['mangá', 'manga', 'capítulo', 'shonen', 'seinen'],
+                'keywords_exclude': [],
+            },
+            # Google News - Anime Internacional
+            {
+                'name': 'Google News - Anime EN',
+                'url': 'https://news.google.com/rss/search?q=anime+new+season+release&hl=en-US&gl=US&ceid=US:en',
+                'source_type': 'rss',
+                'priority': 8,
+                'keywords_include': ['anime', 'manga', 'crunchyroll', 'funimation'],
+                'keywords_exclude': [],
+            },
+            # Google News - Light Novel
+            {
+                'name': 'Google News - Light Novel',
+                'url': 'https://news.google.com/rss/search?q=light+novel+adaptação+anime&hl=pt-BR&gl=BR&ceid=BR:pt-419',
                 'source_type': 'rss',
                 'priority': 7,
-                'keywords_include': ['anime', 'manga', 'light novel', 'adaptação', 'crunchyroll'],
+                'keywords_include': ['light novel', 'novel', 'isekai', 'adaptação'],
                 'keywords_exclude': [],
             },
             # Google News - Games baseados em livros

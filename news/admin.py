@@ -1,7 +1,10 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
-from .models import Category, Tag, Article, Quiz, QuizQuestion, QuizOption, Newsletter, QuizAttempt, NewsSource
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.contrib import messages
+from .models import Category, Tag, Article, Quiz, QuizQuestion, QuizOption, Newsletter, QuizAttempt, NewsSource, NewsAgentConfig
 
 
 @admin.register(Category)
@@ -359,8 +362,138 @@ class NewsSourceAdmin(admin.ModelAdmin):
             return '-'
         color = '#27ae60' if rate >= 50 else '#e67e22' if rate >= 25 else '#e74c3c'
         return format_html(
-            '<span style="color: {}; font-weight: bold;">{:.1f}%</span>',
+            '<span style="color: {}; font-weight: bold;">{}%</span>',
             color,
-            rate
+            f"{float(rate):.1f}"
         )
     success_rate_display.short_description = 'Taxa de Sucesso'
+
+
+@admin.register(NewsAgentConfig)
+class NewsAgentConfigAdmin(admin.ModelAdmin):
+    """Admin para configuração do Agente de Notícias."""
+    
+    list_display = ['name', 'mode_badge', 'schedule_display', 'last_run_display', 'total_articles_generated', 'is_active']
+    list_filter = ['mode', 'is_active', 'schedule']
+    
+    fieldsets = (
+        ('🎛️ Configuração Geral', {
+            'fields': ('name', 'mode', 'is_active'),
+            'description': 'Defina o modo de operação do agente de notícias'
+        }),
+        ('📊 Configurações de Pesquisa', {
+            'fields': ('articles_per_run', 'hours_lookback', 'include_images'),
+            'description': 'Quantos artigos gerar e de qual período'
+        }),
+        ('⏰ Agendamento (Modo Automático)', {
+            'fields': ('schedule', 'schedule_hour', 'schedule_minute'),
+            'classes': ('collapse',),
+            'description': 'Configure quando o agente deve rodar automaticamente'
+        }),
+        ('🎯 Temas e Filtros', {
+            'fields': ('specific_themes', 'category_filter'),
+            'classes': ('collapse',),
+            'description': 'Defina temas específicos para pesquisar'
+        }),
+        ('📈 Estatísticas', {
+            'fields': ('last_run', 'last_run_articles', 'total_articles_generated'),
+            'classes': ('collapse',),
+        }),
+    )
+    
+    readonly_fields = ['last_run', 'last_run_articles', 'total_articles_generated']
+    
+    actions = ['run_agent_now']
+    
+    def mode_badge(self, obj):
+        colors = {
+            'manual': '#3498db',
+            'automatic': '#27ae60',
+            'paused': '#95a5a6',
+        }
+        icons = {
+            'manual': '🔧',
+            'automatic': '🤖',
+            'paused': '⏸️',
+        }
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 12px;">{} {}</span>',
+            colors.get(obj.mode, '#333'),
+            icons.get(obj.mode, ''),
+            obj.get_mode_display().split(' ')[-1]
+        )
+    mode_badge.short_description = 'Modo'
+    
+    def schedule_display(self, obj):
+        return f"🕐 {obj.get_schedule_display()} às {obj.schedule_hour:02d}:{obj.schedule_minute:02d}"
+    schedule_display.short_description = 'Agendamento'
+    
+    def last_run_display(self, obj):
+        if not obj.last_run:
+            return format_html('<span style="color: #95a5a6;">Nunca executado</span>')
+        diff = timezone.now() - obj.last_run
+        if diff.days > 0:
+            ago = f"{diff.days} dias atrás"
+        elif diff.seconds > 3600:
+            ago = f"{diff.seconds // 3600}h atrás"
+        else:
+            ago = f"{diff.seconds // 60}min atrás"
+        return format_html(
+            '<span title="{}">📅 {} ({} artigos)</span>',
+            obj.last_run.strftime('%d/%m/%Y %H:%M'),
+            ago,
+            obj.last_run_articles
+        )
+    last_run_display.short_description = 'Última Execução'
+    
+    def run_agent_now(self, request, queryset):
+        """Ação para executar o agente imediatamente."""
+        from django.core.management import call_command
+        from io import StringIO
+        
+        config = queryset.first()
+        if not config:
+            self.message_user(request, "Selecione uma configuração", level=messages.WARNING)
+            return
+        
+        try:
+            out = StringIO()
+            call_command(
+                'generate_news_posts',
+                limit=config.articles_per_run,
+                skip_images=not config.include_images,
+                stdout=out
+            )
+            
+            # Atualizar estatísticas
+            config.last_run = timezone.now()
+            config.save()
+            
+            self.message_user(
+                request, 
+                f"✅ Agente executado! Verifique os artigos gerados.",
+                level=messages.SUCCESS
+            )
+        except Exception as e:
+            self.message_user(request, f"❌ Erro: {str(e)}", level=messages.ERROR)
+    
+    run_agent_now.short_description = "🚀 Executar Agente Agora"
+    
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['show_run_button'] = True
+        return super().change_view(request, object_id, form_url, extra_context)
+    
+    def save_model(self, request, obj, form, change):
+        """Ao salvar, reinicia o scheduler com as novas configurações."""
+        super().save_model(request, obj, form, change)
+        
+        # Reiniciar scheduler com novas configurações
+        try:
+            from news.scheduler import restart_scheduler
+            restart_scheduler()
+            self.message_user(request, "🔄 Agendamento atualizado!", level=messages.INFO)
+        except Exception as e:
+            self.message_user(request, f"⚠️ Schedulter não iniciado: {e}", level=messages.WARNING)
+
+

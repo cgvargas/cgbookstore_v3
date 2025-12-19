@@ -87,6 +87,62 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f'  ✓ {len(raw_news)} notícias coletadas'))
             
             # ═══════════════════════════════════════════════════════════
+            # FASE 1.5: FILTRAR POR TEMAS DO ADMIN
+            # ═══════════════════════════════════════════════════════════
+            try:
+                from news.models import NewsAgentConfig
+                config = NewsAgentConfig.get_active()
+                themes = config.get_themes_list()
+                
+                if themes:
+                    self.stdout.write(self.style.NOTICE(f'\n🎯 Filtrando por temas: {", ".join(themes)}'))
+                    
+                    filtered_by_theme = []
+                    for news_item in raw_news:
+                        title = news_item.get('title', '').lower()
+                        description = news_item.get('description', '').lower()
+                        text = f"{title} {description}"
+                        
+                        # Verificar se notícia contém algum tema
+                        for theme in themes:
+                            if theme.lower() in text:
+                                filtered_by_theme.append(news_item)
+                                break
+                    
+                    if filtered_by_theme:
+                        raw_news = filtered_by_theme
+                        self.stdout.write(self.style.SUCCESS(f'  ✓ {len(raw_news)} notícias correspondem aos temas'))
+                    else:
+                        self.stdout.write(self.style.WARNING(f'  ⚠️ Nenhuma notícia com os temas, usando todas'))
+            except Exception as e:
+                self.stdout.write(self.style.WARNING(f'  ⚠️ Erro ao carregar temas: {e}'))
+            
+            # Filtrar notícias genéricas/vazias antes de processar
+            generic_titles = [
+                'livros do ano', 'livros de 2025', 'livros de 2024',
+                '100 livros', '50 livros', 'lista de livros',
+                'melhores livros', 'o globo', 'folha de são paulo',
+            ]
+            
+            quality_news = []
+            for news_item in raw_news:
+                title = news_item.get('title', '').lower()
+                is_generic = any(pattern in title for pattern in generic_titles)
+                
+                # Também verificar se tem descrição substancial (mais de 50 palavras)
+                description = news_item.get('description', '')
+                has_substance = len(description.split()) > 30
+                
+                if not is_generic and has_substance:
+                    quality_news.append(news_item)
+                elif is_generic:
+                    self.stdout.write(self.style.WARNING(f'  ⏭️ Rejeitado (genérico): {title[:50]}...'))
+            
+            if quality_news:
+                raw_news = quality_news
+                self.stdout.write(self.style.SUCCESS(f'  ✓ {len(raw_news)} notícias de qualidade'))
+            
+            # ═══════════════════════════════════════════════════════════
             # FASE 2: FILTRAGEM COM GEMINI
             # ═══════════════════════════════════════════════════════════
             self.stdout.write(self.style.NOTICE('\n🔍 FASE 2: Filtrando com Gemini AI...'))
