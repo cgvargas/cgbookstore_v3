@@ -654,7 +654,18 @@ class NewsAgentConfig(models.Model):
         return config
     
     def get_themes_list(self):
-        """Retorna lista de temas específicos."""
+        """Retorna lista de temas específicos, limpando vírgulas e espaços."""
         if not self.specific_themes:
             return []
-        return [t.strip() for t in self.specific_themes.split('\n') if t.strip()]
+        
+        # Substituir quebras de linha por vírgula para normalizar
+        text = self.specific_themes.replace('\r\n', ',').replace('\n', ',')
+        
+        # Separar por vírgula e limpar
+        themes = []
+        for t in text.split(','):
+            cleaned = t.strip().rstrip(',').strip()
+            if cleaned:
+                themes.append(cleaned.lower())  # Normalizar para minúsculo
+        
+        return themes

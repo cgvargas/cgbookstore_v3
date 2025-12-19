@@ -134,6 +134,43 @@ class Command(BaseCommand):
                 'keywords_include': ['light novel', 'novel', 'isekai', 'adaptação'],
                 'keywords_exclude': [],
             },
+            # === FONTES ESPECIALIZADAS DE ANIME ===
+            # Crunchyroll News
+            {
+                'name': 'Crunchyroll News',
+                'url': 'https://news.google.com/rss/search?q=site:crunchyroll.com+anime&hl=en-US',
+                'source_type': 'rss',
+                'priority': 10,
+                'keywords_include': ['anime', 'crunchyroll', 'season', 'episode', 'streaming'],
+                'keywords_exclude': [],
+            },
+            # Anime News Network
+            {
+                'name': 'Anime News Network',
+                'url': 'https://www.animenewsnetwork.com/newsroom/rss.xml',
+                'source_type': 'rss',
+                'priority': 10,
+                'keywords_include': ['anime', 'manga', 'release', 'adaptation'],
+                'keywords_exclude': [],
+            },
+            # MyAnimeList News
+            {
+                'name': 'MyAnimeList News',
+                'url': 'https://news.google.com/rss/search?q=site:myanimelist.net+anime+news&hl=en-US',
+                'source_type': 'rss',
+                'priority': 9,
+                'keywords_include': ['anime', 'manga', 'myanimelist'],
+                'keywords_exclude': [],
+            },
+            # Otaku News (Brasil)
+            {
+                'name': 'Otaku News BR',
+                'url': 'https://news.google.com/rss/search?q=anime+estreia+2024+2025+brasil&hl=pt-BR&gl=BR',
+                'source_type': 'rss',
+                'priority': 8,
+                'keywords_include': ['anime', 'otaku', 'brasil', 'dublado'],
+                'keywords_exclude': [],
+            },
             # Google News - Games baseados em livros
             {
                 'name': 'Google News - Games Livros',

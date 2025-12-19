@@ -180,15 +180,35 @@ class Command(BaseCommand):
                         self.stdout.write(self.style.WARNING('      ⏭️ DUPLICADO: URL fonte já existe'))
                         continue
                     
-                    # Verificar título similar (dos últimos 7 dias)
+                    # Verificar duplicatas por palavras-chave específicas
                     news_title = news_item.get('title', '').lower()
+                    
+                    # Lista de palavras-chave que indicam tópicos já cobertos
+                    duplicate_keywords = [
+                        'fuvest', 'svetlana', 'alexievich', 'livros do ano',
+                        '100 títulos', '100 livros', 'lista de livros',
+                    ]
+                    
+                    keyword_duplicate = False
+                    for keyword in duplicate_keywords:
+                        if keyword in news_title:
+                            # Verificar se já temos artigo com essa palavra-chave
+                            if Article.objects.filter(title__icontains=keyword.split()[0]).exists():
+                                self.stdout.write(self.style.WARNING(f'      ⏭️ DUPLICADO: Já existe artigo sobre "{keyword}"'))
+                                keyword_duplicate = True
+                                break
+                    
+                    if keyword_duplicate:
+                        continue
+                    
+                    # Verificar título similar (dos últimos 7 dias) - threshold 50%
                     recent_date = timezone.now() - timezone.timedelta(days=7)
                     recent_articles = Article.objects.filter(created_at__gte=recent_date).values_list('title', flat=True)
                     
                     is_duplicate = False
                     for existing_title in recent_articles:
                         similarity = self._calculate_similarity(news_title, existing_title.lower())
-                        if similarity > 0.7:  # 70% similar = duplicado
+                        if similarity > 0.5:  # 50% similar = duplicado
                             self.stdout.write(self.style.WARNING(f'      ⏭️ DUPLICADO: Título similar ({similarity:.0%})'))
                             is_duplicate = True
                             break
