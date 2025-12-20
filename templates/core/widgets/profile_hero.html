@@ -2,46 +2,29 @@
 
 <!-- CARD HERO DE PERFIL - Biblioteca Pessoal 2.0 -->
 <div class="profile-hero {{ profile.theme_preference }}">
-    <!-- Banner customizável -->
-    <div class="banner-container">
+    <!-- Banner customizável com drag direto -->
+    <div class="banner-container" id="banner-container">
         {% if profile.banner %}
             <img src="{{ profile.banner.url }}" 
                  alt="Banner de {{ user.get_full_name }}" 
-                 class="profile-banner"
+                 class="profile-banner draggable-banner"
                  id="banner-image"
-                 style="object-position: {{ profile.banner_position_x }}% {{ profile.banner_position_y }}%;">
+                 style="object-position: {{ profile.banner_position_x }}% {{ profile.banner_position_y }}%;"
+                 draggable="false">
         {% else %}
             <!-- Banner padrão com gradiente do tema -->
             <div class="profile-banner" id="banner-image" style="background: var(--theme-bg);"></div>
         {% endif %}
 
-        <!-- Overlay de edição (aparece no modo arrastar) -->
-        <div id="banner-drag-overlay" class="banner-drag-overlay" style="display: none;">
-            <div class="banner-drag-instructions">
-                <i class="fas fa-arrows-alt"></i>
-                <span>Arraste para reposicionar</span>
-            </div>
+        <!-- Indicador de salvamento -->
+        <div id="banner-save-indicator" class="banner-save-indicator" style="display: none;">
+            <i class="fas fa-check-circle"></i> Posição salva!
         </div>
 
-        <!-- Controles do banner -->
+        <!-- Botão de trocar banner -->
         <div class="banner-controls">
-            <button class="edit-banner-btn" onclick="openBannerUpload()" title="Trocar imagem">
-                📸 Trocar
-            </button>
-            {% if profile.banner %}
-            <button class="edit-banner-btn position-btn" onclick="toggleBannerPositionMode()" id="position-toggle-btn" title="Ajustar posição">
-                ↔️ Posição
-            </button>
-            {% endif %}
-        </div>
-
-        <!-- Controles de salvamento (aparecem no modo arrastar) -->
-        <div id="banner-position-controls" class="banner-position-controls" style="display: none;">
-            <button class="btn btn-success btn-sm" onclick="saveBannerPosition()">
-                <i class="fas fa-check"></i> Salvar
-            </button>
-            <button class="btn btn-secondary btn-sm" onclick="cancelBannerPosition()">
-                <i class="fas fa-times"></i> Cancelar
+            <button class="edit-banner-btn" onclick="openBannerUpload()" title="Trocar imagem do banner">
+                📸 Trocar Banner
             </button>
         </div>
     </div>
@@ -112,7 +95,7 @@
     </div>
 </div>
 
-<!-- Modal de Upload de Banner (oculto por padrão) -->
+<!-- Modal de Upload de Banner -->
 <div class="modal fade" id="bannerUploadModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -130,13 +113,10 @@
                         <input type="file" class="form-control" id="bannerFile"
                                name="banner" accept="image/*" required>
                     </div>
-
-                    <!-- Preview -->
                     <div id="bannerPreview" class="mb-3" style="display: none;">
                         <img id="bannerPreviewImg" src="" alt="Preview"
                              style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px;">
                     </div>
-
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-upload"></i> Fazer Upload
@@ -148,7 +128,7 @@
     </div>
 </div>
 
-<!-- Modal de Upload de Avatar (similar ao banner) -->
+<!-- Modal de Upload de Avatar -->
 <div class="modal fade" id="avatarUploadModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -166,13 +146,10 @@
                         <input type="file" class="form-control" id="avatarFile"
                                name="avatar" accept="image/*" required>
                     </div>
-
-                    <!-- Preview circular -->
                     <div id="avatarPreview" class="mb-3 text-center" style="display: none;">
                         <img id="avatarPreviewImg" src="" alt="Preview"
                              style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%; border: 3px solid var(--theme-color);">
                     </div>
-
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-upload"></i> Fazer Upload
@@ -212,72 +189,81 @@
     transform: scale(1.05);
 }
 
-/* Overlay de arrastar */
-.banner-drag-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 5;
+/* Banner arrastável */
+.draggable-banner {
     cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
-.banner-drag-overlay:active {
+.draggable-banner:active {
     cursor: grabbing;
 }
 
-.banner-drag-instructions {
-    background: rgba(255, 255, 255, 0.9);
-    color: #333;
-    padding: 12px 24px;
-    border-radius: 30px;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    pointer-events: none;
+.banner-container.dragging .draggable-banner {
+    cursor: grabbing;
 }
 
-/* Controles de salvamento */
-.banner-position-controls {
+/* Indicador de salvamento */
+.banner-save-indicator {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(40, 167, 69, 0.9);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 15;
+    animation: fadeInOut 2s ease forwards;
+    backdrop-filter: blur(5px);
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+}
+
+/* Dica de arrastar (aparece no hover) */
+.banner-container:hover::after {
+    content: '↔ Arraste para ajustar';
     position: absolute;
     bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
-    display: flex;
-    gap: 10px;
-    z-index: 15;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-.banner-position-controls .btn {
-    padding: 8px 16px;
-    font-weight: 600;
+.banner-container:not(.dragging):hover::after {
+    opacity: 1;
 }
 
-/* Modo de edição ativo */
-.banner-container.editing .profile-banner {
-    transition: object-position 0.05s ease;
-}
-
-.banner-container.editing .banner-controls {
+.banner-container.dragging::after {
     display: none;
 }
 </style>
 
 <script>
-// Estado do modo de edição de posição
-let isPositionMode = false;
+// Estado do drag
 let isDragging = false;
 let startX, startY;
 let currentPosX = {{ profile.banner_position_x|default:50 }};
 let currentPosY = {{ profile.banner_position_y|default:50 }};
-let originalPosX = currentPosX;
-let originalPosY = currentPosY;
+let saveTimeout = null;
+let hasBanner = {% if profile.banner %}true{% else %}false{% endif %};
 
 // Funções auxiliares para os modals
 function openBannerUpload() {
@@ -292,7 +278,6 @@ function openAvatarUpload() {
 
 function shareProfile() {
     const profileUrl = window.location.href;
-
     if (navigator.share) {
         navigator.share({
             title: 'Meu Perfil Literário',
@@ -300,71 +285,9 @@ function shareProfile() {
             url: profileUrl
         });
     } else {
-        // Fallback: copiar para clipboard
         navigator.clipboard.writeText(profileUrl);
         alert('Link do perfil copiado para a área de transferência!');
     }
-}
-
-// Ativar/desativar modo de posicionamento
-function toggleBannerPositionMode() {
-    isPositionMode = !isPositionMode;
-    const container = document.querySelector('.banner-container');
-    const overlay = document.getElementById('banner-drag-overlay');
-    const controls = document.getElementById('banner-position-controls');
-    const toggleBtn = document.getElementById('position-toggle-btn');
-    
-    if (isPositionMode) {
-        container.classList.add('editing');
-        overlay.style.display = 'flex';
-        controls.style.display = 'flex';
-        toggleBtn.style.display = 'none';
-        originalPosX = currentPosX;
-        originalPosY = currentPosY;
-    } else {
-        container.classList.remove('editing');
-        overlay.style.display = 'none';
-        controls.style.display = 'none';
-        toggleBtn.style.display = 'inline-block';
-    }
-}
-
-// Salvar posição do banner
-async function saveBannerPosition() {
-    try {
-        const response = await fetch('/profile/update-banner-position/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: JSON.stringify({ x: currentPosX, y: currentPosY })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            toggleBannerPositionMode();
-            if (window.libraryManager && window.libraryManager.showToast) {
-                window.libraryManager.showToast('Posição do banner salva!', 'success');
-            } else {
-                alert('Posição do banner salva!');
-            }
-        } else {
-            alert('Erro: ' + data.error);
-        }
-    } catch (error) {
-        console.error('Erro ao salvar posição:', error);
-        alert('Erro ao salvar posição do banner');
-    }
-}
-
-// Cancelar edição de posição
-function cancelBannerPosition() {
-    currentPosX = originalPosX;
-    currentPosY = originalPosY;
-    updateBannerPosition();
-    toggleBannerPositionMode();
 }
 
 // Atualizar posição visual do banner
@@ -375,25 +298,73 @@ function updateBannerPosition() {
     }
 }
 
+// Salvar posição com debounce
+function saveBannerPositionDebounced() {
+    if (saveTimeout) clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(saveBannerPosition, 500);
+}
+
+// Salvar posição do banner
+async function saveBannerPosition() {
+    try {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (!csrfToken) return;
+        
+        const response = await fetch('/profile/update-banner-position/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken.value
+            },
+            body: JSON.stringify({ x: Math.round(currentPosX), y: Math.round(currentPosY) })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSaveIndicator();
+        }
+    } catch (error) {
+        console.error('Erro ao salvar posição:', error);
+    }
+}
+
+// Mostrar indicador de salvamento
+function showSaveIndicator() {
+    const indicator = document.getElementById('banner-save-indicator');
+    if (indicator) {
+        indicator.style.display = 'flex';
+        setTimeout(() => {
+            indicator.style.display = 'none';
+        }, 2000);
+    }
+}
+
 // Event listeners para arrastar
 document.addEventListener('DOMContentLoaded', function() {
-    const overlay = document.getElementById('banner-drag-overlay');
-    if (!overlay) return;
+    if (!hasBanner) return;
+    
+    const container = document.getElementById('banner-container');
+    const bannerImg = document.getElementById('banner-image');
+    if (!container || !bannerImg || bannerImg.tagName !== 'IMG') return;
     
     // Mouse events
-    overlay.addEventListener('mousedown', startDrag);
+    bannerImg.addEventListener('mousedown', startDrag);
     document.addEventListener('mousemove', onDrag);
     document.addEventListener('mouseup', endDrag);
     
     // Touch events
-    overlay.addEventListener('touchstart', startDrag, { passive: false });
+    bannerImg.addEventListener('touchstart', startDrag, { passive: false });
     document.addEventListener('touchmove', onDrag, { passive: false });
     document.addEventListener('touchend', endDrag);
 });
 
 function startDrag(e) {
-    if (!isPositionMode) return;
+    if (!hasBanner) return;
+    
     isDragging = true;
+    const container = document.getElementById('banner-container');
+    if (container) container.classList.add('dragging');
     
     if (e.type === 'touchstart') {
         startX = e.touches[0].clientX;
@@ -407,7 +378,7 @@ function startDrag(e) {
 }
 
 function onDrag(e) {
-    if (!isDragging || !isPositionMode) return;
+    if (!isDragging) return;
     
     let clientX, clientY;
     if (e.type === 'touchmove') {
@@ -422,8 +393,9 @@ function onDrag(e) {
     const deltaY = clientY - startY;
     
     // Inverter direção: arrastar para a direita move a imagem para a esquerda
-    currentPosX = Math.max(0, Math.min(100, currentPosX - deltaX * 0.1));
-    currentPosY = Math.max(0, Math.min(100, currentPosY - deltaY * 0.1));
+    // Sensibilidade ajustada para movimento suave
+    currentPosX = Math.max(0, Math.min(100, currentPosX - deltaX * 0.15));
+    currentPosY = Math.max(0, Math.min(100, currentPosY - deltaY * 0.15));
     
     startX = clientX;
     startY = clientY;
@@ -433,7 +405,14 @@ function onDrag(e) {
 }
 
 function endDrag() {
+    if (!isDragging) return;
+    
     isDragging = false;
+    const container = document.getElementById('banner-container');
+    if (container) container.classList.remove('dragging');
+    
+    // Salvar após soltar
+    saveBannerPositionDebounced();
 }
 
 // Preview de imagens antes do upload
