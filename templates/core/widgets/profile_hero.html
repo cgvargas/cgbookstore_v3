@@ -100,7 +100,7 @@
             </button>
 
             {% if not profile.is_premium_active %}
-                <a href="#premium-modal" class="btn btn-warning" data-bs-toggle="modal">
+                <a href="{% url 'finance:subscription_checkout' %}" class="btn btn-warning">
                     <i class="fas fa-crown"></i> Assinar Premium
                 </a>
             {% else %}
