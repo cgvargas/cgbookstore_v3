@@ -5,15 +5,45 @@
     <!-- Banner customizável -->
     <div class="banner-container">
         {% if profile.banner %}
-            <img src="{{ profile.banner.url }}" alt="Banner de {{ user.get_full_name }}" class="profile-banner">
+            <img src="{{ profile.banner.url }}" 
+                 alt="Banner de {{ user.get_full_name }}" 
+                 class="profile-banner"
+                 id="banner-image"
+                 style="object-position: {{ profile.banner_position_x }}% {{ profile.banner_position_y }}%;">
         {% else %}
             <!-- Banner padrão com gradiente do tema -->
-            <div class="profile-banner" style="background: var(--theme-bg);"></div>
+            <div class="profile-banner" id="banner-image" style="background: var(--theme-bg);"></div>
         {% endif %}
 
-        <button class="edit-banner-btn" onclick="openBannerUpload()">
-            📸 Trocar Banner
-        </button>
+        <!-- Overlay de edição (aparece no modo arrastar) -->
+        <div id="banner-drag-overlay" class="banner-drag-overlay" style="display: none;">
+            <div class="banner-drag-instructions">
+                <i class="fas fa-arrows-alt"></i>
+                <span>Arraste para reposicionar</span>
+            </div>
+        </div>
+
+        <!-- Controles do banner -->
+        <div class="banner-controls">
+            <button class="edit-banner-btn" onclick="openBannerUpload()" title="Trocar imagem">
+                📸 Trocar
+            </button>
+            {% if profile.banner %}
+            <button class="edit-banner-btn position-btn" onclick="toggleBannerPositionMode()" id="position-toggle-btn" title="Ajustar posição">
+                ↔️ Posição
+            </button>
+            {% endif %}
+        </div>
+
+        <!-- Controles de salvamento (aparecem no modo arrastar) -->
+        <div id="banner-position-controls" class="banner-position-controls" style="display: none;">
+            <button class="btn btn-success btn-sm" onclick="saveBannerPosition()">
+                <i class="fas fa-check"></i> Salvar
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="cancelBannerPosition()">
+                <i class="fas fa-times"></i> Cancelar
+            </button>
+        </div>
     </div>
 
     <!-- Header do perfil -->
@@ -154,7 +184,101 @@
     </div>
 </div>
 
+<style>
+/* Estilos para controles do banner */
+.banner-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.edit-banner-btn {
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(5px);
+}
+
+.edit-banner-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: scale(1.05);
+}
+
+/* Overlay de arrastar */
+.banner-drag-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    cursor: grab;
+}
+
+.banner-drag-overlay:active {
+    cursor: grabbing;
+}
+
+.banner-drag-instructions {
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    pointer-events: none;
+}
+
+/* Controles de salvamento */
+.banner-position-controls {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 15;
+}
+
+.banner-position-controls .btn {
+    padding: 8px 16px;
+    font-weight: 600;
+}
+
+/* Modo de edição ativo */
+.banner-container.editing .profile-banner {
+    transition: object-position 0.05s ease;
+}
+
+.banner-container.editing .banner-controls {
+    display: none;
+}
+</style>
+
 <script>
+// Estado do modo de edição de posição
+let isPositionMode = false;
+let isDragging = false;
+let startX, startY;
+let currentPosX = {{ profile.banner_position_x|default:50 }};
+let currentPosY = {{ profile.banner_position_y|default:50 }};
+let originalPosX = currentPosX;
+let originalPosY = currentPosY;
+
 // Funções auxiliares para os modals
 function openBannerUpload() {
     const modal = new bootstrap.Modal(document.getElementById('bannerUploadModal'));
@@ -180,6 +304,136 @@ function shareProfile() {
         navigator.clipboard.writeText(profileUrl);
         alert('Link do perfil copiado para a área de transferência!');
     }
+}
+
+// Ativar/desativar modo de posicionamento
+function toggleBannerPositionMode() {
+    isPositionMode = !isPositionMode;
+    const container = document.querySelector('.banner-container');
+    const overlay = document.getElementById('banner-drag-overlay');
+    const controls = document.getElementById('banner-position-controls');
+    const toggleBtn = document.getElementById('position-toggle-btn');
+    
+    if (isPositionMode) {
+        container.classList.add('editing');
+        overlay.style.display = 'flex';
+        controls.style.display = 'flex';
+        toggleBtn.style.display = 'none';
+        originalPosX = currentPosX;
+        originalPosY = currentPosY;
+    } else {
+        container.classList.remove('editing');
+        overlay.style.display = 'none';
+        controls.style.display = 'none';
+        toggleBtn.style.display = 'inline-block';
+    }
+}
+
+// Salvar posição do banner
+async function saveBannerPosition() {
+    try {
+        const response = await fetch('/profile/update-banner-position/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ x: currentPosX, y: currentPosY })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            toggleBannerPositionMode();
+            if (window.libraryManager && window.libraryManager.showToast) {
+                window.libraryManager.showToast('Posição do banner salva!', 'success');
+            } else {
+                alert('Posição do banner salva!');
+            }
+        } else {
+            alert('Erro: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Erro ao salvar posição:', error);
+        alert('Erro ao salvar posição do banner');
+    }
+}
+
+// Cancelar edição de posição
+function cancelBannerPosition() {
+    currentPosX = originalPosX;
+    currentPosY = originalPosY;
+    updateBannerPosition();
+    toggleBannerPositionMode();
+}
+
+// Atualizar posição visual do banner
+function updateBannerPosition() {
+    const bannerImg = document.getElementById('banner-image');
+    if (bannerImg && bannerImg.tagName === 'IMG') {
+        bannerImg.style.objectPosition = `${currentPosX}% ${currentPosY}%`;
+    }
+}
+
+// Event listeners para arrastar
+document.addEventListener('DOMContentLoaded', function() {
+    const overlay = document.getElementById('banner-drag-overlay');
+    if (!overlay) return;
+    
+    // Mouse events
+    overlay.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', onDrag);
+    document.addEventListener('mouseup', endDrag);
+    
+    // Touch events
+    overlay.addEventListener('touchstart', startDrag, { passive: false });
+    document.addEventListener('touchmove', onDrag, { passive: false });
+    document.addEventListener('touchend', endDrag);
+});
+
+function startDrag(e) {
+    if (!isPositionMode) return;
+    isDragging = true;
+    
+    if (e.type === 'touchstart') {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    } else {
+        startX = e.clientX;
+        startY = e.clientY;
+    }
+    
+    e.preventDefault();
+}
+
+function onDrag(e) {
+    if (!isDragging || !isPositionMode) return;
+    
+    let clientX, clientY;
+    if (e.type === 'touchmove') {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
+    
+    const deltaX = clientX - startX;
+    const deltaY = clientY - startY;
+    
+    // Inverter direção: arrastar para a direita move a imagem para a esquerda
+    currentPosX = Math.max(0, Math.min(100, currentPosX - deltaX * 0.1));
+    currentPosY = Math.max(0, Math.min(100, currentPosY - deltaY * 0.1));
+    
+    startX = clientX;
+    startY = clientY;
+    
+    updateBannerPosition();
+    e.preventDefault();
+}
+
+function endDrag() {
+    isDragging = false;
 }
 
 // Preview de imagens antes do upload

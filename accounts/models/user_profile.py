@@ -105,6 +105,21 @@ class UserProfile(models.Model):
         help_text="Banner personalizado (máx. 5MB, 1200x300px)"
     )
 
+    # Posição do banner (para ajuste via drag)
+    banner_position_x = models.IntegerField(
+        default=50,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name="Posição X do Banner",
+        help_text="Posição horizontal (%): 0=esquerda, 50=centro, 100=direita"
+    )
+
+    banner_position_y = models.IntegerField(
+        default=50,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name="Posição Y do Banner",
+        help_text="Posição vertical (%): 0=topo, 50=centro, 100=baixo"
+    )
+
     # ========== BACKGROUND CUSTOMIZADO (PREMIUM) ==========
     custom_background = models.ImageField(
         upload_to='users/backgrounds/',

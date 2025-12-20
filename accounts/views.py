@@ -237,6 +237,39 @@ def update_theme(request):
 
 @login_required
 @require_POST
+def update_banner_position(request):
+    """
+    Atualiza a posição do banner via AJAX (drag-and-drop).
+    Salva posição X/Y como porcentagem (0-100).
+    """
+    try:
+        data = json.loads(request.body)
+        
+        position_x = data.get('x', 50)
+        position_y = data.get('y', 50)
+        
+        # Validar range (0-100)
+        position_x = max(0, min(100, int(position_x)))
+        position_y = max(0, min(100, int(position_y)))
+        
+        profile = request.user.profile
+        profile.banner_position_x = position_x
+        profile.banner_position_y = position_y
+        profile.save(update_fields=['banner_position_x', 'banner_position_y'])
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Posição do banner salva!',
+            'x': position_x,
+            'y': position_y
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Erro ao salvar posição: {str(e)}'}, status=500)
+
+
+@login_required
+@require_POST
 def upload_background(request):
     """
     Upload de background personalizado via AJAX.

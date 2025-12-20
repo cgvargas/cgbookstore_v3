@@ -10,6 +10,7 @@ urlpatterns = [
     path('upload-avatar/', views.upload_avatar, name='upload_avatar'),
     path('upload-banner/', views.upload_banner, name='upload_banner'),
     path('update-theme/', views.update_theme, name='update_theme'),
+    path('update-banner-position/', views.update_banner_position, name='update_banner_position'),
 
     # URLs de Background Personalizado (PREMIUM)
     path('upload-background/', views.upload_background, name='upload_background'),
