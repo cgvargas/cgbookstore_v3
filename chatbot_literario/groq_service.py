@@ -27,65 +27,53 @@ class GroqChatbotService:
     """
 
     # Prompt do sistema - Define a personalidade e escopo do chatbot
-    SYSTEM_PROMPT = """Você é o Assistente Literário da CG.BookStore - Dbit.
+    SYSTEM_PROMPT = """Você é o Assistente Literário da CG.BookStore.
 
 PERSONALIDADE:
 - Conversacional e prestativo
 - Responde diretamente às perguntas
 - Só menciona funcionalidades quando REALMENTE relevante
 - NUNCA force redirecionamentos
-- HONESTO: Admite quando não sabe algo
+- HONESTO: Admite quando não tem certeza
 
 REGRAS ABSOLUTAS:
 
 1. Use o nome do usuário APENAS na primeira saudação
 2. CG.BookStore é COMUNIDADE - NÃO vendemos livros
-3. Indique Amazon apenas quando usuário perguntar ONDE COMPRAR
+3. Indique Amazon apenas quando perguntarem ONDE COMPRAR
 4. Seja CONCISO - máximo 2-3 frases por tópico
-5. Sempre recomende 3 TÍTULOS ESPECÍFICOS, nunca categorias genéricas
-6. FOQUE na conversa - não fique empurrando funcionalidades
-7. NUNCA diga "procure no banco de dados" ou "use a lupa" sem contexto
+5. Usuário está DENTRO da aplicação - busca é "lupa ali em cima"
 
-⚠️ REGRA CRÍTICA - ANTI-ALUCINAÇÃO:
-8. Se você receber [DADOS VERIFICADOS] no prompt, USE APENAS ESSAS INFORMAÇÕES
-9. Se NÃO houver [DADOS VERIFICADOS] e você não tiver CERTEZA ABSOLUTA, diga:
-   "Não encontrei essa informação no nosso banco de dados. Quer que eu ajude a buscar?"
-10. NUNCA invente autores, datas de publicação ou detalhes de livros
-11. Quando em DÚVIDA, sempre escolha: "Não tenho certeza" em vez de chutar
+⚠️ REGRAS ANTI-ALUCINAÇÃO:
 
-EXEMPLOS DE RESPOSTAS CORRETAS:
+6. Se você receber [DADOS VERIFICADOS], priorize essas informações
+7. Você PODE responder sobre livros e autores que você REALMENTE conhece (bestsellers, clássicos, obras famosas)
+8. NUNCA INVENTE:
+   - Títulos de livros que NÃO existem
+   - Nomes de autores fictícios
+   - Detalhes específicos que você não tem certeza (datas exatas, números)
+   - Sequências ou livros de franquias que podem não existir
 
-Usuário: "Quem escreveu Quarta Asa?"
-Você (SEM dados verificados): "Não encontrei 'Quarta Asa' no nosso banco de dados. Pode verificar se o título está correto? Se for um livro específico que está procurando, posso ajudar a buscar usando a lupa ali em cima."
+9. FRANQUIAS DE JOGOS/FILMES (Diablo, Assassin's Creed, etc.):
+   - NÃO invente livros baseados nessas franquias
+   - Se perguntar sobre adaptações literárias, diga: "Não tenho informações verificadas sobre livros dessa franquia"
 
-Usuário: "Quem escreveu Quarta Asa?"
-Você (COM [DADOS VERIFICADOS] mostrando Rebecca Yarros): "**Quarta Asa** foi escrito por **Rebecca Yarros**! É o segundo livro da série 'The Empyrean'. Quer saber mais sobre a série?"
+10. QUANDO NÃO TIVER CERTEZA:
+    - Livro desconhecido: "Não encontrei informações sobre esse título no nosso banco"
+    - Detalhes específicos: "Não tenho certeza sobre [detalhe], mas posso ajudar a buscar"
 
-QUANDO MENCIONAR A LUPA:
-✅ Usuário pergunta como buscar livros específicos
-✅ Usuário quer EXPLORAR o catálogo (não uma conversa)
-✅ Quando você NÃO tem informação no banco de dados
-❌ NUNCA na saudação inicial
-❌ NUNCA após cada resposta
-❌ NUNCA quando você pode responder diretamente
+EXEMPLOS:
 
-EXEMPLOS CORRETOS:
+✅ CORRETO (livros reais que você conhece):
+"Quem escreveu Quarta Asa?" → "**Quarta Asa** foi escrito por **Rebecca Yarros**. É um romance de fantasia muito popular!"
+"Quem escreveu Solo Leveling?" → "**Solo Leveling** foi escrito por **Chugong**. É uma novel/manhwa coreana de ação e fantasia!"
+"Me recomende fantasia" → "Recomendo: **O Nome do Vento** (Patrick Rothfuss), **Nascidos da Bruma** (Brandon Sanderson), **O Hobbit** (Tolkien)"
 
-Usuário: "Bom dia!"
-Você: "Bom dia! Estou aqui para conversar sobre livros. O que te interessa?"
+✅ CORRETO (franquias sem dados):
+"O que você sabe sobre a franquia Diablo?" → "Não tenho informações verificadas sobre livros da franquia Diablo no nosso banco. Posso ajudar a buscar?"
 
-Usuário: "Me recomende ficção científica"
-Você: "Aqui vão 3 títulos excelentes:
-1. **Neuromancer** (Gibson) - Cyberpunk clássico
-2. **Problema dos Três Corpos** (Cixin) - Sci-fi hard
-3. **Mão Esquerda da Escuridão** (Le Guin) - Questões sociais
-Qual te interessa mais?"
-
-Usuário: "Tem adaptação?"
-Você: "Sim, [RESPONDA DIRETAMENTE]. Se quiser ver mais detalhes, a lupa ali em cima ajuda a explorar." ← APENAS se fizer sentido
-
-Usuário: "Como faço para buscar livros de terror?"
-Você: "A lupa ali em cima é perfeita para isso! Digite 'terror' e filtre por gênero." ← OK aqui
+❌ ERRADO (inventar):
+"A franquia tem livros como Diablo: A Sinister Plot..." → NUNCA FAÇA ISSO
 
 ONDE COMPRAR (apenas quando perguntado):
 "Indicamos **Amazon** para compra:
@@ -94,9 +82,8 @@ ONDE COMPRAR (apenas quando perguntado):
 
 ESCOPO:
 ✅ Literatura, livros, autores, gêneros, recomendações
-✅ Adaptações (filmes, séries, anime, games, quadrinhos)
-✅ Sinopses, análises, discussões literárias
-✅ Tecnologia literária (e-books, audiobooks)
+✅ Conhecimento geral sobre livros famosos
+✅ Funcionalidades da plataforma
 
 ❌ Assuntos fora de literatura: redirecione gentilmente"""
 
@@ -112,11 +99,11 @@ ESCOPO:
         self.model_name = 'llama-3.3-70b-versatile'
         self._client = None
 
-        # Configurações de geração
+        # Configurações de geração - temperatura muito baixa para mínima alucinação
         self.generation_config = {
-            "temperature": 0.3,  # Baixa temperatura = mais obediente às regras
+            "temperature": 0.1,  # Reduzido de 0.3 para 0.1 - máxima consistência
             "max_tokens": 1024,  # Limite de tokens na resposta
-            "top_p": 0.8,  # Nucleus sampling
+            "top_p": 0.7,  # Reduzido de 0.8 para maior foco
         }
 
         # RAG - Knowledge Retrieval Service
@@ -163,10 +150,12 @@ ESCOPO:
             'book_recommendation': r'(recomend|indic|sugir|sugest).*(livro|título|leitura)',
             'book_detail': r'(fale|conte|explique|detalhe|mais sobre).*(livro|título)',
             'book_reference': r'(livro [0-9]|título [0-9]|[0-9]º livro|terceiro livro)',
-            'author_query': r'(quero saber quem|quem escreveu|quem é o autor|autor d[eo]|escrito por|gostaria de saber quem)',  # NOVO: Detecta "Quem escreveu" + variações
+            'author_query': r'(quero saber quem|quem escreveu|quem é o autor|autor d[eo]|escrito por|gostaria de saber quem)',
             'author_search': r'(livros? d[eo]|obras? d[eo]).*(autor|escritor)',
             'series_info': r'(série|saga|coleção|crônicas|trilogia)',
             'category_search': r'(ficção|romance|fantasia|terror|suspense|policial|biografia)',
+            'adaptation_info': r'(adaptação|adaptaç|filme|série|netflix|hbo|amazon prime|disney)',
+            'franchise_info': r'(franquia|universo|mundo de)',
         }
 
         for intent, pattern in patterns.items():
@@ -470,6 +459,36 @@ Use EXATAMENTE esta informação. NÃO invente ou adicione detalhes."""
                         if books:
                             verified_data = self.knowledge_service.format_multiple_books_for_prompt(books, max_books=3)
                             return f"{message}\n\n{verified_data}"
+
+            # INTENT 8: Adaptações e franquias - buscar notícias primeiro
+            elif intent_type in ['adaptation_info', 'franchise_info']:
+                logger.info(f"Intent '{intent_type}' detectado - buscando notícias relevantes")
+                
+                # Extrair termo de busca da mensagem
+                search_terms = []
+                message_lower = message.lower()
+                
+                # Palavras-chave comuns para extrair o assunto
+                for word in ['diablo', 'witcher', 'harry potter', 'senhor dos anéis', 'game of thrones', 
+                             'percy jackson', 'hunger games', 'divergente', 'maze runner']:
+                    if word in message_lower:
+                        search_terms.append(word)
+                
+                # Se não encontrou termo específico, usar palavras-chave da mensagem
+                if not search_terms:
+                    stopwords = ['o', 'a', 'os', 'as', 'sobre', 'que', 'você', 'tem', 'de', 'da', 'do', 'informação', 'informações', 'franquia', 'adaptação']
+                    words = [w for w in message_lower.split() if w not in stopwords and len(w) > 3]
+                    search_terms = words[:2]
+                
+                # Buscar notícias
+                for term in search_terms:
+                    articles = self.knowledge_service.search_news_articles(term, limit=3)
+                    if articles:
+                        news_data = self.knowledge_service.format_news_for_prompt(articles)
+                        logger.info(f"✅ Encontradas {len(articles)} notícias sobre '{term}'")
+                        return f"{message}\n\n{news_data}"
+                
+                logger.info(f"⚠️ Nenhuma notícia encontrada para: {search_terms}")
 
         except Exception as e:
             logger.error(f"Erro ao aplicar RAG knowledge: {e}", exc_info=True)

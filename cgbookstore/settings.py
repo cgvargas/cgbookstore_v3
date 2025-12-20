@@ -353,6 +353,7 @@ REST_FRAMEWORK = {
 # AI PROVIDER CONFIGURATION
 # ==============================================================================
 # Escolha o provedor de IA para o chatbot: 'gemini' ou 'groq'
+# Groq recomendado - gratuito, rápido e sem limites rígidos
 AI_PROVIDER = config('AI_PROVIDER', default='groq')
 
 # Google Gemini AI

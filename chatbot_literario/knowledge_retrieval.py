@@ -318,6 +318,76 @@ Categoria/Gênero: {category_name}
             'purchase_url': book.purchase_partner_url,
         }
 
+    def search_news_articles(self, query: str, limit: int = 3) -> List[Dict[str, Any]]:
+        """
+        Busca artigos de notícias relevantes no sistema de News.
+
+        Args:
+            query: Termo de busca
+            limit: Número máximo de resultados
+
+        Returns:
+            Lista de dicionários com dados dos artigos
+        """
+        try:
+            from news.models import Article
+            from django.db.models import Q
+
+            # Buscar artigos publicados que contenham o termo
+            articles = Article.objects.filter(
+                Q(title__icontains=query) |
+                Q(content__icontains=query) |
+                Q(excerpt__icontains=query),
+                status='published'
+            ).order_by('-published_at')[:limit]
+
+            return [self._serialize_article(article) for article in articles]
+        except Exception as e:
+            logger.error(f"Erro ao buscar artigos de notícias para '{query}': {e}", exc_info=True)
+            return []
+
+    def _serialize_article(self, article) -> Dict[str, Any]:
+        """Serializa um artigo de notícias para dicionário."""
+        return {
+            'id': article.id,
+            'title': article.title,
+            'excerpt': article.excerpt if article.excerpt else '',
+            'content_type': article.get_content_type_display() if hasattr(article, 'get_content_type_display') else 'Artigo',
+            'published_at': article.published_at.strftime('%d/%m/%Y') if article.published_at else None,
+            'url': article.get_absolute_url() if hasattr(article, 'get_absolute_url') else None,
+        }
+
+    def format_news_for_prompt(self, articles: List[Dict[str, Any]]) -> str:
+        """
+        Formata artigos de notícias para injeção no prompt da IA.
+
+        Args:
+            articles: Lista de dados de artigos
+
+        Returns:
+            String formatada para o prompt
+        """
+        if not articles:
+            return ""
+
+        prompt_text = f"[NOTÍCIAS ENCONTRADAS - {len(articles)} ARTIGOS]\n\n"
+
+        for idx, article in enumerate(articles, 1):
+            prompt_text += f"{idx}. **{article['title']}**\n"
+            if article.get('excerpt'):
+                excerpt = article['excerpt'][:200]
+                if len(article['excerpt']) > 200:
+                    excerpt += "..."
+                prompt_text += f"   {excerpt}\n"
+            if article.get('published_at'):
+                prompt_text += f"   Publicado: {article['published_at']}\n"
+            prompt_text += "\n"
+
+        prompt_text += "[/NOTÍCIAS ENCONTRADAS]\n\n"
+        prompt_text += "IMPORTANTE: Use estas informações APENAS como referência. Mencione que são notícias do nosso blog."
+
+        return prompt_text
+
 
 # Singleton global para reutilizar instância
 _knowledge_retrieval_service = None
