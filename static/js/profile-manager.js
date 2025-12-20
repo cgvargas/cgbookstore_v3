@@ -109,6 +109,8 @@ class ProfileManager {
             this.showToast('Erro ao fazer upload. Tente novamente.', 'error');
         } finally {
             this.setLoadingState(form, false);
+            // Esconder o loader global (pode ter sido ativado pelo submit do form)
+            if (window.PageLoader) window.PageLoader.hide();
         }
     }
 
@@ -179,6 +181,8 @@ class ProfileManager {
             this.showToast('Erro ao fazer upload. Tente novamente.', 'error');
         } finally {
             this.setLoadingState(form, false);
+            // Esconder o loader global (pode ter sido ativado pelo submit do form)
+            if (window.PageLoader) window.PageLoader.hide();
         }
     }
 
