@@ -23,8 +23,8 @@
 
         <!-- Botão de trocar banner -->
         <div class="banner-controls">
-            <button class="edit-banner-btn" onclick="openBannerUpload()" title="Trocar imagem do banner">
-                📸 Trocar Banner
+            <button class="edit-banner-btn icon-only" onclick="openBannerUpload()" title="Trocar imagem do banner">
+                <i class="fas fa-camera"></i>
             </button>
         </div>
     </div>
@@ -187,6 +187,22 @@
 .edit-banner-btn:hover {
     background: rgba(0, 0, 0, 0.8);
     transform: scale(1.05);
+}
+
+/* Botão apenas com ícone */
+.edit-banner-btn.icon-only {
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+
+.edit-banner-btn.icon-only:hover {
+    transform: scale(1.1);
 }
 
 /* Banner arrastável */

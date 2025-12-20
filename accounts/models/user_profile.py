@@ -410,8 +410,14 @@ class UserProfile(models.Model):
     def is_premium_active(self):
         """
         Verifica se o plano premium do usuário está ativo.
-        Retorna True se for premium e a data de expiração for futura ou nula.
+        Retorna True se:
+        - É superuser (acesso total)
+        - É premium e a data de expiração for futura ou nula
         """
+        # Superusers sempre têm acesso premium
+        if self.user.is_superuser:
+            return True
+        
         if not self.is_premium:
             return False
 
