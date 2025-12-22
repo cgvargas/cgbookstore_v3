@@ -1,43 +1,109 @@
 """
-Admin para Section e SectionItem - Versão com Autocomplete
-Usa Select2 + AJAX para buscar livros/autores/vídeos por nome.
+Admin para Section e SectionItem - Versão com Autocomplete Inline
+JavaScript embutido no widget para evitar problemas de collectstatic.
 """
 from django import forms
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
+from django.utils.safestring import mark_safe
 from core.models import Section, SectionItem, Book, Author, Video
 
 
-class AutocompleteWidget(forms.TextInput):
-    """Widget de autocomplete com Select2 via AJAX."""
+class AutocompleteSearchWidget(forms.TextInput):
+    """Widget de autocomplete com JavaScript inline."""
     
-    template_name = 'admin/widgets/autocomplete_widget.html'
-    
-    class Media:
-        css = {
-            'all': (
-                'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css',
-            )
-        }
-        js = (
-            'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
-        )
+    def render(self, name, value, attrs=None, renderer=None):
+        # Renderizar o input padrão
+        html = super().render(name, value, attrs, renderer)
+        
+        # Adicionar container de resultados e script inline
+        widget_id = attrs.get('id', name)
+        script = f'''
+        <div id="{widget_id}_results" style="position:absolute;z-index:9999;background:#fff;border:1px solid #ccc;border-radius:4px;max-height:200px;overflow-y:auto;display:none;width:300px;box-shadow:0 2px 4px rgba(0,0,0,0.1);"></div>
+        <script>
+        (function() {{
+            var input = document.getElementById("{widget_id}");
+            var results = document.getElementById("{widget_id}_results");
+            var timeout = null;
+            
+            if (!input) return;
+            
+            input.addEventListener("input", function() {{
+                clearTimeout(timeout);
+                var query = this.value;
+                if (query.length < 2) {{
+                    results.style.display = "none";
+                    return;
+                }}
+                
+                // Encontrar o select de content_type na mesma linha
+                var row = input.closest("tr") || input.closest(".form-row");
+                var ctSelect = row ? row.querySelector("select[name$='-content_type']") : null;
+                var ctText = ctSelect ? ctSelect.options[ctSelect.selectedIndex].text.toLowerCase() : "";
+                
+                var type = "";
+                if (ctText.includes("book") || ctText.includes("livro")) type = "book";
+                else if (ctText.includes("author") || ctText.includes("autor")) type = "author";
+                else if (ctText.includes("video") || ctText.includes("vídeo")) type = "video";
+                
+                if (!type) {{
+                    results.innerHTML = "<div style='padding:8px;color:#666;'>Selecione um tipo primeiro</div>";
+                    results.style.display = "block";
+                    return;
+                }}
+                
+                timeout = setTimeout(function() {{
+                    fetch("/admin-tools/section-autocomplete/?q=" + encodeURIComponent(query) + "&content_type=" + type)
+                        .then(function(r) {{ return r.json(); }})
+                        .then(function(data) {{
+                            results.innerHTML = "";
+                            if (data.results.length === 0) {{
+                                results.innerHTML = "<div style='padding:8px;color:#999;'>Nenhum resultado</div>";
+                            }} else {{
+                                data.results.forEach(function(item) {{
+                                    var div = document.createElement("div");
+                                    div.style.cssText = "padding:8px;cursor:pointer;border-bottom:1px solid #eee;";
+                                    div.textContent = item.text;
+                                    div.addEventListener("mouseover", function() {{ this.style.background = "#f0f0f0"; }});
+                                    div.addEventListener("mouseout", function() {{ this.style.background = "#fff"; }});
+                                    div.addEventListener("click", function() {{
+                                        input.value = item.text;
+                                        var objIdInput = row.querySelector("input[name$='-object_id']");
+                                        if (objIdInput) objIdInput.value = item.id;
+                                        results.style.display = "none";
+                                    }});
+                                    results.appendChild(div);
+                                }});
+                            }}
+                            results.style.display = "block";
+                        }});
+                }}, 300);
+            }});
+            
+            document.addEventListener("click", function(e) {{
+                if (!input.contains(e.target) && !results.contains(e.target)) {{
+                    results.style.display = "none";
+                }}
+            }});
+        }})();
+        </script>
+        '''
+        return mark_safe(html + script)
 
 
 class SectionItemAdminForm(forms.ModelForm):
     """Formulário com campo de busca por nome."""
     
-    # Campo para buscar por nome (exibido ao usuário)
     search_item = forms.CharField(
         required=False,
-        label="🔍 Buscar item por nome",
-        help_text="Digite para buscar livros, autores ou vídeos pelo nome",
-        widget=forms.TextInput(attrs={
+        label="🔍 Buscar por nome",
+        help_text="Digite para buscar",
+        widget=AutocompleteSearchWidget(attrs={
             'class': 'vTextField',
-            'placeholder': 'Digite para buscar...',
-            'style': 'width: 300px;',
+            'placeholder': 'Digite o nome...',
+            'style': 'width: 250px;',
             'autocomplete': 'off',
         })
     )
@@ -45,9 +111,6 @@ class SectionItemAdminForm(forms.ModelForm):
     class Meta:
         model = SectionItem
         fields = ['section', 'content_type', 'object_id', 'order', 'active', 'custom_title', 'custom_description']
-    
-    class Media:
-        js = ('admin/js/section_item_autocomplete.js',)
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
