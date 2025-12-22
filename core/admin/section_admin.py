@@ -1,47 +1,46 @@
 """
-Admin para Section e SectionItem - Versão com Dropdown Dinâmico Simples
+Admin para Section e SectionItem - Versão Otimizada
 """
 from django import forms
 from django.contrib import admin
-from django.contrib.admin.widgets import AutocompleteSelect
 from django.contrib.contenttypes.models import ContentType
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
 from core.models import Section, SectionItem, Book, Author, Video
 
 
+# Limite de registros para carregar nos dropdowns
+# 200 é suficiente para a maioria dos casos e carrega rápido
+DROPDOWN_LIMIT = 200
+
+
 class SectionItemAdminForm(forms.ModelForm):
-    """Form customizado com dropdown para selecionar objetos.
+    """Form customizado com dropdowns otimizados para selecionar objetos.
     
-    IMPORTANTE: Usamos querysets vazios por padrão para evitar carregar
-    milhares de registros. O Django Admin usa Select2 que faz busca via AJAX.
+    Usa querysets limitados para evitar carregar milhares de registros.
+    O limite é configurável via DROPDOWN_LIMIT.
     """
 
-    # Campo dropdown para Book - queryset vazio por padrão
+    # Campos serão configurados no __init__ com querysets limitados
     book = forms.ModelChoiceField(
-        queryset=Book.objects.none(),  # NÃO carregar todos os livros!
+        queryset=Book.objects.none(),
         required=False,
         label="📚 Selecionar Livro",
-        help_text="Digite para buscar um livro",
-        empty_label="--- Digite para buscar ---"
+        help_text="Selecione um livro (mostrando os mais recentes)"
     )
 
-    # Campo dropdown para Author - queryset vazio por padrão
     author = forms.ModelChoiceField(
-        queryset=Author.objects.none(),  # NÃO carregar todos os autores!
+        queryset=Author.objects.none(),
         required=False,
         label="👤 Selecionar Autor",
-        help_text="Digite para buscar um autor",
-        empty_label="--- Digite para buscar ---"
+        help_text="Selecione um autor"
     )
 
-    # Campo dropdown para Video - queryset vazio por padrão
     video = forms.ModelChoiceField(
-        queryset=Video.objects.none(),  # NÃO carregar todos os vídeos!
+        queryset=Video.objects.none(),
         required=False,
         label="🎬 Selecionar Vídeo",
-        help_text="Digite para buscar um vídeo",
-        empty_label="--- Digite para buscar ---"
+        help_text="Selecione um vídeo"
     )
 
     class Meta:
@@ -51,54 +50,41 @@ class SectionItemAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        # Carregar querysets LIMITADOS para evitar travamento
+        # Ordena por ID decrescente para mostrar os mais recentes primeiro
+        self.fields['book'].queryset = Book.objects.select_related(
+            'author'
+        ).order_by('-id')[:DROPDOWN_LIMIT]
+        
+        self.fields['author'].queryset = Author.objects.order_by('name')[:DROPDOWN_LIMIT]
+        
+        self.fields['video'].queryset = Video.objects.order_by('-id')[:DROPDOWN_LIMIT]
 
-        # Melhorar exibição dos livros no dropdown
-        self.fields['book'].label_from_instance = lambda \
-            obj: f"{obj.title} - {obj.author.name if obj.author else 'Sem autor'}"
+        # Melhorar exibição no dropdown
+        self.fields['book'].label_from_instance = lambda obj: f"{obj.title[:50]}{'...' if len(obj.title) > 50 else ''} - {obj.author.name if obj.author else 'Sem autor'}"
+        self.fields['author'].label_from_instance = lambda obj: obj.name
+        self.fields['video'].label_from_instance = lambda obj: obj.title
 
-        # Se já existe um objeto, preencher o campo apropriado E adicionar ao queryset
+        # Se já existe um objeto, garantir que ele esteja no queryset
         if self.instance and self.instance.pk and self.instance.object_id:
             content_obj = self.instance.content_object
             if isinstance(content_obj, Book):
-                self.fields['book'].queryset = Book.objects.filter(pk=content_obj.pk)
+                # Adicionar o livro atual ao queryset se não estiver nos mais recentes
+                current_qs = self.fields['book'].queryset
+                if not current_qs.filter(pk=content_obj.pk).exists():
+                    self.fields['book'].queryset = Book.objects.filter(pk=content_obj.pk) | current_qs
                 self.fields['book'].initial = content_obj
             elif isinstance(content_obj, Author):
-                self.fields['author'].queryset = Author.objects.filter(pk=content_obj.pk)
+                current_qs = self.fields['author'].queryset
+                if not current_qs.filter(pk=content_obj.pk).exists():
+                    self.fields['author'].queryset = Author.objects.filter(pk=content_obj.pk) | current_qs
                 self.fields['author'].initial = content_obj
             elif isinstance(content_obj, Video):
-                self.fields['video'].queryset = Video.objects.filter(pk=content_obj.pk)
+                current_qs = self.fields['video'].queryset
+                if not current_qs.filter(pk=content_obj.pk).exists():
+                    self.fields['video'].queryset = Video.objects.filter(pk=content_obj.pk) | current_qs
                 self.fields['video'].initial = content_obj
-
-        # Se há dados do POST, permitir que o objeto selecionado seja validado
-        if 'data' in kwargs and kwargs['data']:
-            data = kwargs['data']
-            # Encontrar o prefixo correto para este inline
-            prefix = kwargs.get('prefix', '')
-            
-            book_key = f'{prefix}-book' if prefix else 'book'
-            author_key = f'{prefix}-author' if prefix else 'author'
-            video_key = f'{prefix}-video' if prefix else 'video'
-            
-            if book_key in data and data[book_key]:
-                try:
-                    book_id = int(data[book_key])
-                    self.fields['book'].queryset = Book.objects.filter(pk=book_id)
-                except (ValueError, TypeError):
-                    pass
-                    
-            if author_key in data and data[author_key]:
-                try:
-                    author_id = int(data[author_key])
-                    self.fields['author'].queryset = Author.objects.filter(pk=author_id)
-                except (ValueError, TypeError):
-                    pass
-                    
-            if video_key in data and data[video_key]:
-                try:
-                    video_id = int(data[video_key])
-                    self.fields['video'].queryset = Video.objects.filter(pk=video_id)
-                except (ValueError, TypeError):
-                    pass
 
     def clean(self):
         cleaned_data = super().clean()
