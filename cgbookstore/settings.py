@@ -184,7 +184,14 @@ if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
     db_options['options'] = '-c statement_timeout=25000'  # 25 segundos (antes do timeout do gunicorn de 30s)
 
     DATABASES['default']['OPTIONS'] = db_options
+    
+    # IMPORTANTE: Desabilitar server-side cursors para compatibilidade com connection pooling
+    # Supabase Pooler usa modo "transaction", onde cursors não persistem entre queries
+    # Sem isso, ocorre erro: "cursor _django_curs_XXX does not exist"
+    DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
+    
     logger.info(f"✅ Configurações PostgreSQL aplicadas: {list(db_options.keys())}")
+    logger.info("✅ Server-side cursors desabilitados (compatibilidade com pooling)")
 
 
 # ==============================================================================
