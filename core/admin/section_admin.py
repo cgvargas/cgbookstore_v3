@@ -1,7 +1,6 @@
 """
-Admin para Section e SectionItem - Versão Ultra-Leve
-Removido: dropdowns customizados, item_preview
-Motivo: Formulário anterior levava 240+ segundos para carregar
+Admin para Section e SectionItem - Versão com Autocomplete
+Usa Select2 + AJAX para buscar livros/autores/vídeos por nome.
 """
 from django import forms
 from django.contrib import admin
@@ -11,23 +10,68 @@ from django.core.exceptions import ValidationError
 from core.models import Section, SectionItem, Book, Author, Video
 
 
-class SectionItemInline(admin.TabularInline):
-    """Inline SIMPLIFICADO para gerenciar itens dentro de uma seção.
+class AutocompleteWidget(forms.TextInput):
+    """Widget de autocomplete com Select2 via AJAX."""
     
-    NOTA: Para adicionar itens, selecione o content_type e digite o object_id.
-    Para descobrir o ID de um livro/autor/vídeo, vá na lista correspondente.
-    """
+    template_name = 'admin/widgets/autocomplete_widget.html'
+    
+    class Media:
+        css = {
+            'all': (
+                'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css',
+            )
+        }
+        js = (
+            'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
+        )
+
+
+class SectionItemAdminForm(forms.ModelForm):
+    """Formulário com campo de busca por nome."""
+    
+    # Campo para buscar por nome (exibido ao usuário)
+    search_item = forms.CharField(
+        required=False,
+        label="🔍 Buscar item por nome",
+        help_text="Digite para buscar livros, autores ou vídeos pelo nome",
+        widget=forms.TextInput(attrs={
+            'class': 'vTextField',
+            'placeholder': 'Digite para buscar...',
+            'style': 'width: 300px;',
+            'autocomplete': 'off',
+        })
+    )
+    
+    class Meta:
+        model = SectionItem
+        fields = ['section', 'content_type', 'object_id', 'order', 'active', 'custom_title', 'custom_description']
+    
+    class Media:
+        js = ('admin/js/section_item_autocomplete.js',)
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Se já existe um item, mostrar o nome no campo de busca
+        if self.instance and self.instance.pk and self.instance.object_id:
+            content_obj = self.instance.content_object
+            if content_obj:
+                if hasattr(content_obj, 'title'):
+                    self.fields['search_item'].initial = content_obj.title
+                elif hasattr(content_obj, 'name'):
+                    self.fields['search_item'].initial = content_obj.name
+
+
+class SectionItemInline(admin.TabularInline):
+    """Inline com autocomplete para buscar items por nome."""
     
     model = SectionItem
+    form = SectionItemAdminForm
     extra = 1
-    # Campos mínimos - sem dropdowns pesados
-    fields = ['content_type', 'object_id', 'order', 'active']
+    fields = ['content_type', 'search_item', 'object_id', 'order', 'active']
     
-    # Sem readonly_fields que causam queries extras
-    # Sem form customizado que carrega dropdowns
-
     def get_queryset(self, request):
-        """Queryset otimizado - apenas select_related básico."""
+        """Queryset otimizado."""
         return super().get_queryset(request).select_related('content_type').order_by('order')
 
 
