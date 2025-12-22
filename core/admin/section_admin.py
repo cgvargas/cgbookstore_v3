@@ -1,5 +1,5 @@
 """
-Admin para Section e SectionItem - Versão Otimizada
+Admin para Section e SectionItem - Versão Simplificada
 """
 from django import forms
 from django.contrib import admin
@@ -9,38 +9,36 @@ from django.core.exceptions import ValidationError
 from core.models import Section, SectionItem, Book, Author, Video
 
 
-# Limite de registros para carregar nos dropdowns
-# 200 é suficiente para a maioria dos casos e carrega rápido
-DROPDOWN_LIMIT = 200
-
-
 class SectionItemAdminForm(forms.ModelForm):
-    """Form customizado com dropdowns otimizados para selecionar objetos.
+    """Form customizado com dropdowns para selecionar objetos.
     
-    Usa querysets limitados para evitar carregar milhares de registros.
-    O limite é configurável via DROPDOWN_LIMIT.
+    Usa querysets lazy (não avaliados até renderização).
+    Com ~100 registros, isso é eficiente e simples.
     """
 
-    # Campos serão configurados no __init__ com querysets limitados
+    # Querysets lazy - serão avaliados apenas uma vez na renderização
     book = forms.ModelChoiceField(
-        queryset=Book.objects.none(),
+        queryset=Book.objects.select_related('author').order_by('title'),
         required=False,
         label="📚 Selecionar Livro",
-        help_text="Selecione um livro (mostrando os mais recentes)"
+        help_text="Escolha um livro da lista",
+        empty_label="--- Selecione um livro ---"
     )
 
     author = forms.ModelChoiceField(
-        queryset=Author.objects.none(),
+        queryset=Author.objects.all().order_by('name'),
         required=False,
         label="👤 Selecionar Autor",
-        help_text="Selecione um autor"
+        help_text="Escolha um autor da lista",
+        empty_label="--- Selecione um autor ---"
     )
 
     video = forms.ModelChoiceField(
-        queryset=Video.objects.none(),
+        queryset=Video.objects.all().order_by('title'),
         required=False,
         label="🎬 Selecionar Vídeo",
-        help_text="Selecione um vídeo"
+        help_text="Escolha um vídeo da lista",
+        empty_label="--- Selecione um vídeo ---"
     )
 
     class Meta:
@@ -51,39 +49,19 @@ class SectionItemAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Carregar querysets LIMITADOS para evitar travamento
-        # Ordena por ID decrescente para mostrar os mais recentes primeiro
-        self.fields['book'].queryset = Book.objects.select_related(
-            'author'
-        ).order_by('-id')[:DROPDOWN_LIMIT]
-        
-        self.fields['author'].queryset = Author.objects.order_by('name')[:DROPDOWN_LIMIT]
-        
-        self.fields['video'].queryset = Video.objects.order_by('-id')[:DROPDOWN_LIMIT]
-
         # Melhorar exibição no dropdown
         self.fields['book'].label_from_instance = lambda obj: f"{obj.title[:50]}{'...' if len(obj.title) > 50 else ''} - {obj.author.name if obj.author else 'Sem autor'}"
         self.fields['author'].label_from_instance = lambda obj: obj.name
         self.fields['video'].label_from_instance = lambda obj: obj.title
 
-        # Se já existe um objeto, garantir que ele esteja no queryset
+        # Se já existe um objeto, preencher o campo apropriado
         if self.instance and self.instance.pk and self.instance.object_id:
             content_obj = self.instance.content_object
             if isinstance(content_obj, Book):
-                # Adicionar o livro atual ao queryset se não estiver nos mais recentes
-                current_qs = self.fields['book'].queryset
-                if not current_qs.filter(pk=content_obj.pk).exists():
-                    self.fields['book'].queryset = Book.objects.filter(pk=content_obj.pk) | current_qs
                 self.fields['book'].initial = content_obj
             elif isinstance(content_obj, Author):
-                current_qs = self.fields['author'].queryset
-                if not current_qs.filter(pk=content_obj.pk).exists():
-                    self.fields['author'].queryset = Author.objects.filter(pk=content_obj.pk) | current_qs
                 self.fields['author'].initial = content_obj
             elif isinstance(content_obj, Video):
-                current_qs = self.fields['video'].queryset
-                if not current_qs.filter(pk=content_obj.pk).exists():
-                    self.fields['video'].queryset = Video.objects.filter(pk=content_obj.pk) | current_qs
                 self.fields['video'].initial = content_obj
 
     def clean(self):
