@@ -21,7 +21,7 @@ class AutocompleteSearchWidget(forms.TextInput):
         # Adicionar container de resultados e script inline
         widget_id = attrs.get('id', name)
         script = f'''
-        <div id="{widget_id}_results" style="position:absolute;z-index:9999;background:#fff;border:1px solid #ccc;border-radius:4px;max-height:200px;overflow-y:auto;display:none;width:300px;box-shadow:0 2px 4px rgba(0,0,0,0.1);"></div>
+        <div id="{widget_id}_results" style="position:absolute;z-index:9999;background:#ffffff;border:1px solid #417690;border-radius:4px;max-height:200px;overflow-y:auto;display:none;width:300px;box-shadow:0 4px 8px rgba(0,0,0,0.3);"></div>
         <script>
         (function() {{
             var input = document.getElementById("{widget_id}");
@@ -49,7 +49,7 @@ class AutocompleteSearchWidget(forms.TextInput):
                 else if (ctText.includes("video") || ctText.includes("vídeo")) type = "video";
                 
                 if (!type) {{
-                    results.innerHTML = "<div style='padding:8px;color:#666;'>Selecione um tipo primeiro</div>";
+                    results.innerHTML = "<div style='padding:10px;color:#333;background:#fff5cc;border-left:3px solid #ffc107;'>⚠️ Selecione um tipo primeiro</div>";
                     results.style.display = "block";
                     return;
                 }}
@@ -60,14 +60,14 @@ class AutocompleteSearchWidget(forms.TextInput):
                         .then(function(data) {{
                             results.innerHTML = "";
                             if (data.results.length === 0) {{
-                                results.innerHTML = "<div style='padding:8px;color:#999;'>Nenhum resultado</div>";
+                                results.innerHTML = "<div style='padding:10px;color:#333;background:#ffe6e6;'>Nenhum resultado encontrado</div>";
                             }} else {{
                                 data.results.forEach(function(item) {{
                                     var div = document.createElement("div");
-                                    div.style.cssText = "padding:8px;cursor:pointer;border-bottom:1px solid #eee;";
+                                    div.style.cssText = "padding:10px;cursor:pointer;border-bottom:1px solid #ddd;color:#333;background:#ffffff;";
                                     div.textContent = item.text;
-                                    div.addEventListener("mouseover", function() {{ this.style.background = "#f0f0f0"; }});
-                                    div.addEventListener("mouseout", function() {{ this.style.background = "#fff"; }});
+                                    div.addEventListener("mouseover", function() {{ this.style.background = "#e6f3ff"; this.style.color = "#000"; }});
+                                    div.addEventListener("mouseout", function() {{ this.style.background = "#ffffff"; this.style.color = "#333"; }});
                                     div.addEventListener("click", function() {{
                                         input.value = item.text;
                                         var objIdInput = row.querySelector("input[name$='-object_id']");
