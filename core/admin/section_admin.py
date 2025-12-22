@@ -3,6 +3,7 @@ Admin para Section e SectionItem - Versão com Dropdown Dinâmico Simples
 """
 from django import forms
 from django.contrib import admin
+from django.contrib.admin.widgets import AutocompleteSelect
 from django.contrib.contenttypes.models import ContentType
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
@@ -10,33 +11,37 @@ from core.models import Section, SectionItem, Book, Author, Video
 
 
 class SectionItemAdminForm(forms.ModelForm):
-    """Form customizado com dropdown para selecionar objetos."""
+    """Form customizado com dropdown para selecionar objetos.
+    
+    IMPORTANTE: Usamos querysets vazios por padrão para evitar carregar
+    milhares de registros. O Django Admin usa Select2 que faz busca via AJAX.
+    """
 
-    # Campo dropdown para Book
+    # Campo dropdown para Book - queryset vazio por padrão
     book = forms.ModelChoiceField(
-        queryset=Book.objects.all().select_related('author', 'category').order_by('title'),
+        queryset=Book.objects.none(),  # NÃO carregar todos os livros!
         required=False,
         label="📚 Selecionar Livro",
-        help_text="Escolha um livro da lista",
-        empty_label="--- Selecione um livro ---"
+        help_text="Digite para buscar um livro",
+        empty_label="--- Digite para buscar ---"
     )
 
-    # Campo dropdown para Author
+    # Campo dropdown para Author - queryset vazio por padrão
     author = forms.ModelChoiceField(
-        queryset=Author.objects.all().order_by('name'),
+        queryset=Author.objects.none(),  # NÃO carregar todos os autores!
         required=False,
         label="👤 Selecionar Autor",
-        help_text="Escolha um autor da lista",
-        empty_label="--- Selecione um autor ---"
+        help_text="Digite para buscar um autor",
+        empty_label="--- Digite para buscar ---"
     )
 
-    # Campo dropdown para Video
+    # Campo dropdown para Video - queryset vazio por padrão
     video = forms.ModelChoiceField(
-        queryset=Video.objects.all().order_by('title'),
+        queryset=Video.objects.none(),  # NÃO carregar todos os vídeos!
         required=False,
         label="🎬 Selecionar Vídeo",
-        help_text="Escolha um vídeo da lista",
-        empty_label="--- Selecione um vídeo ---"
+        help_text="Digite para buscar um vídeo",
+        empty_label="--- Digite para buscar ---"
     )
 
     class Meta:
@@ -51,15 +56,49 @@ class SectionItemAdminForm(forms.ModelForm):
         self.fields['book'].label_from_instance = lambda \
             obj: f"{obj.title} - {obj.author.name if obj.author else 'Sem autor'}"
 
-        # Se já existe um objeto, preencher o campo apropriado
+        # Se já existe um objeto, preencher o campo apropriado E adicionar ao queryset
         if self.instance and self.instance.pk and self.instance.object_id:
             content_obj = self.instance.content_object
             if isinstance(content_obj, Book):
+                self.fields['book'].queryset = Book.objects.filter(pk=content_obj.pk)
                 self.fields['book'].initial = content_obj
             elif isinstance(content_obj, Author):
+                self.fields['author'].queryset = Author.objects.filter(pk=content_obj.pk)
                 self.fields['author'].initial = content_obj
             elif isinstance(content_obj, Video):
+                self.fields['video'].queryset = Video.objects.filter(pk=content_obj.pk)
                 self.fields['video'].initial = content_obj
+
+        # Se há dados do POST, permitir que o objeto selecionado seja validado
+        if 'data' in kwargs and kwargs['data']:
+            data = kwargs['data']
+            # Encontrar o prefixo correto para este inline
+            prefix = kwargs.get('prefix', '')
+            
+            book_key = f'{prefix}-book' if prefix else 'book'
+            author_key = f'{prefix}-author' if prefix else 'author'
+            video_key = f'{prefix}-video' if prefix else 'video'
+            
+            if book_key in data and data[book_key]:
+                try:
+                    book_id = int(data[book_key])
+                    self.fields['book'].queryset = Book.objects.filter(pk=book_id)
+                except (ValueError, TypeError):
+                    pass
+                    
+            if author_key in data and data[author_key]:
+                try:
+                    author_id = int(data[author_key])
+                    self.fields['author'].queryset = Author.objects.filter(pk=author_id)
+                except (ValueError, TypeError):
+                    pass
+                    
+            if video_key in data and data[video_key]:
+                try:
+                    video_id = int(data[video_key])
+                    self.fields['video'].queryset = Video.objects.filter(pk=video_id)
+                except (ValueError, TypeError):
+                    pass
 
     def clean(self):
         cleaned_data = super().clean()
@@ -118,7 +157,11 @@ class SectionItemAdminForm(forms.ModelForm):
 
 
 class SectionItemInline(admin.TabularInline):
-    """Inline para gerenciar itens dentro de uma seção."""
+    """Inline para gerenciar itens dentro de uma seção.
+    
+    NOTA: Os campos book/author/video são campos de formulário extras que populam
+    o GenericForeignKey. Usamos querysets vazios para evitar carregar milhares de registros.
+    """
 
     model = SectionItem
     form = SectionItemAdminForm
