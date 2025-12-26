@@ -7,36 +7,74 @@
 {{ block.super }}
 <style>
     /* ============================================================================
-       CSS CORRIGIDO PARA A PÁGINA SOBRE - COMPATÍVEL COM themes.css
+       CSS CORRIGIDO E MELHORADO PARA A PÁGINA SOBRE
        ============================================================================ */
+
+    /* Animações */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 
     /* Hero Section */
     .hero-about {
-        padding: 5rem 0;
+        padding: 6rem 0;
         background: linear-gradient(135deg, rgba(0, 113, 133, 0.05), rgba(0, 113, 133, 0.02));
         text-align: center;
         border-bottom: 1px solid var(--border-color);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Elemento decorativo sutil no fundo */
+    .hero-about::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(var(--primary-rgb, 0, 113, 133), 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        z-index: 0;
     }
 
     [data-theme='dark'] .hero-about {
         background: linear-gradient(135deg, rgba(93, 195, 209, 0.1), rgba(93, 195, 209, 0.05));
     }
 
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
     .hero-about h1 {
         font-size: 3.5rem;
-        font-weight: 700;
-        /* ✅ CORREÇÃO: Usando a variável correta para o gradiente de texto */
+        font-weight: 800;
+        color: var(--primary-color);
+        /* Fallback */
         background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
+        margin-bottom: 1.5rem;
+        letter-spacing: -1px;
     }
 
     .hero-about p.lead {
-        font-size: 1.5rem;
+        font-size: 1.35rem;
         color: var(--text-secondary);
         max-width: 800px;
-        margin: 1rem auto 0;
+        margin: 0 auto;
+        line-height: 1.6;
     }
 
     /* Títulos de Seção */
@@ -66,7 +104,22 @@
 
     /* Seção Nossa História com Timeline */
     .story-section {
-        padding: 4rem 0;
+        padding: 5rem 0;
+    }
+
+    .quote-box {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background-color: var(--card-bg);
+        border-left: 4px solid var(--primary-color);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .quote-text {
+        margin: 0;
+        font-style: italic;
+        color: var(--text-secondary);
     }
 
     .timeline {
@@ -75,6 +128,7 @@
         padding: 1rem 0;
     }
 
+    /* Linha conectora */
     .timeline::before {
         content: '';
         position: absolute;
@@ -82,12 +136,16 @@
         top: 0;
         bottom: 0;
         width: 2px;
-        background: var(--border-color);
+        background: linear-gradient(to bottom, var(--primary-color) 0%, var(--border-color) 80%);
     }
 
     .timeline-item {
         margin-bottom: 40px;
         position: relative;
+    }
+
+    .timeline-item:last-child {
+        margin-bottom: 0;
     }
 
     .timeline-icon {
@@ -97,82 +155,240 @@
         width: 42px;
         height: 42px;
         background: var(--primary-color);
-        color: var(--text-light); /* ✅ CORREÇÃO: Variável para texto claro */
+        color: white;
+        /* Sempre branco para contraste com a cor primária */
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1.2rem;
-        box-shadow: 0 0 0 4px var(--card-bg); /* ✅ CORREÇÃO: Variável para cor de fundo */
+        box-shadow: 0 0 0 4px var(--body-bg);
+        /* Halo effect */
         z-index: 1;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .timeline-content { margin-left: 65px; }
-    .timeline-year { font-weight: 700; color: var(--primary-color); margin-bottom: 0.25rem; }
-    .timeline-title { font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem; }
-    .timeline-text { color: var(--text-secondary); }
+    .timeline-item:hover .timeline-icon {
+        transform: scale(1.15);
+    }
+
+    .timeline-content {
+        margin-left: 70px;
+    }
+
+    .timeline-year {
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.25rem;
+    }
+
+    .timeline-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+    }
+
+    .timeline-text {
+        color: var(--text-secondary);
+    }
 
     /* Seção de Features Alternadas */
-    .feature-section { padding: 3rem 0; overflow: hidden; }
-    .feature-section:nth-child(odd) { background-color: var(--card-bg); } /* ✅ CORREÇÃO: Usando variável */
-
-    .feature-image {
-        border-radius: 1rem;
-        box-shadow: var(--shadow-md); /* ✅ CORREÇÃO: Usando variável de sombra */
-        object-fit: cover;
-        width: 100%;
-        height: 100%;
-        min-height: 300px;
+    .feature-section {
+        padding: 4rem 0;
+        overflow: hidden;
     }
 
-    .feature-icon { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 1rem; }
-    .feature-title { font-weight: 600; font-size: 1.8rem; margin-bottom: 1rem; color: var(--text-primary); }
-    .feature-text { font-size: 1.1rem; color: var(--text-secondary); line-height: 1.7; }
+    .feature-section:nth-child(odd) {
+        background-color: var(--card-bg);
+    }
+
+    .feature-image-wrapper {
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+
+    .feature-image {
+        width: 100%;
+        height: 100%;
+        min-height: 350px;
+        object-fit: cover;
+        transition: transform 0.6s ease;
+    }
+
+    .feature-section:hover .feature-image {
+        transform: scale(1.03);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        display: inline-block;
+    }
+
+    .feature-title {
+        font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+
+    .feature-text {
+        font-size: 1.15rem;
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin-bottom: 1.5rem;
+    }
 
     /* Seção Criadores (CGVargas) */
     .creators-section {
-        padding: 4rem 0;
-        background-color: var(--card-bg); /* ✅ CORREÇÃO: Usando variável */
+        padding: 5rem 0;
+        background-color: var(--card-bg);
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
     }
 
     .cgvargas-card {
-        background: var(--body-bg); /* Fundo contrastante */
+        background: var(--body-bg);
         border: 1px solid var(--border-color);
-        border-radius: 1rem;
-        padding: 2.5rem;
+        border-radius: 1.5rem;
+        padding: 3rem;
         box-shadow: var(--shadow-sm);
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        position: relative;
+        overflow: hidden;
     }
-    .cgvargas-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
-    .cgvargas-slogan { font-style: italic; color: var(--text-secondary); padding-left: 1rem; border-left: 3px solid var(--primary-color); }
+
+    /* Detalhe de borda top */
+    .cgvargas-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-hover));
+    }
+
+    .cgvargas-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .cgvargas-icon {
+        font-size: 5rem;
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+        display: inline-block;
+        transition: transform 0.5s ease;
+    }
+
+    .cgvargas-card:hover .cgvargas-icon {
+        transform: rotateY(180deg);
+    }
+
+    .cgvargas-slogan {
+        font-style: italic;
+        color: var(--text-secondary);
+        padding-left: 1rem;
+        border-left: 3px solid var(--primary-color);
+        margin: 1rem 0;
+    }
 
     /* Seção Futuro */
-    .future-section { padding: 4rem 0; }
-    .future-feature-item { display: flex; align-items: flex-start; gap: 15px; }
-    .future-feature-item i { font-size: 1.5rem; color: var(--primary-color); margin-top: 5px; }
-    .future-feature-item h5 { color: var(--text-primary); }
-    .future-feature-item p { color: var(--text-secondary); }
+    .future-section {
+        padding: 5rem 0;
+    }
 
-    /* CTA Section */
-    .cta-section {
+    .future-lead {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 1.25rem;
+        max-width: 800px;
+        margin: 0 auto 3rem;
+        line-height: 1.6;
+    }
+
+    .future-card {
         background: var(--card-bg);
-        border-radius: 20px;
-        padding: 3rem;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        border: 1px solid var(--border-color);
+        height: 100%;
+        transition: background-color 0.3s ease;
+    }
+
+    .future-card:hover {
+        background: var(--body-bg);
+        border-color: var(--primary-color);
+    }
+
+    .future-feature-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .future-feature-item i {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+        margin-top: 3px;
+    }
+
+    .future-feature-item h5 {
+        color: var(--text-primary);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .future-feature-item p {
+        color: var(--text-secondary);
+        margin-bottom: 0;
+        font-size: 0.95rem;
+    }
+
+    /* CTA Section personalizada */
+    .cta-container {
+        padding: 5rem 0;
+    }
+
+    .cta-box {
+        background: radial-gradient(circle at top right, var(--card-bg) 0%, var(--body-bg) 100%);
+        border-radius: 2rem;
+        padding: 4rem 2rem;
         text-align: center;
         border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
     }
-    .cta-section h3 { color: var(--text-primary); }
-    .cta-section p { color: var(--text-secondary); }
 
+    .cta-box h2 {
+        color: var(--text-primary);
+        font-weight: 800;
+        margin-bottom: 1rem;
+    }
+
+    .cta-box p {
+        color: var(--text-secondary);
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <!-- HERO -->
 <section class="hero-about">
-    <div class="container">
+    <div class="container hero-content">
         <h1>Um universo literário para leitores apaixonados</h1>
-        <p class="lead">Nascemos do desejo de conectar pessoas a histórias transformadoras, reinventando a forma como você descobre, organiza e compartilha sua paixão pela leitura.</p>
+        <p class="lead">Nascemos do desejo de conectar pessoas a histórias transformadoras, reinventando a forma como
+            você descobre, organiza e compartilha sua paixão pela leitura.</p>
     </div>
 </section>
 
@@ -180,12 +396,18 @@
 <div class="container">
     <section class="story-section">
         <div class="row align-items-center">
-            <div class="col-lg-5 mb-4 mb-lg-0">
+            <div class="col-lg-5 mb-5 mb-lg-0">
                 <h2 class="section-title">Nossa Jornada</h2>
-                <p style="font-size: 1.1rem;">A CG BookStore começou com uma pergunta simples: <strong>"Como podemos aproximar cada leitor do livro perfeito?"</strong></p>
-                <p>Essa busca nos guiou na criação de um ecossistema digital que vai além de uma simples livraria. Aqui, cada ferramenta foi pensada para enriquecer sua vida literária.</p>
-                <div class="mt-4 p-3 rounded" style="background-color: var(--cor-fundo-secao); border-left: 4px solid var(--cor-primaria);">
-                    <p class="m-0 fst-italic">"Acreditamos que cada livro tem seu leitor, e cada leitor merece encontrar aquelas histórias que falarão diretamente à sua alma."</p>
+                <p class="lead mb-4" style="font-size: 1.15rem;">A CG BookStore começou com uma pergunta simples:
+                    <strong>"Como podemos aproximar cada leitor do livro perfeito?"</strong>
+                </p>
+                <p class="text-secondary">Essa busca nos guiou na criação de um ecossistema digital que vai além de uma
+                    simples livraria. Aqui, cada ferramenta foi pensada para enriquecer sua vida literária com
+                    tecnologia e sensibilidade.</p>
+
+                <div class="quote-box">
+                    <p class="quote-text">"Acreditamos que cada livro tem seu leitor, e cada leitor merece encontrar
+                        aquelas histórias que falarão diretamente à sua alma."</p>
                 </div>
             </div>
             <div class="col-lg-7">
@@ -195,7 +417,8 @@
                         <div class="timeline-content">
                             <h5 class="timeline-year">2023 - O Início</h5>
                             <h6 class="timeline-title">A Fundação</h6>
-                            <p class="timeline-text">A ideia da CG BookStore ganha vida, com foco em criar uma plataforma intuitiva e um catálogo inicial de livros.</p>
+                            <p class="timeline-text">A ideia da CG BookStore ganha vida, com foco em criar uma
+                                plataforma intuitiva e um catálogo inicial de livros.</p>
                         </div>
                     </li>
                     <li class="timeline-item">
@@ -203,7 +426,8 @@
                         <div class="timeline-content">
                             <h5 class="timeline-year">2024 - A Expansão</h5>
                             <h6 class="timeline-title">Biblioteca Virtual e Recomendações</h6>
-                            <p class="timeline-text">Lançamos as prateleiras virtuais e nosso primeiro motor de sugestões inteligentes para personalizar a experiência.</p>
+                            <p class="timeline-text">Lançamos as prateleiras virtuais e nosso primeiro motor de
+                                sugestões inteligentes para personalizar a experiência.</p>
                         </div>
                     </li>
                     <li class="timeline-item">
@@ -211,7 +435,8 @@
                         <div class="timeline-content">
                             <h5 class="timeline-year">2025 - A Revolução</h5>
                             <h6 class="timeline-title">Acervo Global e Inteligência</h6>
-                            <p class="timeline-text">Integramos mais de 2 milhões de títulos via Google Books e aprimoramos nossas ferramentas com inteligência artificial.</p>
+                            <p class="timeline-text">Integramos mais de 2 milhões de títulos via Google Books e
+                                aprimoramos nossas ferramentas com inteligência artificial.</p>
                         </div>
                     </li>
                 </ul>
@@ -226,16 +451,23 @@
         <div class="container">
             <div class="row align-items-center g-5">
                 <div class="col-lg-6">
-                    <img src="https://images.unsplash.com/photo-1550399105-c4db5fb85c18?auto=format&fit=crop&w=1171&q=80" alt="Organização de livros" class="feature-image">
+                    <div class="feature-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1550399105-c4db5fb85c18?auto=format&fit=crop&w=1171&q=80"
+                            alt="Organização de livros" class="feature-image">
+                    </div>
                 </div>
                 <div class="col-lg-6">
                     <i class="bi bi-bookshelf feature-icon"></i>
                     <h3 class="feature-title">Sua Biblioteca, Suas Regras</h3>
-                    <p class="feature-text">Organize sua vida literária com prateleiras virtuais. Separe o que está lendo, o que já leu e seus próximos alvos. Tenha o controle total da sua jornada de leitura em um só lugar.</p>
+                    <p class="feature-text">Organize sua vida literária com prateleiras virtuais. Separe o que está
+                        lendo, o que já leu e seus próximos alvos. Tenha o controle total da sua jornada de leitura em
+                        um só lugar.</p>
                     {% if user.is_authenticated %}
-                    <a href="{% url 'core:library' %}" class="btn btn-outline-primary mt-3">Conheça sua biblioteca</a>
+                    <a href="{% url 'core:library' %}" class="btn btn-outline-primary rounded-pill px-4">Conheça sua
+                        biblioteca</a>
                     {% else %}
-                    <a href="{% url 'account_signup' %}" class="btn btn-outline-primary mt-3">Crie sua biblioteca</a>
+                    <a href="{% url 'account_signup' %}" class="btn btn-outline-primary rounded-pill px-4">Crie sua
+                        biblioteca</a>
                     {% endif %}
                 </div>
             </div>
@@ -246,13 +478,18 @@
         <div class="container">
             <div class="row align-items-center g-5 flex-lg-row-reverse">
                 <div class="col-lg-6">
-                    <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1290&q=80" alt="Pessoa escolhendo livro" class="feature-image">
+                    <div class="feature-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1290&q=80"
+                            alt="Pessoa escolhendo livro" class="feature-image">
+                    </div>
                 </div>
                 <div class="col-lg-6">
                     <i class="bi bi-magic feature-icon"></i>
                     <h3 class="feature-title">Recomendações que te Entendem</h3>
-                    <p class="feature-text">Nossa tecnologia inteligente aprende com seus gostos para sugerir livros que têm tudo a ver com você. Diga adeus à dúvida de qual será sua próxima leitura.</p>
-                    <a href="{% url 'core:book_list' %}" class="btn btn-outline-primary mt-3">Descubra novos livros</a>
+                    <p class="feature-text">Nossa tecnologia inteligente aprende com seus gostos para sugerir livros que
+                        têm tudo a ver com você. Diga adeus à dúvida de qual será sua próxima leitura.</p>
+                    <a href="{% url 'core:book_list' %}" class="btn btn-outline-primary rounded-pill px-4">Descubra
+                        novos livros</a>
                 </div>
             </div>
         </div>
@@ -262,13 +499,18 @@
         <div class="container">
             <div class="row align-items-center g-5">
                 <div class="col-lg-6">
-                    <img src="{% static 'images/evento-literario.jpg' %}" alt="Evento literário" class="feature-image">
+                    <div class="feature-image-wrapper">
+                        <img src="{% static 'images/evento-literario.jpg' %}" alt="Evento literário"
+                            class="feature-image">
+                    </div>
                 </div>
                 <div class="col-lg-6">
                     <i class="bi bi-calendar-event feature-icon"></i>
                     <h3 class="feature-title">Conecte-se com o Mundo Literário</h3>
-                    <p class="feature-text">Fique por dentro dos principais eventos do universo dos livros — de lançamentos a encontros com autores e clubes de leitura.</p>
-                    <a href="{% url 'core:events' %}" class="btn btn-outline-primary mt-3">Ver agenda de eventos</a>
+                    <p class="feature-text">Fique por dentro dos principais eventos do universo dos livros — de
+                        lançamentos a encontros com autores e clubes de leitura.</p>
+                    <a href="{% url 'core:events' %}" class="btn btn-outline-primary rounded-pill px-4">Ver agenda de
+                        eventos</a>
                 </div>
             </div>
         </div>
@@ -278,7 +520,7 @@
 <!-- PREMIUM CTA -->
 <section class="py-5">
     <div class="container">
-        {% include 'finance/widgets/premium_cta.html' with title="Maximize sua Experiência Literária" description="Desbloqueie todos os recursos da plataforma e transforme sua jornada de leitura com nossas ferramentas premium." %}
+        {% include 'finance/widgets/premium_cta.html' %}
     </div>
 </section>
 
@@ -291,13 +533,16 @@
                 <div class="cgvargas-card">
                     <div class="row align-items-center">
                         <div class="col-md-3 text-center mb-4 mb-md-0">
-                            <i class="bi bi-building" style="font-size: 5rem; color: var(--cor-primaria);"></i>
+                            <i class="bi bi-building cgvargas-icon"></i>
                         </div>
                         <div class="col-md-9">
-                            <h3 class="fw-bold" style="color: var(--cor-primaria);">CGVargas Informática</h3>
-                            <p class="cgvargas-slogan mb-3">"Transformamos ideias em soluções digitais"</p>
-                            <p>A CG BookStore é um projeto da CGVargas Informática, uma empresa que une tecnologia e criatividade para construir plataformas digitais de alto impacto.</p>
-                            <a href="https://www.cgvargas.com.br" target="_blank" class="btn btn-sm btn-primary">
+                            <h3 class="fw-bold text-primary">CGVargas Informática</h3>
+                            <p class="cgvargas-slogan">"Transformamos ideias em soluções digitais"</p>
+                            <p class="text-secondary">A CG BookStore é um projeto da CGVargas Informática, uma empresa
+                                que une tecnologia e criatividade para construir plataformas digitais de alto impacto
+                                que simplificam a vida das pessoas.</p>
+                            <a href="https://www.cgvargas.com.br" target="_blank"
+                                class="btn btn-primary rounded-pill px-4 mt-2">
                                 Conheça nosso trabalho <i class="bi bi-box-arrow-up-right ms-1"></i>
                             </a>
                         </div>
@@ -312,43 +557,52 @@
 <section class="future-section">
     <div class="container">
         <h2 class="section-title text-center">O Futuro da Leitura Começa Aqui</h2>
-        <p class="text-center text-muted lead mb-5" style="max-width: 800px; margin: auto;">Estamos sempre inovando. Veja o que vem por aí para tornar sua experiência ainda mais incrível:</p>
+        <p class="future-lead">Estamos sempre inovando. Veja o que vem por aí para tornar sua experiência ainda mais
+            incrível:</p>
         <div class="row justify-content-center g-4">
             <div class="col-lg-8">
                 <div class="row g-4">
                     <div class="col-md-6">
-                        <div class="future-feature-item">
-                            <i class="bi bi-people-fill"></i>
-                            <div>
-                                <h5 class="fw-bold">Clubes de Leitura Interativos</h5>
-                                <p class="text-muted">Espaços para discutir suas obras favoritas com outros leitores.</p>
+                        <div class="future-card">
+                            <div class="future-feature-item">
+                                <i class="bi bi-people-fill"></i>
+                                <div>
+                                    <h5>Clubes de Leitura Interativos</h5>
+                                    <p>Espaços para discutir suas obras favoritas com outros leitores.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="future-feature-item">
-                            <i class="bi bi-pencil-square"></i>
-                            <div>
-                                <h5 class="fw-bold">Resenhas Colaborativas</h5>
-                                <p class="text-muted">Compartilhe suas impressões e descubra novas perspectivas.</p>
+                        <div class="future-card">
+                            <div class="future-feature-item">
+                                <i class="bi bi-pencil-square"></i>
+                                <div>
+                                    <h5>Resenhas Colaborativas</h5>
+                                    <p>Compartilhe suas impressões e descubra novas perspectivas.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="future-feature-item">
-                            <i class="bi bi-trophy-fill"></i>
-                            <div>
-                                <h5 class="fw-bold">Desafios Literários</h5>
-                                <p class="text-muted">Metas e conquistas para transformar leitura em jornada divertida.</p>
+                        <div class="future-card">
+                            <div class="future-feature-item">
+                                <i class="bi bi-trophy-fill"></i>
+                                <div>
+                                    <h5>Desafios Literários</h5>
+                                    <p>Metas e conquistas para transformar leitura em jornada divertida.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="future-feature-item">
-                            <i class="bi bi-mortarboard-fill"></i>
-                            <div>
-                                <h5 class="fw-bold">Aprendizado Contínuo</h5>
-                                <p class="text-muted">Ferramentas para leitura crítica e desenvolvimento pessoal.</p>
+                        <div class="future-card">
+                            <div class="future-feature-item">
+                                <i class="bi bi-mortarboard-fill"></i>
+                                <div>
+                                    <h5>Aprendizado Contínuo</h5>
+                                    <p>Ferramentas para leitura crítica e desenvolvimento pessoal.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -359,12 +613,13 @@
 </section>
 
 <!-- CTA FINAL -->
-<section class="py-5">
+<section class="cta-container">
     <div class="container">
-        <div class="cta-section">
-            <h2 class="fw-bold mb-3">Pronto para embarcar nessa jornada?</h2>
-            <p class="text-muted mb-4">Descubra, organize e compartilhe suas leituras com a CG BookStore — onde cada livro encontra seu leitor.</p>
-            <a href="{% url 'core:home' %}" class="btn btn-lg btn-primary">Comece agora</a>
+        <div class="cta-box">
+            <h2>Pronto para embarcar nessa jornada?</h2>
+            <p>Descubra, organize e compartilhe suas leituras com a CG BookStore — onde cada livro encontra seu leitor.
+            </p>
+            <a href="{% url 'core:home' %}" class="btn btn-lg btn-primary rounded-pill px-5 shadow">Comece agora</a>
         </div>
     </div>
 </section>

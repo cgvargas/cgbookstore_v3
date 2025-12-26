@@ -1,0 +1,819 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Dashboard de Relatórios - CGBookStore Admin{% endblock %}
+
+{% block extrastyle %}
+<style>
+    :root {
+        --primary-color: #417690;
+        --success-color: #28a745;
+        --warning-color: #ffc107;
+        --danger-color: #dc3545;
+        --info-color: #17a2b8;
+        --card-bg: #2a2a2a;
+        --border-color: #444;
+        --text-primary: #e0e0e0;
+        --text-secondary: #999;
+        --module-bg: #252525;
+    }
+
+    body {
+        background: #1a1a1a !important;
+    }
+
+    #content {
+        padding: 30px !important;
+        background: #1a1a1a !important;
+    }
+
+    .breadcrumbs {
+        background: #2a2a2a !important;
+        color: #e0e0e0 !important;
+    }
+
+    .breadcrumbs a {
+        color: #5a9ab8 !important;
+    }
+
+    /* Header */
+    .reports-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        margin: -30px -30px 30px -30px;
+        border-radius: 0 0 10px 10px;
+    }
+
+    .reports-header h1 {
+        margin: 0 0 10px 0;
+        font-size: 32px;
+        font-weight: 600;
+    }
+
+    .reports-header p {
+        margin: 0;
+        opacity: 0.95;
+        font-size: 16px;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .header-btn {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 10px 20px;
+        border-radius: 6px;
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .header-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    /* Modules Grid */
+    .modules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+
+    @media (max-width: 600px) {
+        .modules-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Module Card */
+    .module-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+
+    .module-card:hover {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        border-color: var(--primary-color);
+    }
+
+    .module-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background: var(--module-bg);
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+    }
+
+    .module-header:hover {
+        background: #2d2d2d;
+    }
+
+    .module-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .module-icon {
+        font-size: 24px;
+    }
+
+    .module-toggle {
+        font-size: 20px;
+        transition: transform 0.3s;
+        color: var(--text-secondary);
+    }
+
+    .module-card.collapsed .module-toggle {
+        transform: rotate(-90deg);
+    }
+
+    .module-card.collapsed .module-body {
+        display: none;
+    }
+
+    .module-body {
+        padding: 20px;
+    }
+
+    /* Stats Grid */
+    .stats-mini-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .stat-mini {
+        background: #1a1a1a;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        border: 1px solid var(--border-color);
+    }
+
+    .stat-mini-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .stat-mini-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-top: 5px;
+    }
+
+    .stat-mini.success .stat-mini-value {
+        color: var(--success-color);
+    }
+
+    .stat-mini.warning .stat-mini-value {
+        color: var(--warning-color);
+    }
+
+    .stat-mini.danger .stat-mini-value {
+        color: var(--danger-color);
+    }
+
+    .stat-mini.info .stat-mini-value {
+        color: var(--info-color);
+    }
+
+    /* Chart Container */
+    .chart-container {
+        position: relative;
+        height: 280px;
+        margin: 20px 0;
+        padding: 15px;
+        background: #1a1a1a;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+
+    /* Export Buttons */
+    .export-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .export-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+
+    .export-btn.csv {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .export-btn.csv:hover {
+        background: #218838;
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .export-btn.md {
+        background: var(--info-color);
+        color: white;
+    }
+
+    .export-btn.md:hover {
+        background: #138496;
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    /* Module Colors */
+    .module-card.books .module-header {
+        border-left: 4px solid #667eea;
+    }
+
+    .module-card.authors .module-header {
+        border-left: 4px solid var(--success-color);
+    }
+
+    .module-card.videos .module-header {
+        border-left: 4px solid var(--info-color);
+    }
+
+    .module-card.events .module-header {
+        border-left: 4px solid var(--warning-color);
+    }
+
+    .module-card.finance .module-header {
+        border-left: 4px solid #ff6b6b;
+    }
+
+    /* Table Styles */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 10px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .data-table th {
+        background: #1a1a1a;
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+    }
+
+    .data-table td {
+        color: var(--text-primary);
+    }
+
+    .data-table tr:hover td {
+        background: rgba(65, 118, 144, 0.2);
+    }
+
+    .data-table tbody {
+        background: #1a1a1a;
+    }
+
+    .data-table tbody tr {
+        background: #1a1a1a;
+    }
+
+    .data-table tbody td {
+        background: #1a1a1a;
+        color: #e0e0e0;
+    }
+
+    /* Info Box */
+    .info-box {
+        background: rgba(23, 162, 184, 0.1);
+        border: 1px solid var(--info-color);
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+    }
+
+    .info-box-title {
+        color: var(--info-color);
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .info-box-text {
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    /* Back Link */
+    .back-to-admin {
+        display: inline-block;
+        margin-bottom: 20px;
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .back-to-admin:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="reports-header">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h1>📊 Relatórios e Estatísticas</h1>
+            <p>Visualize estatísticas detalhadas e exporte relatórios em CSV ou Markdown</p>
+            <p style="font-size: 13px; opacity: 0.8; margin-top: 10px;">
+                Gerado em: {{ generated_at|date:"d/m/Y H:i" }}
+            </p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'admin:index' %}" class="header-btn">🏠 Dashboard Principal</a>
+            <a href="{% url 'core:home' %}" class="header-btn">🌐 Voltar ao Site</a>
+        </div>
+    </div>
+</div>
+
+<!-- MODULES GRID -->
+<div class="modules-grid">
+
+    <!-- ========================================== -->
+    <!-- MÓDULO: LIVROS -->
+    <!-- ========================================== -->
+    <div class="module-card books" id="module-books">
+        <div class="module-header" onclick="toggleModule('books')">
+            <h2 class="module-title">
+                <span class="module-icon">📚</span>
+                Módulo de Livros
+            </h2>
+            <span class="module-toggle">▼</span>
+        </div>
+        <div class="module-body">
+            <!-- Stats Grid -->
+            <div class="stats-mini-grid">
+                <div class="stat-mini">
+                    <div class="stat-mini-value">{{ books_data.total_books }}</div>
+                    <div class="stat-mini-label">Total</div>
+                </div>
+                <div class="stat-mini success">
+                    <div class="stat-mini-value">{{ books_data.books_with_cover }}</div>
+                    <div class="stat-mini-label">Com Capa</div>
+                </div>
+                <div class="stat-mini warning">
+                    <div class="stat-mini-value">{{ books_data.books_without_cover }}</div>
+                    <div class="stat-mini-label">Sem Capa</div>
+                </div>
+                <div class="stat-mini info">
+                    <div class="stat-mini-value">{{ books_data.cover_percentage }}%</div>
+                    <div class="stat-mini-label">Cobertura</div>
+                </div>
+            </div>
+
+            <!-- Chart: Books by Category -->
+            <div class="chart-container">
+                <canvas id="booksCategoryChart"></canvas>
+            </div>
+
+            <!-- Top Authors Table -->
+            <h4 style="color: var(--text-primary); margin: 20px 0 10px;">Top 10 Autores</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Autor</th>
+                        <th>Livros</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for author in books_data.top_authors %}
+                    <tr>
+                        <td>{{ author.name }}</td>
+                        <td>{{ author.book_count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2">Nenhum autor cadastrado</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Export Buttons -->
+            <div class="export-buttons">
+                <a href="{% url 'admin_tools:export_books_csv' %}" class="export-btn csv">
+                    📥 Exportar CSV
+                </a>
+                <a href="{% url 'admin_tools:export_books_markdown' %}" class="export-btn md">
+                    📝 Exportar Markdown
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MÓDULO: AUTORES -->
+    <!-- ========================================== -->
+    <div class="module-card authors" id="module-authors">
+        <div class="module-header" onclick="toggleModule('authors')">
+            <h2 class="module-title">
+                <span class="module-icon">✍️</span>
+                Módulo de Autores
+            </h2>
+            <span class="module-toggle">▼</span>
+        </div>
+        <div class="module-body">
+            <!-- Stats Grid -->
+            <div class="stats-mini-grid">
+                <div class="stat-mini">
+                    <div class="stat-mini-value">{{ authors_data.total_authors }}</div>
+                    <div class="stat-mini-label">Total</div>
+                </div>
+                <div class="stat-mini success">
+                    <div class="stat-mini-value">{{ authors_data.authors_with_books }}</div>
+                    <div class="stat-mini-label">Com Livros</div>
+                </div>
+                <div class="stat-mini danger">
+                    <div class="stat-mini-value">{{ authors_data.authors_without_books }}</div>
+                    <div class="stat-mini-label">Sem Livros</div>
+                </div>
+            </div>
+
+            <!-- Chart: Authors by Books -->
+            <div class="chart-container">
+                <canvas id="authorsChart"></canvas>
+            </div>
+
+            <!-- Export Buttons -->
+            <div class="export-buttons">
+                <a href="{% url 'admin_tools:export_authors_csv' %}" class="export-btn csv">
+                    📥 Exportar CSV
+                </a>
+                <a href="{% url 'admin_tools:export_authors_markdown' %}" class="export-btn md">
+                    📝 Exportar Markdown
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MÓDULO: VÍDEOS -->
+    <!-- ========================================== -->
+    <div class="module-card videos" id="module-videos">
+        <div class="module-header" onclick="toggleModule('videos')">
+            <h2 class="module-title">
+                <span class="module-icon">🎥</span>
+                Módulo de Vídeos
+            </h2>
+            <span class="module-toggle">▼</span>
+        </div>
+        <div class="module-body">
+            <!-- Stats Grid -->
+            <div class="stats-mini-grid">
+                <div class="stat-mini">
+                    <div class="stat-mini-value">{{ videos_data.total_videos }}</div>
+                    <div class="stat-mini-label">Total</div>
+                </div>
+                <div class="stat-mini success">
+                    <div class="stat-mini-value">{{ videos_data.active_videos }}</div>
+                    <div class="stat-mini-label">Ativos</div>
+                </div>
+                <div class="stat-mini danger">
+                    <div class="stat-mini-value">{{ videos_data.inactive_videos }}</div>
+                    <div class="stat-mini-label">Inativos</div>
+                </div>
+            </div>
+
+            <!-- Chart: Videos Status -->
+            <div class="chart-container">
+                <canvas id="videosChart"></canvas>
+            </div>
+
+            <!-- Export Buttons -->
+            <div class="export-buttons">
+                <a href="{% url 'admin_tools:export_videos_csv' %}" class="export-btn csv">
+                    📥 Exportar CSV
+                </a>
+                <a href="{% url 'admin_tools:export_videos_markdown' %}" class="export-btn md">
+                    📝 Exportar Markdown
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MÓDULO: EVENTOS -->
+    <!-- ========================================== -->
+    <div class="module-card events" id="module-events">
+        <div class="module-header" onclick="toggleModule('events')">
+            <h2 class="module-title">
+                <span class="module-icon">📅</span>
+                Módulo de Eventos
+            </h2>
+            <span class="module-toggle">▼</span>
+        </div>
+        <div class="module-body">
+            <!-- Stats Grid -->
+            <div class="stats-mini-grid">
+                <div class="stat-mini">
+                    <div class="stat-mini-value">{{ events_data.total_events }}</div>
+                    <div class="stat-mini-label">Total</div>
+                </div>
+                <div class="stat-mini info">
+                    <div class="stat-mini-value">{{ events_data.upcoming }}</div>
+                    <div class="stat-mini-label">Próximos</div>
+                </div>
+                <div class="stat-mini success">
+                    <div class="stat-mini-value">{{ events_data.happening }}</div>
+                    <div class="stat-mini-label">Acontecendo</div>
+                </div>
+                <div class="stat-mini warning">
+                    <div class="stat-mini-value">{{ events_data.finished }}</div>
+                    <div class="stat-mini-label">Finalizados</div>
+                </div>
+            </div>
+
+            <!-- Chart: Events by Status -->
+            <div class="chart-container">
+                <canvas id="eventsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    {% if finance_data %}
+    <!-- ========================================== -->
+    <!-- MÓDULO: FINANCEIRO -->
+    <!-- ========================================== -->
+    <div class="module-card finance" id="module-finance">
+        <div class="module-header" onclick="toggleModule('finance')">
+            <h2 class="module-title">
+                <span class="module-icon">💰</span>
+                Módulo Financeiro
+            </h2>
+            <span class="module-toggle">▼</span>
+        </div>
+        <div class="module-body">
+            <!-- Stats Grid -->
+            <div class="stats-mini-grid">
+                <div class="stat-mini">
+                    <div class="stat-mini-value">{{ finance_data.total_subscriptions }}</div>
+                    <div class="stat-mini-label">Assinaturas</div>
+                </div>
+                <div class="stat-mini success">
+                    <div class="stat-mini-value">{{ finance_data.active_subscriptions }}</div>
+                    <div class="stat-mini-label">Ativas</div>
+                </div>
+                <div class="stat-mini info">
+                    <div class="stat-mini-value">{{ finance_data.active_campaigns }}</div>
+                    <div class="stat-mini-label">Campanhas</div>
+                </div>
+                <div class="stat-mini warning">
+                    <div class="stat-mini-value">R$ {{ finance_data.total_revenue|floatformat:0 }}</div>
+                    <div class="stat-mini-label">Receita</div>
+                </div>
+            </div>
+
+            <!-- Chart: Subscriptions Growth -->
+            <div class="chart-container">
+                <canvas id="financeChart"></canvas>
+            </div>
+
+            <!-- Export Buttons -->
+            <div class="export-buttons">
+                <a href="{% url 'admin_tools:export_finance_markdown' %}" class="export-btn md">
+                    📝 Exportar Relatório Markdown
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Info Box -->
+<div class="info-box">
+    <div class="info-box-title">💡 Dica: Exportação Markdown para IA</div>
+    <div class="info-box-text">
+        Os arquivos Markdown (.md) são ideais para trabalhar com assistentes de IA.
+        Eles contêm tabelas formatadas e dados estruturados que podem ser facilmente
+        interpretados por modelos de linguagem.
+    </div>
+</div>
+
+<!-- JavaScript for Charts and Module Toggle -->
+<script>
+    // Module Toggle Function
+    function toggleModule(moduleName) {
+        const moduleCard = document.getElementById('module-' + moduleName);
+        moduleCard.classList.toggle('collapsed');
+    }
+
+    // Chart.js Default Config (Dark Theme)
+    const chartDefaults = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#e0e0e0',
+                    font: { size: 12, family: "'Segoe UI', sans-serif" }
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(42, 42, 42, 0.95)',
+                titleColor: '#e0e0e0',
+                bodyColor: '#e0e0e0',
+                borderColor: '#444',
+                borderWidth: 1,
+                padding: 12
+            }
+        },
+        scales: {
+            x: {
+                ticks: { color: '#999', font: { size: 11 } },
+                grid: { color: 'rgba(255, 255, 255, 0.1)', drawBorder: false }
+            },
+            y: {
+                ticks: { color: '#999', font: { size: 11 }, precision: 0 },
+                grid: { color: 'rgba(255, 255, 255, 0.1)', drawBorder: false }
+            }
+        }
+    };
+
+    // Initialize Charts when DOM is ready
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // Books by Category Chart
+        const booksLabels = {{ books_data.chart_labels|safe }};
+    const booksValues = {{ books_data.chart_values|safe }};
+
+    if (booksLabels.length > 0) {
+        new Chart(document.getElementById('booksCategoryChart'), {
+            type: 'bar',
+            data: {
+                labels: booksLabels,
+                datasets: [{
+                    label: 'Livros',
+                    data: booksValues,
+                    backgroundColor: '#667eea',
+                    borderColor: '#5a67d8',
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                ...chartDefaults,
+                indexAxis: 'y',
+                plugins: { ...chartDefaults.plugins, legend: { display: false } }
+            }
+        });
+    }
+
+    // Authors Chart
+    const authorsLabels = {{ authors_data.chart_labels|safe }};
+    const authorsValues = {{ authors_data.chart_values|safe }};
+
+    if (authorsLabels.length > 0) {
+        new Chart(document.getElementById('authorsChart'), {
+            type: 'bar',
+            data: {
+                labels: authorsLabels,
+                datasets: [{
+                    label: 'Livros por Autor',
+                    data: authorsValues,
+                    backgroundColor: '#28a745',
+                    borderColor: '#218838',
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                ...chartDefaults,
+                plugins: { ...chartDefaults.plugins, legend: { display: false } }
+            }
+        });
+    }
+
+    // Videos Chart (Doughnut)
+    new Chart(document.getElementById('videosChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Ativos', 'Inativos'],
+            datasets: [{
+                data: [{{ videos_data.active_videos }}, {{ videos_data.inactive_videos }}],
+        backgroundColor: ['#28a745', '#dc3545'],
+        borderColor: '#1a1a1a',
+        borderWidth: 3
+    }]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { color: '#e0e0e0', padding: 15 }
+            }
+        },
+        cutout: '60%'
+    }
+    });
+
+    // Events Chart (Doughnut)
+    new Chart(document.getElementById('eventsChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Próximos', 'Acontecendo', 'Finalizados'],
+            datasets: [{
+                data: [{{ events_data.upcoming }}, {{ events_data.happening }}, {{ events_data.finished }}],
+        backgroundColor: ['#17a2b8', '#28a745', '#ffc107'],
+        borderColor: '#1a1a1a',
+        borderWidth: 3
+            }]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { color: '#e0e0e0', padding: 15 }
+            }
+        },
+        cutout: '60%'
+    }
+    });
+
+    {% if finance_data %}
+    // Finance Chart (Line)
+    const financeLabels = {{ finance_data.chart_labels|safe }};
+    const financeValues = {{ finance_data.chart_values|safe }};
+
+    new Chart(document.getElementById('financeChart'), {
+        type: 'line',
+        data: {
+            labels: financeLabels,
+            datasets: [{
+                label: 'Novas Assinaturas',
+                data: financeValues,
+                backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                borderColor: '#ff6b6b',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 5,
+                pointBackgroundColor: '#ff6b6b',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            ...chartDefaults,
+            plugins: { ...chartDefaults.plugins, legend: { display: false } },
+            scales: {
+                ...chartDefaults.scales,
+                y: { ...chartDefaults.scales.y, beginAtZero: true }
+            }
+        }
+    });
+    {% endif %}
+
+    console.log('📊 Reports Dashboard: Charts initialized');
+});
+</script>
+{% endblock %}

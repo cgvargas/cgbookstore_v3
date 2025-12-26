@@ -35,6 +35,18 @@ from . import book_search_views
 # Views de Dashboard Admin
 from .dashboard_view import admin_dashboard
 
+# Views de Relatórios (Reports Dashboard)
+from .reports_dashboard import (
+    reports_dashboard,
+    export_books_csv,
+    export_authors_csv,
+    export_videos_csv,
+    export_books_markdown,
+    export_authors_markdown,
+    export_videos_markdown,
+    export_finance_markdown,
+)
+
 # Gamificação - Views Principais (FASE 2.1)
 from .gamification_views import (
     dashboard_view,

@@ -11,8 +11,8 @@
         --dashboard-card-text: #333333;
         --dashboard-card-desc: #666666;
         --dashboard-section-border: #f0f0f0;
-        --dashboard-card-shadow: rgba(0,0,0,0.1);
-        --dashboard-card-shadow-hover: rgba(0,0,0,0.15);
+        --dashboard-card-shadow: rgba(0, 0, 0, 0.1);
+        --dashboard-card-shadow-hover: rgba(0, 0, 0, 0.15);
     }
 
     [data-theme="dark"],
@@ -21,8 +21,8 @@
         --dashboard-card-text: #e0e0e0;
         --dashboard-card-desc: #b0b0b0;
         --dashboard-section-border: #404040;
-        --dashboard-card-shadow: rgba(0,0,0,0.3);
-        --dashboard-card-shadow-hover: rgba(0,0,0,0.5);
+        --dashboard-card-shadow: rgba(0, 0, 0, 0.3);
+        --dashboard-card-shadow-hover: rgba(0, 0, 0, 0.5);
     }
 
     /* Para detectar dark mode automaticamente se o admin não usar data-theme */
@@ -32,8 +32,8 @@
             --dashboard-card-text: #e0e0e0;
             --dashboard-card-desc: #b0b0b0;
             --dashboard-section-border: #404040;
-            --dashboard-card-shadow: rgba(0,0,0,0.3);
-            --dashboard-card-shadow-hover: rgba(0,0,0,0.5);
+            --dashboard-card-shadow: rgba(0, 0, 0, 0.3);
+            --dashboard-card-shadow-hover: rgba(0, 0, 0, 0.5);
         }
     }
 
@@ -116,6 +116,16 @@
     <h2 class="dashboard-section-title">📊 Dashboards e Análises</h2>
 
     <div class="dashboard-cards">
+        <!-- Card: Dashboard de Relatórios (NOVO) -->
+        <a href="{% url 'admin_tools:reports_dashboard' %}" class="dashboard-card info">
+            <div class="dashboard-card-icon">📊</div>
+            <h3 class="dashboard-card-title">Dashboard de Relatórios</h3>
+            <p class="dashboard-card-description">
+                Gráficos interativos, estatísticas detalhadas e exportação
+                de relatórios em CSV e Markdown.
+            </p>
+        </a>
+
         <!-- Card: Dashboard de Exclusões -->
         <a href="{% url 'admin:account_deletion_dashboard' %}" class="dashboard-card danger">
             <div class="dashboard-card-icon">💔</div>

@@ -303,7 +303,7 @@ def admin_dashboard(request):
         }
 
     context = {
-        'title': 'Dashboard',
+        'title': '',  # Removido para não mostrar texto 'Dashboard' extra
         'stats': stats,
         'cover_stats': cover_stats,
         'books_by_category': books_by_category,

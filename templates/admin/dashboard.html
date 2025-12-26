@@ -57,9 +57,9 @@
     }
 
     .dashboard-header a:hover {
-        background: rgba(255,255,255,0.3) !important;
+        background: rgba(255, 255, 255, 0.3) !important;
         transform: translateY(-2px);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
     .stats-grid {
@@ -83,16 +83,17 @@
         background: var(--card-bg);
         border-radius: 10px;
         padding: 25px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         transition: all 0.3s;
         border-left: 4px solid var(--primary-color);
         border: 1px solid var(--border-color);
-        cursor: pointer; /* ✅ Indica que é clicável */
+        cursor: pointer;
+        /* ✅ Indica que é clicável */
     }
 
     .stat-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
         border-color: var(--primary-color);
     }
 
@@ -100,7 +101,7 @@
         background: var(--card-bg);
         border-radius: 10px;
         padding: 25px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         transition: all 0.3s;
         border-left: 4px solid var(--primary-color);
         border: 1px solid var(--border-color);
@@ -108,14 +109,25 @@
 
     .stat-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
         border-color: var(--primary-color);
     }
 
-    .stat-card.success { border-left-color: var(--success-color); }
-    .stat-card.warning { border-left-color: var(--warning-color); }
-    .stat-card.danger { border-left-color: var(--danger-color); }
-    .stat-card.info { border-left-color: var(--info-color); }
+    .stat-card.success {
+        border-left-color: var(--success-color);
+    }
+
+    .stat-card.warning {
+        border-left-color: var(--warning-color);
+    }
+
+    .stat-card.danger {
+        border-left-color: var(--danger-color);
+    }
+
+    .stat-card.info {
+        border-left-color: var(--info-color);
+    }
 
     .stat-card-header {
         display: flex;
@@ -155,7 +167,7 @@
         border-radius: 10px;
         padding: 25px;
         margin-bottom: 25px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
     .section-header {
@@ -189,35 +201,45 @@
 
     .quick-actions {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 15px;
     }
 
     .action-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        padding: 15px 20px;
-        background: var(--primary-color);
-        color: white;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.3s;
-        border: none;
-        cursor: pointer;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        padding: 20px 15px !important;
+        background: var(--primary-color) !important;
+        color: white !important;
+        border-radius: 12px !important;
+        text-decoration: none !important;
+        font-weight: 600 !important;
+        transition: all 0.3s !important;
+        border: none !important;
+        cursor: pointer !important;
+        min-height: 100px !important;
+        text-align: center !important;
+        font-size: 14px !important;
     }
 
     .action-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-        color: white;
-        filter: brightness(1.1);
+        transform: translateY(-3px) !important;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5) !important;
+        color: #000000 !important;
+        background: #ffffff !important;
     }
 
-    .action-btn.success { background: var(--success-color); }
-    .action-btn.success:hover { background: #218838; }
+    .action-btn.success {
+        background: var(--success-color) !important;
+    }
+
+    .action-btn.success:hover {
+        background: #218838 !important;
+        color: #ffffff !important;
+    }
 
     .recent-list {
         list-style: none;
@@ -289,9 +311,20 @@
         text-transform: uppercase;
     }
 
-    .event-badge.upcoming { background: #1a4d5c; color: #5dcdeb; }
-    .event-badge.happening { background: #1a4d2e; color: #5deb7a; }
-    .event-badge.finished { background: #4d1a1a; color: #eb5d5d; }
+    .event-badge.upcoming {
+        background: #1a4d5c;
+        color: #5dcdeb;
+    }
+
+    .event-badge.happening {
+        background: #1a4d2e;
+        color: #5deb7a;
+    }
+
+    .event-badge.finished {
+        background: #4d1a1a;
+        color: #eb5d5d;
+    }
 
     .chart-container {
         position: relative;
@@ -314,11 +347,10 @@
 <div class="dashboard-header">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
         <div>
-            <h1>Dashboard CGBookStore</h1>
+            <h1>🏛️ CGBookStore Admin</h1>
             <p>Visão geral do sistema - Bem-vindo, {{ user.get_full_name|default:user.username }}</p>
         </div>
-        <a href="{% url 'core:home' %}"
-           style="background: rgba(255,255,255,0.2);
+        <a href="{% url 'core:home' %}" style="background: rgba(255,255,255,0.2);
                   padding: 12px 24px;
                   border-radius: 6px;
                   color: white;
@@ -514,10 +546,14 @@
             ✨ Publicar Livro de Autor Emergente
         </a>
         {% if chatbot_stats %}
-        <a href="{% url 'admin:chatbot_literario_chatbotknowledge_add' %}" class="action-btn" style="background: #17a2b8;">
+        <a href="{% url 'admin:chatbot_literario_chatbotknowledge_add' %}" class="action-btn"
+            style="background: #17a2b8;">
             🧠 Adicionar Conhecimento ao Chatbot
         </a>
         {% endif %}
+        <a href="{% url 'admin_tools:reports_dashboard' %}" class="action-btn" style="background: #667eea;">
+            📊 Dashboard de Relatórios
+        </a>
     </div>
 </div>
 
@@ -563,7 +599,7 @@
 
 <!-- ÚLTIMOS LIVROS + PRÓXIMOS EVENTOS -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px;">
-    
+
     <!-- ÚLTIMOS LIVROS -->
     <div class="content-section">
         <div class="section-header">
@@ -574,9 +610,9 @@
             {% for book in recent_books %}
             <li class="recent-item">
                 {% if book.cover_image %}
-                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="recent-cover">
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="recent-cover">
                 {% else %}
-                    <div class="recent-cover"></div>
+                <div class="recent-cover"></div>
                 {% endif %}
                 <div class="recent-info">
                     <div class="recent-title">{{ book.title }}</div>
@@ -713,7 +749,8 @@
     <div class="content-section">
         <div class="section-header">
             <h2 class="section-title">🧠 Base de Conhecimento</h2>
-            <a href="{% url 'admin:chatbot_literario_chatbotknowledge_changelist' %}" class="section-link">Ver tudo →</a>
+            <a href="{% url 'admin:chatbot_literario_chatbotknowledge_changelist' %}" class="section-link">Ver tudo
+                →</a>
         </div>
 
         <!-- Mini Stats Grid -->
@@ -744,7 +781,8 @@
             </div>
             {% if chatbot_stats.top_knowledge %}
             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
-                <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 8px;">🏆 Conhecimento Mais Usado:</div>
+                <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 8px;">🏆 Conhecimento Mais
+                    Usado:</div>
                 <div style="color: var(--text-primary); font-size: 13px; line-height: 1.5;">
                     <strong>{{ chatbot_stats.top_knowledge.original_question|truncatechars:80 }}</strong>
                     <br>
@@ -765,10 +803,12 @@
         <h2 class="section-title">📊 Análises e Estatísticas</h2>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-top: 20px;">
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-top: 20px;">
 
         <!-- Gráfico: Livros por Categoria -->
-        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px;">
+        <div
+            style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px;">
             <h3 style="color: var(--text-primary); margin: 0 0 15px 0; font-size: 16px;">Livros por Categoria</h3>
             <div style="height: 300px;">
                 <canvas id="booksByCategoryChart"></canvas>
@@ -776,7 +816,8 @@
         </div>
 
         <!-- Gráfico: Eventos por Status -->
-        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px;">
+        <div
+            style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px;">
             <h3 style="color: var(--text-primary); margin: 0 0 15px 0; font-size: 16px;">Eventos por Status</h3>
             <div style="height: 300px;">
                 <canvas id="eventsByStatusChart"></canvas>
@@ -784,7 +825,8 @@
         </div>
 
         <!-- Gráfico: Origem das Capas -->
-        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px;">
+        <div
+            style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px;">
             <h3 style="color: var(--text-primary); margin: 0 0 15px 0; font-size: 16px;">Origem das Capas</h3>
             <div style="height: 300px;">
                 <canvas id="coverSourceChart"></canvas>
@@ -793,8 +835,10 @@
 
         {% if finance_stats %}
         <!-- Gráfico: Crescimento de Assinaturas -->
-        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px;">
-            <h3 style="color: var(--text-primary); margin: 0 0 15px 0; font-size: 16px;">💎 Crescimento de Assinaturas Premium</h3>
+        <div
+            style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px;">
+            <h3 style="color: var(--text-primary); margin: 0 0 15px 0; font-size: 16px;">💎 Crescimento de Assinaturas
+                Premium</h3>
             <div style="height: 300px;">
                 <canvas id="subscriptionGrowthChart"></canvas>
             </div>
@@ -810,21 +854,21 @@
     window.booksByCategoryData = {
         labels: [
             {% for category in books_by_category %}
-                "{{ category.name }}"{% if not forloop.last %},{% endif %}
-            {% endfor %}
+    "{{ category.name }}"{% if not forloop.last %}, {% endif %}
+    {% endfor %}
         ],
-        values: [
-            {% for category in books_by_category %}
-                {{ category.book_count }}{% if not forloop.last %},{% endif %}
-            {% endfor %}
+    values: [
+        {% for category in books_by_category %}
+    { { category.book_count } } {% if not forloop.last %}, {% endif %}
+    {% endfor %}
         ]
     };
 
     // Dados: Eventos por Status
     window.eventsByStatusData = {
         upcoming: {{ event_stats.upcoming }},
-        happening: {{ event_stats.happening }},
-        finished: {{ event_stats.finished }}
+    happening: { { event_stats.happening } },
+    finished: { { event_stats.finished } }
     };
     console.log('📊 Dados de Eventos:', window.eventsByStatusData);
 
@@ -842,13 +886,13 @@
     window.subscriptionGrowthData = {
         labels: [
             {% for item in subscription_chart_data %}
-                "{{ item.month }}"{% if not forloop.last %},{% endif %}
-            {% endfor %}
+    "{{ item.month }}"{% if not forloop.last %}, {% endif %}
+    {% endfor %}
         ],
-        values: [
-            {% for item in subscription_chart_data %}
-                {{ item.count }}{% if not forloop.last %},{% endif %}
-            {% endfor %}
+    values: [
+        {% for item in subscription_chart_data %}
+    { { item.count } } {% if not forloop.last %}, {% endif %}
+    {% endfor %}
         ]
     };
     console.log('📊 Dados de Assinaturas:', window.subscriptionGrowthData);
