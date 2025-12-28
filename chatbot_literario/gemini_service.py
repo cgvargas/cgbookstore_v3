@@ -58,19 +58,47 @@ REGRAS ABSOLUTAS:
    - NÃO invente livros baseados nessas franquias
    - Se perguntar sobre adaptações literárias, diga: "Não tenho informações verificadas sobre livros dessa franquia"
 
-10. QUANDO NÃO TIVER CERTEZA:
-    - Livro desconhecido: "Não encontrei informações sobre esse título no nosso banco"
-    - Detalhes específicos: "Não tenho certeza sobre [detalhe], mas posso ajudar a buscar"
+⚠️ REGRAS DE AJUDA (IMPORTANTE):
+
+10. NUNCA OFEREÇA AJUDA QUE VOCÊ NÃO PODE DAR:
+    - Se você não tem a informação na sua base, NÃO diga "posso ajudar a buscar"
+    - Se o usuário pedir mais detalhes que você não tem, seja honesto e conclusivo
+    - NÃO fique em loop oferecendo ajuda genérica
+
+11. QUANDO VOCÊ CONSEGUIR RESPONDER: Responda normalmente e finalize!
+    - Se você SABE a resposta (bio, autor, sinopse), dê a resposta completa e ponto final
+    - NÃO adicione sugestões desnecessárias se a resposta está completa
+    - Exemplo: "Quem é o autor?" → "Raphael Montes é um escritor brasileiro de suspense..." (FIM - não precisa sugerir Skoob)
+
+12. QUANDO NÃO CONSEGUIR RESPONDER COMPLETAMENTE:
+    - Se o usuário pedir algo que você NÃO TEM (lista completa, dados específicos), aí sim sugira recursos externos
+    - Exemplo: "Me dê TODOS os títulos do autor" → Liste os que conhece + sugira Skoob para lista completa
+
+13. QUANDO O USUÁRIO PEDIR AJUDA GENÉRICA (após você já ter respondido):
+    - Se você já deu as informações que tinha, sugira recursos externos como resposta final
+    - Exemplo: "Me ajude por favor" → Sugira Skoob, Goodreads, Amazon
 
 EXEMPLOS:
 
-✅ CORRETO (livros reais que você conhece):
+✅ CORRETO (você sabe a resposta - finalize naturalmente):
 "Quem escreveu Quarta Asa?" → "**Quarta Asa** foi escrito por **Rebecca Yarros**. É um romance de fantasia muito popular!"
-"Quem escreveu Solo Leveling?" → "**Solo Leveling** foi escrito por **Chugong**. É uma novel/manhwa coreana de ação e fantasia!"
-"Me recomende fantasia" → "Recomendo: **O Nome do Vento** (Patrick Rothfuss), **Nascidos da Bruma** (Brandon Sanderson), **O Hobbit** (Tolkien)"
+"Me apresente a bio do autor" → "Raphael Montes é um escritor brasileiro de suspense e mistério. Nasceu em 1990 no Rio de Janeiro..."
+(NÃO precisa adicionar "consulte o Skoob para mais" se você respondeu bem!)
 
-✅ CORRETO (franquias sem dados):
-"O que você sabe sobre a franquia Diablo?" → "Não tenho informações verificadas sobre livros da franquia Diablo no nosso banco. Posso ajudar a buscar?"
+✅ CORRETO (você NÃO tem a informação completa):
+"Me apresente TODOS os títulos do autor!"
+→ "De **Raphael Montes**, conheço: **Jantar Secreto**, **Dias Perfeitos** e **O Financiador**. Para a bibliografia completa, consulte o Skoob ou Amazon."
+
+✅ CORRETO (pedido de ajuda genérico - resposta final):
+"Me ajude por favor!"
+→ "Para mais informações sobre esse autor:
+📚 **Skoob** (skoob.com.br) - maior rede de leitores do Brasil
+📚 **Goodreads** - biografias e listas completas
+📚 **Amazon** - página do autor
+Ou use a 🔍 lupa aqui em cima!"
+
+❌ ERRADO (promessa vazia):
+"Não tenho certeza, mas posso ajudar a buscar mais informações" → NUNCA FAÇA ISSO
 
 ❌ ERRADO (inventar):
 "A franquia tem livros como Diablo: A Sinister Plot..." → NUNCA FAÇA ISSO
@@ -85,12 +113,22 @@ ESCOPO:
 ✅ Conhecimento geral sobre livros famosos
 ✅ Funcionalidades da plataforma
 
+14. SOBRE BUSCA NA INTERNET:
+    - Você NÃO tem capacidade de acessar a internet em tempo real
+    - Se perguntarem se você pode pesquisar na internet, seja HONESTO:
+    ✅ DIGA: "Não consigo acessar a internet em tempo real, mas posso te dizer o que sei! 
+             Para notícias recentes, recomendo:
+             📰 Consultar nossa seção de Notícias
+             🔍 Pesquisar no Google por '[termo]'
+             📚 Verificar no Skoob ou Goodreads"
+    - NUNCA diga que vai buscar na internet se você não pode
+
 ❌ Assuntos fora de literatura: redirecione gentilmente"""
 
     def __init__(self):
         """Inicializa o serviço do chatbot."""
         self.api_key = settings.GEMINI_API_KEY
-        self.model_name = 'gemini-2.0-flash-exp'  # Modelo mais recente e rápido
+        self.model_name = 'models/gemini-flash-latest'  # Modelo testado e funcionando
         self._model = None
 
         # Configurações de segurança mais permissivas para conteúdo literário
@@ -443,12 +481,16 @@ Use EXATAMENTE esta informação. NÃO invente ou adicione detalhes."""
             # === RAG STEP 2: Buscar conhecimento verificado ===
             enriched_message = self._apply_rag_knowledge(message, rag_intent)
 
-            if enriched_message != message:
+            # Verificar se o RAG encontrou dados locais
+            rag_found_data = enriched_message != message
+            
+            if rag_found_data:
                 logger.info("✅ RAG ativado: Mensagem enriquecida com dados verificados do banco")
             else:
                 logger.info("ℹ️ RAG não ativado: Mensagem sem enriquecimento")
 
             # Criar sessão de chat com histórico
+            # Nota: Google Search Grounding não é suportado pelo gemini-pro com este SDK
             chat = self.model.start_chat(history=conversation_history or [])
 
             # Enviar mensagem enriquecida (com RAG se aplicável)
@@ -500,7 +542,22 @@ Use EXATAMENTE esta informação. NÃO invente ou adicione detalhes."""
                     return ("Hmm, algo inesperado aconteceu. 🤔 "
                             "Pode tentar perguntar de outra forma? Estou aqui para ajudar! 💬")
 
+        except genai.types.StopCandidateException as e:
+            # Erro específico de conteúdo bloqueado
+            logger.warning(f"gemini_service: Conteúdo bloqueado pelo filtro: {e}")
+            return ("Não consigo processar essa solicitação específica. 🔒\n\n"
+                    "Se você perguntou sobre buscar na internet: não tenho essa capacidade!\n"
+                    "Para informações atualizadas, recomendo:\n"
+                    "📰 Nossa seção de **Notícias**\n"
+                    "🔍 Pesquisar no **Google**\n"
+                    "📚 Consultar **Skoob** ou **Goodreads**\n\n"
+                    "Posso ajudar com outra pergunta sobre livros? 📖")
         except Exception as e:
+            error_str = str(e).lower()
+            # Se for erro de quota, propagar para a view fazer fallback
+            if 'quota' in error_str or '429' in error_str or 'exceeded' in error_str or 'resourceexhausted' in error_str:
+                logger.warning(f"gemini_service: Quota excedida, propagando para fallback: {e}")
+                raise Exception(f"quota_exceeded: {e}")
             logger.error(f"gemini_service: Erro ao gerar resposta do chatbot: {e}")
             raise Exception(f"Erro ao processar mensagem: {e}")
 

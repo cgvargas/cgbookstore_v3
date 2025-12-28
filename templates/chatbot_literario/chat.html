@@ -5,7 +5,11 @@
 
 {% block extra_css %}
 <style>
-    /* Estilos do Chatbot Literário */
+    /* =========================================
+       CHATBOT LITERÁRIO - REDESIGN MODERNO
+       Paleta: Laranja (#ff6b35) + Azul Marinho
+       ========================================= */
+
     .chat-container {
         max-width: 900px;
         margin: 30px auto;
@@ -13,35 +17,71 @@
         display: flex;
         flex-direction: column;
         background: var(--card-bg);
-        border-radius: 15px;
+        border-radius: 20px;
         box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+    }
+
+    /* Header com gradiente azul marinho (como navbar/footer) */
+    .chat-header {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: white;
+        padding: 24px;
+        text-align: center;
+        position: relative;
         overflow: hidden;
     }
 
-    .chat-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px;
-        text-align: center;
-        border-bottom: 3px solid rgba(255,255,255,0.1);
+    .chat-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: pulse-bg 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse-bg {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .chat-header-content {
+        position: relative;
+        z-index: 1;
     }
 
     .chat-header h3 {
         margin: 0;
-        font-weight: 600;
-        font-size: 1.5rem;
+        font-weight: 700;
+        font-size: 1.6rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .chat-header p {
-        margin: 5px 0 0 0;
-        opacity: 0.9;
-        font-size: 0.9rem;
+        margin: 8px 0 0 0;
+        opacity: 0.95;
+        font-size: 0.95rem;
     }
 
+    .chat-header-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 3px solid rgba(255,255,255,0.3);
+        margin-bottom: 12px;
+        object-fit: cover;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Área de mensagens */
     .chat-messages {
         flex: 1;
         overflow-y: auto;
-        padding: 20px;
+        padding: 24px;
         background: var(--body-bg);
     }
 
@@ -66,72 +106,99 @@
 
     .message-content {
         max-width: 70%;
-        padding: 12px 16px;
-        border-radius: 18px;
+        padding: 14px 18px;
+        border-radius: 20px;
         position: relative;
         word-wrap: break-word;
+        line-height: 1.5;
     }
 
+    /* Mensagens do usuário - Gradiente laranja */
     .message.user .message-content {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
         color: white;
-        border-bottom-right-radius: 4px;
+        border-bottom-right-radius: 6px;
+        box-shadow: 0 3px 12px rgba(255,107,53,0.3);
     }
 
+    /* Mensagens do assistente */
     .message.assistant .message-content {
         background: var(--card-bg);
         color: var(--text-primary);
         border: 1px solid var(--border-color);
-        border-bottom-left-radius: 4px;
+        border-left: 3px solid #ff6b35;
+        border-bottom-left-radius: 6px;
         box-shadow: var(--shadow-sm);
     }
 
+    /* Avatares */
     .message-avatar {
-        width: 40px;
-        height: 40px;
+        width: 42px;
+        height: 42px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.2rem;
-        margin: 0 10px;
+        font-size: 1.1rem;
+        margin: 0 12px;
         flex-shrink: 0;
     }
 
     .message.user .message-avatar {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 0;
+        overflow: hidden;
+        border: 2px solid #ff6b35;
+        box-shadow: 0 2px 8px rgba(255,107,53,0.3);
+    }
+
+    .message.user .message-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .message.user .message-avatar .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
         color: white;
+        font-weight: bold;
+        font-size: 1rem;
     }
 
     .message.assistant .message-avatar {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
+        padding: 0;
+        overflow: hidden;
+        border: 2px solid #ff6b35;
+        box-shadow: 0 2px 8px rgba(255,107,53,0.2);
     }
 
-    .message-time {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-        margin-top: 5px;
-        text-align: right;
+    .message.assistant .message-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
+    /* Input container */
     .chat-input-container {
-        padding: 20px;
+        padding: 20px 24px;
         background: var(--card-bg);
-        border-top: 1px solid var(--border-color);
     }
 
     .chat-input-wrapper {
         display: flex;
-        gap: 10px;
+        gap: 12px;
         align-items: center;
     }
 
     .chat-input {
         flex: 1;
         border: 2px solid var(--border-color);
-        border-radius: 25px;
-        padding: 12px 20px;
+        border-radius: 30px;
+        padding: 14px 22px;
         font-size: 1rem;
         background: var(--input-bg);
         color: var(--text-primary);
@@ -140,41 +207,51 @@
 
     .chat-input:focus {
         outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        border-color: #ff6b35;
+        box-shadow: 0 0 0 4px rgba(255,107,53,0.15);
     }
 
+    .chat-input::placeholder {
+        color: var(--text-muted);
+    }
+
+    /* Botão enviar - Gradiente laranja */
     .chat-send-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
         color: white;
         border: none;
         border-radius: 50%;
-        width: 50px;
-        height: 50px;
+        width: 52px;
+        height: 52px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         transition: all 0.3s ease;
         font-size: 1.2rem;
+        box-shadow: 0 4px 15px rgba(255,107,53,0.3);
     }
 
     .chat-send-btn:hover:not(:disabled) {
-        transform: scale(1.1);
-        box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        transform: scale(1.08);
+        box-shadow: 0 6px 20px rgba(255,107,53,0.4);
     }
 
     .chat-send-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
     }
 
+    /* Indicador de digitação */
     .typing-indicator {
         display: none;
-        padding: 10px 16px;
+        padding: 12px 18px;
         background: var(--card-bg);
-        border-radius: 18px;
+        border-radius: 20px;
         border: 1px solid var(--border-color);
+        border-left: 3px solid #ff6b35;
         width: fit-content;
     }
 
@@ -185,10 +262,10 @@
     .typing-indicator span {
         height: 8px;
         width: 8px;
-        background: #667eea;
+        background: #ff6b35;
         border-radius: 50%;
         display: inline-block;
-        margin: 0 2px;
+        margin: 0 3px;
         animation: typing 1.4s infinite;
     }
 
@@ -202,42 +279,47 @@
 
     @keyframes typing {
         0%, 60%, 100% { transform: translateY(0); }
-        30% { transform: translateY(-10px); }
+        30% { transform: translateY(-8px); }
     }
 
+    /* Botão nova conversa */
     .new-chat-btn {
         background: rgba(255,255,255,0.2);
         color: white;
-        border: 1px solid rgba(255,255,255,0.3);
-        border-radius: 20px;
-        padding: 8px 16px;
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 22px;
+        padding: 10px 20px;
         font-size: 0.9rem;
+        font-weight: 500;
         cursor: pointer;
         transition: all 0.3s ease;
-        margin-top: 10px;
+        margin-top: 12px;
+        backdrop-filter: blur(5px);
     }
 
     .new-chat-btn:hover {
-        background: rgba(255,255,255,0.3);
-        border-color: rgba(255,255,255,0.5);
+        background: rgba(255,255,255,0.35);
+        border-color: rgba(255,255,255,0.6);
+        transform: translateY(-2px);
     }
 
-    /* Scrollbar personalizada */
+    /* Scrollbar personalizada - Laranja */
     .chat-messages::-webkit-scrollbar {
         width: 8px;
     }
 
     .chat-messages::-webkit-scrollbar-track {
         background: var(--body-bg);
+        border-radius: 4px;
     }
 
     .chat-messages::-webkit-scrollbar-thumb {
-        background: #667eea;
+        background: linear-gradient(180deg, #ff6b35, #f7931e);
         border-radius: 4px;
     }
 
     .chat-messages::-webkit-scrollbar-thumb:hover {
-        background: #764ba2;
+        background: linear-gradient(180deg, #f7931e, #ff6b35);
     }
 
     /* Markdown styling */
@@ -261,39 +343,55 @@
     .message-content code {
         background: var(--body-bg);
         padding: 2px 6px;
-        border-radius: 3px;
+        border-radius: 4px;
         font-family: 'Courier New', monospace;
         font-size: 0.9em;
-        color: var(--text-primary);
+        color: #ff6b35;
     }
 
+    /* Estado vazio */
     .empty-state {
         text-align: center;
         padding: 60px 20px;
         color: var(--text-muted);
     }
 
-    .empty-state i {
-        font-size: 4rem;
-        margin-bottom: 20px;
-        opacity: 0.5;
-        color: var(--text-muted);
+    .empty-state-icon {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        margin: 0 auto 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(255,107,53,0.1) 0%, rgba(247,147,30,0.1) 100%);
+        border: 2px dashed rgba(255,107,53,0.3);
+    }
+
+    .empty-state-icon img {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        object-fit: cover;
     }
 
     .empty-state h4 {
-        color: var(--text-secondary);
-        margin-bottom: 10px;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+        font-weight: 600;
     }
 
     .empty-state p {
         color: var(--text-muted);
-        font-size: 0.9rem;
+        font-size: 0.95rem;
+        max-width: 400px;
+        margin: 0 auto;
     }
 
     /* Aviso de IA */
     .ai-disclaimer {
         text-align: center;
-        padding: 8px 20px;
+        padding: 10px 20px;
         color: var(--text-muted);
         font-size: 0.75rem;
         background: var(--card-bg);
@@ -301,8 +399,91 @@
     }
 
     .ai-disclaimer i {
-        margin-right: 4px;
+        margin-right: 5px;
         opacity: 0.7;
+        color: #ff6b35;
+    }
+
+    /* Responsivo */
+    @media (max-width: 768px) {
+        .chat-container {
+            margin: 15px;
+            height: calc(100vh - 160px);
+            border-radius: 16px;
+        }
+
+        .chat-header {
+            padding: 18px;
+        }
+
+        .chat-header h3 {
+            font-size: 1.3rem;
+        }
+
+        .chat-header-avatar {
+            width: 50px;
+            height: 50px;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 12px 16px;
+        }
+
+        .chat-messages {
+            padding: 16px;
+        }
+
+        .chat-input-container {
+            padding: 16px;
+        }
+
+        .chat-input {
+            padding: 12px 18px;
+        }
+
+        .chat-send-btn {
+            width: 46px;
+            height: 46px;
+        }
+    }
+
+    /* ===== TEMA CLARO - Header branco como navbar ===== */
+    :root:not([data-theme="dark"]) .chat-header,
+    [data-theme="light"] .chat-header {
+        background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+        color: #1a1a2e;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    :root:not([data-theme="dark"]) .chat-header h3,
+    [data-theme="light"] .chat-header h3 {
+        color: #1a1a2e;
+        text-shadow: none;
+    }
+
+    :root:not([data-theme="dark"]) .chat-header p,
+    [data-theme="light"] .chat-header p {
+        color: #4a4a6a;
+    }
+
+    :root:not([data-theme="dark"]) .new-chat-btn,
+    [data-theme="light"] .new-chat-btn {
+        background: rgba(26, 26, 46, 0.1);
+        color: #1a1a2e;
+        border-color: rgba(26, 26, 46, 0.3);
+    }
+
+    :root:not([data-theme="dark"]) .new-chat-btn:hover,
+    [data-theme="light"] .new-chat-btn:hover {
+        background: #ff6b35;
+        color: white;
+        border-color: #ff6b35;
+    }
+
+    :root:not([data-theme="dark"]) .chat-header-avatar,
+    [data-theme="light"] .chat-header-avatar {
+        border-color: #ff6b35;
     }
 </style>
 {% endblock %}
@@ -312,18 +493,23 @@
     <div class="chat-container">
         <!-- Header -->
         <div class="chat-header">
-            <h3>📚 Assistente Literário</h3>
-            <p>Seu companheiro inteligente no mundo da literatura e leitura</p>
-            <button class="new-chat-btn" id="newChatBtn">
-                <i class="fas fa-plus"></i> Nova Conversa
-            </button>
+            <div class="chat-header-content">
+                <img src="{% static 'images/Dbit.JPG' %}" alt="Dbit" class="chat-header-avatar">
+                <h3>📚 Assistente Literário</h3>
+                <p>Seu companheiro inteligente no mundo da literatura</p>
+                <button class="new-chat-btn" id="newChatBtn">
+                    <i class="fas fa-plus"></i> Nova Conversa
+                </button>
+            </div>
         </div>
 
         <!-- Messages Area -->
         <div class="chat-messages" id="chatMessages">
             <div class="empty-state" id="emptyState">
-                <i class="fas fa-book-open"></i>
-                <h4>Olá! Bem-vindo ao Assistente Literário 📖</h4>
+                <div class="empty-state-icon">
+                    <img src="{% static 'images/Dbit.JPG' %}" alt="Dbit">
+                </div>
+                <h4>Olá! Eu sou o Dbit 📖</h4>
                 <p>Pergunte sobre livros, peça recomendações ou descubra novos mundos através da leitura!</p>
             </div>
         </div>
@@ -368,6 +554,14 @@
     // CSRF Token
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
                       '{{ csrf_token }}';
+
+    // URL da imagem do Dbit para o avatar
+    const dbitAvatarUrl = '{% static "images/Dbit.JPG" %}';
+
+    // Dados do usuário para o avatar
+    const userAvatarUrl = {% if user.profile.has_avatar %}'{{ user.profile.cached_avatar_url }}'{% else %}null{% endif %};
+    const userName = '{{ user.username|escapejs }}';
+    const userInitial = '{{ user.username|first|upper }}';
 
     // Inicialização
     document.addEventListener('DOMContentLoaded', function() {
@@ -463,7 +657,18 @@
 
         const avatar = document.createElement('div');
         avatar.className = 'message-avatar';
-        avatar.innerHTML = role === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+        
+        if (role === 'user') {
+            // Usar foto do perfil do usuário ou placeholder com inicial
+            if (userAvatarUrl) {
+                avatar.innerHTML = `<img src="${userAvatarUrl}" alt="${userName}">`;
+            } else {
+                avatar.innerHTML = `<div class="avatar-placeholder">${userInitial}</div>`;
+            }
+        } else {
+            // Usar imagem do Dbit para o assistente
+            avatar.innerHTML = `<img src="${dbitAvatarUrl}" alt="Dbit">`;
+        }
 
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
@@ -512,7 +717,7 @@
 
         const avatar = document.createElement('div');
         avatar.className = 'message-avatar';
-        avatar.innerHTML = '<i class="fas fa-robot"></i>';
+        avatar.innerHTML = `<img src="${dbitAvatarUrl}" alt="Dbit">`;
 
         const typingDiv = document.createElement('div');
         typingDiv.className = 'typing-indicator show';
@@ -538,7 +743,9 @@
             chatMessages.innerHTML = '';
             const emptyStateHtml = `
                 <div class="empty-state" id="emptyState">
-                    <i class="fas fa-book-open"></i>
+                    <div class="empty-state-icon">
+                        <img src="${dbitAvatarUrl}" alt="Dbit">
+                    </div>
                     <h4>Nova conversa iniciada! 📖</h4>
                     <p>Pergunte sobre livros, peça recomendações ou descubra novos mundos através da leitura!</p>
                 </div>

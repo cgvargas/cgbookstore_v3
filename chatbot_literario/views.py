@@ -126,10 +126,42 @@ class SendMessageAPIView(APIView):
                 message_with_context = user_message_text
 
             start_time = time.time()
-            bot_response_text = chatbot_service.get_response(
-                message=message_with_context,
-                conversation_history=conversation_history
-            )
+            
+            # Tentar com o provedor principal (Gemini por padrão)
+            try:
+                bot_response_text = chatbot_service.get_response(
+                    message=message_with_context,
+                    conversation_history=conversation_history
+                )
+            except Exception as primary_error:
+                error_str = str(primary_error).lower()
+                # Se for erro de quota do Gemini, fazer fallback para Groq
+                if ai_provider == 'gemini' and ('quota' in error_str or '429' in error_str or 'exceeded' in error_str):
+                    logger.warning(f"⚠️ Quota Gemini excedida, fazendo fallback para Groq...")
+                    try:
+                        from .groq_service import get_groq_chatbot_service
+                        groq_service = get_groq_chatbot_service()
+                        
+                        # Converter histórico para formato Groq (OpenAI)
+                        groq_history = []
+                        for msg in previous_messages:
+                            groq_history.append({
+                                "role": msg.role if msg.role == "user" else "assistant",
+                                "content": msg.content
+                            })
+                        
+                        bot_response_text = groq_service.get_response(
+                            message=message_with_context,
+                            conversation_history=groq_history
+                        )
+                        logger.info("✅ Fallback para Groq bem-sucedido!")
+                    except Exception as fallback_error:
+                        logger.error(f"❌ Fallback para Groq também falhou: {fallback_error}")
+                        raise fallback_error
+                else:
+                    # Não é erro de quota ou não é Gemini, propagar erro
+                    raise primary_error
+            
             response_time = time.time() - start_time
 
             # 5. Salvar resposta do chatbot
