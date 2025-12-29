@@ -1,0 +1,277 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+/* Container principal da árvore */
+.quiz-tree-container {
+    background: var(--body-bg, #fff);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Linha do Quiz (pasta pai) */
+.quiz-folder {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    padding: 12px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #1a252f;
+    transition: all 0.2s ease;
+}
+
+.quiz-folder:hover {
+    background: linear-gradient(135deg, #34495e 0%, #3d566e 100%);
+}
+
+.quiz-folder-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.quiz-folder-icon {
+    font-size: 20px;
+    transition: transform 0.3s ease;
+}
+
+.quiz-folder.collapsed .quiz-folder-icon {
+    transform: rotate(-90deg);
+}
+
+.quiz-folder-title {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.quiz-folder-count {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+/* Container das perguntas */
+.quiz-questions {
+    background: var(--darkened-bg, #f8f9fa);
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.quiz-questions.collapsed {
+    max-height: 0 !important;
+}
+
+/* Linha de pergunta */
+.question-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px 10px 40px;
+    border-bottom: 1px solid var(--hairline-color, #e0e0e0);
+    transition: background 0.2s ease;
+}
+
+.question-row:hover {
+    background: rgba(52, 152, 219, 0.1);
+}
+
+.question-tree-line {
+    color: #bdc3c7;
+    margin-right: 12px;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+.question-text {
+    flex: 1;
+    color: var(--body-fg, #333);
+}
+
+.question-text a {
+    color: var(--link-fg, #3498db);
+    text-decoration: none;
+}
+
+.question-text a:hover {
+    text-decoration: underline;
+}
+
+.question-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+.question-order {
+    background: #ecf0f1;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.question-options {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.question-options.has-correct {
+    color: #27ae60;
+}
+
+.question-options.no-correct {
+    color: #e74c3c;
+}
+
+.question-image {
+    color: #27ae60;
+}
+
+/* Ações em massa */
+.bulk-actions {
+    padding: 12px 16px;
+    background: var(--darkened-bg, #f0f0f0);
+    border-bottom: 1px solid var(--hairline-color, #ddd);
+}
+
+/* Botão expandir/colapsar todos */
+.expand-all-btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 12px;
+}
+
+.expand-all-btn:hover {
+    background: #2980b9;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .quiz-questions {
+        background: #1a1a2e;
+    }
+    .question-row {
+        border-color: #333;
+    }
+    .question-order {
+        background: #2d2d44;
+        color: #aaa;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="bulk-actions">
+        <button type="button" class="expand-all-btn" onclick="toggleAllQuizzes()">
+            📂 Expandir/Colapsar Todos
+        </button>
+        <a href="{% url 'admin:news_quizquestion_add' %}" class="addlink" style="margin-left: 16px;">
+            ➕ Adicionar Pergunta
+        </a>
+    </div>
+
+    <div class="quiz-tree-container">
+        {% regroup cl.queryset by quiz as quizzes_list %}
+        
+        {% for quiz_group in quizzes_list %}
+        <div class="quiz-folder-wrapper">
+            <div class="quiz-folder" onclick="toggleQuiz(this)" data-quiz-id="{{ quiz_group.grouper.id }}">
+                <div class="quiz-folder-left">
+                    <span class="quiz-folder-icon">📂</span>
+                    <span class="quiz-folder-title">{{ quiz_group.grouper.title }}</span>
+                </div>
+                <span class="quiz-folder-count">{{ quiz_group.list|length }} perguntas</span>
+            </div>
+            
+            <div class="quiz-questions" data-quiz-id="{{ quiz_group.grouper.id }}">
+                {% for question in quiz_group.list %}
+                <div class="question-row">
+                    <span class="question-tree-line">└─</span>
+                    <div class="question-text">
+                        <a href="{% url 'admin:news_quizquestion_change' question.pk %}">
+                            {{ question.question_text|truncatechars:80 }}
+                        </a>
+                    </div>
+                    <div class="question-meta">
+                        <span class="question-order">#{{ question.order }}</span>
+                        <span class="question-options {% if question.options.exists %}{% if question.options.filter.exists %}has-correct{% else %}no-correct{% endif %}{% endif %}">
+                            {{ question.options.count }} opções
+                        </span>
+                        {% if question.question_image %}
+                        <span class="question-image">🖼️</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% empty %}
+        <p style="padding: 20px; text-align: center; color: #7f8c8d;">
+            Nenhuma pergunta cadastrada. 
+            <a href="{% url 'admin:news_quizquestion_add' %}">Adicionar primeira pergunta</a>
+        </p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function toggleQuiz(element) {
+    const quizId = element.dataset.quizId;
+    const questionsContainer = document.querySelector(`.quiz-questions[data-quiz-id="${quizId}"]`);
+    const icon = element.querySelector('.quiz-folder-icon');
+    
+    element.classList.toggle('collapsed');
+    questionsContainer.classList.toggle('collapsed');
+    
+    if (element.classList.contains('collapsed')) {
+        icon.textContent = '📁';
+        questionsContainer.style.maxHeight = '0';
+    } else {
+        icon.textContent = '📂';
+        questionsContainer.style.maxHeight = questionsContainer.scrollHeight + 'px';
+    }
+}
+
+function toggleAllQuizzes() {
+    const folders = document.querySelectorAll('.quiz-folder');
+    const allCollapsed = Array.from(folders).every(f => f.classList.contains('collapsed'));
+    
+    folders.forEach(folder => {
+        if (allCollapsed) {
+            folder.classList.remove('collapsed');
+            folder.querySelector('.quiz-folder-icon').textContent = '📂';
+        } else {
+            folder.classList.add('collapsed');
+            folder.querySelector('.quiz-folder-icon').textContent = '📁';
+        }
+    });
+    
+    document.querySelectorAll('.quiz-questions').forEach(container => {
+        if (allCollapsed) {
+            container.classList.remove('collapsed');
+            container.style.maxHeight = container.scrollHeight + 'px';
+        } else {
+            container.classList.add('collapsed');
+            container.style.maxHeight = '0';
+        }
+    });
+}
+
+// Inicializa com todos expandidos
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.quiz-questions').forEach(container => {
+        container.style.maxHeight = container.scrollHeight + 'px';
+    });
+});
+</script>
+{% endblock %}

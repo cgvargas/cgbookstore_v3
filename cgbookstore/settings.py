@@ -491,6 +491,11 @@ SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 
+# Pular página intermediária e ir direto para OAuth do provider
+# True = clique no botão vai direto para Google/Facebook
+# False = mostra página "Continuar" antes (padrão)
+SOCIALACCOUNT_LOGIN_ON_GET = True
+
 # Configuração dos providers sociais (Google e Facebook)
 # Credenciais serão carregadas do .env
 GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')

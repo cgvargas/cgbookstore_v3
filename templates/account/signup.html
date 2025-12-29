@@ -82,13 +82,23 @@
 }
 
 .btn-google {
-    background: #4285F4;
-    border-color: #4285F4;
+    background: #ffffff;
+    border-color: #dadce0;
+    color: #3c4043;
 }
 
 .btn-google:hover {
-    background: #357AE8;
-    border-color: #357AE8;
+    background: #f8f9fa;
+    border-color: #dadce0;
+    box-shadow: 0 1px 3px rgba(60,64,67,0.3);
+    color: #3c4043;
+}
+
+.btn-google i {
+    background: linear-gradient(to bottom right, #4285f4 25%, #ea4335 25%, #ea4335 50%, #fbbc05 50%, #fbbc05 75%, #34a853 75%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .btn-facebook {
@@ -231,8 +241,6 @@
         <p class="auth-subtitle">Junte-se à maior comunidade literária do Brasil</p>
 
         <!-- Login Social -->
-        <!-- Temporariamente desabilitado até resolver problema de providers duplicados -->
-        <!--
         {% get_providers as socialaccount_providers %}
         {% if socialaccount_providers %}
         <div class="social-login-section">
@@ -258,9 +266,7 @@
         <div class="divider">
             <span>ou cadastre-se com email</span>
         </div>
-        {% else %}
         {% endif %}
-        -->
 
         <!-- Formulário Tradicional -->
         <form method="post" class="auth-form">

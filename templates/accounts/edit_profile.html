@@ -308,6 +308,29 @@
                 {% endif %}
             </div>
 
+            <!-- Seção: Informações Pessoais -->
+            <div class="form-section">
+                <h3><i class="fas fa-user"></i> Informações Pessoais</h3>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="id_first_name" class="form-label">Nome</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.first_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="id_last_name" class="form-label">Sobrenome</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.last_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <small class="text-muted">Seu nome será exibido no perfil público e nas interações</small>
+            </div>
+
             <!-- Seção: Informações -->
             <div class="form-section">
                 <h3><i class="fas fa-info-circle"></i> Sobre Você</h3>

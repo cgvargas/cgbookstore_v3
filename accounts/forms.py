@@ -15,6 +15,26 @@ class UserRegisterForm(UserCreationForm):
 
 class UserProfileForm(forms.ModelForm):
     """Form para editar perfil do usuário."""
+    
+    # Campos do modelo User (não do UserProfile)
+    first_name = forms.CharField(
+        max_length=30,
+        required=False,
+        label='Nome',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Seu primeiro nome'
+        })
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=False,
+        label='Sobrenome',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Seu sobrenome'
+        })
+    )
 
     class Meta:
         model = UserProfile
@@ -65,3 +85,30 @@ class UserProfileForm(forms.ModelForm):
             'is_profile_public': 'Permitir que outros usuários vejam seu perfil e estatísticas',
             'allow_followers': 'Permitir que outros usuários te sigam',
         }
+    
+    def __init__(self, *args, **kwargs):
+        """Inicializa o form com dados do User."""
+        super().__init__(*args, **kwargs)
+        
+        # Carregar valores atuais do User
+        if self.instance and self.instance.user:
+            user = self.instance.user
+            self.fields['first_name'].initial = user.first_name
+            self.fields['last_name'].initial = user.last_name
+    
+    def save(self, commit=True):
+        """Salva tanto UserProfile quanto User."""
+        profile = super().save(commit=False)
+        
+        # Salvar dados do User
+        if profile.user:
+            profile.user.first_name = self.cleaned_data.get('first_name', '')
+            profile.user.last_name = self.cleaned_data.get('last_name', '')
+            if commit:
+                profile.user.save()
+        
+        if commit:
+            profile.save()
+        
+        return profile
+

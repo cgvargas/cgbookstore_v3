@@ -250,6 +250,28 @@ Use EXATAMENTE esta informação. NÃO invente ou adicione detalhes."""
                 # Retornar com conhecimento aprendido (pula RAG normal)
                 return enriched_prompt
 
+            # === CAMADA 1.5: FAQ DA PLATAFORMA ===
+            try:
+                from .faq_service import get_faq_service
+                
+                faq_service = get_faq_service()
+                faq_context = faq_service.get_faq_context(message)
+                
+                if faq_context:
+                    logger.info(f"📋 FAQ: Encontrada resposta relevante para pergunta sobre a plataforma")
+                    
+                    enriched_prompt = f"""{message}
+
+{faq_context}
+
+⚠️ Use as informações do FAQ acima para responder de forma natural e amigável.
+Se o FAQ responder completamente, NÃO adicione informações extras."""
+                    
+                    return enriched_prompt
+                
+            except Exception as e:
+                logger.error(f"Erro ao consultar FAQ: {e}", exc_info=True)
+
             # === CAMADA 2: RAG NORMAL (Se não houver conhecimento prévio) ===
             logger.info(f"ℹ️ Knowledge Base: Sem conhecimento prévio. Usando RAG normal.")
 
