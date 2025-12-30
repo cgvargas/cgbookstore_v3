@@ -15,7 +15,7 @@ class LibraryView(LoginRequiredMixin, TemplateView):
     Exibe prateleiras, progresso de leitura e estatísticas.
     """
     template_name = 'core/library.html'
-    login_url = '/contas/login/'
+    login_url = '/accounts/login/'
     redirect_field_name = 'next'
 
     def get_context_data(self, **kwargs):
