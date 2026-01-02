@@ -1,0 +1,483 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Política de Privacidade - CG BookStore{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* ============================================================================
+       CSS PARA PÁGINAS LEGAIS (TERMOS DE USO / POLÍTICA DE PRIVACIDADE)
+       ============================================================================ */
+
+    .legal-hero {
+        padding: 4rem 0;
+        background: linear-gradient(135deg, rgba(0, 113, 133, 0.05), rgba(0, 113, 133, 0.02));
+        text-align: center;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    [data-theme='dark'] .legal-hero {
+        background: linear-gradient(135deg, rgba(93, 195, 209, 0.1), rgba(93, 195, 209, 0.05));
+    }
+
+    .legal-hero h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+    }
+
+    .legal-hero .update-date {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+
+    .legal-content {
+        padding: 3rem 0 5rem;
+    }
+
+    .legal-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 1rem;
+        padding: 2.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .legal-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .legal-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .legal-section h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-color);
+        display: inline-block;
+    }
+
+    .legal-section h3 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 1.5rem 0 0.75rem;
+    }
+
+    .legal-section p,
+    .legal-section li {
+        color: var(--text-secondary);
+        line-height: 1.8;
+        font-size: 1rem;
+    }
+
+    .legal-section ul,
+    .legal-section ol {
+        padding-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .legal-section li {
+        margin-bottom: 0.5rem;
+    }
+
+    .legal-highlight {
+        background: rgba(var(--primary-rgb, 0, 113, 133), 0.1);
+        border-left: 4px solid var(--primary-color);
+        padding: 1rem 1.5rem;
+        border-radius: 0 0.5rem 0.5rem 0;
+        margin: 1.5rem 0;
+    }
+
+    .legal-highlight p {
+        margin: 0;
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    .legal-contact {
+        background: var(--body-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .legal-contact h4 {
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .legal-contact p {
+        margin-bottom: 0.5rem;
+    }
+
+    .legal-contact a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .legal-contact a:hover {
+        text-decoration: underline;
+    }
+
+    .legal-toc {
+        background: var(--body-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .legal-toc h4 {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+    }
+
+    .legal-toc ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .legal-toc li {
+        margin-bottom: 0.5rem;
+    }
+
+    .legal-toc a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-size: 0.95rem;
+    }
+
+    .legal-toc a:hover {
+        text-decoration: underline;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .data-table th {
+        background: var(--body-bg);
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .data-table td {
+        color: var(--text-secondary);
+    }
+
+    .lgpd-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--primary-color);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<section class="legal-hero">
+    <div class="container">
+        <h1><i class="bi bi-shield-lock me-2"></i>Política de Privacidade</h1>
+        <p class="update-date">Última atualização: 02 de Janeiro de 2026</p>
+    </div>
+</section>
+
+<!-- CONTEÚDO -->
+<div class="container legal-content">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="legal-card">
+
+                <!-- LGPD Badge -->
+                <div class="text-center mb-4">
+                    <span class="lgpd-badge">
+                        <i class="bi bi-check-circle-fill"></i>
+                        Em conformidade com a LGPD (Lei 13.709/2018)
+                    </span>
+                </div>
+
+                <!-- ÍNDICE -->
+                <div class="legal-toc">
+                    <h4><i class="bi bi-list-ul me-2"></i>Índice</h4>
+                    <ul>
+                        <li><a href="#introducao">1. Introdução</a></li>
+                        <li><a href="#dados-coletados">2. Dados que Coletamos</a></li>
+                        <li><a href="#finalidade">3. Como Usamos seus Dados</a></li>
+                        <li><a href="#cookies">4. Cookies e Tecnologias</a></li>
+                        <li><a href="#compartilhamento">5. Compartilhamento de Dados</a></li>
+                        <li><a href="#seguranca">6. Segurança dos Dados</a></li>
+                        <li><a href="#direitos">7. Seus Direitos (LGPD)</a></li>
+                        <li><a href="#retencao">8. Retenção de Dados</a></li>
+                        <li><a href="#menores">9. Menores de Idade</a></li>
+                        <li><a href="#contato">10. Contato e DPO</a></li>
+                    </ul>
+                </div>
+
+                <!-- SEÇÃO 1 -->
+                <section class="legal-section" id="introducao">
+                    <h2>1. Introdução</h2>
+                    <p>A CG BookStore, operada pela <strong>CGVargas Informática</strong>, está comprometida com a
+                        proteção da privacidade de seus usuários. Esta Política de Privacidade descreve como coletamos,
+                        usamos, armazenamos e protegemos suas informações pessoais.</p>
+                    <div class="legal-highlight">
+                        <p><i class="bi bi-info-circle me-2"></i>Ao utilizar nossa plataforma, você consente com as
+                            práticas descritas nesta política. Recomendamos a leitura conjunta dos nossos <a
+                                href="{% url 'core:terms_of_service' %}">Termos de Uso</a>.</p>
+                    </div>
+                </section>
+
+                <!-- SEÇÃO 2 -->
+                <section class="legal-section" id="dados-coletados">
+                    <h2>2. Dados que Coletamos</h2>
+
+                    <h3>2.1 Dados de Cadastro</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Dado</th>
+                                <th>Finalidade</th>
+                                <th>Base Legal (LGPD)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Nome completo</td>
+                                <td>Identificação e personalização</td>
+                                <td>Execução de contrato</td>
+                            </tr>
+                            <tr>
+                                <td>E-mail</td>
+                                <td>Comunicação e autenticação</td>
+                                <td>Execução de contrato</td>
+                            </tr>
+                            <tr>
+                                <td>Senha (hash)</td>
+                                <td>Segurança da conta</td>
+                                <td>Execução de contrato</td>
+                            </tr>
+                            <tr>
+                                <td>Foto de perfil</td>
+                                <td>Personalização (opcional)</td>
+                                <td>Consentimento</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>2.2 Dados de Uso da Plataforma</h3>
+                    <ul>
+                        <li><strong>Biblioteca pessoal:</strong> Livros adicionados às prateleiras, progresso de
+                            leitura, metas</li>
+                        <li><strong>Interações com chatbot:</strong> Perguntas realizadas e histórico de conversas</li>
+                        <li><strong>Gamificação:</strong> Conquistas, badges e pontuação</li>
+                        <li><strong>Debates:</strong> Comentários e participações em discussões</li>
+                        <li><strong>Preferências:</strong> Tema (claro/escuro), categorias favoritas</li>
+                    </ul>
+
+                    <h3>2.3 Dados Técnicos</h3>
+                    <ul>
+                        <li><strong>Endereço IP:</strong> Segurança e prevenção de fraudes</li>
+                        <li><strong>Dados de sessão:</strong> Manutenção de login ativo</li>
+                        <li><strong>Navegador e dispositivo:</strong> Otimização da experiência</li>
+                    </ul>
+
+                    <h3>2.4 Dados de Pagamento</h3>
+                    <p>Dados de cartão de crédito e informações financeiras são processados diretamente pelo
+                        <strong>MercadoPago</strong> e <strong>nunca são armazenados</strong> em nossos servidores.</p>
+                </section>
+
+                <!-- SEÇÃO 3 -->
+                <section class="legal-section" id="finalidade">
+                    <h2>3. Como Usamos seus Dados</h2>
+                    <p>Utilizamos suas informações pessoais para:</p>
+                    <ul>
+                        <li><strong>Fornecer nossos serviços:</strong> Operar sua biblioteca virtual, processar
+                            recomendações e manter seu progresso de leitura</li>
+                        <li><strong>Personalização:</strong> Adaptar recomendações de livros com base em seus interesses
+                        </li>
+                        <li><strong>Comunicação:</strong> Enviar notificações sobre metas de leitura, novidades e
+                            atualizações importantes</li>
+                        <li><strong>Segurança:</strong> Prevenir fraudes, abusos e acessos não autorizados</li>
+                        <li><strong>Melhoria contínua:</strong> Analisar uso da plataforma para aprimorar
+                            funcionalidades</li>
+                        <li><strong>Obrigações legais:</strong> Cumprir determinações judiciais e regulatórias</li>
+                    </ul>
+                </section>
+
+                <!-- SEÇÃO 4 -->
+                <section class="legal-section" id="cookies">
+                    <h2>4. Cookies e Tecnologias</h2>
+                    <h3>4.1 O que são Cookies?</h3>
+                    <p>Cookies são pequenos arquivos de texto armazenados em seu dispositivo que nos ajudam a melhorar
+                        sua experiência na plataforma.</p>
+
+                    <h3>4.2 Cookies que Utilizamos</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Cookie</th>
+                                <th>Tipo</th>
+                                <th>Finalidade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>sessionid</td>
+                                <td>Essencial</td>
+                                <td>Manter você logado</td>
+                            </tr>
+                            <tr>
+                                <td>csrftoken</td>
+                                <td>Segurança</td>
+                                <td>Proteção contra ataques CSRF</td>
+                            </tr>
+                            <tr>
+                                <td>theme</td>
+                                <td>Preferência</td>
+                                <td>Lembrar tema claro/escuro</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>4.3 Gerenciamento de Cookies</h3>
+                    <p>Você pode configurar seu navegador para recusar cookies, porém isso pode afetar a funcionalidade
+                        da plataforma.</p>
+                </section>
+
+                <!-- SEÇÃO 5 -->
+                <section class="legal-section" id="compartilhamento">
+                    <h2>5. Compartilhamento de Dados</h2>
+                    <p>Seus dados pessoais podem ser compartilhados com:</p>
+
+                    <h3>5.1 Prestadores de Serviço</h3>
+                    <ul>
+                        <li><strong>Google Books API:</strong> Busca de informações de livros</li>
+                        <li><strong>Groq API:</strong> Processamento do chatbot por IA</li>
+                        <li><strong>MercadoPago:</strong> Processamento de pagamentos</li>
+                        <li><strong>SendGrid:</strong> Envio de e-mails transacionais</li>
+                        <li><strong>Render/Supabase:</strong> Hospedagem e armazenamento</li>
+                    </ul>
+
+                    <h3>5.2 Obrigações Legais</h3>
+                    <p>Podemos compartilhar dados quando exigido por lei, ordem judicial ou para proteger nossos
+                        direitos legais.</p>
+
+                    <div class="legal-highlight">
+                        <p><i class="bi bi-x-circle me-2"></i><strong>Não vendemos</strong> seus dados pessoais para
+                            terceiros para fins de marketing.</p>
+                    </div>
+                </section>
+
+                <!-- SEÇÃO 6 -->
+                <section class="legal-section" id="seguranca">
+                    <h2>6. Segurança dos Dados</h2>
+                    <p>Implementamos medidas técnicas e organizacionais para proteger seus dados:</p>
+                    <ul>
+                        <li><strong>Criptografia:</strong> Comunicações via HTTPS/TLS</li>
+                        <li><strong>Hash de senhas:</strong> Senhas nunca são armazenadas em texto plano</li>
+                        <li><strong>Tokens CSRF:</strong> Proteção contra ataques de falsificação</li>
+                        <li><strong>Backups:</strong> Cópias de segurança regulares</li>
+                        <li><strong>Acesso restrito:</strong> Dados acessíveis apenas por pessoal autorizado</li>
+                    </ul>
+                    <p>Apesar de nossos esforços, nenhum sistema é 100% seguro. Em caso de incidente de segurança, você
+                        será notificado conforme a legislação aplicável.</p>
+                </section>
+
+                <!-- SEÇÃO 7 -->
+                <section class="legal-section" id="direitos">
+                    <h2>7. Seus Direitos (LGPD)</h2>
+                    <p>Conforme a Lei Geral de Proteção de Dados (Lei 13.709/2018), você tem direito a:</p>
+                    <ul>
+                        <li><strong>Confirmação e acesso:</strong> Saber se tratamos seus dados e acessá-los</li>
+                        <li><strong>Correção:</strong> Corrigir dados incompletos, inexatos ou desatualizados</li>
+                        <li><strong>Anonimização ou eliminação:</strong> Solicitar exclusão de dados desnecessários</li>
+                        <li><strong>Portabilidade:</strong> Receber seus dados em formato estruturado</li>
+                        <li><strong>Revogação:</strong> Revogar consentimento a qualquer momento</li>
+                        <li><strong>Informação:</strong> Saber com quem compartilhamos seus dados</li>
+                        <li><strong>Oposição:</strong> Opor-se a tratamento em desconformidade com a lei</li>
+                    </ul>
+                    <p>Para exercer esses direitos, entre em contato conosco pelos canais indicados ao final desta
+                        política.</p>
+                </section>
+
+                <!-- SEÇÃO 8 -->
+                <section class="legal-section" id="retencao">
+                    <h2>8. Retenção de Dados</h2>
+                    <p>Mantemos seus dados pessoais pelo tempo necessário para:</p>
+                    <ul>
+                        <li>Fornecer os serviços contratados</li>
+                        <li>Cumprir obrigações legais e regulatórias</li>
+                        <li>Exercer direitos em processos judiciais</li>
+                    </ul>
+                    <p>Ao encerrar sua conta, seus dados serão excluídos ou anonimizados no prazo de <strong>30
+                            dias</strong>, exceto quando houver obrigação legal de retenção.</p>
+                </section>
+
+                <!-- SEÇÃO 9 -->
+                <section class="legal-section" id="menores">
+                    <h2>9. Menores de Idade</h2>
+                    <p>A CG BookStore é destinada a usuários maiores de 18 anos. Menores podem utilizar a plataforma
+                        apenas sob supervisão de pais ou responsáveis legais, que serão responsáveis pelo tratamento de
+                        seus dados.</p>
+                    <p>Não coletamos intencionalmente dados de menores de 13 anos. Se identificarmos tal situação, os
+                        dados serão excluídos imediatamente.</p>
+                </section>
+
+                <!-- SEÇÃO 10 -->
+                <section class="legal-section" id="contato">
+                    <h2>10. Contato e DPO</h2>
+                    <p>Para exercer seus direitos ou tirar dúvidas sobre esta política, entre em contato com nosso
+                        Encarregado de Proteção de Dados (DPO):</p>
+                    <div class="legal-contact">
+                        <h4><i class="bi bi-person-badge me-2"></i>Encarregado de Proteção de Dados</h4>
+                        <p><strong>E-mail:</strong> <a
+                                href="mailto:privacidade@cgbookstore.com.br">privacidade@cgbookstore.com.br</a></p>
+                        <p><strong>E-mail alternativo:</strong> <a
+                                href="mailto:suporte@cgbookstore.com.br">suporte@cgbookstore.com.br</a></p>
+                        <p><strong>Site:</strong> <a href="https://www.cgvargas.com.br"
+                                target="_blank">www.cgvargas.com.br</a></p>
+                        <p><strong>Tempo de resposta:</strong> Até 15 dias úteis</p>
+                    </div>
+                </section>
+
+                <!-- AUTORIDADE -->
+                <div class="legal-highlight mt-4">
+                    <p><i class="bi bi-bank me-2"></i>Você também pode entrar em contato com a <strong>Autoridade
+                            Nacional de Proteção de Dados (ANPD)</strong> para reclamações ou denúncias relacionadas ao
+                        tratamento de dados pessoais.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

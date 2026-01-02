@@ -17,6 +17,8 @@ from .faq_view import FAQView
 from .library_view import LibraryView
 from .event_views import EventListView
 from .tolkien_view import TolkienWorldView
+from .terms_view import TermsOfServiceView
+from .privacy_view import PrivacyPolicyView
 
 # Views AJAX - Biblioteca Pessoal
 from .library_ajax_views import (
@@ -86,6 +88,8 @@ __all__ = [
     'LibraryView',
     'EventListView',
     'TolkienWorldView',
+    'TermsOfServiceView',
+    'PrivacyPolicyView',
 
     # AJAX - Biblioteca
     'add_to_shelf',

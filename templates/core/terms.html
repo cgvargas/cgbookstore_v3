@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Termos de Uso - CG BookStore{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* ============================================================================
+       CSS PARA PÁGINAS LEGAIS (TERMOS DE USO / POLÍTICA DE PRIVACIDADE)
+       ============================================================================ */
+
+    .legal-hero {
+        padding: 4rem 0;
+        background: linear-gradient(135deg, rgba(0, 113, 133, 0.05), rgba(0, 113, 133, 0.02));
+        text-align: center;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    [data-theme='dark'] .legal-hero {
+        background: linear-gradient(135deg, rgba(93, 195, 209, 0.1), rgba(93, 195, 209, 0.05));
+    }
+
+    .legal-hero h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+    }
+
+    .legal-hero .update-date {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+
+    .legal-content {
+        padding: 3rem 0 5rem;
+    }
+
+    .legal-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 1rem;
+        padding: 2.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .legal-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .legal-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .legal-section h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-color);
+        display: inline-block;
+    }
+
+    .legal-section h3 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 1.5rem 0 0.75rem;
+    }
+
+    .legal-section p,
+    .legal-section li {
+        color: var(--text-secondary);
+        line-height: 1.8;
+        font-size: 1rem;
+    }
+
+    .legal-section ul,
+    .legal-section ol {
+        padding-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .legal-section li {
+        margin-bottom: 0.5rem;
+    }
+
+    .legal-highlight {
+        background: rgba(var(--primary-rgb, 0, 113, 133), 0.1);
+        border-left: 4px solid var(--primary-color);
+        padding: 1rem 1.5rem;
+        border-radius: 0 0.5rem 0.5rem 0;
+        margin: 1.5rem 0;
+    }
+
+    .legal-highlight p {
+        margin: 0;
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    .legal-contact {
+        background: var(--body-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .legal-contact h4 {
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .legal-contact p {
+        margin-bottom: 0.5rem;
+    }
+
+    .legal-contact a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .legal-contact a:hover {
+        text-decoration: underline;
+    }
+
+    .legal-toc {
+        background: var(--body-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .legal-toc h4 {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+    }
+
+    .legal-toc ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .legal-toc li {
+        margin-bottom: 0.5rem;
+    }
+
+    .legal-toc a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-size: 0.95rem;
+    }
+
+    .legal-toc a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<section class="legal-hero">
+    <div class="container">
+        <h1><i class="bi bi-file-text me-2"></i>Termos de Uso</h1>
+        <p class="update-date">Última atualização: 02 de Janeiro de 2026</p>
+    </div>
+</section>
+
+<!-- CONTEÚDO -->
+<div class="container legal-content">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="legal-card">
+
+                <!-- ÍNDICE -->
+                <div class="legal-toc">
+                    <h4><i class="bi bi-list-ul me-2"></i>Índice</h4>
+                    <ul>
+                        <li><a href="#aceite">1. Aceite dos Termos</a></li>
+                        <li><a href="#elegibilidade">2. Elegibilidade</a></li>
+                        <li><a href="#conta">3. Sua Conta</a></li>
+                        <li><a href="#uso">4. Uso da Plataforma</a></li>
+                        <li><a href="#propriedade">5. Propriedade Intelectual</a></li>
+                        <li><a href="#conteudo-usuario">6. Conteúdo de Usuários</a></li>
+                        <li><a href="#assinaturas">7. Assinaturas e Pagamentos</a></li>
+                        <li><a href="#limitacao">8. Limitação de Responsabilidade</a></li>
+                        <li><a href="#modificacoes">9. Modificações</a></li>
+                        <li><a href="#contato">10. Contato</a></li>
+                    </ul>
+                </div>
+
+                <!-- SEÇÃO 1 -->
+                <section class="legal-section" id="aceite">
+                    <h2>1. Aceite dos Termos</h2>
+                    <p>Ao acessar e utilizar a plataforma CG BookStore, você concorda integralmente com estes Termos de
+                        Uso. Caso não concorde com qualquer disposição aqui estabelecida, solicitamos que não utilize
+                        nossos serviços.</p>
+                    <div class="legal-highlight">
+                        <p><i class="bi bi-info-circle me-2"></i>A utilização da plataforma implica na aceitação
+                            automática destes termos e da nossa <a href="{% url 'core:privacy_policy' %}">Política de
+                                Privacidade</a>.</p>
+                    </div>
+                </section>
+
+                <!-- SEÇÃO 2 -->
+                <section class="legal-section" id="elegibilidade">
+                    <h2>2. Elegibilidade</h2>
+                    <p>Para utilizar plenamente os serviços da CG BookStore, você deve:</p>
+                    <ul>
+                        <li>Ter idade igual ou superior a <strong>18 anos</strong>, ou estar devidamente representado
+                            conforme a legislação aplicável</li>
+                        <li>Possuir capacidade civil plena para celebrar contratos</li>
+                        <li>Fornecer informações verdadeiras e precisas durante o cadastro</li>
+                    </ul>
+                    <p>Menores de 18 anos podem utilizar a plataforma apenas sob supervisão e responsabilidade dos pais
+                        ou responsáveis legais.</p>
+                </section>
+
+                <!-- SEÇÃO 3 -->
+                <section class="legal-section" id="conta">
+                    <h2>3. Sua Conta</h2>
+                    <h3>3.1 Cadastro</h3>
+                    <p>Ao criar uma conta na CG BookStore, você se compromete a:</p>
+                    <ul>
+                        <li>Fornecer dados pessoais verdadeiros, completos e atualizados</li>
+                        <li>Manter a confidencialidade de sua senha e credenciais de acesso</li>
+                        <li>Notificar imediatamente qualquer uso não autorizado de sua conta</li>
+                    </ul>
+
+                    <h3>3.2 Responsabilidade</h3>
+                    <p>Você é inteiramente responsável por todas as atividades realizadas em sua conta, incluindo
+                        interações com o chatbot literário, organização de biblioteca e participação em debates.</p>
+
+                    <h3>3.3 Login Social</h3>
+                    <p>Ao optar pelo login via Google ou Facebook, você autoriza a CG BookStore a acessar informações
+                        básicas de seu perfil nessas plataformas, conforme nossa Política de Privacidade.</p>
+                </section>
+
+                <!-- SEÇÃO 4 -->
+                <section class="legal-section" id="uso">
+                    <h2>4. Uso da Plataforma</h2>
+                    <h3>4.1 Uso Permitido</h3>
+                    <p>A CG BookStore oferece as seguintes funcionalidades:</p>
+                    <ul>
+                        <li>Catálogo de livros com integração Google Books</li>
+                        <li>Biblioteca virtual pessoal com prateleiras customizadas</li>
+                        <li>Chatbot literário assistido por inteligência artificial</li>
+                        <li>Sistema de recomendações personalizadas</li>
+                        <li>Gamificação com conquistas e badges</li>
+                        <li>Debates e discussões literárias</li>
+                        <li>Plataforma para autores emergentes</li>
+                    </ul>
+
+                    <h3>4.2 Condutas Proibidas</h3>
+                    <p>É expressamente proibido:</p>
+                    <ul>
+                        <li>Violar leis brasileiras ou internacionais</li>
+                        <li>Publicar conteúdo ilegal, ofensivo, difamatório ou que incite ódio</li>
+                        <li>Utilizar bots, scrapers ou ferramentas automatizadas sem autorização</li>
+                        <li>Tentar acessar áreas restritas ou comprometer a segurança da plataforma</li>
+                        <li>Compartilhar credenciais de acesso com terceiros</li>
+                        <li>Praticar spam ou enviar comunicações não solicitadas</li>
+                    </ul>
+                </section>
+
+                <!-- SEÇÃO 5 -->
+                <section class="legal-section" id="propriedade">
+                    <h2>5. Propriedade Intelectual</h2>
+                    <p>Todo o conteúdo da plataforma CG BookStore, incluindo mas não limitado a:</p>
+                    <ul>
+                        <li>Design, layout e interface gráfica</li>
+                        <li>Código-fonte e algoritmos</li>
+                        <li>Marcas, logotipos e identidade visual</li>
+                        <li>Textos, descrições e conteúdo editorial</li>
+                    </ul>
+                    <p>São de propriedade exclusiva da <strong>CGVargas Informática</strong> ou de terceiros
+                        licenciadores, protegidos pelas leis brasileiras de propriedade intelectual.</p>
+                    <p>As informações de livros exibidas são obtidas via API do Google Books e pertencem aos seus
+                        respectivos autores e editoras.</p>
+                </section>
+
+                <!-- SEÇÃO 6 -->
+                <section class="legal-section" id="conteudo-usuario">
+                    <h2>6. Conteúdo de Usuários</h2>
+                    <h3>6.1 Autores Emergentes</h3>
+                    <p>Se você utilizar a plataforma como autor emergente, você declara que:</p>
+                    <ul>
+                        <li>É o autor original de todas as obras publicadas</li>
+                        <li>Possui todos os direitos necessários para publicação</li>
+                        <li>Não viola direitos autorais de terceiros</li>
+                        <li>Isenta a CG BookStore de qualquer responsabilidade por violações</li>
+                    </ul>
+
+                    <h3>6.2 Debates e Comentários</h3>
+                    <p>Ao participar de debates literários, você concede à CG BookStore uma licença não exclusiva para
+                        exibir seu conteúdo na plataforma. Você mantém a propriedade de suas contribuições, mas assume
+                        responsabilidade por seu teor.</p>
+
+                    <h3>6.3 Moderação</h3>
+                    <p>A CG BookStore reserva-se o direito de:</p>
+                    <ul>
+                        <li>Remover conteúdo que viole estes termos</li>
+                        <li>Suspender ou encerrar contas infratoras</li>
+                        <li>Denunciar às autoridades conteúdos ilegais</li>
+                    </ul>
+                </section>
+
+                <!-- SEÇÃO 7 -->
+                <section class="legal-section" id="assinaturas">
+                    <h2>7. Assinaturas e Pagamentos</h2>
+                    <h3>7.1 Planos Premium</h3>
+                    <p>A CG BookStore oferece planos de assinatura Premium com benefícios adicionais. Os valores,
+                        períodos e condições são informados na página de assinatura.</p>
+
+                    <h3>7.2 Processamento de Pagamentos</h3>
+                    <p>Os pagamentos são processados pelo <strong>MercadoPago</strong>. A CG BookStore não armazena
+                        dados de cartão de crédito. Ao efetuar pagamentos, você concorda também com os termos do
+                        MercadoPago.</p>
+
+                    <h3>7.3 Cancelamento e Reembolso</h3>
+                    <p>Você pode cancelar sua assinatura a qualquer momento. O acesso Premium permanecerá ativo até o
+                        final do período pago. Reembolsos são concedidos conforme o Código de Defesa do Consumidor.</p>
+                </section>
+
+                <!-- SEÇÃO 8 -->
+                <section class="legal-section" id="limitacao">
+                    <h2>8. Limitação de Responsabilidade</h2>
+                    <p>A plataforma CG BookStore é fornecida "como está", sem garantias de:</p>
+                    <ul>
+                        <li>Disponibilidade ininterrupta</li>
+                        <li>Ausência de erros ou falhas técnicas</li>
+                        <li>Precisão absoluta das recomendações de IA</li>
+                        <li>Resultados específicos de vendas para autores</li>
+                    </ul>
+                    <p>A CG BookStore não se responsabiliza por danos indiretos, incidentais ou consequentes decorrentes
+                        do uso da plataforma, exceto nos casos previstos em lei.</p>
+                </section>
+
+                <!-- SEÇÃO 9 -->
+                <section class="legal-section" id="modificacoes">
+                    <h2>9. Modificações</h2>
+                    <p>Estes Termos de Uso podem ser atualizados periodicamente. Em caso de alterações substanciais:</p>
+                    <ul>
+                        <li>Você será notificado por e-mail ou aviso na plataforma</li>
+                        <li>A data de atualização será exibida no topo desta página</li>
+                        <li>O uso continuado após alterações implica aceitação dos novos termos</li>
+                    </ul>
+                </section>
+
+                <!-- SEÇÃO 10 -->
+                <section class="legal-section" id="contato">
+                    <h2>10. Contato</h2>
+                    <p>Para dúvidas, reclamações ou sugestões relacionadas a estes Termos de Uso:</p>
+                    <div class="legal-contact">
+                        <h4><i class="bi bi-envelope me-2"></i>Entre em Contato</h4>
+                        <p><strong>E-mail:</strong> <a
+                                href="mailto:suporte@cgbookstore.com.br">suporte@cgbookstore.com.br</a></p>
+                        <p><strong>Site:</strong> <a href="https://www.cgvargas.com.br"
+                                target="_blank">www.cgvargas.com.br</a></p>
+                        <p><strong>Tempo de resposta:</strong> Até 5 dias úteis</p>
+                    </div>
+                </section>
+
+                <!-- LEGISLAÇÃO -->
+                <div class="legal-highlight mt-4">
+                    <p><i class="bi bi-bank me-2"></i>Este documento é regido pelas leis da República Federativa do
+                        Brasil. Fica eleito o foro da comarca do usuário para dirimir quaisquer questões.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
