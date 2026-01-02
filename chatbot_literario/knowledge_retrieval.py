@@ -338,7 +338,7 @@ Categoria/Gênero: {category_name}
                 Q(title__icontains=query) |
                 Q(content__icontains=query) |
                 Q(excerpt__icontains=query),
-                status='published'
+                is_published=True
             ).order_by('-published_at')[:limit]
 
             return [self._serialize_article(article) for article in articles]

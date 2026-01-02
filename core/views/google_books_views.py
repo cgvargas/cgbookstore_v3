@@ -125,18 +125,26 @@ def google_books_import(request, google_book_id):
             messages.warning(request, f'Livro já existe no catálogo (ISBN: {isbn})')
             return redirect('admin:core_book_changelist')
 
-        # Criar/buscar autor
+        # Criar/buscar autor (case-insensitive e normalizado)
         author = None
         authors_list = book_data.get('authors', [])
         if authors_list:
             author_name = authors_list[0]  # Pegar primeiro autor
-            author, created = Author.objects.get_or_create(
-                name=author_name,
-                defaults={
-                    'slug': slugify(author_name),
-                    'bio': f'Autor(a) de {book_data.get("title")}'
-                }
-            )
+            # Normalizar: remover espaços extras e formatar corretamente
+            author_name = ' '.join(author_name.split()).strip()
+            
+            # Buscar autor existente (case-insensitive)
+            existing_author = Author.objects.filter(name__iexact=author_name).first()
+            
+            if existing_author:
+                author = existing_author
+            else:
+                # Criar novo autor apenas se não existir
+                author = Author.objects.create(
+                    name=author_name,
+                    slug=slugify(author_name),
+                    bio=f'Autor(a) de {book_data.get("title")}'
+                )
 
         # Criar/buscar categoria
         category = None

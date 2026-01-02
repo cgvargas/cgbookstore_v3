@@ -67,9 +67,16 @@ class Author(models.Model):
         ordering = ['name']
 
     def save(self, *args, **kwargs):
-        """Gera slug automaticamente a partir do nome."""
+        """Gera slug automaticamente a partir do nome, garantindo unicidade."""
         if not self.slug:
-            self.slug = slugify(self.name)
+            base_slug = slugify(self.name)
+            slug = base_slug
+            counter = 1
+            # Verificar se o slug já existe (excluindo o próprio objeto se já tem pk)
+            while Author.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                counter += 1
+                slug = f"{base_slug}-{counter}"
+            self.slug = slug
         super().save(*args, **kwargs)
 
     def __str__(self):
