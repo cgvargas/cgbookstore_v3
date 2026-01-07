@@ -233,12 +233,12 @@ class SimpleRecommendationEngineTest(TestCase):
         BookShelf.objects.create(
             user=self.user,
             book=self.books[0],
-            shelf_type='favoritos'
+            shelf_type='favorites'  # Corrigido: era 'favoritos'
         )
         BookShelf.objects.create(
             user=self.user,
             book=self.books[1],
-            shelf_type='lidos'
+            shelf_type='read'  # Corrigido: era 'lidos'
         )
         
         engine = SimpleRecommendationEngine()
@@ -255,7 +255,7 @@ class SimpleRecommendationEngineTest(TestCase):
         BookShelf.objects.create(
             user=self.user,
             book=self.books[0],
-            shelf_type='lendo'
+            shelf_type='reading'  # Corrigido: era 'lendo'
         )
         
         engine = SimpleRecommendationEngine()

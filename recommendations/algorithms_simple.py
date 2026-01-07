@@ -30,11 +30,14 @@ class SimpleRecommendationEngine:
     """
 
     # Pesos das prateleiras (quanto maior, mais importante)
+    # IMPORTANTE: Chaves devem corresponder aos valores em accounts.models.BookShelf.SHELF_TYPES
     SHELF_WEIGHTS = {
-        'favoritos': 5.0,
-        'lidos': 3.0,
-        'lendo': 4.0,
-        'quer-ler': 2.0,
+        'favorites': 5.0,   # Favoritos - maior prioridade
+        'reading': 4.0,     # Lendo - segunda prioridade
+        'read': 3.0,        # Lidos - terceira prioridade
+        'to_read': 2.0,     # Quero Ler - quarta prioridade
+        'abandoned': 0.5,   # Abandonados - baixa prioridade (evitar similares)
+        'custom': 1.5,      # Prateleiras personalizadas - prioridade média
     }
 
     def __init__(self):
@@ -64,8 +67,8 @@ class SimpleRecommendationEngine:
         user_books = self._get_user_books(user)
 
         if not user_books:
-            logger.info(f"No shelves for {user.username}, using popular books")
-            recommendations = self._get_popular_books(n)
+            logger.info(f"No shelves for {user.username}, using diversified popular books")
+            recommendations = self._get_popular_books(n, user_id=user.id)
         else:
             # 1. Recomendações baseadas em prateleiras (70%)
             shelf_based = self._get_shelf_based_recommendations(user, user_books, n=int(n * 0.7))
@@ -84,8 +87,8 @@ class SimpleRecommendationEngine:
             # Livros já recomendados
             recommended_ids = {rec['book'].id for rec in recommendations}
 
-            # Buscar populares que não foram recomendados
-            popular = self._get_popular_books(missing * 2)  # Buscar 2x para garantir
+            # Buscar populares que não foram recomendados (diversificados por usuário)
+            popular = self._get_popular_books(missing * 2, user_id=user.id)
             for pop in popular:
                 if pop['book'].id not in recommended_ids:
                     recommendations.append(pop)
@@ -253,27 +256,45 @@ class SimpleRecommendationEngine:
 
         return recommendations[:n]
 
-    def _get_popular_books(self, n=10) -> List[Dict]:
+    def _get_popular_books(self, n=10, user_id=None) -> List[Dict]:
         """
         Retorna livros populares (mais adicionados às prateleiras).
         Fallback para cold start.
+        
+        Args:
+            n: Número de livros
+            user_id: ID do usuário para diversificação (opcional)
         """
+        import random
+        
         # Livros mais populares (mais vezes adicionados às prateleiras)
         # FILTRO DIRETO: apenas livros com capa válida
         popular = (
             BookShelf.objects
             .values('book')
             .annotate(count=Count('id'))
-            .order_by('-count')[:n * 2]  # Buscar 2x mais
+            .order_by('-count')[:n * 3]  # Buscar 3x mais para diversificação
         )
 
         book_ids = [p['book'] for p in popular]
-        books = Book.objects.filter(
+        books = list(Book.objects.filter(
             id__in=book_ids
         ).filter(
             # CRITICAL: Filtro de capa direto na query
             Q(cover_image__isnull=False) & ~Q(cover_image='')
-        ).select_related('category', 'author')
+        ).select_related('category', 'author'))
+
+        # Diversificação por usuário: usar user_id como seed para shuffle parcial
+        if user_id and len(books) > n:
+            # Seed baseado no user_id para consistência (mesmo usuário = mesma ordem)
+            random.seed(user_id)
+            # Dividir em grupos: top populares e resto
+            top_count = min(n // 2, len(books) // 2)  # Metade são sempre top populares
+            top_books = books[:top_count]
+            remaining = books[top_count:]
+            random.shuffle(remaining)  # Shuffle apenas dos restantes
+            books = top_books + remaining
+            random.seed()  # Reset seed
 
         recommendations = []
         for book in books:
