@@ -377,7 +377,106 @@ ANNE_RICE_DATA = {
 }
 
 
+# =============================================================================
+# DADOS COMPLETOS DE ANTOINE DE SAINT-EXUPÉRY
+# =============================================================================
+SAINT_EXUPERY_DATA = {
+    "author": {
+        "name": "Antoine de Saint-Exupéry",
+        "bio": "Antoine de Saint-Exupéry (1900-1944) foi um escritor e aviador francês. Nascido em Lyon, tornou-se piloto comercial e militar, experiências que inspiraram sua obra literária. É mundialmente conhecido por 'O Pequeno Príncipe', uma das obras mais traduzidas da história. Desapareceu em 1944 durante uma missão de reconhecimento sobre o Mediterrâneo.",
+    },
+    "exclude_titles": [
+        "O Pequeno Príncipe",  # Já existe no banco
+    ],
+    "series": [],
+    "standalone": {
+        "category": "Ficção",
+        "books": [
+            {
+                "title": "The Little Prince",
+                "year": 1943, "month": 4, "day": 6, "order": 0,
+                "publisher": "Reynal & Hitchcock",
+                "pages": 96,
+                "isbn": "978-0156012195",
+                "description": "Uma fábula poética sobre um piloto que cai no Saara e encontra um pequeno príncipe de outro planeta. Explora temas de amor, amizade e o sentido da vida."
+            },
+            {
+                "title": "Night Flight",
+                "year": 1931, "order": 0,
+                "publisher": "Gallimard",
+                "pages": 96,
+                "isbn": "978-0156656054",
+                "description": "Romance sobre os pilotos do correio aéreo na América do Sul nos anos 1930. A história segue Rivière e Fabien em uma tempestade noturna."
+            },
+            {
+                "title": "Wind, Sand and Stars",
+                "year": 1939, "order": 0,
+                "publisher": "Reynal & Hitchcock",
+                "pages": 240,
+                "isbn": "978-0156027496",
+                "description": "Memórias líricas das experiências de Saint-Exupéry como piloto. Ganhou o Grand Prix du Roman e o National Book Award."
+            },
+            {
+                "title": "Flight to Arras",
+                "year": 1942, "order": 0,
+                "publisher": "Reynal & Hitchcock",
+                "pages": 168,
+                "isbn": "978-0547539607",
+                "description": "Relato pessoal de uma missão de reconhecimento sobre a França ocupada em 1940, refletindo sobre guerra e patriotismo."
+            },
+            {
+                "title": "Southern Mail",
+                "year": 1929, "order": 0,
+                "publisher": "Gallimard",
+                "pages": 132,
+                "isbn": "978-0156839013",
+                "description": "Primeiro romance de Saint-Exupéry, baseado em suas experiências como piloto do correio aéreo sobre o Norte da África."
+            },
+            {
+                "title": "Letter to a Hostage",
+                "year": 1943, "order": 0,
+                "publisher": "Brentano's",
+                "pages": 72,
+                "isbn": "978-2070256617",
+                "description": "Carta aberta escrita durante o exílio nos EUA, dedicada ao amigo Léon Werth na França ocupada."
+            },
+            {
+                "title": "The Wisdom of the Sands",
+                "year": 1948, "order": 0,
+                "publisher": "Gallimard",
+                "pages": 480,
+                "isbn": "978-2070407477",
+                "description": "Obra filosófica póstuma. Meditações de um príncipe berbere sobre liderança, civilização e a condição humana."
+            },
+            {
+                "title": "Airman's Odyssey",
+                "year": 1984, "order": 0,
+                "publisher": "Harcourt",
+                "pages": 456,
+                "isbn": "978-0156037334",
+                "description": "Coletânea com Night Flight, Wind Sand and Stars e Flight to Arras. Essencial para entender a visão do autor."
+            },
+        ]
+    }
+}
+
+
+# =============================================================================
+# MAPEAMENTO DE AUTORES DISPONÍVEIS
+# =============================================================================
+AUTHORS_DATA_MAP = {
+    "anne rice": ANNE_RICE_DATA,
+    "saint-exupéry": SAINT_EXUPERY_DATA,
+    "saint-exupery": SAINT_EXUPERY_DATA,
+    "antoine de saint-exupéry": SAINT_EXUPERY_DATA,
+    "antoine de saint-exupery": SAINT_EXUPERY_DATA,
+    "exupery": SAINT_EXUPERY_DATA,
+    "exupéry": SAINT_EXUPERY_DATA,
+}
+
+
 class Command(BaseCommand):
+
     help = 'Importa livros de um autor específico para o banco de dados'
 
     def add_arguments(self, parser):
@@ -419,14 +518,21 @@ class Command(BaseCommand):
         if dry_run:
             self.stdout.write(self.style.NOTICE("\n🔍 MODO SIMULAÇÃO - Nenhum dado será modificado\n"))
 
-        # Por enquanto, apenas Anne Rice está implementada
-        if author_name.lower() != 'anne rice':
+        # Buscar dados do autor no mapeamento
+        data = None
+        author_name_lower = author_name.lower()
+        for key, author_data in AUTHORS_DATA_MAP.items():
+            if key in author_name_lower or author_name_lower in key:
+                data = author_data
+                break
+        
+        if not data:
+            available = ", ".join(set(d['author']['name'] for d in AUTHORS_DATA_MAP.values()))
             raise CommandError(
                 f"Autor '{author_name}' não implementado. "
-                f"Atualmente disponível: Anne Rice"
+                f"Disponíveis: {available}"
             )
 
-        data = ANNE_RICE_DATA
         
         # Adicionar exclusões do usuário
         all_exclusions = data['exclude_titles'] + exclude_titles
