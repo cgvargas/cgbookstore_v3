@@ -103,24 +103,43 @@ class SupabaseStorage:
             file_content = file.read()
             content_type = self._get_content_type(filename)
 
-            # Usar upsert=True para sobrescrever se existir
-            # Isso evita erro 409 Duplicate
+            # Tentar upload com upsert
             logger.info(f"Fazendo upload do arquivo {path} (upsert=True)...")
-            response = self.storage.from_(bucket).upload(
-                path=path,
-                file=file_content,
-                file_options={"content-type": content_type, "upsert": "true"}
-            )
+            try:
+                response = self.storage.from_(bucket).upload(
+                    path=path,
+                    file=file_content,
+                    file_options={"content-type": content_type, "upsert": "true"}
+                )
+            except Exception as upload_error:
+                error_str = str(upload_error)
+                # Se erro for de duplicata, deletar e tentar novamente
+                if '409' in error_str or 'Duplicate' in error_str or 'already exists' in error_str:
+                    logger.warning(f"Arquivo {path} já existe, deletando e reenviando...")
+                    try:
+                        self.storage.from_(bucket).remove([path])
+                        logger.info(f"Arquivo {path} deletado, reenviando...")
+                    except Exception as del_error:
+                        logger.warning(f"Erro ao deletar arquivo existente: {del_error}")
+                    
+                    # Tentar upload novamente
+                    response = self.storage.from_(bucket).upload(
+                        path=path,
+                        file=file_content,
+                        file_options={"content-type": content_type}
+                    )
+                else:
+                    raise upload_error
 
             # Retornar URL pública
             public_url = self.get_public_url(bucket, path)
             logger.info(f"Upload concluído: {public_url}")
             return public_url
 
-
         except Exception as e:
             logger.error(f"Erro no upload para Supabase: {str(e)}")
             return None
+
 
     def upload_book_cover(self, file: BinaryIO, book_id: str) -> Optional[str]:
         """Upload específico para capas de livros"""
