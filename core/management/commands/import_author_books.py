@@ -84,10 +84,34 @@ ANNE_RICE_DATA = {
             "name": "Songs of the Seraphim",
             "category": "Fantasia",
             "books": [
-                {"title": "Angel Time", "year": 2009, "order": 1},
-                {"title": "Of Love and Evil", "year": 2010, "order": 2}
+                {
+                    "title": "Angel Time",
+                    "subtitle": "The Songs of the Seraphim, Book One",
+                    "year": 2009,
+                    "month": 10,
+                    "day": 27,
+                    "order": 1,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 288,
+                    "isbn": "9780307745392",
+                    "price": 17.90,
+                    "language": "en",
+                    "cover_url": "https://books.google.com/books/content?id=E3g0DwAAQBAJ&printsec=frontcover&img=1&zoom=1",
+                    "description": "Angel Time é o primeiro volume da série Songs of the Seraphim. A história acompanha Toby O'Dare, um assassino profissional assombrado por seu passado violento e por visões perturbadoras. Sua vida muda radicalmente quando ele encontra o serafim Malchiah, que lhe oferece uma chance de redenção e o conduz por uma jornada espiritual que atravessa o tempo, confrontando fé, pecado, identidade e salvação em cenários históricos e contemporâneos."
+                },
+                {
+                    "title": "Of Love and Evil",
+                    "subtitle": "The Songs of the Seraphim, Book Two",
+                    "year": 2010,
+                    "order": 2,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 176,
+                    "language": "en",
+                    "description": "Segundo volume da série Songs of the Seraphim. Toby O'Dare, agora redimido, é novamente convocado pelo anjo Malchiah para uma missão na Itália renascentista, onde deve investigar um caso de possessão demoníaca."
+                }
             ]
         },
+
         {
             "name": "The Wolf Gift Chronicles",
             "category": "Terror",
@@ -292,10 +316,22 @@ class Command(BaseCommand):
         return category
 
     def _add_book(self, book_data, author, category, series_name, pseudonym, exclusions, dry_run):
-        """Adiciona um livro ao banco de dados."""
+        """Adiciona um livro ao banco de dados com dados editoriais completos."""
         title = book_data['title']
         year = book_data['year']
+        month = book_data.get('month', 1)
+        day = book_data.get('day', 1)
         order = book_data.get('order', 0)
+        
+        # Campos editoriais opcionais
+        subtitle = book_data.get('subtitle', '')
+        publisher = book_data.get('publisher', '')
+        pages = book_data.get('pages')
+        isbn = book_data.get('isbn', '')
+        price = book_data.get('price')
+        language = book_data.get('language', 'en')
+        cover_url = book_data.get('cover_url', '')
+        custom_description = book_data.get('description', '')
         
         # Verificar exclusões
         title_lower = title.lower()
@@ -310,34 +346,61 @@ class Command(BaseCommand):
             self.stdout.write(f"   ⏭️  Já existe: {title}")
             return 'skipped'
         
-        # Construir descrição
-        description_parts = []
-        if series_name:
-            description_parts.append(f"Série: {series_name}")
-            if order:
-                description_parts.append(f"Livro {order} da série")
-        if pseudonym:
-            description_parts.append(f"Publicado sob o pseudônimo {pseudonym}")
-        
-        description = ". ".join(description_parts) + "." if description_parts else ""
+        # Construir descrição (usar custom se disponível, senão gerar)
+        if custom_description:
+            description = custom_description
+        else:
+            description_parts = []
+            if series_name:
+                description_parts.append(f"Série: {series_name}")
+                if order:
+                    description_parts.append(f"Livro {order} da série")
+            if pseudonym:
+                description_parts.append(f"Publicado sob o pseudônimo {pseudonym}")
+            description = ". ".join(description_parts) + "." if description_parts else ""
         
         if dry_run:
-            self.stdout.write(f"   📗 [SIMULAÇÃO] Adicionar: {title} ({year})")
+            extras = []
+            if isbn:
+                extras.append(f"ISBN: {isbn}")
+            if pages:
+                extras.append(f"{pages}p")
+            if publisher:
+                extras.append(publisher)
+            extra_info = f" [{', '.join(extras)}]" if extras else ""
+            self.stdout.write(f"   📗 [SIMULAÇÃO] Adicionar: {title} ({year}){extra_info}")
             return 'added'
         
-        # Criar o livro
+        # Criar o livro com todos os campos disponíveis
         try:
             book = Book(
                 title=title,
+                subtitle=subtitle,
                 author=author,
                 category=category,
                 description=description,
-                publication_date=date(year, 1, 1),
-                language='en',
+                publication_date=date(year, month, day),
+                publisher=publisher,
+                page_count=pages,
+                isbn=isbn if isbn else None,
+                price=price,
+                language=language,
             )
             book.save()
-            self.stdout.write(self.style.SUCCESS(f"   ✅ Adicionado: {title} ({year})"))
+            
+            # Log detalhado
+            extras = []
+            if isbn:
+                extras.append(f"ISBN: {isbn}")
+            if pages:
+                extras.append(f"{pages}p")
+            if publisher:
+                extras.append(publisher)
+            extra_info = f" [{', '.join(extras)}]" if extras else ""
+            
+            self.stdout.write(self.style.SUCCESS(f"   ✅ Adicionado: {title} ({year}){extra_info}"))
             return 'added'
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"   ❌ Erro ao adicionar {title}: {e}"))
             return 'error'
+
