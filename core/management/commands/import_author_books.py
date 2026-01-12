@@ -14,7 +14,7 @@ from core.models import Book, Author, Category
 
 
 # =============================================================================
-# DADOS DE ANNE RICE (podem ser movidos para arquivo JSON externo)
+# DADOS COMPLETOS DE ANNE RICE (com informações editoriais)
 # =============================================================================
 ANNE_RICE_DATA = {
     "author": {
@@ -30,35 +30,154 @@ ANNE_RICE_DATA = {
             "name": "The Vampire Chronicles",
             "category": "Terror",
             "books": [
-                {"title": "The Vampire Lestat", "year": 1985, "order": 2},
-                {"title": "The Queen of the Damned", "year": 1988, "order": 3},
-                {"title": "The Tale of the Body Thief", "year": 1992, "order": 4},
-                {"title": "Memnoch the Devil", "year": 1995, "order": 5},
-                {"title": "The Vampire Armand", "year": 1998, "order": 6},
-                {"title": "Merrick", "year": 2000, "order": 7},
-                {"title": "Blood and Gold", "year": 2001, "order": 8},
-                {"title": "Blackwood Farm", "year": 2002, "order": 9},
-                {"title": "Blood Canticle", "year": 2003, "order": 10},
-                {"title": "Prince Lestat", "year": 2014, "order": 11},
-                {"title": "Prince Lestat and the Realms of Atlantis", "year": 2016, "order": 12},
-                {"title": "Blood Communion: A Tale of Prince Lestat", "year": 2018, "order": 13}
+                {
+                    "title": "The Vampire Lestat",
+                    "year": 1985, "month": 10, "day": 31, "order": 2,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 560,
+                    "isbn": "978-0394534435",
+                    "description": "Segundo volume das Crônicas Vampirescas. Lestat conta sua história desde sua juventude na França do século XVIII até se tornar uma estrela do rock nos anos 1980."
+                },
+                {
+                    "title": "The Queen of the Damned",
+                    "year": 1988, "order": 3,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 448,
+                    "isbn": "978-0394558233",
+                    "description": "Terceiro volume das Crônicas Vampirescas. A antiga rainha vampira Akasha desperta e ameaça destruir a humanidade."
+                },
+                {
+                    "title": "The Tale of the Body Thief",
+                    "year": 1992, "order": 4,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 430,
+                    "isbn": "978-0679405283",
+                    "description": "Quarto volume das Crônicas Vampirescas. Lestat troca de corpo com um humano e enfrenta as consequências."
+                },
+                {
+                    "title": "Memnoch the Devil",
+                    "year": 1995, "order": 5,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 354,
+                    "isbn": "978-0679441018",
+                    "description": "Quinto volume das Crônicas Vampirescas. Lestat é levado ao Céu e ao Inferno pelo próprio Diabo."
+                },
+                {
+                    "title": "The Vampire Armand",
+                    "year": 1998, "order": 6,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 387,
+                    "isbn": "978-0679454472",
+                    "description": "Sexto volume das Crônicas Vampirescas. A história de Armand desde a Veneza renascentista."
+                },
+                {
+                    "title": "Merrick",
+                    "year": 2000, "order": 7,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 307,
+                    "isbn": "978-0679454489",
+                    "description": "Sétimo volume das Crônicas Vampirescas. Crossover com a série Mayfair Witches."
+                },
+                {
+                    "title": "Blood and Gold",
+                    "year": 2001, "month": 10, "day": 16, "order": 8,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 480,
+                    "isbn": "978-0679454496",
+                    "description": "Oitavo volume das Crônicas Vampirescas. A história de Marius através dos séculos."
+                },
+                {
+                    "title": "Blackwood Farm",
+                    "year": 2002, "order": 9,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 544,
+                    "isbn": "978-0375411991",
+                    "description": "Nono volume das Crônicas Vampirescas. Quinn Blackwood narra sua transformação."
+                },
+                {
+                    "title": "Blood Canticle",
+                    "year": 2003, "order": 10,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 320,
+                    "isbn": "978-0375412007",
+                    "description": "Décimo volume das Crônicas Vampirescas. Conclusão da saga de Quinn e Lestat."
+                },
+                {
+                    "title": "Prince Lestat",
+                    "year": 2014, "month": 10, "day": 28, "order": 11,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 464,
+                    "isbn": "978-0307962522",
+                    "description": "Décimo primeiro volume das Crônicas Vampirescas. O retorno de Lestat como príncipe dos vampiros."
+                },
+                {
+                    "title": "Prince Lestat and the Realms of Atlantis",
+                    "year": 2016, "order": 12,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 480,
+                    "isbn": "978-0385353793",
+                    "description": "Décimo segundo volume das Crônicas Vampirescas. Lestat descobre as origens alienígenas dos vampiros."
+                },
+                {
+                    "title": "Blood Communion: A Tale of Prince Lestat",
+                    "year": 2018, "month": 10, "day": 2, "order": 13,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 288,
+                    "isbn": "978-1524732646",
+                    "description": "Décimo terceiro e último volume das Crônicas Vampirescas. Lestat consolida seu reinado."
+                }
             ]
         },
         {
             "name": "Lives of the Mayfair Witches",
             "category": "Terror",
             "books": [
-                {"title": "The Witching Hour", "year": 1990, "order": 1},
-                {"title": "Lasher", "year": 1993, "order": 2},
-                {"title": "Taltos", "year": 1994, "order": 3}
+                {
+                    "title": "The Witching Hour",
+                    "year": 1990, "order": 1,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 966,
+                    "isbn": "978-0394587868",
+                    "description": "Primeiro volume da trilogia Mayfair Witches. A saga de uma família de bruxas de Nova Orleans."
+                },
+                {
+                    "title": "Lasher",
+                    "year": 1993, "order": 2,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 592,
+                    "isbn": "978-0679412953",
+                    "description": "Segundo volume da trilogia Mayfair Witches. O espírito Lasher ganha forma física."
+                },
+                {
+                    "title": "Taltos",
+                    "year": 1994, "month": 9, "day": 19, "order": 3,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 467,
+                    "isbn": "978-0679425731",
+                    "description": "Terceiro volume da trilogia Mayfair Witches. A história da raça Taltos é revelada."
+                }
             ]
         },
         {
             "name": "New Tales of the Vampires",
             "category": "Terror",
             "books": [
-                {"title": "Pandora", "year": 1998, "order": 1},
-                {"title": "Vittorio the Vampire", "year": 1999, "order": 2}
+                {
+                    "title": "Pandora",
+                    "year": 1998, "order": 1,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 353,
+                    "isbn": "978-0375401598",
+                    "description": "Primeiro volume de New Tales. A vampira Pandora conta sua origem no Império Romano."
+                },
+                {
+                    "title": "Vittorio the Vampire",
+                    "year": 1999, "order": 2,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 292,
+                    "isbn": "978-0375401602",
+                    "description": "Segundo volume de New Tales. Um jovem nobre da Toscana se torna vampiro."
+                }
             ]
         },
         {
@@ -66,18 +185,60 @@ ANNE_RICE_DATA = {
             "category": "Romance",
             "pseudonym": "A.N. Roquelaure",
             "books": [
-                {"title": "The Claiming of Sleeping Beauty", "year": 1983, "order": 1},
-                {"title": "Beauty's Punishment", "year": 1984, "order": 2},
-                {"title": "Beauty's Release", "year": 1985, "order": 3},
-                {"title": "Beauty's Kingdom", "year": 2015, "order": 4}
+                {
+                    "title": "The Claiming of Sleeping Beauty",
+                    "year": 1983, "order": 1,
+                    "publisher": "E.P. Dutton",
+                    "pages": 253,
+                    "isbn": "978-0525242192",
+                    "description": "Primeiro volume do quarteto. Reinterpretação erótica do conto da Bela Adormecida. Publicado sob pseudônimo A.N. Roquelaure."
+                },
+                {
+                    "title": "Beauty's Punishment",
+                    "year": 1984, "order": 2,
+                    "publisher": "E.P. Dutton",
+                    "pages": 233,
+                    "isbn": "978-0525242611",
+                    "description": "Segundo volume do quarteto. Continuação da saga erótica da Bela. Publicado sob pseudônimo A.N. Roquelaure."
+                },
+                {
+                    "title": "Beauty's Release",
+                    "year": 1985, "month": 6, "order": 3,
+                    "publisher": "Plume",
+                    "pages": 238,
+                    "isbn": "978-0452266636",
+                    "description": "Terceiro volume do quarteto. Beauty é vendida ao Sultão. Publicado sob pseudônimo A.N. Roquelaure."
+                },
+                {
+                    "title": "Beauty's Kingdom",
+                    "year": 2015, "month": 4, "day": 21, "order": 4,
+                    "publisher": "Viking",
+                    "pages": 368,
+                    "isbn": "978-0525427995",
+                    "description": "Quarto volume do quarteto, lançado 30 anos depois. Beauty e Laurent assumem o reino. Publicado sob pseudônimo A.N. Roquelaure."
+                }
             ]
         },
         {
             "name": "Christ the Lord",
             "category": "Ficção",
             "books": [
-                {"title": "Christ the Lord: Out of Egypt", "year": 2005, "order": 1},
-                {"title": "Christ the Lord: The Road to Cana", "year": 2008, "order": 2}
+                {
+                    "title": "Christ the Lord: Out of Egypt",
+                    "year": 2005, "order": 1,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 321,
+                    "isbn": "978-0375412011",
+                    "description": "Primeiro volume. Jesus aos sete anos narra sua jornada do Egito para Nazaré."
+                },
+                {
+                    "title": "Christ the Lord: The Road to Cana",
+                    "year": 2008, "order": 2,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 336,
+                    "isbn": "978-1400043521",
+                    "description": "Segundo volume. Jesus antes de seu ministério público, incluindo o milagre em Caná."
+                }
             ]
         },
         {
@@ -87,58 +248,130 @@ ANNE_RICE_DATA = {
                 {
                     "title": "Angel Time",
                     "subtitle": "The Songs of the Seraphim, Book One",
-                    "year": 2009,
-                    "month": 10,
-                    "day": 27,
-                    "order": 1,
+                    "year": 2009, "month": 10, "day": 27, "order": 1,
                     "publisher": "Alfred A. Knopf",
                     "pages": 288,
-                    "isbn": "9780307745392",
+                    "isbn": "978-0307745392",
                     "price": 17.90,
-                    "language": "en",
-                    "cover_url": "https://books.google.com/books/content?id=E3g0DwAAQBAJ&printsec=frontcover&img=1&zoom=1",
-                    "description": "Angel Time é o primeiro volume da série Songs of the Seraphim. A história acompanha Toby O'Dare, um assassino profissional assombrado por seu passado violento e por visões perturbadoras. Sua vida muda radicalmente quando ele encontra o serafim Malchiah, que lhe oferece uma chance de redenção e o conduz por uma jornada espiritual que atravessa o tempo, confrontando fé, pecado, identidade e salvação em cenários históricos e contemporâneos."
+                    "description": "Angel Time é o primeiro volume da série Songs of the Seraphim. A história acompanha Toby O'Dare, um assassino profissional assombrado por seu passado violento e por visões perturbadoras. Sua vida muda radicalmente quando ele encontra o serafim Malchiah, que lhe oferece uma chance de redenção."
                 },
                 {
                     "title": "Of Love and Evil",
                     "subtitle": "The Songs of the Seraphim, Book Two",
-                    "year": 2010,
-                    "order": 2,
+                    "year": 2010, "month": 11, "day": 30, "order": 2,
                     "publisher": "Alfred A. Knopf",
-                    "pages": 176,
-                    "language": "en",
-                    "description": "Segundo volume da série Songs of the Seraphim. Toby O'Dare, agora redimido, é novamente convocado pelo anjo Malchiah para uma missão na Itália renascentista, onde deve investigar um caso de possessão demoníaca."
+                    "pages": 192,
+                    "isbn": "978-1400043545",
+                    "description": "Segundo volume da série Songs of the Seraphim. Toby O'Dare é novamente convocado pelo anjo Malchiah para uma missão na Itália renascentista."
                 }
             ]
         },
-
         {
             "name": "The Wolf Gift Chronicles",
             "category": "Terror",
             "books": [
-                {"title": "The Wolf Gift", "year": 2012, "order": 1},
-                {"title": "The Wolves of Midwinter", "year": 2013, "order": 2}
+                {
+                    "title": "The Wolf Gift",
+                    "year": 2012, "month": 2, "order": 1,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 416,
+                    "isbn": "978-0307595119",
+                    "description": "Primeiro volume. Reuben Golding é atacado por uma criatura misteriosa e se transforma em homem-lobo."
+                },
+                {
+                    "title": "The Wolves of Midwinter",
+                    "year": 2013, "order": 2,
+                    "publisher": "Alfred A. Knopf",
+                    "pages": 400,
+                    "isbn": "978-0385349963",
+                    "description": "Segundo volume. Reuben prepara o primeiro Natal em Nideck Point enquanto enfrenta novos mistérios."
+                }
             ]
         },
         {
             "name": "Ramses the Damned",
             "category": "Terror",
             "books": [
-                {"title": "The Mummy, or Ramses the Damned", "year": 1989, "order": 1},
-                {"title": "Ramses the Damned: The Passion of Cleopatra", "year": 2017, "order": 2},
-                {"title": "Ramses the Damned: The Reign of Osiris", "year": 2022, "order": 3}
+                {
+                    "title": "The Mummy, or Ramses the Damned",
+                    "year": 1989, "order": 1,
+                    "publisher": "Ballantine Books",
+                    "pages": 448,
+                    "isbn": "978-0345360007",
+                    "description": "Primeiro volume. Ramsés II, o faraó imortal, desperta na Londres eduardiana."
+                },
+                {
+                    "title": "Ramses the Damned: The Passion of Cleopatra",
+                    "year": 2017, "month": 11, "day": 21, "order": 2,
+                    "publisher": "Anchor Books",
+                    "pages": 416,
+                    "isbn": "978-1101970324",
+                    "description": "Segundo volume, coescrito com Christopher Rice. Cleópatra renasce no século XX."
+                },
+                {
+                    "title": "Ramses the Damned: The Reign of Osiris",
+                    "year": 2022, "month": 2, "day": 1, "order": 3,
+                    "publisher": "Anchor Books",
+                    "pages": 368,
+                    "isbn": "978-1101970331",
+                    "description": "Terceiro volume, coescrito com Christopher Rice. Ramsés enfrenta uma ameaça dos deuses egípcios."
+                }
             ]
         }
     ],
     "standalone": {
         "category": "Ficção",
         "books": [
-            {"title": "The Feast of All Saints", "year": 1979},
-            {"title": "Cry to Heaven", "year": 1982},
-            {"title": "Exit to Eden", "year": 1985, "pseudonym": "Anne Rampling"},
-            {"title": "Belinda", "year": 1986, "pseudonym": "Anne Rampling"},
-            {"title": "Servant of the Bones", "year": 1996},
-            {"title": "Violin", "year": 1997}
+            {
+                "title": "The Feast of All Saints",
+                "year": 1979, "order": 0,
+                "publisher": "Simon & Schuster",
+                "pages": 571,
+                "isbn": "978-0671247553",
+                "description": "Romance histórico sobre os 'gens de couleur libres' (pessoas livres de cor) na Nova Orleans antebellum."
+            },
+            {
+                "title": "Cry to Heaven",
+                "year": 1982, "order": 0,
+                "publisher": "Alfred A. Knopf",
+                "pages": 534,
+                "isbn": "978-0394523514",
+                "description": "Romance histórico sobre os castrati na Itália do século XVIII."
+            },
+            {
+                "title": "Exit to Eden",
+                "year": 1985, "month": 5, "order": 0,
+                "pseudonym": "Anne Rampling",
+                "publisher": "Arbor House",
+                "pages": 336,
+                "isbn": "978-0877956099",
+                "description": "Romance erótico sobre um resort BDSM. Publicado sob pseudônimo Anne Rampling."
+            },
+            {
+                "title": "Belinda",
+                "year": 1986, "order": 0,
+                "pseudonym": "Anne Rampling",
+                "publisher": "Arbor House",
+                "pages": 439,
+                "isbn": "978-0877958260",
+                "description": "Romance sobre um artista e uma jovem misteriosa. Publicado sob pseudônimo Anne Rampling."
+            },
+            {
+                "title": "Servant of the Bones",
+                "year": 1996, "order": 0,
+                "publisher": "Alfred A. Knopf",
+                "pages": 387,
+                "isbn": "978-0679433015",
+                "description": "Romance sobrenatural sobre Azriel, um espírito da antiga Babilônia."
+            },
+            {
+                "title": "Violin",
+                "year": 1997, "month": 10, "day": 15, "order": 0,
+                "publisher": "Alfred A. Knopf",
+                "pages": 289,
+                "isbn": "978-0679433026",
+                "description": "Romance gótico sobre uma viúva assombrada por um violinista fantasma."
+            }
         ]
     }
 }
@@ -403,4 +636,3 @@ class Command(BaseCommand):
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"   ❌ Erro ao adicionar {title}: {e}"))
             return 'error'
-
