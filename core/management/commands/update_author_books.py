@@ -264,11 +264,127 @@ ANNE_RICE_BOOKS_DATA = {
     },
 }
 
+# =============================================================================
+# DADOS COMPLETOS PARA ATUALIZAÇÃO - ANTOINE DE SAINT-EXUPÉRY
+# =============================================================================
+SAINT_EXUPERY_BOOKS_DATA = {
+    "O Pequeno Príncipe": {
+        "isbn": "978-0156012195",
+        "publisher": "Reynal & Hitchcock",
+        "pages": 96,
+        "description": "O Pequeno Príncipe é uma fábula poética que conta a história de um piloto que cai no deserto do Saara e encontra um jovem príncipe de outro planeta. Através de suas conversas, o livro explora temas profundos como amor, amizade, perda e o significado da vida."
+    },
+    "The Little Prince": {
+        "isbn": "978-0156012195",
+        "publisher": "Reynal & Hitchcock",
+        "pages": 96,
+        "description": "The Little Prince is a poetic fable about a pilot who crashes in the Sahara desert and meets a young prince from another planet. Through their conversations, the book explores profound themes of love, friendship, loss, and the meaning of life."
+    },
+    "Le Petit Prince": {
+        "isbn": "978-2070612758",
+        "publisher": "Gallimard",
+        "pages": 96,
+        "description": "Le Petit Prince est un conte philosophique et poétique sur un aviateur qui rencontre un petit garçon venu d'une autre planète. Ce chef-d'œuvre explore l'amour, l'amitié et le sens de la vie."
+    },
+    "Night Flight": {
+        "isbn": "978-0156656054",
+        "publisher": "Harcourt",
+        "pages": 96,
+        "description": "Night Flight (Vol de Nuit) é um romance sobre os pilotos do correio aéreo na América do Sul nos anos 1930. A história segue Rivière, um severo diretor de operações, e Fabien, um piloto preso em uma tempestade noturna."
+    },
+    "Vol de Nuit": {
+        "isbn": "978-2070256587",
+        "publisher": "Gallimard",
+        "pages": 180,
+        "description": "Vol de Nuit retrata o mundo perigoso dos pilotos de correio aéreo na América do Sul. O romance explora temas de dever, sacrifício e a luta do homem contra a natureza."
+    },
+    "Wind, Sand and Stars": {
+        "isbn": "978-0156027496",
+        "publisher": "Harcourt",
+        "pages": 240,
+        "description": "Wind, Sand and Stars (Terre des Hommes) é uma memória lírica das experiências de Saint-Exupéry como piloto. O livro ganhou o Grand Prix du Roman e o National Book Award, oferecendo reflexões profundas sobre a vida, a aventura e a fraternidade humana."
+    },
+    "Terre des Hommes": {
+        "isbn": "978-2070256594",
+        "publisher": "Gallimard",
+        "pages": 222,
+        "description": "Terre des Hommes é uma coleção de memórias autobiográficas sobre as aventuras aéreas de Saint-Exupéry. O livro recebeu o Grand Prix du Roman da Académie Française."
+    },
+    "Flight to Arras": {
+        "isbn": "978-0547539607",
+        "publisher": "Harcourt",
+        "pages": 168,
+        "description": "Flight to Arras (Pilote de guerre) é um relato pessoal de uma missão de reconhecimento sobre a França ocupada em 1940. O livro oferece uma reflexão profunda sobre a guerra, o patriotismo e o significado do sacrifício."
+    },
+    "Pilote de guerre": {
+        "isbn": "978-0141183183",
+        "publisher": "Gallimard",
+        "pages": 160,
+        "description": "Pilote de guerre narra uma missão de reconhecimento durante a derrota francesa de 1940. Saint-Exupéry reflete sobre a guerra e o que significa ser francês."
+    },
+    "Southern Mail": {
+        "isbn": "978-0156839013",
+        "publisher": "Harcourt",
+        "pages": 132,
+        "description": "Southern Mail (Courrier Sud) é o primeiro romance de Saint-Exupéry, baseado em suas experiências como piloto do correio aéreo sobre o Norte da África. A história entrelaça aventura aérea com uma história de amor trágica."
+    },
+    "Courrier Sud": {
+        "isbn": "978-2070256570",
+        "publisher": "Gallimard",
+        "pages": 232,
+        "description": "Courrier Sud, o primeiro romance de Saint-Exupéry, conta a história do piloto Jacques Bernis e seu amor impossível por Geneviève, enquanto voa sobre o Saara."
+    },
+    "Letter to a Hostage": {
+        "isbn": "978-2070256617",
+        "publisher": "Gallimard",
+        "pages": 72,
+        "description": "Letter to a Hostage (Lettre à un otage) é uma carta aberta escrita durante o exílio de Saint-Exupéry nos Estados Unidos, dedicada a seu amigo Léon Werth, um judeu que permaneceu na França ocupada."
+    },
+    "Lettre à un otage": {
+        "isbn": "978-2070256617",
+        "publisher": "Gallimard",
+        "pages": 72,
+        "description": "Lettre à un otage é uma carta aberta ao amigo Léon Werth, escrita durante o exílio do autor. O texto reflete sobre a amizade, o exílio e o significado da pátria."
+    },
+    "The Wisdom of the Sands": {
+        "isbn": "978-2070407477",
+        "publisher": "Gallimard",
+        "pages": 480,
+        "description": "The Wisdom of the Sands (Citadelle) é a obra filosófica póstuma de Saint-Exupéry, publicada em 1948. Apresentada como as meditações de um príncipe berbere, o livro explora temas de liderança, espiritualidade e o significado da vida."
+    },
+    "Citadelle": {
+        "isbn": "978-2070407477",
+        "publisher": "Gallimard",
+        "pages": 480,
+        "description": "Citadelle é a obra filosófica póstuma de Saint-Exupéry. Apresentada como as reflexões de um príncipe do deserto, explora temas de civilização, espiritualidade e a condição humana."
+    },
+    "Airman's Odyssey": {
+        "isbn": "978-0156037334",
+        "publisher": "Harcourt",
+        "pages": 456,
+        "description": "Airman's Odyssey é uma coletânea contendo três obras clássicas de Saint-Exupéry: Night Flight, Wind Sand and Stars e Flight to Arras. Essencial para entender a visão do autor sobre aviação e humanidade."
+    },
+}
+
+# =============================================================================
+# MAPEAMENTO DE AUTORES
+# =============================================================================
+ALL_AUTHORS_DATA = {
+    "anne rice": ANNE_RICE_BOOKS_DATA,
+    "saint-exupéry": SAINT_EXUPERY_BOOKS_DATA,
+    "saint-exupery": SAINT_EXUPERY_BOOKS_DATA,
+    "antoine de saint-exupéry": SAINT_EXUPERY_BOOKS_DATA,
+    "antoine de saint-exupery": SAINT_EXUPERY_BOOKS_DATA,
+    "exupery": SAINT_EXUPERY_BOOKS_DATA,
+    "exupéry": SAINT_EXUPERY_BOOKS_DATA,
+}
+
 
 class Command(BaseCommand):
     help = 'Atualiza livros existentes de um autor com dados editoriais completos'
 
     def add_arguments(self, parser):
+
         parser.add_argument(
             '--author',
             type=str,
@@ -305,6 +421,21 @@ class Command(BaseCommand):
 
         self.stdout.write(f"👤 Autor encontrado: {author.name}")
 
+        # Encontrar dados do autor nos nossos dicionários
+        author_data = None
+        author_name_lower = author_name.lower()
+        for key, data in ALL_AUTHORS_DATA.items():
+            if key in author_name_lower or author_name_lower in key:
+                author_data = data
+                break
+        
+        if not author_data:
+            self.stdout.write(self.style.WARNING(
+                f"⚠️  Dados editoriais não disponíveis para '{author_name}'. "
+                f"Apenas capas serão baixadas se --with-covers for usado."
+            ))
+            author_data = {}
+
         # Buscar livros do autor
         books = Book.objects.filter(author=author)
         self.stdout.write(f"📚 Livros no banco: {books.count()}")
@@ -318,7 +449,8 @@ class Command(BaseCommand):
             self.stdout.write(f"\n📖 {title}")
 
             # Buscar dados na nossa base
-            book_data = ANNE_RICE_BOOKS_DATA.get(title)
+            book_data = author_data.get(title)
+
             
             if not book_data:
                 self.stdout.write(f"   ⚠️  Dados não encontrados no dicionário")
