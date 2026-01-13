@@ -459,6 +459,157 @@ SAINT_EXUPERY_DATA = {
         ]
     }
 }
+# =============================================================================
+# DADOS COMPLETOS DE C.S. LEWIS
+# =============================================================================
+CS_LEWIS_DATA = {
+    "author": {
+        "name": "C.S. Lewis",
+        "bio": "Clive Staples Lewis (1898-1963) foi um escritor e acadêmico britânico-irlandês, conhecido por seus romances de ficção, especialmente As Crônicas de Nárnia e a Trilogia Espacial. Professor em Oxford e Cambridge, também foi um influente apologista cristão. Amigo próximo de J.R.R. Tolkien, fez parte do círculo literário Inklings.",
+    },
+    "exclude_titles": [
+        "As Crônicas de Nárnia - Coleção de Luxo: O Leão, a Feiticeira e o Guarda-roupa",
+    ],
+    "series": [
+        {
+            "name": "As Crônicas de Nárnia",
+            "category": "Fantasia",
+            "books": [
+                {
+                    "title": "O Sobrinho do Mago",
+                    "year": 1955, "order": 1,
+                    "publisher": "WMF Martins Fontes",
+                    "pages": 208,
+                    "isbn": "978-8578277901",
+                    "description": "Primeiro livro na ordem cronológica de Nárnia. Digory e Polly descobrem anéis mágicos que os transportam para mundos além do nosso, testemunhando a criação de Nárnia pelo grande leão Aslam."
+                },
+                {
+                    "title": "O Leão, a Feiticeira e o Guarda-Roupa",
+                    "year": 1950, "order": 2,
+                    "publisher": "WMF Martins Fontes",
+                    "pages": 208,
+                    "isbn": "978-8578270889",
+                    "description": "Os quatro irmãos Pevensie entram em Nárnia através de um guarda-roupa mágico e descobrem um mundo sob o domínio da Feiticeira Branca, onde é sempre inverno e nunca Natal."
+                },
+                {
+                    "title": "O Cavalo e Seu Menino",
+                    "year": 1954, "order": 3,
+                    "publisher": "WMF Martins Fontes",
+                    "pages": 224,
+                    "isbn": "978-8546902910",
+                    "description": "Shasta, um menino criado como escravo na Calormânia, foge com o cavalo falante Bri em direção à liberdade em Nárnia, numa aventura repleta de perigos e descobertas."
+                },
+                {
+                    "title": "Príncipe Caspian",
+                    "year": 1951, "order": 4,
+                    "publisher": "WMF Martins Fontes",
+                    "pages": 208,
+                    "isbn": "978-8546901951",
+                    "description": "Os Pevensie retornam a Nárnia para ajudar o jovem príncipe Caspian a derrotar seu tio usurpador e restaurar os narnianos ao seu lugar de direito."
+                },
+                {
+                    "title": "A Viagem do Peregrino da Alvorada",
+                    "year": 1952, "order": 5,
+                    "publisher": "WMF Martins Fontes",
+                    "pages": 256,
+                    "isbn": "978-8546901357",
+                    "description": "Edmundo, Lúcia e seu primo Eustáquio navegam com o rei Caspian até os confins do mundo, em busca dos sete lordes desaparecidos de Nárnia."
+                },
+                {
+                    "title": "A Cadeira de Prata",
+                    "year": 1953, "order": 6,
+                    "publisher": "WMF Martins Fontes",
+                    "pages": 240,
+                    "isbn": "978-8578277918",
+                    "description": "Eustáquio e sua amiga Jill são convocados a Nárnia para encontrar o príncipe Rilian, aprisionado por uma bruxa nas profundezas da terra."
+                },
+                {
+                    "title": "A Última Batalha",
+                    "year": 1956, "order": 7,
+                    "publisher": "WMF Martins Fontes",
+                    "pages": 208,
+                    "isbn": "978-8578279097",
+                    "description": "O capítulo final de Nárnia. Uma conspiração ameaça destruir o reino, e os heróis devem enfrentar a última batalha pelo destino de Nárnia."
+                },
+            ]
+        },
+        {
+            "name": "The Space Trilogy",
+            "category": "Ficção Científica",
+            "books": [
+                {
+                    "title": "Out of the Silent Planet",
+                    "year": 1938, "order": 1,
+                    "publisher": "John Lane",
+                    "pages": 224,
+                    "isbn": "978-0743234900",
+                    "description": "Dr. Ransom é sequestrado e levado a Marte (Malacandra), onde descobre civilizações alienígenas e uma perspectiva cósmica da batalha entre bem e mal."
+                },
+                {
+                    "title": "Perelandra",
+                    "year": 1943, "order": 2,
+                    "publisher": "John Lane",
+                    "pages": 256,
+                    "isbn": "978-0743234917",
+                    "description": "Ransom viaja a Vênus (Perelandra), um paraíso não corrompido, onde deve impedir a tentação da primeira mulher daquele mundo."
+                },
+                {
+                    "title": "That Hideous Strength",
+                    "year": 1945, "order": 3,
+                    "publisher": "John Lane",
+                    "pages": 384,
+                    "isbn": "978-0743234924",
+                    "description": "Na Terra, um instituto científico sinistro chamado N.I.C.E. ameaça a humanidade, e forças cósmicas se preparam para o confronto final."
+                },
+            ]
+        },
+    ],
+    "standalone": {
+        "category": "Ficção",
+        "books": [
+            {
+                "title": "The Screwtape Letters",
+                "year": 1942, "order": 0,
+                "publisher": "Geoffrey Bles",
+                "pages": 160,
+                "isbn": "978-0060652937",
+                "description": "Cartas de um demônio sênior a seu sobrinho aprendiz, oferecendo conselhos sobre como tentar um ser humano. Uma sátira brilhante sobre a natureza humana e a tentação."
+            },
+            {
+                "title": "The Great Divorce",
+                "year": 1945, "order": 0,
+                "publisher": "Geoffrey Bles",
+                "pages": 160,
+                "isbn": "978-0060652951",
+                "description": "Uma viagem onírica do Inferno ao Céu, explorando por que as almas escolhem ou rejeitam a salvação. Uma meditação profunda sobre livre-arbítrio e redenção."
+            },
+            {
+                "title": "Mere Christianity",
+                "year": 1952, "order": 0,
+                "publisher": "Geoffrey Bles",
+                "pages": 256,
+                "isbn": "978-0060652920",
+                "description": "Baseado em transmissões de rádio da BBC durante a guerra, apresenta os fundamentos da fé cristã de forma racional e acessível."
+            },
+            {
+                "title": "Till We Have Faces",
+                "year": 1956, "order": 0,
+                "publisher": "Geoffrey Bles",
+                "pages": 336,
+                "isbn": "978-0156904360",
+                "description": "Uma reinvenção do mito de Cupido e Psiquê narrada por Orual, a irmã feia. Considerado por Lewis como seu melhor romance."
+            },
+            {
+                "title": "The Problem of Pain",
+                "year": 1940, "order": 0,
+                "publisher": "Centenary Press",
+                "pages": 176,
+                "isbn": "978-0060652968",
+                "description": "Uma exploração filosófica do sofrimento humano e da existência de um Deus amoroso. Um clássico da apologética cristã."
+            },
+        ]
+    }
+}
 
 
 # =============================================================================
@@ -472,6 +623,10 @@ AUTHORS_DATA_MAP = {
     "antoine de saint-exupery": SAINT_EXUPERY_DATA,
     "exupery": SAINT_EXUPERY_DATA,
     "exupéry": SAINT_EXUPERY_DATA,
+    "c.s. lewis": CS_LEWIS_DATA,
+    "cs lewis": CS_LEWIS_DATA,
+    "lewis": CS_LEWIS_DATA,
+    "clive staples lewis": CS_LEWIS_DATA,
 }
 
 
