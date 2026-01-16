@@ -8,6 +8,7 @@ DESIGN PRINCIPLES:
 4. Prioridade por prateleiras (favoritos > lidos > lendo > quer ler)
 5. Colaborativo básico (usuários similares)
 6. Popularidade como fallback
+7. Clássicos mundiais para cold start (novos usuários)
 """
 import logging
 from typing import List, Dict
@@ -19,6 +20,54 @@ from accounts.models import BookShelf
 from .models import UserBookInteraction
 
 logger = logging.getLogger(__name__)
+
+# =============================================================================
+# LISTA DE CLÁSSICOS MUNDIAIS PARA COLD START
+# Livros globalmente conhecidos e diversificados por gênero
+# Usado como fallback para novos usuários sem livros na biblioteca
+# =============================================================================
+CLASSIC_BOOKS_TITLES = [
+    # Clássicos da Literatura Mundial
+    "1984",
+    "Admirável Mundo Novo",
+    "O Pequeno Príncipe",
+    "Dom Casmurro",
+    "O Senhor dos Anéis",
+    "O Hobbit",
+    "Cem Anos de Solidão",
+    "Crime e Castigo",
+    "Orgulho e Preconceito",
+    "A Metamorfose",
+    # Best-sellers Contemporâneos
+    "Harry Potter e a Pedra Filosofal",
+    "O Código Da Vinci",
+    "O Alquimista",
+    "A Menina que Roubava Livros",
+    "O Caçador de Pipas",
+    "A Culpa é das Estrelas",
+    "Jogos Vorazes",
+    "Crepúsculo",
+    "Percy Jackson e o Ladrão de Raios",
+    "As Crônicas de Nárnia",
+    # Clássicos Brasileiros
+    "Memórias Póstumas de Brás Cubas",
+    "Grande Sertão: Veredas",
+    "Capitães da Areia",
+    "Vidas Secas",
+    "O Cortiço",
+    # Ficção Científica e Fantasia
+    "Duna",
+    "O Guia do Mochileiro das Galáxias",
+    "Fundação",
+    "O Nome do Vento",
+    "A Roda do Tempo",
+    # Romance e Drama
+    "O Morro dos Ventos Uivantes",
+    "Jane Eyre",
+    "Anna Karênina",
+    "Os Miseráveis",
+    "O Conde de Monte Cristo",
+]
 
 
 class SimpleRecommendationEngine:
@@ -258,8 +307,12 @@ class SimpleRecommendationEngine:
 
     def _get_popular_books(self, n=10, user_id=None) -> List[Dict]:
         """
-        Retorna livros populares (mais adicionados às prateleiras).
-        Fallback para cold start.
+        Retorna livros para cold start (novos usuários sem biblioteca).
+        
+        Estratégia:
+        1. PRIMEIRO: Buscar clássicos mundiais da lista CLASSIC_BOOKS_TITLES
+        2. FALLBACK: Livros populares nas prateleiras da comunidade
+        3. DIVERSIFICAÇÃO: Shuffle baseado no user_id para variedade entre usuários
         
         Args:
             n: Número de livros
@@ -267,42 +320,80 @@ class SimpleRecommendationEngine:
         """
         import random
         
+        recommendations = []
+        
+        # ========== ESTRATÉGIA 1: CLÁSSICOS MUNDIAIS ==========
+        # Buscar livros que correspondam aos títulos clássicos (busca flexível)
+        classic_query = Q()
+        for title in CLASSIC_BOOKS_TITLES:
+            classic_query |= Q(title__icontains=title)
+        
+        classics = list(Book.objects.filter(
+            classic_query
+        ).filter(
+            # CRITICAL: Apenas livros com capa válida
+            Q(cover_image__isnull=False) & ~Q(cover_image='')
+        ).select_related('category', 'author')[:n * 4])  # Buscar 4x mais
+        
+        logger.info(f"📚 Found {len(classics)} classic books for cold start")
+        
+        # Diversificação por usuário: shuffle determinístico baseado no user_id
+        if user_id and len(classics) > n:
+            # Seed baseado no user_id para consistência (mesmo usuário = mesma ordem)
+            random.seed(user_id + 12345)  # Salt para mais variação
+            random.shuffle(classics)
+            random.seed()  # Reset seed
+        
+        # Formatar recomendações dos clássicos
+        for book in classics[:n]:
+            category_name = book.category.name if book.category else "Literatura"
+            recommendations.append({
+                'book': book,
+                'score': 0.85,  # Score alto para clássicos
+                'reason': f"Clássico da {category_name} - Leitura essencial"
+            })
+        
+        # Se já temos livros suficientes, retornar
+        if len(recommendations) >= n:
+            return recommendations[:n]
+        
+        # ========== ESTRATÉGIA 2: FALLBACK - LIVROS POPULARES ==========
+        logger.info(f"📚 Adding popular books to fill {n - len(recommendations)} slots")
+        
+        # Livros já recomendados
+        recommended_ids = {rec['book'].id for rec in recommendations}
+        
         # Livros mais populares (mais vezes adicionados às prateleiras)
-        # FILTRO DIRETO: apenas livros com capa válida
         popular = (
             BookShelf.objects
             .values('book')
             .annotate(count=Count('id'))
-            .order_by('-count')[:n * 3]  # Buscar 3x mais para diversificação
+            .order_by('-count')[:n * 3]
         )
 
-        book_ids = [p['book'] for p in popular]
-        books = list(Book.objects.filter(
+        book_ids = [p['book'] for p in popular if p['book'] not in recommended_ids]
+        popular_books = list(Book.objects.filter(
             id__in=book_ids
         ).filter(
-            # CRITICAL: Filtro de capa direto na query
             Q(cover_image__isnull=False) & ~Q(cover_image='')
         ).select_related('category', 'author'))
 
-        # Diversificação por usuário: usar user_id como seed para shuffle parcial
-        if user_id and len(books) > n:
-            # Seed baseado no user_id para consistência (mesmo usuário = mesma ordem)
-            random.seed(user_id)
-            # Dividir em grupos: top populares e resto
-            top_count = min(n // 2, len(books) // 2)  # Metade são sempre top populares
-            top_books = books[:top_count]
-            remaining = books[top_count:]
-            random.shuffle(remaining)  # Shuffle apenas dos restantes
-            books = top_books + remaining
-            random.seed()  # Reset seed
+        # Diversificação por usuário
+        if user_id and len(popular_books) > 0:
+            random.seed(user_id * 2)
+            random.shuffle(popular_books)
+            random.seed()
 
-        recommendations = []
-        for book in books:
-            recommendations.append({
-                'book': book,
-                'score': 0.5,  # Score médio
-                'reason': "Livro popular na comunidade"
-            })
+        for book in popular_books:
+            if len(recommendations) >= n:
+                break
+            if book.id not in recommended_ids:
+                recommendations.append({
+                    'book': book,
+                    'score': 0.5,
+                    'reason': "Livro popular na comunidade"
+                })
+                recommended_ids.add(book.id)
 
         return recommendations[:n]
 

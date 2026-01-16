@@ -224,14 +224,68 @@ class QuizQuestionInline(admin.StackedInline):
 
 @admin.register(QuizQuestion)
 class QuizQuestionAdmin(admin.ModelAdmin):
-    list_display = ['question_text', 'quiz', 'order', 'options_count']
+    list_display = ['quiz_badge', 'question_preview', 'order', 'options_count', 'has_image']
     list_filter = ['quiz']
-    search_fields = ['question_text', 'explanation']
+    search_fields = ['question_text', 'explanation', 'quiz__title']
+    list_select_related = ['quiz']
     inlines = [QuizOptionInline]
+    ordering = ['quiz__title', 'order']
+    list_per_page = 200
+    
+    # Template customizado com visualização em árvore
+    change_list_template = 'admin/news/quizquestion/change_list.html'
+
+    class Media:
+        css = {
+            'all': ['css/admin_quiz_tree.css']
+        }
+        js = ['js/admin_quiz_tree.js']
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('quiz').prefetch_related('options')
+
+    def quiz_badge(self, obj):
+        """Exibe badge colorido do Quiz pai"""
+        colors = ['#3498db', '#e74c3c', '#27ae60', '#9b59b6', '#f39c12', '#1abc9c', '#e67e22', '#34495e']
+        quiz_id = obj.quiz.id if obj.quiz else 0
+        color = colors[quiz_id % len(colors)]
+        return format_html(
+            '<span class="quiz-folder-badge" style="background-color: {}; color: white; '
+            'padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">'
+            '📁 {}</span>',
+            color,
+            obj.quiz.title[:35] + '...' if len(obj.quiz.title) > 35 else obj.quiz.title
+        )
+    quiz_badge.short_description = 'Quiz'
+    quiz_badge.admin_order_field = 'quiz__title'
+
+    def question_preview(self, obj):
+        """Preview da pergunta com ícone de árvore"""
+        return format_html(
+            '<span style="color: #666;">└─</span> {}',
+            obj.question_text[:80] + '...' if len(obj.question_text) > 80 else obj.question_text
+        )
+    question_preview.short_description = 'Pergunta'
 
     def options_count(self, obj):
-        return obj.options.count()
+        count = obj.options.count()
+        correct = obj.options.filter(is_correct=True).count()
+        if correct == 0:
+            return format_html(
+                '<span style="color: #e74c3c;" title="Sem resposta correta!">⚠️ {}</span>',
+                count
+            )
+        return format_html(
+            '<span style="color: #27ae60;">✓ {}</span>',
+            count
+        )
     options_count.short_description = 'Opções'
+
+    def has_image(self, obj):
+        if obj.question_image:
+            return format_html('<span style="color: #27ae60;">🖼️</span>')
+        return format_html('<span style="color: #ccc;">-</span>')
+    has_image.short_description = 'Img'
 
 
 @admin.register(Quiz)

@@ -11,6 +11,11 @@ from .section_admin import SectionAdmin
 from .event_admin import EventAdmin
 from .banner_admin import BannerAdmin
 from .featured_author_settings_admin import FeaturedAuthorSettingsAdmin
+from .literary_universe_admin import (
+    LiteraryUniverseAdmin,
+    UniverseContentItemAdmin,
+    UniverseBannerAdmin,
+)
 
 __all__ = [
     'CategoryAdmin',
@@ -21,6 +26,9 @@ __all__ = [
     'EventAdmin',
     'BannerAdmin',
     'FeaturedAuthorSettingsAdmin',
+    'LiteraryUniverseAdmin',
+    'UniverseContentItemAdmin',
+    'UniverseBannerAdmin',
 ]
 
 # URLs customizadas para Google Books

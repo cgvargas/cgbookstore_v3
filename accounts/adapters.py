@@ -48,6 +48,11 @@ class CustomAccountAdapter(DefaultAccountAdapter):
             email: Email do destinatário
             context: Contexto para renderizar o template
         """
+        from django.utils import timezone
+        
+        # Adicionar ano atual ao contexto para copyright dinâmico
+        context['current_year'] = timezone.now().year
+        
         # Renderizar subject (sempre .txt)
         subject = render_to_string(f'{template_prefix}_subject.txt', context)
         # Remove quebras de linha do subject
@@ -206,19 +211,23 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         extra_data = sociallogin.account.extra_data
 
         # Preencher campos do User baseado no provider
-        if provider == 'google':
-            # Google fornece: given_name, family_name, email, picture
-            user.first_name = extra_data.get('given_name', '')
-            user.last_name = extra_data.get('family_name', '')
+        # Wrap em try-except para garantir que falhas aqui não quebrem o login
+        try:
+            if provider == 'google':
+                # Google fornece: given_name, family_name, email, picture
+                user.first_name = extra_data.get('given_name', '')
+                user.last_name = extra_data.get('family_name', '')
 
-        elif provider == 'facebook':
-            # Facebook fornece: first_name, last_name, email, picture
-            user.first_name = extra_data.get('first_name', '')
-            user.last_name = extra_data.get('last_name', '')
+            elif provider == 'facebook':
+                # Facebook fornece: first_name, last_name, email, picture
+                user.first_name = extra_data.get('first_name', '')
+                user.last_name = extra_data.get('last_name', '')
 
-        # Se não tem nome, usar parte do email
-        if not user.first_name and user.email:
-            user.first_name = user.email.split('@')[0]
+            # Se não tem nome, usar parte do email
+            if not user.first_name and user.email:
+                user.first_name = user.email.split('@')[0]
+        except Exception as e:
+            logger.error(f"Erro ao popular user com dados do provider: {e}")
 
         return user
 
@@ -245,65 +254,70 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             else:
                 logger.info(f"UserProfile já existia para {user.username}")
 
-        # Extrair dados do provider
-        provider = sociallogin.account.provider
-        extra_data = sociallogin.account.extra_data
 
-        # Popular UserProfile baseado no provider
-        updated_fields = []
 
-        if provider == 'google':
-            # Avatar do Google
-            if 'picture' in extra_data and extra_data['picture']:
-                profile.avatar = extra_data['picture']
-                updated_fields.append('avatar')
+        # Extrair dados do provider com proteção contra erros
+        try:
+            provider = sociallogin.account.provider
+            extra_data = sociallogin.account.extra_data
 
-            # Localização (locale)
-            if 'locale' in extra_data and extra_data['locale']:
-                # Converter locale do Google (ex: pt-BR) para nosso formato
-                locale = extra_data['locale'].replace('-', '_').lower()
-                profile.preferred_language = locale
-                updated_fields.append('preferred_language')
+            # Popular UserProfile baseado no provider
+            updated_fields = []
 
-        elif provider == 'facebook':
-            # Avatar do Facebook
-            if 'id' in extra_data:
-                # URL da foto de perfil do Facebook
-                fb_id = extra_data['id']
-                profile.avatar = f"https://graph.facebook.com/{fb_id}/picture?type=large"
-                updated_fields.append('avatar')
+            if provider == 'google':
+                # Avatar do Google
+                if 'picture' in extra_data and extra_data['picture']:
+                    profile.avatar = extra_data['picture']
+                    updated_fields.append('avatar')
 
-            # Localização (location)
-            if 'location' in extra_data and extra_data['location']:
-                location_name = extra_data['location'].get('name', '')
-                if location_name:
-                    profile.location = location_name
-                    updated_fields.append('location')
+                # Localização (locale)
+                if 'locale' in extra_data and extra_data['locale']:
+                    # Converter locale do Google (ex: pt-BR) para nosso formato
+                    locale = extra_data['locale'].replace('-', '_').lower()
+                    profile.preferred_language = locale
+                    updated_fields.append('preferred_language')
 
-            # Locale
-            if 'locale' in extra_data and extra_data['locale']:
-                locale = extra_data['locale'].replace('_', '-').lower()
-                profile.preferred_language = locale
-                updated_fields.append('preferred_language')
+            elif provider == 'facebook':
+                # Avatar do Facebook
+                if 'id' in extra_data:
+                    # URL da foto de perfil do Facebook
+                    fb_id = extra_data['id']
+                    profile.avatar = f"https://graph.facebook.com/{fb_id}/picture?type=large"
+                    updated_fields.append('avatar')
 
-            # Link do perfil
-            if 'link' in extra_data and extra_data['link']:
-                profile.website = extra_data['link']
-                updated_fields.append('website')
+                # Localização (location)
+                if 'location' in extra_data and extra_data['location']:
+                    location_name = extra_data['location'].get('name', '')
+                    if location_name:
+                        profile.location = location_name
+                        updated_fields.append('location')
 
-        # Salvar UserProfile se houve mudanças
-        if updated_fields:
-            profile.save()
-            logger.info(
-                f"UserProfile atualizado para {user.username} "
-                f"com dados do {provider}. "
-                f"Campos: {', '.join(updated_fields)}"
-            )
-        else:
-            logger.info(
-                f"UserProfile não foi atualizado para {user.username} "
-                f"(nenhum dado relevante do {provider})"
-            )
+                # Locale
+                if 'locale' in extra_data and extra_data['locale']:
+                    locale = extra_data['locale'].replace('_', '-').lower()
+                    profile.preferred_language = locale
+                    updated_fields.append('preferred_language')
+
+                # Link do perfil
+                if 'link' in extra_data and extra_data['link']:
+                    profile.website = extra_data['link']
+                    updated_fields.append('website')
+
+            # Salvar UserProfile se houve mudanças
+            if updated_fields:
+                profile.save()
+                logger.info(
+                    f"UserProfile atualizado para {user.username} "
+                    f"com dados do {provider}. "
+                    f"Campos: {', '.join(updated_fields)}"
+                )
+            else:
+                logger.info(
+                    f"UserProfile não foi atualizado para {user.username} "
+                    f"(nenhum dado relevante do {provider})"
+                )
+        except Exception as e:
+            logger.error(f"Erro ao salvar dados sociais no UserProfile: {e}")
 
         return user
 

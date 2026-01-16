@@ -349,7 +349,7 @@ class QuizOption(models.Model):
         related_name='options',
         verbose_name="Pergunta"
     )
-    option_text = models.CharField(max_length=200, verbose_name="Opção")
+    option_text = models.CharField(max_length=500, verbose_name="Opção")
     is_correct = models.BooleanField(default=False, verbose_name="Resposta Correta")
     order = models.PositiveIntegerField(default=0, verbose_name="Ordem")
 

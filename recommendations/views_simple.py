@@ -82,13 +82,18 @@ def get_recommendations_simple(request):
             }
             books_data.append(book_data)
 
+        # Verificar se usuário tem livros nas prateleiras
+        from accounts.models import BookShelf
+        has_shelves = BookShelf.objects.filter(user=request.user).exists()
+
         response_data = {
             'algorithm': 'simple_unified',
             'count': len(books_data),
+            'has_shelves': has_shelves,
             'recommendations': books_data
         }
 
-        logger.info(f"✓ Returning {len(books_data)} recommendations for {request.user.username}")
+        logger.info(f"✓ Returning {len(books_data)} recommendations for {request.user.username} (has_shelves={has_shelves})")
 
         return JsonResponse(response_data)
 

@@ -1,25 +1,34 @@
-⏰ Seu Premium expira em {{ days_left }} dia(s)!
+Seu Premium expira em {{ days_left }} dia{% if days_left != 1 %}s{% endif %}!
 
-Olá {{ username }},
+Olá, {{ username }}!
 
-Seu acesso Premium à CGBookStore expira em {{ expires_at }}. Após essa data, você perderá acesso a:
+Seu acesso Premium à CGBookStore expira em {{ expires_at }}.
 
-❌ Chatbot Literário Ilimitado
-❌ Personalização Avançada
-❌ Estatísticas Detalhadas
-❌ Badge Premium exclusivo
-❌ Acesso prioritário a novidades
+Continue aproveitando todos os benefícios exclusivos renovando sua assinatura.
 
-═══════════════════════════════════════════════════════
+════════════════════════════════════════════════════════
 
-🔄 RENOVE AGORA por apenas R$ 9,90/mês!
+BENEFÍCIOS QUE VOCÊ PODE PERDER:
+
+- Chatbot Literário com IA (uso ilimitado)
+- Personalização avançada do perfil
+- Estatísticas detalhadas de leitura
+- Badge Premium exclusivo na comunidade
+- Acesso prioritário a novos recursos
+
+════════════════════════════════════════════════════════
+
+RENOVE AGORA por apenas R$ 9,90/mês
 
 Acesse: {{ site_url }}/finance/subscription/checkout/
 
-═══════════════════════════════════════════════════════
+════════════════════════════════════════════════════════
 
-💡 Dica: Renovando agora, seu Premium será estendido automaticamente a partir da data de expiração atual. Você não perde nenhum dia!
+Dica: Ao renovar agora, seu Premium será estendido automaticamente a partir da data de expiração atual. Você não perde nenhum dia!
 
 ---
 Equipe CGBookStore
-Se você não deseja renovar, pode ignorar este email.
+Dúvidas? Responda este e-mail que teremos prazer em ajudar.
+
+© {{ current_year }} CGBookStore. Todos os direitos reservados.
+Se você não deseja renovar sua assinatura, pode ignorar este e-mail.

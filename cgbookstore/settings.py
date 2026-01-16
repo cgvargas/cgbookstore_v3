@@ -123,62 +123,66 @@ if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
 
     # Verificar se estamos usando Supabase
     db_host = DATABASES['default'].get('HOST', '')
-    if 'supabase.co' in db_host:
+    
+    # Detectar se é Supabase (direto ou pooler)
+    is_supabase_pooler = 'pooler.supabase.com' in db_host
+    is_supabase_direct = 'supabase.co' in db_host and not is_supabase_pooler
+    
+    if is_supabase_pooler or is_supabase_direct:
         # SSL é obrigatório para Supabase
         db_options['sslmode'] = 'require'
 
-        # SOLUÇÃO para Render FREE (sem IPv6):
-        # Opção 1: Usuário configura DATABASE_IPV4 com o IP fixo
-        # Opção 2: Tentamos resolver DNS para IPv4 (pode falhar no build do Render)
-
-        manual_ipv4 = config('DATABASE_IPV4', default='')
-        if manual_ipv4:
-            # Usuário configurou IP manualmente - RECOMENDADO para Render
-            logger.info(f"✅ Usando IP IPv4 configurado manualmente: {manual_ipv4}")
-            DATABASES['default']['HOST'] = manual_ipv4
-            db_options['hostaddr'] = manual_ipv4
-        else:
-            # Tentar resolver DNS para IPv4 automaticamente
-            import socket
-            try:
-                logger.info(f"🔍 Tentando resolver {db_host} para IPv4...")
-
-                # Usar getaddrinfo com AI_ADDRCONFIG para melhor compatibilidade
-                addr_info = socket.getaddrinfo(
-                    db_host,
-                    None,
-                    socket.AF_INET,  # Apenas IPv4
-                    socket.SOCK_STREAM,
-                    0,  # protocol
-                    socket.AI_ADDRCONFIG  # Usar apenas se IPv4 está configurado
-                )
-
-                if addr_info:
-                    ipv4_address = addr_info[0][4][0]
-                    logger.info(f"✅ Resolvido {db_host} -> {ipv4_address} (IPv4)")
-
-                    DATABASES['default']['HOST'] = ipv4_address
-                    db_options['hostaddr'] = ipv4_address
-                else:
-                    logger.warning(f"⚠️ DNS não retornou IPv4 para {db_host}")
-                    logger.warning("⚠️ SOLUÇÃO: Configure DATABASE_IPV4 com o IP fixo")
-
-            except (socket.gaierror, OSError) as e:
-                logger.error(f"❌ Falha ao resolver DNS: {e}")
-                logger.error("⚠️ SOLUÇÃO RECOMENDADA para Render FREE:")
-                logger.error("⚠️ 1. Execute: nslookup db.uomjbcuowfgcwhsejatn.supabase.co")
-                logger.error("⚠️ 2. Pegue o IP IPv4 (ex: 44.XXX.XXX.XXX)")
-                logger.error("⚠️ 3. Configure variável: DATABASE_IPV4=44.XXX.XXX.XXX")
-            except Exception as e:
-                logger.error(f"❌ Erro inesperado: {e}")
-
-        # Identificar tipo de conexão
-        if 'pooler.supabase.com' in db_host:
+        if is_supabase_pooler:
+            # POOLER: Já tem IPv4 nativo, não precisa resolver DNS
             logger.info(f"✅ Detectado Supabase POOLER (Transaction mode): {db_host}")
-            logger.info("ℹ️ Pooler é necessário para Render FREE (conexão direta só tem IPv6)")
+            logger.info("ℹ️ Pooler tem IPv4 nativo - não precisa resolver DNS")
         else:
+            # CONEXÃO DIRETA: Precisa resolver IPv4 manualmente
             logger.info(f"✅ Detectado Supabase conexão DIRETA: {db_host}")
-            logger.info("ℹ️ Conexão direta requer IPv4 configurado em DATABASE_IPV4")
+            
+            # SOLUÇÃO para Render FREE (sem IPv6):
+            # Opção 1: Usuário configura DATABASE_IPV4 com o IP fixo
+            # Opção 2: Tentamos resolver DNS para IPv4 (pode falhar)
+
+            manual_ipv4 = config('DATABASE_IPV4', default='')
+            if manual_ipv4:
+                # Usuário configurou IP manualmente - RECOMENDADO
+                logger.info(f"✅ Usando IP IPv4 configurado manualmente: {manual_ipv4}")
+                DATABASES['default']['HOST'] = manual_ipv4
+                db_options['hostaddr'] = manual_ipv4
+            else:
+                # Tentar resolver DNS para IPv4 automaticamente
+                import socket
+                try:
+                    logger.info(f"🔍 Tentando resolver {db_host} para IPv4...")
+
+                    # Usar getaddrinfo com AI_ADDRCONFIG para melhor compatibilidade
+                    addr_info = socket.getaddrinfo(
+                        db_host,
+                        None,
+                        socket.AF_INET,  # Apenas IPv4
+                        socket.SOCK_STREAM,
+                        0,  # protocol
+                        socket.AI_ADDRCONFIG  # Usar apenas se IPv4 está configurado
+                    )
+
+                    if addr_info:
+                        ipv4_address = addr_info[0][4][0]
+                        logger.info(f"✅ Resolvido {db_host} -> {ipv4_address} (IPv4)")
+
+                        DATABASES['default']['HOST'] = ipv4_address
+                        db_options['hostaddr'] = ipv4_address
+                    else:
+                        logger.warning(f"⚠️ DNS não retornou IPv4 para {db_host}")
+                        logger.warning("⚠️ SOLUÇÃO: Configure DATABASE_IPV4 com o IP fixo")
+
+                except (socket.gaierror, OSError) as e:
+                    logger.error(f"❌ Falha ao resolver DNS: {e}")
+                    logger.error("⚠️ SOLUÇÃO RECOMENDADA:")
+                    logger.error("⚠️ Use o POOLER do Supabase ao invés da conexão direta")
+                    logger.error("⚠️ Ou configure DATABASE_IPV4 com o IP fixo")
+                except Exception as e:
+                    logger.error(f"❌ Erro inesperado: {e}")
 
     # Adicionar timeout de statement para prevenir queries lentas travarem o servidor
     db_options['options'] = '-c statement_timeout=25000'  # 25 segundos (antes do timeout do gunicorn de 30s)
@@ -219,7 +223,8 @@ CACHES = {
 
 # Cache de sessões em Redis (MUITO mais rápido que banco)
 # Reduz latência em ~20-50ms por request
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_ENGINE = 'django.contrib.sessions.backends.db' # Falback para DB devido a lentidao no Redis
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
 
 
@@ -384,8 +389,11 @@ SITE_URL = config('SITE_URL', default='http://localhost:8000')
 # Email Configuration
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@cgbookstore.com')
 
-# Determinar backend de email baseado no ambiente
-if config('USE_BREVO_API', default=False, cast=bool):
+# Em DEBUG mode, SEMPRE usar console para evitar delays de SMTP
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Determinar backend de email baseado no ambiente para produção
+elif config('USE_BREVO_API', default=False, cast=bool):
     # Usar Brevo API (recomendado para produção)
     EMAIL_BACKEND = 'cgbookstore.backends.brevo.BrevoBackend'
     BREVO_API_KEY = config('EMAIL_HOST_PASSWORD', default='')  # Reutilizar mesma env var
@@ -445,12 +453,9 @@ ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 # 'optional' = envia email de verificação mas permite login
 # 'none' = não pede verificação
 #
-# Usando 'mandatory' porque:
-# - Garante emails válidos para comunicação (Premium, recuperação de senha)
-# - Reduz criação de contas spam/bots
-# - Padrão de mercado para plataformas com pagamento
-# - E-mails de Premium só funcionam com emails confirmados
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+# Em DEV: 'none' para facilitar testes locais
+# Em PROD: 'mandatory' para segurança e emails válidos
+ACCOUNT_EMAIL_VERIFICATION = 'none' if DEBUG else 'mandatory'
 
 # Impedir que usuários logados acessem páginas de signup/login
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True

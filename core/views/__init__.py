@@ -17,6 +17,7 @@ from .faq_view import FAQView
 from .library_view import LibraryView
 from .event_views import EventListView
 from .tolkien_view import TolkienWorldView
+from .universe_view import LiteraryUniverseView
 from .terms_view import TermsOfServiceView
 from .privacy_view import PrivacyPolicyView
 
@@ -88,6 +89,7 @@ __all__ = [
     'LibraryView',
     'EventListView',
     'TolkienWorldView',
+    'LiteraryUniverseView',
     'TermsOfServiceView',
     'PrivacyPolicyView',
 

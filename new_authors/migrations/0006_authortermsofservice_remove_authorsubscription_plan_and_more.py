@@ -33,46 +33,46 @@ class Migration(migrations.Migration):
                 'ordering': ['-version'],
             },
         ),
-        migrations.RemoveField(
-            model_name='authorsubscription',
-            name='plan',
-        ),
-        migrations.RemoveField(
-            model_name='authorsubscription',
-            name='author',
-        ),
-        migrations.RemoveField(
-            model_name='dealcommission',
-            name='author',
-        ),
-        migrations.RemoveField(
-            model_name='dealcommission',
-            name='book',
-        ),
-        migrations.RemoveField(
-            model_name='dealcommission',
-            name='publisher',
-        ),
-        migrations.RemoveField(
-            model_name='manuscriptdownload',
-            name='book',
-        ),
-        migrations.RemoveField(
-            model_name='manuscriptdownload',
-            name='chapter',
-        ),
-        migrations.RemoveField(
-            model_name='manuscriptdownload',
-            name='publisher',
-        ),
-        migrations.RemoveField(
-            model_name='publishersubscription',
-            name='plan',
-        ),
-        migrations.RemoveField(
-            model_name='publishersubscription',
-            name='publisher',
-        ),
+        # migrations.RemoveField(
+        #     model_name='authorsubscription',
+        #     name='plan',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='authorsubscription',
+        #     name='author',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='dealcommission',
+        #     name='author',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='dealcommission',
+        #     name='book',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='dealcommission',
+        #     name='publisher',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='manuscriptdownload',
+        #     name='book',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='manuscriptdownload',
+        #     name='chapter',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='manuscriptdownload',
+        #     name='publisher',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='publishersubscription',
+        #     name='plan',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='publishersubscription',
+        #     name='publisher',
+        # ),
         migrations.AddField(
             model_name='emergingauthor',
             name='accepted_terms',
