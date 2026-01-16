@@ -510,7 +510,54 @@
     {% endif %}
 </div>
 
+<!-- NAVEGAÇÃO APPS ADMIN -->
+<div class="content-section">
+    <div class="section-header">
+        <h2 class="section-title">📂 Aplicações do Sistema</h2>
+    </div>
+    <div class="quick-actions" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+        <a href="{% url 'admin:app_list' 'auth' %}" class="action-btn" style="background: #6f42c1; min-height: 70px; padding: 15px 10px;">
+            🔐 Autenticação e Autorização
+        </a>
+        <a href="{% url 'admin:app_list' 'accounts' %}" class="action-btn" style="background: #17a2b8; min-height: 70px; padding: 15px 10px;">
+            👤 Contas
+        </a>
+        <a href="{% url 'admin:app_list' 'core' %}" class="action-btn" style="background: #fd7e14; min-height: 70px; padding: 15px 10px;">
+            📦 Core
+        </a>
+        {% if chatbot_stats %}
+        <a href="{% url 'admin:app_list' 'chatbot_literario' %}" class="action-btn" style="background: #00bcd4; min-height: 70px; padding: 15px 10px;">
+            🤖 Chatbot Literário
+        </a>
+        {% endif %}
+        <a href="{% url 'admin:app_list' 'debates' %}" class="action-btn" style="background: #e83e8c; min-height: 70px; padding: 15px 10px;">
+            💬 Debates
+        </a>
+        {% if finance_stats %}
+        <a href="{% url 'admin:app_list' 'finance' %}" class="action-btn" style="background: #28a745; min-height: 70px; padding: 15px 10px;">
+            💰 Finance
+        </a>
+        {% endif %}
+        <a href="{% url 'admin:app_list' 'gamification' %}" class="action-btn" style="background: #9c27b0; min-height: 70px; padding: 15px 10px;">
+            🎮 Gamificação
+        </a>
+        <a href="{% url 'admin:app_list' 'new_authors' %}" class="action-btn" style="background: #8b5cf6; min-height: 70px; padding: 15px 10px;">
+            ✨ Autores Emergentes
+        </a>
+        <a href="{% url 'admin:app_list' 'news' %}" class="action-btn" style="background: #e74c3c; min-height: 70px; padding: 15px 10px;">
+            📰 News
+        </a>
+        <a href="{% url 'admin:app_list' 'recommendations' %}" class="action-btn" style="background: #ffc107; min-height: 70px; padding: 15px 10px;">
+            🎯 Recomendações
+        </a>
+        <a href="{% url 'admin:app_list' 'socialaccount' %}" class="action-btn" style="background: #3b5998; min-height: 70px; padding: 15px 10px;">
+            🌐 Social Accounts
+        </a>
+    </div>
+</div>
+
 <!-- AÇÕES RÁPIDAS + ACESSO RÁPIDO (lado a lado) -->
+
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px;">
     <!-- AÇÕES RÁPIDAS -->
     <div class="content-section">
