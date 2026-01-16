@@ -52,13 +52,15 @@ class Book(models.Model):
         verbose_name="Data de Publicação"
     )
     isbn = models.CharField(
-        max_length=13,
+        max_length=14,
         unique=True,
         null=True,
         blank=True,
         verbose_name="ISBN",
-        help_text="ISBN-10 ou ISBN-13 (opcional se importado do Google Books)"
+        help_text="ISBN-13 (ex: 978-0394534435) ou ISBN-10"
     )
+
+
     publisher = models.CharField(
         max_length=200,
         blank=True,
