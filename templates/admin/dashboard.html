@@ -510,92 +510,96 @@
     {% endif %}
 </div>
 
-<!-- AÇÕES RÁPIDAS -->
-<div class="content-section">
-    <div class="section-header">
-        <h2 class="section-title">Ações Rápidas</h2>
+<!-- AÇÕES RÁPIDAS + ACESSO RÁPIDO (lado a lado) -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px;">
+    <!-- AÇÕES RÁPIDAS -->
+    <div class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">⚡ Ações Rápidas</h2>
+        </div>
+        <div class="quick-actions" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
+            <a href="{% url 'admin:core_book_add' %}" class="action-btn">
+                📚 Adicionar Livro
+            </a>
+            <a href="{% url 'admin:core_event_add' %}" class="action-btn">
+                📅 Criar Evento
+            </a>
+            <a href="{% url 'admin:core_section_add' %}" class="action-btn">
+                🎨 Nova Seção
+            </a>
+            {% if finance_stats %}
+            <a href="{% url 'admin:finance_campaign_add' %}" class="action-btn" style="background: #ff6b6b;">
+                🎁 Criar Campanha
+            </a>
+            {% endif %}
+            <a href="{% url 'admin:core_author_add' %}" class="action-btn">
+                ✍️ Adicionar Autor
+            </a>
+            <a href="{% url 'admin:core_video_add' %}" class="action-btn">
+                🎥 Adicionar Vídeo
+            </a>
+            <a href="{% url 'admin:news_article_add' %}" class="action-btn" style="background: #e74c3c;">
+                📰 Publicar Notícia
+            </a>
+            <a href="{% url 'admin:news_quiz_add' %}" class="action-btn" style="background: #3498db;">
+                🎯 Criar Quiz
+            </a>
+            <a href="{% url 'admin:new_authors_authorbook_add' %}" class="action-btn success" style="background: #8b5cf6;">
+                ✨ Autor Emergente
+            </a>
+            {% if chatbot_stats %}
+            <a href="{% url 'admin:chatbot_literario_chatbotknowledge_add' %}" class="action-btn"
+                style="background: #17a2b8;">
+                🧠 Conhecimento Chatbot
+            </a>
+            {% endif %}
+            <a href="{% url 'admin_tools:reports_dashboard' %}" class="action-btn" style="background: #667eea;">
+                📊 Relatórios
+            </a>
+        </div>
     </div>
-    <div class="quick-actions">
-        <a href="{% url 'admin:core_book_add' %}" class="action-btn">
-            📚 Adicionar Livro
-        </a>
-        <a href="{% url 'admin:core_event_add' %}" class="action-btn">
-            📅 Criar Evento
-        </a>
-        <a href="{% url 'admin:core_section_add' %}" class="action-btn">
-            🎨 Nova Seção
-        </a>
-        {% if finance_stats %}
-        <a href="{% url 'admin:finance_campaign_add' %}" class="action-btn" style="background: #ff6b6b;">
-            🎁 Criar Campanha
-        </a>
-        {% endif %}
-        <a href="{% url 'admin:core_author_add' %}" class="action-btn">
-            ✍️ Adicionar Autor
-        </a>
-        <a href="{% url 'admin:core_video_add' %}" class="action-btn">
-            🎥 Adicionar Vídeo
-        </a>
-        <a href="{% url 'admin:news_article_add' %}" class="action-btn" style="background: #e74c3c;">
-            📰 Publicar Notícia
-        </a>
-        <a href="{% url 'admin:news_quiz_add' %}" class="action-btn" style="background: #3498db;">
-            🎯 Criar Quiz
-        </a>
-        <a href="{% url 'admin:new_authors_authorbook_add' %}" class="action-btn success" style="background: #8b5cf6;">
-            ✨ Publicar Livro de Autor Emergente
-        </a>
-        {% if chatbot_stats %}
-        <a href="{% url 'admin:chatbot_literario_chatbotknowledge_add' %}" class="action-btn"
-            style="background: #17a2b8;">
-            🧠 Adicionar Conhecimento ao Chatbot
-        </a>
-        {% endif %}
-        <a href="{% url 'admin_tools:reports_dashboard' %}" class="action-btn" style="background: #667eea;">
-            📊 Dashboard de Relatórios
-        </a>
+
+    <!-- ACESSO RÁPIDO ADMIN -->
+    <div class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">🔗 Acesso Rápido Admin</h2>
+        </div>
+        <div class="quick-actions" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
+            <a href="{% url 'admin:auth_user_changelist' %}" class="action-btn" style="background: #6f42c1;">
+                👥 Autenticação
+            </a>
+            <a href="{% url 'admin:app_list' 'core' %}" class="action-btn" style="background: #fd7e14;">
+                📦 Core
+            </a>
+            {% if finance_stats %}
+            <a href="{% url 'admin:app_list' 'finance' %}" class="action-btn" style="background: #28a745;">
+                💰 Finanças
+            </a>
+            {% endif %}
+            <a href="{% url 'admin:app_list' 'accounts' %}" class="action-btn" style="background: #17a2b8;">
+                👤 Contas
+            </a>
+            <a href="{% url 'admin:app_list' 'recommendations' %}" class="action-btn" style="background: #ffc107;">
+                🎯 Recomendações
+            </a>
+            <a href="{% url 'admin:app_list' 'debates' %}" class="action-btn" style="background: #e83e8c;">
+                💬 Debates
+            </a>
+            <a href="{% url 'admin:app_list' 'new_authors' %}" class="action-btn" style="background: #8b5cf6;">
+                ✨ Autores Emergentes
+            </a>
+            <a href="{% url 'admin:app_list' 'news' %}" class="action-btn" style="background: #e74c3c;">
+                📰 Notícias
+            </a>
+            {% if chatbot_stats %}
+            <a href="{% url 'admin:app_list' 'chatbot_literario' %}" class="action-btn" style="background: #17a2b8;">
+                🤖 Chatbot
+            </a>
+            {% endif %}
+        </div>
     </div>
 </div>
 
-<!-- LINKS RÁPIDOS DO ADMIN -->
-<div class="content-section">
-    <div class="section-header">
-        <h2 class="section-title">Acesso Rápido Admin</h2>
-    </div>
-    <div class="quick-actions">
-        <a href="{% url 'admin:auth_user_changelist' %}" class="action-btn" style="background: #6f42c1;">
-            👥 Autenticação e Autorização
-        </a>
-        <a href="{% url 'admin:app_list' 'core' %}" class="action-btn" style="background: #fd7e14;">
-            📦 Core
-        </a>
-        {% if finance_stats %}
-        <a href="{% url 'admin:app_list' 'finance' %}" class="action-btn" style="background: #28a745;">
-            💰 Finanças
-        </a>
-        {% endif %}
-        <a href="{% url 'admin:app_list' 'accounts' %}" class="action-btn" style="background: #17a2b8;">
-            👤 Contas e Perfis
-        </a>
-        <a href="{% url 'admin:app_list' 'recommendations' %}" class="action-btn" style="background: #ffc107;">
-            🎯 Recomendações
-        </a>
-        <a href="{% url 'admin:app_list' 'debates' %}" class="action-btn" style="background: #e83e8c;">
-            💬 Sistema de Debates
-        </a>
-        <a href="{% url 'admin:app_list' 'new_authors' %}" class="action-btn" style="background: #8b5cf6;">
-            ✨ Autores Emergentes
-        </a>
-        <a href="{% url 'admin:app_list' 'news' %}" class="action-btn" style="background: #e74c3c;">
-            📰 Notícias e Jornal
-        </a>
-        {% if chatbot_stats %}
-        <a href="{% url 'admin:app_list' 'chatbot_literario' %}" class="action-btn" style="background: #17a2b8;">
-            🤖 Chatbot Literário
-        </a>
-        {% endif %}
-    </div>
-</div>
 
 <!-- ÚLTIMOS LIVROS + PRÓXIMOS EVENTOS -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px;">
