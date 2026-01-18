@@ -935,32 +935,48 @@
                 </div>
 
             {% elif section.layout == 'featured' %}
-                <!-- Layout Destaque Grande - Primeiro item grande, outros menores -->
+                <!-- Layout Destaque Grande - Imagem em cima, sinopse embaixo -->
                 <div class="row g-4">
                     {% for item in section.items %}
                         {% with obj=item.obj display_title=item.display_title %}
                         {% if forloop.first %}
-                        <!-- Item em destaque (grande) -->
+                        <!-- Item em destaque (grande) - Layout vertical -->
                         <div class="col-12 col-lg-6">
                             {% if section.content_type == 'books' and obj.slug %}
-                            <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
+                            <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link text-decoration-none">
                             {% endif %}
-                                <div class="card featured-card h-100" style="min-height: 400px;">
-                                    <div class="row g-0 h-100">
-                                        <div class="col-md-5">
-                                            {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="img-fluid rounded-start h-100" style="object-fit: cover;" alt="{{ obj.title }}">{% else %}<div class="bg-secondary h-100 d-flex align-items-center justify-content-center"><i class="fas fa-book fa-4x text-muted"></i></div>{% endif %}
+                                <div class="card featured-card h-100">
+                                    <!-- Imagem grande em cima -->
+                                    <div class="featured-cover-wrapper" style="height: 400px; overflow: hidden;">
+                                        {% if obj.cover_image %}
+                                        <img src="{{ obj.cover_image.url }}" 
+                                             class="w-100 h-100" 
+                                             style="object-fit: contain; background: linear-gradient(135deg, #1a1a2e, #16213e);" 
+                                             alt="{{ obj.title }}">
+                                        {% else %}
+                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center" 
+                                             style="background: linear-gradient(135deg, #1a1a2e, #16213e);">
+                                            <i class="fas fa-book fa-5x text-muted"></i>
                                         </div>
-                                        <div class="col-md-7">
-                                            <div class="card-body d-flex flex-column h-100">
-                                                <span class="badge bg-primary mb-2" style="width: fit-content;">Destaque</span>
-                                                <h3 class="card-title">{{ display_title }}</h3>
-                                                {% if section.show_author and obj.author %}<p class="text-muted">{{ obj.author.name }}</p>{% endif %}
-                                                {% if obj.description %}<p class="card-text flex-grow-1">{{ obj.description|truncatewords:50 }}</p>{% endif %}
-                                                <div class="mt-auto">
-                                                    {% if section.show_price and obj.price %}<span class="h4 text-primary">R$ {{ obj.price|floatformat:2 }}</span>{% endif %}
-                                                    {% if section.show_rating and obj.average_rating %}<span class="ms-3"><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1 }}</span>{% endif %}
-                                                </div>
-                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <!-- Sinopse embaixo -->
+                                    <div class="card-body">
+                                        <span class="badge bg-primary mb-2">⭐ Destaque</span>
+                                        <h3 class="card-title">{{ display_title }}</h3>
+                                        {% if section.show_author and obj.author %}
+                                        <p class="text-muted mb-2"><i class="fas fa-user-edit me-1"></i>{{ obj.author.name }}</p>
+                                        {% endif %}
+                                        {% if obj.description %}
+                                        <p class="card-text text-muted">{{ obj.description|truncatewords:40 }}</p>
+                                        {% endif %}
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
+                                            {% if section.show_price and obj.price %}
+                                            <span class="h5 text-primary mb-0">R$ {{ obj.price|floatformat:2 }}</span>
+                                            {% endif %}
+                                            {% if section.show_rating and obj.average_rating %}
+                                            <span><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1 }}</span>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
@@ -1048,20 +1064,52 @@
                 </div>
 
             {% elif section.layout == 'banner_slider' %}
-                <!-- Layout Banner com Slider -->
+                <!-- Layout Banner com Slider - Cards de livros em destaque -->
                 <div class="swiper banner-slider-swiper">
                     <div class="swiper-wrapper">
                         {% for item in section.items %}
                             {% with obj=item.obj display_title=item.display_title %}
                             <div class="swiper-slide">
-                                <div class="banner-slide position-relative" style="height: 350px; overflow: hidden; border-radius: 12px;">
-                                    {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ obj.title }}">{% else %}<div class="bg-gradient w-100 h-100" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);"></div>{% endif %}
-                                    <div class="banner-slide-overlay position-absolute bottom-0 start-0 end-0 p-4" style="background: linear-gradient(transparent, rgba(0,0,0,0.8));">
-                                        <h3 class="text-white mb-2">{{ display_title }}</h3>
-                                        {% if section.show_author and obj.author %}<p class="text-white-50">{{ obj.author.name }}</p>{% endif %}
-                                        {% if section.content_type == 'books' and obj.slug %}
-                                        <a href="{% url 'core:book_detail' obj.slug %}" class="btn btn-primary btn-sm mt-2">Ver Detalhes</a>
-                                        {% endif %}
+                                <!-- Card de livro com imagem grande -->
+                                <div class="banner-slide-card position-relative rounded-3 overflow-hidden" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
+                                    <div class="row g-0 h-100">
+                                        <!-- Imagem do livro -->
+                                        <div class="col-5 d-flex align-items-center justify-content-center p-4">
+                                            {% if obj.cover_image %}
+                                            <img src="{{ obj.cover_image.url }}" 
+                                                 class="img-fluid rounded shadow-lg" 
+                                                 style="max-height: 300px; object-fit: contain;" 
+                                                 alt="{{ obj.title }}">
+                                            {% else %}
+                                            <div class="d-flex align-items-center justify-content-center rounded" 
+                                                 style="width: 180px; height: 270px; background: rgba(255,255,255,0.1);">
+                                                <i class="fas fa-book fa-4x text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <!-- Informações do livro -->
+                                        <div class="col-7 d-flex flex-column justify-content-center p-4 text-white">
+                                            <h3 class="mb-2">{{ display_title }}</h3>
+                                            {% if section.show_author and obj.author %}
+                                            <p class="text-white-50 mb-3"><i class="fas fa-user-edit me-1"></i>{{ obj.author.name }}</p>
+                                            {% endif %}
+                                            {% if obj.description %}
+                                            <p class="text-white-50 mb-3" style="font-size: 0.9rem;">{{ obj.description|truncatewords:30 }}</p>
+                                            {% endif %}
+                                            <div class="d-flex align-items-center gap-3">
+                                                {% if section.show_price and obj.price %}
+                                                <span class="h4 text-warning mb-0">R$ {{ obj.price|floatformat:2 }}</span>
+                                                {% endif %}
+                                                {% if section.show_rating and obj.average_rating %}
+                                                <span><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1 }}</span>
+                                                {% endif %}
+                                            </div>
+                                            {% if section.content_type == 'books' and obj.slug %}
+                                            <a href="{% url 'core:book_detail' obj.slug %}" class="btn btn-primary mt-3" style="width: fit-content;">
+                                                <i class="fas fa-eye me-1"></i>Ver Detalhes
+                                            </a>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
