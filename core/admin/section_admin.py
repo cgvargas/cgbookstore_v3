@@ -12,85 +12,112 @@ from core.models import Section, SectionItem, Book, Author, Video
 
 
 class AutocompleteSearchWidget(forms.TextInput):
-    """Widget de autocomplete com JavaScript inline."""
+    """Widget de autocomplete com JavaScript inline usando event delegation."""
     
     def render(self, name, value, attrs=None, renderer=None):
         # Renderizar o input padrão
         html = super().render(name, value, attrs, renderer)
         
-        # Adicionar container de resultados e script inline
-        widget_id = attrs.get('id', name)
-        script = f'''
-        <div id="{widget_id}_results" style="position:absolute;z-index:9999;background:#ffffff;border:1px solid #417690;border-radius:4px;max-height:200px;overflow-y:auto;display:none;width:300px;box-shadow:0 4px 8px rgba(0,0,0,0.3);"></div>
-        <script>
-        (function() {{
-            var input = document.getElementById("{widget_id}");
-            var results = document.getElementById("{widget_id}_results");
-            var timeout = null;
-            
-            if (!input) return;
-            
-            input.addEventListener("input", function() {{
-                clearTimeout(timeout);
-                var query = this.value;
-                if (query.length < 2) {{
-                    results.style.display = "none";
-                    return;
-                }}
-                
-                // Encontrar o select de content_type na mesma linha
-                var row = input.closest("tr") || input.closest(".form-row");
-                var ctSelect = row ? row.querySelector("select[name$='-content_type']") : null;
-                var ctText = ctSelect ? ctSelect.options[ctSelect.selectedIndex].text.toLowerCase() : "";
-                
-                var type = "";
-                if (ctText.includes("book") || ctText.includes("livro")) type = "book";
-                else if (ctText.includes("author") || ctText.includes("autor")) type = "author";
-                else if (ctText.includes("video") || ctText.includes("vídeo")) type = "video";
-                
-                if (!type) {{
-                    results.innerHTML = "<div style='padding:10px;color:#333;background:#fff5cc;border-left:3px solid #ffc107;'>⚠️ Selecione um tipo primeiro</div>";
-                    results.style.display = "block";
-                    return;
-                }}
-                
-                timeout = setTimeout(function() {{
-                    fetch("/admin-tools/section-autocomplete/?q=" + encodeURIComponent(query) + "&content_type=" + type)
-                        .then(function(r) {{ return r.json(); }})
-                        .then(function(data) {{
-                            results.innerHTML = "";
-                            if (data.results.length === 0) {{
-                                results.innerHTML = "<div style='padding:10px;color:#333;background:#ffe6e6;'>Nenhum resultado encontrado</div>";
-                            }} else {{
-                                data.results.forEach(function(item) {{
-                                    var div = document.createElement("div");
-                                    div.style.cssText = "padding:10px;cursor:pointer;border-bottom:1px solid #ddd;color:#333;background:#ffffff;";
-                                    div.textContent = item.text;
-                                    div.addEventListener("mouseover", function() {{ this.style.background = "#e6f3ff"; this.style.color = "#000"; }});
-                                    div.addEventListener("mouseout", function() {{ this.style.background = "#ffffff"; this.style.color = "#333"; }});
-                                    div.addEventListener("click", function() {{
-                                        input.value = item.text;
-                                        var objIdInput = row.querySelector("input[name$='-object_id']");
-                                        if (objIdInput) objIdInput.value = item.id;
-                                        results.style.display = "none";
-                                    }});
-                                    results.appendChild(div);
-                                }});
-                            }}
-                            results.style.display = "block";
-                        }});
-                }}, 300);
-            }});
-            
-            document.addEventListener("click", function(e) {{
-                if (!input.contains(e.target) && !results.contains(e.target)) {{
-                    results.style.display = "none";
-                }}
-            }});
-        }})();
-        </script>
-        '''
-        return mark_safe(html + script)
+        # Adicionar container de resultados
+        widget_id = attrs.get('id', name) if attrs else name
+        results_div = f'<div id="{widget_id}_results" class="section-autocomplete-results" style="position:absolute;z-index:9999;background:#ffffff;border:1px solid #417690;border-radius:4px;max-height:200px;overflow-y:auto;display:none;width:300px;box-shadow:0 4px 8px rgba(0,0,0,0.3);"></div>'
+        
+        # O script usa window.sectionAutocompleteInitialized para evitar inicialização duplicada
+        script = '''
+<script>
+(function() {
+    if (window.sectionAutocompleteInitialized) return;
+    window.sectionAutocompleteInitialized = true;
+    
+    var timeouts = {};
+    
+    // Event delegation - escuta no document para capturar todos os inputs
+    document.addEventListener('input', function(e) {
+        var input = e.target;
+        // Verificar se é um campo de busca de seção
+        if (!input.name || !input.name.endsWith('-search_item')) return;
+        
+        var inputId = input.id || input.name;
+        if (timeouts[inputId]) clearTimeout(timeouts[inputId]);
+        
+        var query = input.value;
+        var results = document.getElementById(inputId + '_results');
+        
+        // Se não encontrar o container de resultados, criar um
+        if (!results) {
+            results = document.createElement('div');
+            results.id = inputId + '_results';
+            results.className = 'section-autocomplete-results';
+            results.style.cssText = 'position:absolute;z-index:9999;background:#ffffff;border:1px solid #417690;border-radius:4px;max-height:200px;overflow-y:auto;display:none;width:300px;box-shadow:0 4px 8px rgba(0,0,0,0.3);';
+            input.parentNode.insertBefore(results, input.nextSibling);
+        }
+        
+        if (query.length < 2) {
+            results.style.display = 'none';
+            return;
+        }
+        
+        // Encontrar o select de content_type na mesma linha
+        var row = input.closest('tr') || input.closest('.form-row');
+        var ctSelect = row ? row.querySelector("select[name$='-content_type']") : null;
+        var ctText = ctSelect && ctSelect.selectedIndex >= 0 ? ctSelect.options[ctSelect.selectedIndex].text.toLowerCase() : '';
+        
+        var type = '';
+        if (ctText.includes('book') || ctText.includes('livro')) type = 'book';
+        else if (ctText.includes('author') || ctText.includes('autor')) type = 'author';
+        else if (ctText.includes('video') || ctText.includes('vídeo')) type = 'video';
+        
+        if (!type) {
+            results.innerHTML = "<div style='padding:10px;color:#333;background:#fff5cc;border-left:3px solid #ffc107;'>⚠️ Selecione um tipo primeiro</div>";
+            results.style.display = 'block';
+            return;
+        }
+        
+        timeouts[inputId] = setTimeout(function() {
+            fetch('/admin-tools/section-autocomplete/?q=' + encodeURIComponent(query) + '&content_type=' + type)
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    results.innerHTML = '';
+                    if (data.results.length === 0) {
+                        results.innerHTML = "<div style='padding:10px;color:#333;background:#ffe6e6;'>Nenhum resultado encontrado</div>";
+                    } else {
+                        data.results.forEach(function(item) {
+                            var div = document.createElement('div');
+                            div.style.cssText = 'padding:10px;cursor:pointer;border-bottom:1px solid #ddd;color:#333;background:#ffffff;';
+                            div.textContent = item.text;
+                            div.dataset.itemId = item.id;
+                            div.addEventListener('mouseover', function() { this.style.background = '#e6f3ff'; });
+                            div.addEventListener('mouseout', function() { this.style.background = '#ffffff'; });
+                            div.addEventListener('click', function() {
+                                input.value = item.text;
+                                var objIdInput = row.querySelector("input[name$='-object_id']");
+                                if (objIdInput) objIdInput.value = item.id;
+                                results.style.display = 'none';
+                            });
+                            results.appendChild(div);
+                        });
+                    }
+                    results.style.display = 'block';
+                })
+                .catch(function(err) {
+                    results.innerHTML = "<div style='padding:10px;color:#333;background:#ffe6e6;'>Erro ao buscar</div>";
+                    results.style.display = 'block';
+                });
+        }, 300);
+    });
+    
+    // Fechar ao clicar fora
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.section-autocomplete-results') && !e.target.name?.endsWith('-search_item')) {
+            document.querySelectorAll('.section-autocomplete-results').forEach(function(el) {
+                el.style.display = 'none';
+            });
+        }
+    });
+})();
+</script>'''
+        
+        return mark_safe(html + results_div + script)
 
 
 class SectionItemAdminForm(forms.ModelForm):
