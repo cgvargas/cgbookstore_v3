@@ -249,10 +249,28 @@ class HomeView(TemplateView):
                 'layout': section.layout,
                 'css_class': section.css_class,
                 'background_color': section.background_color,
-                'banner_image_url': banner_url,
                 'container_opacity': section.container_opacity,
+                # Banner settings
+                'banner_image_url': banner_url,
+                'banner_position_vertical': section.banner_position_vertical,
+                'banner_position_horizontal': section.banner_position_horizontal,
+                'banner_height': section.banner_height,
+                'banner_overlay_opacity': section.banner_overlay_opacity,
+                'banner_blur_edges': section.banner_blur_edges,
+                'banner_blur_intensity': section.banner_blur_intensity,
+                # Card style settings
+                'card_style': section.card_style,
+                'card_hover_effect': section.card_hover_effect,
+                'custom_css': section.custom_css,
+                # Display settings
+                'show_price': section.show_price,
+                'show_rating': section.show_rating,
+                'show_author': section.show_author,
+                'items_per_row': section.items_per_row,
+                # Links
                 'show_see_more': section.show_see_more,
                 'see_more_url': section.see_more_url,
+                # Items
                 'items': items_data,
             }
             sections_data.append(section_dict)
