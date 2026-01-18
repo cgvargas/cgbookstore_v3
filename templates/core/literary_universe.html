@@ -29,21 +29,28 @@
         color: #fff;
     }
 
-    .universe-hero::before {
-        content: '';
+    /* Imagem de fundo como elemento real (não pseudo) */
+    .universe-hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+    }
+
+    /* Overlay escuro sobre a imagem */
+    .universe-hero-overlay {
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        {% if universe.hero_banner_image %}
-        background: url("{{ universe.hero_banner_image.url }}") center/cover no-repeat;
-        {% else %}
-        background: linear-gradient(135deg, var(--universe-primary) 0%, var(--universe-secondary) 100%);
-        {% endif %}
-        opacity: 0.3;
+        z-index: 1;
     }
 
+    /* Gradiente no fundo para transição suave */
     .universe-hero::after {
         content: '';
         position: absolute;
@@ -52,6 +59,7 @@
         right: 0;
         height: 150px;
         background: linear-gradient(to top, var(--body-bg) 0%, transparent 100%);
+        z-index: 2;
     }
 
     .universe-hero-content {
@@ -430,6 +438,19 @@
 {% block content %}
 <!-- Hero Banner -->
 <section class="universe-hero">
+    <!-- Imagem de fundo dinâmica -->
+    {% if universe.hero_banner_image %}
+    <img src="{{ universe.hero_banner_image.url }}" 
+         alt="{{ universe.page_title }}"
+         class="universe-hero-bg"
+         style="object-position: {{ universe.hero_banner_position_horizontal|default:'center' }} {{ universe.hero_banner_position_vertical|default:'center' }};"
+         loading="lazy">
+    {% endif %}
+    
+    <!-- Overlay com opacidade controlável -->
+    <div class="universe-hero-overlay" 
+         style="background: rgba(0, 0, 0, {{ universe.hero_banner_overlay_opacity|default:0.5 }});"></div>
+    
     <div class="universe-hero-content">
         <div class="universe-icon">
             <i class="fas {{ universe.hero_icon }}"></i>

@@ -69,11 +69,19 @@ class LiteraryUniverseView(DetailView):
         ).select_related('author', 'category').order_by('title'))
         
         # === ARTIGOS RELACIONADOS ===
+        # Combina artigos selecionados manualmente + artigos por tag do autor
         author_articles = []
+        manual_article_ids = set()
+        
         try:
             from news.models import Article, Tag
             
-            # Buscar por tag com sobrenome do autor
+            # 1. Artigos selecionados manualmente no admin
+            manual_articles = list(universe.articles.filter(is_published=True))
+            author_articles.extend(manual_articles)
+            manual_article_ids = set(a.id for a in manual_articles)
+            
+            # 2. Artigos por tag com sobrenome do autor (excluindo os já adicionados)
             author_surname = universe.author.name.split()[-1]
             author_tag = Tag.objects.filter(
                 Q(name__icontains=author_surname) |
@@ -81,10 +89,14 @@ class LiteraryUniverseView(DetailView):
             ).first()
             
             if author_tag:
-                author_articles = list(Article.objects.filter(
+                auto_articles = Article.objects.filter(
                     tags=author_tag,
                     is_published=True
-                ).select_related('category').order_by('-published_at')[:10])
+                ).exclude(
+                    id__in=manual_article_ids
+                ).select_related('category').order_by('-published_at')[:10]
+                author_articles.extend(list(auto_articles))
+                
         except Exception as e:
             logger.warning(f"[UNIVERSE:{universe.slug}] Erro ao buscar artigos: {e}")
         

@@ -44,6 +44,7 @@ class LiteraryUniverseAdmin(admin.ModelAdmin):
     search_fields = ['title', 'author__name']
     prepopulated_fields = {'slug': ('title',)}
     autocomplete_fields = ['author', 'videos']
+    filter_horizontal = ['articles']  # Usa widget filtrado para artigos
     
     inlines = [UniverseContentItemInline, UniverseBannerInline]
     
@@ -54,10 +55,11 @@ class LiteraryUniverseAdmin(admin.ModelAdmin):
         ('Visual / Tema', {
             'fields': (
                 'hero_banner_image', 
+                ('hero_banner_position_horizontal', 'hero_banner_position_vertical'),
+                'hero_banner_overlay_opacity',
                 'hero_icon', 
                 ('theme_color_primary', 'theme_color_secondary')
             ),
-            'classes': ('collapse',),
         }),
         ('Layout - Livros', {
             'fields': (
@@ -90,9 +92,9 @@ class LiteraryUniverseAdmin(admin.ModelAdmin):
             'fields': ('meta_title', 'meta_description'),
             'classes': ('collapse',),
         }),
-        ('Vídeos Associados', {
-            'fields': ('videos',),
-            'description': 'Selecione vídeos do banco de dados para exibir neste universo.'
+        ('Conteúdo Associado', {
+            'fields': ('videos', 'articles'),
+            'description': 'Selecione vídeos e artigos para exibir neste universo (além da busca automática).'
         }),
     )
     

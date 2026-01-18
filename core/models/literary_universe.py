@@ -100,6 +100,41 @@ class LiteraryUniverse(models.Model):
         help_text="Imagem de fundo do hero (recomendado: 1920x600)"
     )
     
+    # Posicionamento do banner hero
+    BANNER_VERTICAL_CHOICES = [
+        ('top', 'Topo'),
+        ('center', 'Centro'),
+        ('bottom', 'Inferior'),
+    ]
+    
+    BANNER_HORIZONTAL_CHOICES = [
+        ('left', 'Esquerda'),
+        ('center', 'Centro'),
+        ('right', 'Direita'),
+    ]
+    
+    hero_banner_position_vertical = models.CharField(
+        max_length=10,
+        choices=BANNER_VERTICAL_CHOICES,
+        default='center',
+        verbose_name="Posição Vertical do Banner",
+        help_text="Onde a imagem deve ser posicionada verticalmente"
+    )
+    
+    hero_banner_position_horizontal = models.CharField(
+        max_length=10,
+        choices=BANNER_HORIZONTAL_CHOICES,
+        default='center',
+        verbose_name="Posição Horizontal do Banner",
+        help_text="Onde a imagem deve ser posicionada horizontalmente"
+    )
+    
+    hero_banner_overlay_opacity = models.FloatField(
+        default=0.5,
+        verbose_name="Opacidade do Overlay",
+        help_text="0.0 = totalmente transparente, 1.0 = totalmente escuro (recomendado: 0.3-0.6)"
+    )
+    
     # === OPÇÕES DE LAYOUT ===
     books_card_style = models.CharField(
         max_length=20,
@@ -199,6 +234,15 @@ class LiteraryUniverse(models.Model):
         related_name='literary_universes',
         verbose_name="Vídeos Associados",
         help_text="Vídeos relacionados a este universo"
+    )
+    
+    # Relacionamento ManyToMany com artigos do módulo news
+    articles = models.ManyToManyField(
+        'news.Article',
+        blank=True,
+        related_name='literary_universes',
+        verbose_name="Artigos Associados",
+        help_text="Artigos/notícias relacionados a este universo (além da busca automática por tag)"
     )
     
     # === TIMESTAMPS ===
