@@ -66,6 +66,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_ckeditor_5',  # Editor WYSIWYG CKEditor 5
     # 'django_extensions',  # HTTPS em desenvolvimento - COMENTADO TEMPORARIAMENTE
+    
+    # Cleanup de arquivos órfãos (DEVE SER O ÚLTIMO APP)
+    # Automaticamente deleta arquivos antigos quando ImageField é atualizado ou registro deletado
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [
