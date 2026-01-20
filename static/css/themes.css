@@ -698,6 +698,34 @@ i.fab {
     color: #fff !important;
 }
 
+/* Títulos das seções com banner - SEMPRE BRANCOS em ambos os temas */
+/* Override global h2 color rules para manter legibilidade sobre imagens */
+.section-banner-overlay h2,
+.section-banner-overlay p,
+.section-banner-overlay .view-all-link-banner,
+:root:not([data-theme="dark"]) .section-banner-overlay h2,
+:root:not([data-theme="dark"]) .section-banner-overlay p,
+[data-theme="light"] .section-banner-overlay h2,
+[data-theme="light"] .section-banner-overlay p {
+    color: #ffffff !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Link "Ver todos" no banner - sempre branco com hover laranja */
+.section-banner-overlay .view-all-link-banner,
+:root:not([data-theme="dark"]) .section-banner-overlay .view-all-link-banner,
+[data-theme="light"] .section-banner-overlay .view-all-link-banner {
+    color: #ffffff !important;
+    background: rgba(255, 107, 53, 0.9);
+    border-radius: 4px;
+    padding: 0.5rem 1.25rem;
+}
+
+.section-banner-overlay .view-all-link-banner:hover {
+    background: #ff6b35 !important;
+    color: #ffffff !important;
+}
+
 /* Reduzir opacidade do gradiente no tema claro */
 :root:not([data-theme="dark"]) .banner-gradient-fade,
 [data-theme="light"] .banner-gradient-fade {
