@@ -250,6 +250,11 @@ class HomeView(TemplateView):
                 'css_class': section.css_class,
                 'background_color': section.background_color,
                 'container_opacity': section.container_opacity,
+                # Container background image settings
+                'container_background_image_url': section.container_background_image.url if section.container_background_image else None,
+                'container_background_image_opacity': section.container_background_image_opacity,
+                'container_background_size': section.container_background_size,
+                'container_background_position': section.container_background_position,
                 # Banner settings
                 'banner_image_url': banner_url,
                 'banner_position_vertical': section.banner_position_vertical,

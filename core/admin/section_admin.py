@@ -271,10 +271,12 @@ class SectionAdmin(admin.ModelAdmin):
             'fields': (
                 'background_color',
                 'container_opacity',
+                ('container_background_image', 'container_background_image_preview'),
+                ('container_background_image_opacity', 'container_background_size', 'container_background_position'),
                 'css_class',
                 'custom_css'
             ),
-            'description': 'Configurações avançadas de estilo. Use CSS customizado para criar estilos únicos.'
+            'description': 'Configurações avançadas de estilo. A imagem de fundo aparece atrás dos cards da seção com opacidade controlável.'
         }),
         ('Timestamps', {
             'classes': ('collapse',),
@@ -285,7 +287,7 @@ class SectionAdmin(admin.ModelAdmin):
         })
     )
 
-    readonly_fields = ['created_at', 'updated_at', 'banner_image_preview']
+    readonly_fields = ['created_at', 'updated_at', 'banner_image_preview', 'container_background_image_preview']
 
     def banner_preview(self, obj):
         """Exibe preview do banner na lista."""
@@ -311,6 +313,22 @@ class SectionAdmin(admin.ModelAdmin):
         return format_html('<p style="color: #999; font-style: italic;">Nenhuma imagem de banner carregada</p>')
 
     banner_image_preview.short_description = 'Preview do Banner'
+
+    def container_background_image_preview(self, obj):
+        """Exibe preview da imagem de fundo do container no formulário."""
+        if obj.container_background_image:
+            return format_html(
+                '<div style="margin-top: 10px;">'
+                '<img src="{}" style="max-width: 200px; max-height: 150px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); opacity: {};" />'
+                '<p style="margin-top: 8px; color: #666; font-size: 12px;">Preview com opacidade atual ({})</p>'
+                '</div>',
+                obj.container_background_image.url,
+                obj.container_background_image_opacity,
+                obj.container_background_image_opacity
+            )
+        return format_html('<p style="color: #999; font-style: italic;">Nenhuma imagem de fundo carregada</p>')
+
+    container_background_image_preview.short_description = 'Preview da Imagem de Fundo'
 
     def items_count(self, obj):
         """Retorna quantidade de itens ativos na seção."""

@@ -165,6 +165,51 @@ class Section(models.Model):
         help_text="Transparência do container (0.0 = totalmente transparente, 1.0 = totalmente opaco)"
     )
 
+    container_background_image = models.ImageField(
+        upload_to='sections/backgrounds/',
+        blank=True,
+        null=True,
+        verbose_name="Imagem de Fundo do Container",
+        help_text="Imagem de fundo para o container da seção (aparece atrás dos cards)"
+    )
+
+    container_background_image_opacity = models.FloatField(
+        default=0.3,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        verbose_name="Opacidade da Imagem de Fundo",
+        help_text="Transparência da imagem de fundo (0.0 = invisível, 1.0 = totalmente visível). Recomendado: 0.2-0.5"
+    )
+
+    CONTAINER_BG_SIZE_CHOICES = [
+        ('cover', 'Cobrir (Cover)'),
+        ('contain', 'Conter (Contain)'),
+        ('auto', 'Automático'),
+    ]
+
+    container_background_size = models.CharField(
+        max_length=20,
+        choices=CONTAINER_BG_SIZE_CHOICES,
+        default='cover',
+        verbose_name="Tamanho da Imagem de Fundo",
+        help_text="Como a imagem de fundo deve ser dimensionada"
+    )
+
+    CONTAINER_BG_POSITION_CHOICES = [
+        ('center center', 'Centro'),
+        ('top center', 'Topo'),
+        ('bottom center', 'Inferior'),
+        ('left center', 'Esquerda'),
+        ('right center', 'Direita'),
+    ]
+
+    container_background_position = models.CharField(
+        max_length=20,
+        choices=CONTAINER_BG_POSITION_CHOICES,
+        default='center center',
+        verbose_name="Posição da Imagem de Fundo",
+        help_text="Posição da imagem de fundo no container"
+    )
+
     # Configurações de layout avançadas
     card_style = models.CharField(
         max_length=50,

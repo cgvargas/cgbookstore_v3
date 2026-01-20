@@ -733,6 +733,17 @@
 
         <!-- Background com opacidade controlada (não afeta conteúdo) -->
         <div class="section-background" style="background-color: {% if section.background_color %}{{ section.background_color }}{% else %}var(--card-bg){% endif %}; opacity: {{ section.container_opacity|default:1.0|floatformat:2 }};"></div>
+        
+        <!-- Imagem de fundo do container (opcional, com opacidade própria) -->
+        {% if section.container_background_image_url %}
+        <div class="section-background-image" style="
+            background-image: url('{{ section.container_background_image_url }}');
+            background-size: {{ section.container_background_size|default:'cover' }};
+            background-position: {{ section.container_background_position|default:'center center' }};
+            background-repeat: no-repeat;
+            opacity: {{ section.container_background_image_opacity|default:0.3|floatformat:2 }};
+        "></div>
+        {% endif %}
 
         <div class="container position-relative" style="z-index: 1;">
             <!-- Cabeçalho da Seção (só exibe se não tiver banner E se houver título) -->
