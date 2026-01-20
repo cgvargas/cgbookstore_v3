@@ -86,23 +86,30 @@ class PremiumEmailService:
             bool: True se enviado com sucesso, False caso contrário
         """
         try:
-            # Determinar urgência e subject
+            # Determinar urgência e subject (sem emojis para evitar problemas de encoding)
             if days_left <= 1:
-                subject = '[CGBookStore] ⚠️ Seu Premium expira AMANHÃ!'
+                subject = '[CGBookStore] Seu Premium expira amanha - Renove agora'
             elif days_left <= 3:
-                subject = f'[CGBookStore] ⏰ Seu Premium expira em {days_left} dias'
+                subject = f'[CGBookStore] Seu Premium expira em {days_left} dias'
             else:
-                subject = f'[CGBookStore] ℹ️ Seu Premium expira em {days_left} dias'
+                subject = f'[CGBookStore] Lembrete: Seu Premium expira em {days_left} dias'
+            
+            # Garantir nome do usuário sem problemas de encoding
+            username = user.get_full_name() or user.username
+            # Normalizar caracteres acentuados
+            if username:
+                username = username.encode('utf-8').decode('utf-8')
             
             context = {
-                'username': user.get_full_name() or user.username,
+                'username': username,
                 'days_left': days_left,
                 'expires_at': expires_at.strftime('%d/%m/%Y às %H:%M'),
                 'site_url': settings.SITE_URL,
                 'current_year': timezone.now().year,
+                'price': '9,90',  # Valor do plano
             }
             
-            # Renderizar templates
+            # Renderizar templates com encoding UTF-8
             html_body = render_to_string('emails/premium_expiring.html', context)
             text_body = render_to_string('emails/premium_expiring.txt', context)
             
@@ -112,7 +119,9 @@ class PremiumEmailService:
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 to=[user.email]
             )
-            msg.attach_alternative(html_body, "text/html")
+            # Garantir charset UTF-8
+            msg.encoding = 'utf-8'
+            msg.attach_alternative(html_body, "text/html; charset=utf-8")
             msg.send()
             
             logger.info(f"E-mail de lembrete Premium enviado para {user.email} ({days_left} dias)")
