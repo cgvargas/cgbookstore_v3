@@ -1,0 +1,374 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ event.title }} - CG.BookStore{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Início</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'core:events' %}">Eventos</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ event.title|truncatewords:5 }}</li>
+        </ol>
+    </nav>
+
+    <!-- Hero Banner -->
+    <section class="event-hero mb-5">
+        <div class="position-relative rounded-4 overflow-hidden shadow-lg">
+            {% if event.banner_image %}
+                <img src="{{ event.banner_image.url }}" 
+                     class="w-100" 
+                     style="height: 400px; object-fit: cover;"
+                     alt="{{ event.title }}">
+            {% else %}
+                <div class="bg-gradient-primary d-flex align-items-center justify-content-center" 
+                     style="height: 400px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="fas fa-calendar-alt fa-5x text-white opacity-50"></i>
+                </div>
+            {% endif %}
+            
+            <!-- Overlay com informações -->
+            <div class="position-absolute bottom-0 start-0 end-0 p-4" 
+                 style="background: linear-gradient(transparent, rgba(0,0,0,0.8));">
+                <div class="text-white">
+                    <!-- Status Badge -->
+                    {% if is_ongoing %}
+                        <span class="badge bg-success fs-6 mb-2">
+                            <i class="fas fa-circle blink me-1"></i> ACONTECENDO AGORA
+                        </span>
+                    {% elif is_upcoming %}
+                        <span class="badge bg-primary fs-6 mb-2">
+                            <i class="fas fa-clock me-1"></i> EM {{ days_until }} DIA{{ days_until|pluralize:"S" }}
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary fs-6 mb-2">
+                            <i class="fas fa-check-circle me-1"></i> EVENTO FINALIZADO
+                        </span>
+                    {% endif %}
+                    
+                    <h1 class="display-5 fw-bold mb-2">{{ event.title }}</h1>
+                    <p class="lead mb-0 opacity-75">{{ event.short_description }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="row g-4">
+        <!-- Coluna Principal -->
+        <div class="col-lg-8">
+            
+            <!-- Descrição Completa -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Sobre o Evento
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text" style="white-space: pre-line; line-height: 1.8;">{{ event.description }}</p>
+                </div>
+            </div>
+
+            <!-- Livros Relacionados -->
+            {% if event.related_books.exists %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-book text-success me-2"></i>
+                        Livros em Destaque
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for book in event.related_books.all %}
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <a href="{% url 'core:book_detail' slug=book.slug %}" class="text-decoration-none">
+                                <div class="card h-100 book-card">
+                                    {% if book.cover_image %}
+                                        <img src="{{ book.cover_image.url }}" 
+                                             class="card-img-top" 
+                                             style="height: 180px; object-fit: cover;"
+                                             alt="{{ book.title }}">
+                                    {% else %}
+                                        <div class="bg-secondary d-flex align-items-center justify-content-center" 
+                                             style="height: 180px;">
+                                            <i class="fas fa-book fa-3x text-white opacity-50"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title small mb-0 text-dark">{{ book.title|truncatewords:5 }}</h6>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Autores Participantes -->
+            {% if event.related_authors.exists %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-users text-info me-2"></i>
+                        Autores Participantes
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for author in event.related_authors.all %}
+                        <div class="col-6 col-md-4">
+                            <a href="{% url 'core:author_detail' slug=author.slug %}" class="text-decoration-none">
+                                <div class="d-flex align-items-center p-3 rounded-3 bg-light hover-shadow">
+                                    {% if author.photo %}
+                                        <img src="{{ author.photo.url }}" 
+                                             class="rounded-circle me-3" 
+                                             style="width: 60px; height: 60px; object-fit: cover;"
+                                             alt="{{ author.name }}">
+                                    {% else %}
+                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" 
+                                             style="width: 60px; height: 60px;">
+                                            <i class="fas fa-user text-white"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-0 text-dark">{{ author.name }}</h6>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            
+            <!-- Card de Informações -->
+            <div class="card shadow-sm mb-4 sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-ticket-alt me-2"></i>
+                        Informações do Evento
+                    </h5>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Data e Hora -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-calendar-alt text-primary me-2"></i>
+                            Data e Horário
+                        </h6>
+                        <p class="mb-1 fw-bold">{{ event.start_date|date:"d \d\e F \d\e Y" }}</p>
+                        <p class="mb-0 text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            {{ event.start_date|time:"H:i" }} às {{ event.end_date|time:"H:i" }}
+                        </p>
+                    </div>
+
+                    <!-- Local -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                            Local
+                        </h6>
+                        {% if event.is_online %}
+                            <p class="mb-0">
+                                <span class="badge bg-info">
+                                    <i class="fas fa-globe me-1"></i> Evento Online
+                                </span>
+                            </p>
+                        {% else %}
+                            <p class="mb-1 fw-bold">{{ event.location_name }}</p>
+                            {% if event.location_address %}
+                                <p class="mb-1 text-muted small">{{ event.location_address }}</p>
+                            {% endif %}
+                            {% if event.location_city %}
+                                <p class="mb-0 text-muted small">
+                                    {{ event.location_city }}{% if event.location_state %} - {{ event.location_state }}{% endif %}
+                                </p>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Tipo de Evento -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-tag text-warning me-2"></i>
+                            Tipo
+                        </h6>
+                        <span class="badge bg-secondary fs-6">{{ event.get_event_type_display }}</span>
+                    </div>
+
+                    <!-- Preço -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-money-bill-wave text-success me-2"></i>
+                            Valor
+                        </h6>
+                        {% if event.is_free %}
+                            <span class="badge bg-success fs-6">
+                                <i class="fas fa-check me-1"></i> Entrada Gratuita
+                            </span>
+                        {% elif event.price %}
+                            <span class="fs-4 fw-bold text-success">R$ {{ event.price }}</span>
+                        {% else %}
+                            <span class="text-muted">Consultar no evento</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Capacidade -->
+                    {% if event.capacity %}
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-users text-info me-2"></i>
+                            Capacidade
+                        </h6>
+                        <p class="mb-0">{{ event.capacity }} participantes</p>
+                    </div>
+                    {% endif %}
+
+                    <hr>
+
+                    <!-- Botões de Ação -->
+                    <div class="d-grid gap-2">
+                        {% if event.registration_url %}
+                            <a href="{{ event.registration_url }}" 
+                               target="_blank" 
+                               class="btn btn-success btn-lg">
+                                <i class="fas fa-ticket-alt me-2"></i>
+                                Garantir Ingresso
+                            </a>
+                        {% endif %}
+                        
+                        {% if event.event_url %}
+                            <a href="{{ event.event_url }}" 
+                               target="_blank" 
+                               class="btn btn-outline-primary">
+                                <i class="fas fa-external-link-alt me-2"></i>
+                                Site Oficial
+                            </a>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Countdown (se evento futuro) -->
+            {% if is_upcoming %}
+            <div class="card shadow-sm mb-4 bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-center text-white py-4">
+                    <h5 class="mb-3">
+                        <i class="fas fa-hourglass-half me-2"></i>
+                        Contagem Regressiva
+                    </h5>
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <div class="bg-white bg-opacity-25 rounded-3 p-3">
+                                <div class="fs-2 fw-bold">{{ days_until }}</div>
+                                <small>Dias</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="bg-white bg-opacity-25 rounded-3 p-3">
+                                <div class="fs-2 fw-bold">{{ hours_until }}</div>
+                                <small>Horas</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="bg-white bg-opacity-25 rounded-3 p-3">
+                                <div class="fs-2 fw-bold">00</div>
+                                <small>Min</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!-- Outros Eventos -->
+    {% if other_events %}
+    <section class="other-events mt-5">
+        <h3 class="mb-4">
+            <i class="fas fa-calendar-plus text-primary me-2"></i>
+            Outros Eventos
+        </h3>
+        <div class="row g-4">
+            {% for ev in other_events %}
+            <div class="col-md-4">
+                <a href="{% url 'core:event_detail' slug=ev.slug %}" class="text-decoration-none">
+                    <div class="card h-100 shadow-sm hover-card">
+                        {% if ev.thumbnail_image or ev.banner_image %}
+                            <img src="{% if ev.thumbnail_image %}{{ ev.thumbnail_image.url }}{% else %}{{ ev.banner_image.url }}{% endif %}" 
+                                 class="card-img-top" 
+                                 style="height: 150px; object-fit: cover;" 
+                                 alt="{{ ev.title }}">
+                        {% endif %}
+                        <div class="card-body">
+                            <span class="badge bg-primary mb-2">{{ ev.get_event_type_display }}</span>
+                            <h6 class="card-title text-dark">{{ ev.title }}</h6>
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>
+                                {{ ev.start_date|date:"d/m/Y" }}
+                            </small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+</div>
+
+<style>
+.hover-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+}
+
+.hover-shadow {
+    transition: box-shadow 0.3s ease;
+}
+
+.hover-shadow:hover {
+    box-shadow: 0 .25rem .5rem rgba(0,0,0,.1) !important;
+}
+
+.book-card {
+    transition: transform 0.2s ease;
+}
+
+.book-card:hover {
+    transform: scale(1.05);
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.blink {
+    animation: blink 1.5s infinite;
+}
+</style>
+{% endblock %}

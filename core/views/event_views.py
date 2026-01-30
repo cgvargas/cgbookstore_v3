@@ -1,9 +1,47 @@
 """
 Views para Eventos Literários
 """
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from django.utils import timezone
 from core.models import Event
+
+
+class EventDetailView(DetailView):
+    """
+    View para exibir detalhes completos de um evento.
+    """
+    model = Event
+    template_name = 'core/event_detail.html'
+    context_object_name = 'event'
+    slug_url_kwarg = 'slug'
+
+    def get_queryset(self):
+        """Retorna apenas eventos ativos"""
+        return Event.objects.filter(active=True)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        event = self.object
+        now = timezone.now()
+
+        # Status do evento
+        context['is_upcoming'] = event.start_date > now
+        context['is_ongoing'] = event.start_date <= now <= event.end_date
+        context['is_finished'] = event.end_date < now
+
+        # Dias até o evento
+        if context['is_upcoming']:
+            delta = event.start_date - now
+            context['days_until'] = delta.days
+            context['hours_until'] = delta.seconds // 3600
+
+        # Outros eventos futuros (para sugestões)
+        context['other_events'] = Event.objects.filter(
+            active=True,
+            start_date__gt=now
+        ).exclude(pk=event.pk).order_by('start_date')[:3]
+
+        return context
 
 
 class EventListView(ListView):
