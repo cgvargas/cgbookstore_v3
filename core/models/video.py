@@ -214,9 +214,23 @@ class Video(models.Model):
     def get_embed_url(self):
         """Retorna URL para embed baseado na plataforma"""
         if self.platform == 'youtube' and self.embed_code:
-            return f"https://www.youtube.com/embed/{self.embed_code}"
+            # Extrair ID do vídeo se embed_code contém URL completa
+            video_id = self.embed_code
+            if 'youtube.com/watch?v=' in video_id:
+                video_id = video_id.split('watch?v=')[1].split('&')[0]
+            elif 'youtu.be/' in video_id:
+                video_id = video_id.split('youtu.be/')[1].split('?')[0]
+            elif 'youtube.com/embed/' in video_id:
+                video_id = video_id.split('embed/')[1].split('?')[0]
+            elif 'youtube.com/shorts/' in video_id:
+                video_id = video_id.split('shorts/')[1].split('?')[0]
+            return f"https://www.youtube.com/embed/{video_id}"
         elif self.platform == 'vimeo' and self.embed_code:
-            return f"https://player.vimeo.com/video/{self.embed_code}"
+            # Extrair ID do Vimeo se embed_code contém URL completa
+            video_id = self.embed_code
+            if 'vimeo.com/' in video_id:
+                video_id = video_id.split('vimeo.com/')[1].split('?')[0].split('/')[0]
+            return f"https://player.vimeo.com/video/{video_id}"
         elif self.platform == 'upload' and self.video_file:
             return self.video_file.url
         return None

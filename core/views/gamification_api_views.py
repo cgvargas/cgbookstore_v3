@@ -911,51 +911,55 @@ def check_new_achievements(request):
     """
     user = request.user
 
-    # Buscar todas as conquistas não desbloqueadas
-    unlocked_ids = UserAchievement.objects.filter(user=user).values_list('achievement_id', flat=True)
-    pending_achievements = Achievement.objects.filter(is_active=True).exclude(id__in=unlocked_ids)
+    try:
+        # Buscar todas as conquistas não desbloqueadas
+        unlocked_ids = UserAchievement.objects.filter(user=user).values_list('achievement_id', flat=True)
+        pending_achievements = Achievement.objects.filter(is_active=True).exclude(id__in=unlocked_ids)
 
-    new_achievements = []
-    total_xp_earned = 0
+        new_achievements = []
+        total_xp_earned = 0
 
-    # Verificar cada conquista pendente
-    for achievement in pending_achievements:
-        progress = calculate_achievement_progress_api(user, achievement)
+        # Verificar cada conquista pendente
+        for achievement in pending_achievements:
+            progress = calculate_achievement_progress_api(user, achievement)
 
-        if progress >= 100:
-            # Desbloquear automaticamente
-            UserAchievement.objects.create(
-                user=user,
-                achievement=achievement,
-                earned_at=timezone.now()
-            )
+            if progress >= 100:
+                # Desbloquear automaticamente
+                UserAchievement.objects.create(
+                    user=user,
+                    achievement=achievement,
+                    earned_at=timezone.now()
+                )
 
-            # Adicionar XP
-            user.profile.add_xp(achievement.xp_reward)
+                # Adicionar XP
+                user.profile.add_xp(achievement.xp_reward)
 
-            new_achievements.append({
-                'id': achievement.id,
-                'name': achievement.name,
-                'description': achievement.description,
-                'xp_reward': achievement.xp_reward,
-                'icon': achievement.icon,
-                'category': achievement.category,
-            })
+                new_achievements.append({
+                    'id': achievement.id,
+                    'name': achievement.name,
+                    'description': achievement.description,
+                    'xp_reward': achievement.xp_reward,
+                    'icon': achievement.icon,
+                    'category': achievement.category,
+                })
 
-            total_xp_earned += achievement.xp_reward
+                total_xp_earned += achievement.xp_reward
 
-            # TODO: Criar notificação de conquista desbloqueada
+        # Recarregar perfil para pegar novo nível
+        user.profile.refresh_from_db()
 
-    # Recarregar perfil para pegar novo nível
-    user.profile.refresh_from_db()
-
-    return JsonResponse({
-        'success': True,
-        'new_achievements': new_achievements,
-        'total_xp_earned': total_xp_earned,
-        'new_level': user.profile.level,
-        'new_xp': user.profile.total_xp,
-    })
+        return JsonResponse({
+            'success': True,
+            'new_achievements': new_achievements,
+            'total_xp_earned': total_xp_earned,
+            'new_level': user.profile.level,
+            'new_xp': user.profile.total_xp,
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Erro ao verificar conquistas: {str(e)}'
+        }, status=500)
 
 
 @login_required

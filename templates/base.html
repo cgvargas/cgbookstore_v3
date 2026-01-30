@@ -334,7 +334,7 @@
     </style>
 </head>
 
-<body>
+<body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
@@ -946,7 +946,7 @@
     <!-- Gerenciadores Globais (Sempre necessários para Navbar e Notificações) -->
     <script src="{% static 'js/library-manager.js' %}?v=2.1"></script>
     <script src="{% static 'js/notification-sounds.js' %}?v=1.0"></script>
-    <script src="{% static 'js/reading-progress.js' %}?v=3.0"></script>
+    <script src="{% static 'js/reading-progress.js' %}?v=3.1"></script>
 
     <!-- JavaScript Extra (para scripts específicos de cada página) -->
     {% block extra_js %}
@@ -956,7 +956,7 @@
     {% endblock %}
 
     <!-- JS para o sistema de Gamificação) -->
-    <script src="{% static 'js/gamification.js' %}?v=1.0"></script>
+    <script src="{% static 'js/gamification.js' %}?v=1.1"></script>
 
     <!-- Cookie Consent Manager - LGPD -->
     <script src="{% static 'js/cookie-consent.js' %}?v=1.0"></script>

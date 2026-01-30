@@ -322,6 +322,13 @@ const NotificationManager = {
             return;
         }
 
+        // Verificação de autenticação
+        const isAuthenticated = document.body.getAttribute('data-user-authenticated') === 'true';
+        if (!isAuthenticated) {
+            console.log('👤 Usuário não autenticado. Notificações desativadas.');
+            return;
+        }
+
         console.log('🔔 Notification Manager V3 inicializado.');
 
         // Carregar preferências do localStorage

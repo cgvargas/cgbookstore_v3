@@ -61,3 +61,24 @@ def banner_deleted(sender, **kwargs):
 def event_changed(sender, **kwargs):
     """Invalida cache quando Event muda."""
     invalidate_home_cache()
+
+
+@receiver(post_save, sender='core.Video')
+@receiver(post_delete, sender='core.Video')
+def video_changed(sender, **kwargs):
+    """Invalida cache quando Video muda (ex: nova thumbnail)."""
+    invalidate_home_cache()
+
+
+@receiver(post_save, sender='core.Book')
+@receiver(post_delete, sender='core.Book')
+def book_changed(sender, **kwargs):
+    """Invalida cache quando Book muda."""
+    invalidate_home_cache()
+
+
+@receiver(post_save, sender='core.Author')
+@receiver(post_delete, sender='core.Author')
+def author_changed(sender, **kwargs):
+    """Invalida cache quando Author muda."""
+    invalidate_home_cache()

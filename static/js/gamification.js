@@ -577,6 +577,13 @@ let achievementModal;
 function initGamification() {
     console.log('🎮 Inicializando Sistema de Gamificação...');
 
+    // Verificação de autenticação
+    const isAuthenticated = document.body.getAttribute('data-user-authenticated') === 'true';
+    if (!isAuthenticated) {
+        console.log('👤 Usuário não autenticado. Gamificação desativada.');
+        return;
+    }
+
     // Criar instâncias
     toastManager = new ToastManager();
     achievementModal = new AchievementModal();
@@ -601,7 +608,7 @@ function initGamification() {
 function setupEventListeners() {
     // Botões de reivindicar conquista
     document.querySelectorAll('[data-claim-achievement]').forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const achievementId = parseInt(this.dataset.claimAchievement);
             AchievementManager.claim(achievementId, this);
         });
@@ -609,7 +616,7 @@ function setupEventListeners() {
 
     // Botões de destacar badge
     document.querySelectorAll('[data-showcase-badge]').forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const badgeId = parseInt(this.dataset.showcaseBadge);
             BadgeManager.toggleShowcase(badgeId, this);
         });
@@ -618,7 +625,7 @@ function setupEventListeners() {
     // Botão de verificar novas conquistas
     const checkButton = document.getElementById('check-new-achievements-btn');
     if (checkButton) {
-        checkButton.addEventListener('click', function() {
+        checkButton.addEventListener('click', function () {
             this.disabled = true;
             this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verificando...';
 

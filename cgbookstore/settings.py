@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',  # Filtros de formatação (intcomma, naturaltime, etc)
     'django.contrib.sites',  # Requerido pelo allauth
 
     # Django-allauth
