@@ -26,7 +26,7 @@ const chartDefaults = {
             padding: 12,
             displayColors: true,
             callbacks: {
-                label: function(context) {
+                label: function (context) {
                     let label = context.dataset.label || '';
                     if (label) {
                         label += ': ';
@@ -119,6 +119,14 @@ function loadAllCharts() {
     if (window.subscriptionGrowthData) {
         createSubscriptionGrowthChart();
     }
+    // Gráfico Crescimento de Usuários
+    if (window.userRegistrationData) {
+        createUserRegistrationChart();
+    }
+    // Gráfico Cancelamentos
+    if (window.cancellationData) {
+        createCancellationChart();
+    }
 }
 
 /**
@@ -157,7 +165,7 @@ function createBooksByCategoryChart() {
                 tooltip: {
                     ...chartDefaults.plugins.tooltip,
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             return `${context.parsed.x} livro(s)`;
                         }
                     }
@@ -277,7 +285,7 @@ function createEventsByStatusChart() {
                     padding: 12,
                     displayColors: true,
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             const label = context.label || '';
                             const value = context.parsed;
                             const percentage = ((value / total) * 100).toFixed(1);
@@ -360,13 +368,13 @@ function createCoverSourceChart() {
                     padding: 12,
                     displayColors: true,
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             const label = context.label || '';
                             const value = context.parsed;
                             const percentage = ((value / total) * 100).toFixed(1);
                             return `${label}: ${value} livros (${percentage}%)`;
                         },
-                        afterLabel: function(context) {
+                        afterLabel: function (context) {
                             if (context.dataIndex === 0) {
                                 return 'Capas reais do Google';
                             } else {
@@ -426,7 +434,7 @@ function createSubscriptionGrowthChart() {
                 tooltip: {
                     ...chartDefaults.plugins.tooltip,
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             return `${context.parsed.y} nova(s) assinatura(s)`;
                         }
                     }
@@ -458,6 +466,134 @@ function createSubscriptionGrowthChart() {
 
     createChart('subscriptionGrowthChart', config);
     console.log('✅ Gráfico de Assinaturas carregado');
+}
+
+/**
+ * Gráfico: Crescimento de Usuários (Barra/Linha)
+ */
+function createUserRegistrationChart() {
+    const data = window.userRegistrationData;
+
+    if (!data || data.labels.length === 0) {
+        console.log('Sem dados para gráfico de usuários');
+        return;
+    }
+
+    const config = {
+        type: 'bar', // Pode ser 'line' se preferir
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Novos Usuários',
+                data: data.values,
+                backgroundColor: 'rgba(111, 66, 193, 0.5)', // Roxo (Auth)
+                borderColor: '#6f42c1',
+                borderWidth: 1,
+                borderRadius: 6,
+                barThickness: 30
+            }]
+        },
+        options: {
+            ...chartDefaults,
+            plugins: {
+                ...chartDefaults.plugins,
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    ...chartDefaults.plugins.tooltip,
+                    callbacks: {
+                        label: function (context) {
+                            return `+${context.parsed.y} usuário(s)`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ...chartDefaults.scales.x,
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    ...chartDefaults.scales.y,
+                    beginAtZero: true,
+                    ticks: {
+                        ...chartDefaults.scales.y.ticks,
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    };
+
+    createChart('userRegistrationChart', config);
+    console.log('✅ Gráfico de Usuários carregado');
+}
+
+/**
+ * Gráfico: Cancelamentos (Barra/Linha)
+ */
+function createCancellationChart() {
+    const data = window.cancellationData;
+
+    if (!data || data.labels.length === 0) {
+        console.log('Sem dados para gráfico de cancelamentos');
+        return;
+    }
+
+    const config = {
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Cancelamentos',
+                data: data.values,
+                backgroundColor: 'rgba(220, 53, 69, 0.5)', // Vermelho (Danger)
+                borderColor: '#dc3545',
+                borderWidth: 1,
+                borderRadius: 6,
+                barThickness: 30
+            }]
+        },
+        options: {
+            ...chartDefaults,
+            plugins: {
+                ...chartDefaults.plugins,
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    ...chartDefaults.plugins.tooltip,
+                    callbacks: {
+                        label: function (context) {
+                            return `-${context.parsed.y} cancelamento(s)`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ...chartDefaults.scales.x,
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    ...chartDefaults.scales.y,
+                    beginAtZero: true,
+                    ticks: {
+                        ...chartDefaults.scales.y.ticks,
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    };
+
+    createChart('cancellationChart', config);
+    console.log('✅ Gráfico de Cancelamentos carregado');
 }
 
 // Exportar funções para uso global

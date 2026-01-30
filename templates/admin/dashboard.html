@@ -890,6 +890,24 @@
         </div>
         {% endif %}
 
+        <!-- Gráfico: Crescimento de Usuários -->
+        <div
+            style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px;">
+            <h3 style="color: var(--text-primary); margin: 0 0 15px 0; font-size: 16px;">👥 Novos Usuários (Cadastros)</h3>
+            <div style="height: 300px;">
+                <canvas id="userRegistrationChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Gráfico: Cancelamentos -->
+        <div
+            style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px;">
+            <h3 style="color: var(--text-primary); margin: 0 0 15px 0; font-size: 16px;">❌ Cancelamentos</h3>
+            <div style="height: 300px;">
+                <canvas id="cancellationChart"></canvas>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -904,17 +922,19 @@
         ],
     values: [
         {% for category in books_by_category %}
-    { { category.book_count } } {% if not forloop.last %}, {% endif %}
+    {{ category.book_count }}{% if not forloop.last %}, {% endif %}
     {% endfor %}
         ]
+
     };
 
     // Dados: Eventos por Status
     window.eventsByStatusData = {
         upcoming: {{ event_stats.upcoming }},
-    happening: { { event_stats.happening } },
-    finished: { { event_stats.finished } }
+    happening: {{ event_stats.happening }},
+    finished: {{ event_stats.finished }}
     };
+
     console.log('📊 Dados de Eventos:', window.eventsByStatusData);
 
     // Dados: Origem das Capas
@@ -936,12 +956,43 @@
         ],
     values: [
         {% for item in subscription_chart_data %}
-    { { item.count } } {% if not forloop.last %}, {% endif %}
+    {{ item.count }}{% if not forloop.last %}, {% endif %}
     {% endfor %}
         ]
+
     };
     console.log('📊 Dados de Assinaturas:', window.subscriptionGrowthData);
     {% endif %}
+
+    // Dados: Crescimento de Usuários
+    window.userRegistrationData = {
+        labels: [
+            {% for item in user_registration_data %}
+            "{{ item.month }}"{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        ],
+        values: [
+            {% for item in user_registration_data %}
+            {{ item.count }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        ]
+    };
+    console.log('📊 Dados de Usuários:', window.userRegistrationData);
+
+    // Dados: Cancelamentos
+    window.cancellationData = {
+        labels: [
+            {% for item in cancellation_data %}
+            "{{ item.month }}"{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        ],
+        values: [
+            {% for item in cancellation_data %}
+            {{ item.count }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        ]
+    };
+    console.log('📊 Dados de Cancelamentos:', window.cancellationData);
 </script>
 
 <!-- Admin Charts Script -->

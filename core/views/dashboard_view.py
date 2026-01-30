@@ -8,6 +8,9 @@ from django.db.models import Count, Q, Avg, Sum
 from django.utils import timezone
 from datetime import timedelta
 from core.models import Book, Author, Category, Event, Section, Video
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 # Importar modelos do Finance
 try:
@@ -195,6 +198,44 @@ def admin_dashboard(request):
         subscription_chart_data = subscriptions_by_month
 
     # ============================================
+    # ESTATÍSTICAS DE USUÁRIOS (CADASTRADOS)
+    # ============================================
+    user_registration_data = []
+    
+    # Dados para gráfico: Usuários cadastrados nos últimos 6 meses
+    for i in range(6):
+        month_start = now - timedelta(days=30 * (5 - i))
+        month_end = now - timedelta(days=30 * (4 - i))
+        count = User.objects.filter(
+            date_joined__gte=month_start,
+            date_joined__lt=month_end
+        ).count()
+        user_registration_data.append({
+            'month': month_start.strftime('%b/%y'),
+            'count': count
+        })
+
+    # ============================================
+    # ESTATÍSTICAS DE CANCELAMENTOS
+    # ============================================
+    cancellation_data = []
+    
+    # Dados para gráfico: Cancelamentos nos últimos 6 meses
+    # Nota: Usamos updated_at como proxy para data de cancelamento
+    for i in range(6):
+        month_start = now - timedelta(days=30 * (5 - i))
+        month_end = now - timedelta(days=30 * (4 - i))
+        count = Subscription.objects.filter(
+            status='cancelada',
+            updated_at__gte=month_start,
+            updated_at__lt=month_end
+        ).count()
+        cancellation_data.append({
+            'month': month_start.strftime('%b/%y'),
+            'count': count
+        })
+
+    # ============================================
     # ESTATÍSTICAS DO NEW AUTHORS MODULE
     # ============================================
     new_authors_stats = {}
@@ -318,6 +359,8 @@ def admin_dashboard(request):
         'recent_subscriptions': recent_subscriptions,
         'active_campaigns': active_campaigns,
         'subscription_chart_data': subscription_chart_data,
+        'user_registration_data': user_registration_data,
+        'cancellation_data': cancellation_data,
         # New Authors data
         'new_authors_stats': new_authors_stats,
         # Chatbot data
