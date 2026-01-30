@@ -30,6 +30,7 @@ class Section(models.Model):
         ('horizontal_scroll', 'Scroll Horizontal'),
         ('spotlight', 'Destaque com Overlay'),
         ('banner_only', 'Apenas Banner (sem itens)'),
+        ('video_cards', 'Cards de Vídeo com Preview (YouTube style)'),
     ]
 
     # Campos básicos
