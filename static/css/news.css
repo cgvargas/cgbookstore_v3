@@ -609,17 +609,6 @@
 
 /* ===== LAYOUT DE JORNAL - COLUNAS ===== */
 
-/* Primeira letra grande (Drop Cap) - estilo jornal */
-.article-content p:first-of-type::first-letter {
-    font-size: 4rem;
-    font-weight: 700;
-    float: left;
-    line-height: 1;
-    margin-right: 0.5rem;
-    margin-top: 0.1rem;
-    color: #e74c3c;
-    font-family: 'Georgia', 'Times New Roman', serif;
-}
 
 /* Classes para colunas no editor - usar via HTML no CKEditor */
 .newspaper-2col {
@@ -744,9 +733,7 @@
         margin: 1rem 0;
     }
 
-    .article-content p:first-of-type::first-letter {
-        font-size: 3rem;
-    }
+
 
     .pullquote {
         margin: 2rem 0;
