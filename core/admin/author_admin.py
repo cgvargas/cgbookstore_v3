@@ -8,16 +8,42 @@ from core.models import Author, Book
 
 
 class BookInline(admin.TabularInline):
-    """Inline para exibir livros do autor."""
+    """
+    Inline SOMENTE LEITURA para exibir livros do autor.
+    
+    IMPORTANTE: Este inline é apenas para visualização.
+    Para associar um livro a um autor, edite o livro diretamente
+    e selecione o autor no campo correspondente.
+    
+    Isso evita a criação acidental de livros duplicados.
+    """
 
     model = Book
-    extra = 0
-    fields = ['title', 'price', 'publication_date', 'cover_image']
-    readonly_fields = ['cover_image']
-    can_delete = False
-    show_change_link = True
+    extra = 0  # Não mostrar formulários vazios
+    max_num = 0  # IMPEDE adicionar novos livros por este inline
+    can_delete = False  # Não permitir deletar
+    show_change_link = True  # Link para editar o livro
     verbose_name = "Livro do Autor"
-    verbose_name_plural = "Livros do Autor"
+    verbose_name_plural = "Livros do Autor (somente visualização)"
+    
+    # Todos os campos são somente leitura
+    fields = ['title', 'isbn', 'publication_date', 'cover_thumbnail']
+    readonly_fields = ['title', 'isbn', 'publication_date', 'cover_thumbnail']
+    
+    def cover_thumbnail(self, obj):
+        """Miniatura da capa do livro."""
+        if obj.cover_image:
+            return format_html(
+                '<img src="{}" style="max-height: 50px; max-width: 35px; object-fit: cover; border-radius: 4px;" />',
+                obj.cover_image.url
+            )
+        return "-"
+    cover_thumbnail.short_description = "Capa"
+    
+    def has_add_permission(self, request, obj=None):
+        """Impede adicionar livros por este inline."""
+        return False
+
 
 
 @admin.register(Author)
