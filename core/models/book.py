@@ -172,9 +172,18 @@ class Book(models.Model):
         ]
 
     def save(self, *args, **kwargs):
-        """Gera slug automaticamente a partir do título."""
+        """Gera slug automaticamente a partir do título, garantindo unicidade."""
         if not self.slug:
-            self.slug = slugify(self.title)
+            base_slug = slugify(self.title)
+            slug = base_slug
+            counter = 1
+            
+            # Verificar se slug já existe (excluindo o próprio objeto se for update)
+            while Book.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            
+            self.slug = slug
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
