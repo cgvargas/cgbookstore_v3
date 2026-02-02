@@ -270,6 +270,8 @@ class SectionAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
             'fields': (
                 'background_color',
+                'background_image',
+                'background_image_preview',
                 'container_opacity',
                 ('container_background_image', 'container_background_image_preview'),
                 ('container_background_image_opacity', 'container_background_size', 'container_background_position'),

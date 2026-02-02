@@ -76,12 +76,19 @@ class Section(models.Model):
         help_text="Ordem de exibição (menor = aparece primeiro)"
     )
 
-    # Estilo visual
     background_color = models.CharField(
         max_length=20,
         blank=True,
         verbose_name="Cor de Fundo",
         help_text="Ex: #f8f9fa, transparent"
+    )
+
+    background_image = models.ImageField(
+        upload_to='sections/backgrounds/',
+        blank=True,
+        null=True,
+        verbose_name="Imagem de Background",
+        help_text="Imagem de fundo para o container da seção (recomendado: 1920x600px)"
     )
 
     banner_image = models.ImageField(
