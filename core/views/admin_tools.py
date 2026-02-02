@@ -11,7 +11,7 @@ from django.core.management import call_command
 from django.db import connection
 from django.contrib.sites.models import Site
 from django.conf import settings
-from core.models import Category, Book
+from core.models import Category, Book, Author
 from allauth.socialaccount.models import SocialApp
 import io
 import sys
@@ -332,3 +332,79 @@ def check_security():
             'message': 'Configurações de segurança OK',
             'details': 'DEBUG=False, ALLOWED_HOSTS restrito'
         }
+
+
+# ===== BOOK SEARCH AND ASSOCIATION FOR AUTHOR ADMIN =====
+
+@staff_member_required
+def book_search_view(request):
+    """
+    API para buscar livros por título.
+    Usado no admin de autores para associar livros existentes.
+    """
+    query = request.GET.get('q', '').strip()
+    exclude_author_id = request.GET.get('exclude_author', None)
+    
+    if len(query) < 2:
+        return JsonResponse({'results': []})
+    
+    # Buscar livros pelo título
+    books = Book.objects.filter(title__icontains=query).order_by('title')[:20]
+    
+    # Excluir livros que já pertencem ao autor sendo editado
+    if exclude_author_id:
+        try:
+            exclude_author_id = int(exclude_author_id)
+            books = books.exclude(author_id=exclude_author_id)
+        except (ValueError, TypeError):
+            pass
+    
+    results = []
+    for book in books:
+        results.append({
+            'id': book.pk,
+            'title': book.title,
+            'author': book.author.name if book.author else None,
+            'isbn': book.isbn or '',
+        })
+    
+    return JsonResponse({'results': results})
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def associate_book_view(request):
+    """
+    API para associar um livro a um autor.
+    Recebe book_id e author_id via JSON.
+    """
+    import json
+    
+    try:
+        data = json.loads(request.body)
+        book_id = data.get('book_id')
+        author_id = data.get('author_id')
+        
+        if not book_id or not author_id:
+            return JsonResponse({'success': False, 'error': 'IDs não fornecidos'})
+        
+        book = Book.objects.get(pk=book_id)
+        author = Author.objects.get(pk=author_id)
+        
+        # Associar o livro ao autor
+        book.author = author
+        book.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Livro "{book.title}" associado ao autor "{author.name}"'
+        })
+        
+    except Book.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Livro não encontrado'})
+    except Author.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Autor não encontrado'})
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'JSON inválido'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

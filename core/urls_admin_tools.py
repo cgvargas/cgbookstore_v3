@@ -8,6 +8,8 @@ from core.views.admin_tools import (
     health_check_view,
     quick_stats_json,
     redis_test_view,
+    book_search_view,
+    associate_book_view,
 )
 from core.views.section_autocomplete import section_item_autocomplete
 from core.views.reports_dashboard import (
@@ -30,6 +32,10 @@ urlpatterns = [
     path('redis-test/', redis_test_view, name='redis_test'),
     path('section-autocomplete/', section_item_autocomplete, name='section_autocomplete'),
     
+    # Busca e associação de livros para admin de autores
+    path('book-search/', book_search_view, name='book_search'),
+    path('associate-book/', associate_book_view, name='associate_book'),
+    
     # Dashboard de Relatórios
     path('reports/', reports_dashboard, name='reports_dashboard'),
     
@@ -44,4 +50,5 @@ urlpatterns = [
     path('reports/export/videos/md/', export_videos_markdown, name='export_videos_markdown'),
     path('reports/export/finance/md/', export_finance_markdown, name='export_finance_markdown'),
 ]
+
 
