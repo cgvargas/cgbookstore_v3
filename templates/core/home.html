@@ -15,10 +15,8 @@
        EFEITO CRUNCHYROLL - Seções sobre o Banner
        ============================================ */
     .section-overlap-banner {
-        margin-top: -200px;
-        /* Sobe sobre o banner */
-        z-index: 10;
-        /* Acima do banner */
+        margin-top: -200px; /* Sobe sobre o banner */
+        z-index: 10; /* Acima do banner */
         position: relative;
     }
 
@@ -36,22 +34,19 @@
     /* Responsividade do efeito de sobreposição */
     @media (max-width: 992px) {
         .section-overlap-banner {
-            margin-top: -150px;
-            /* Menos sobreposição em tablets */
+            margin-top: -150px; /* Menos sobreposição em tablets */
         }
     }
 
     @media (max-width: 768px) {
         .section-overlap-banner {
-            margin-top: -100px;
-            /* Menos sobreposição em mobile */
+            margin-top: -100px; /* Menos sobreposição em mobile */
         }
     }
 
     @media (max-width: 576px) {
         .section-overlap-banner {
-            margin-top: -80px;
-            /* Mínima sobreposição em mobile pequeno */
+            margin-top: -80px; /* Mínima sobreposição em mobile pequeno */
         }
     }
 
@@ -144,6 +139,180 @@
         margin-top: 0.25rem;
     }
 
+    /* ============================================
+       VIDEO CARDS COM PREVIEW (ESTILO YOUTUBE)
+       ============================================ */
+    .video-cards-container {
+        display: flex;
+        gap: 16px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 10px 0 20px;
+        scroll-behavior: smooth;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border-color) transparent;
+    }
+
+    .video-cards-container::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .video-cards-container::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .video-cards-container::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 4px;
+    }
+
+    .video-cards-container::-webkit-scrollbar-thumb:hover {
+        background: var(--border-hover);
+    }
+
+    /* Card de Vídeo Individual - 400x225px (16:9) */
+    .video-preview-card {
+        flex: 0 0 400px;
+        width: 400px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .video-preview-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        border-color: var(--border-hover);
+    }
+
+    /* Container da Thumbnail/Vídeo - 16:9 ratio */
+    .video-preview-wrapper {
+        position: relative;
+        width: 100%;
+        height: 225px;
+        overflow: hidden;
+        background: #000;
+    }
+
+    .video-preview-thumbnail {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+        opacity: 0.8;
+    }
+
+    .video-preview-card:hover .video-preview-thumbnail {
+        transform: scale(1.05);
+        opacity: 0.4;
+    }
+
+    .video-preview-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #2a2a2a;
+        color: #555;
+        font-size: 3rem;
+    }
+
+    /* Botão de Play Central */
+    .video-preview-play-btn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.9);
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 0, 0, 0.9);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 2;
+    }
+
+    .video-preview-card:hover .video-preview-play-btn {
+        transform: translate(-50%, -50%) scale(1.1);
+        background: #ff0000;
+        box-shadow: 0 0 30px rgba(255, 0, 0, 0.6);
+    }
+
+    /* Informações do Vídeo */
+    .video-preview-info {
+        padding: 12px;
+        background: var(--card-bg);
+        position: relative;
+        z-index: 3;
+    }
+
+    .video-preview-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 6px;
+        line-height: 1.4;
+        color: var(--text-primary);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .video-preview-platform {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .video-preview-platform i {
+        font-size: 0.9rem;
+    }
+
+    .video-preview-platform .fa-youtube { color: #ff0000; }
+    .video-preview-platform .fa-instagram { color: #e1306c; }
+    .video-preview-platform .fa-film { color: var(--bs-primary); }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+        .video-preview-card {
+            flex: 0 0 280px;
+            width: 280px;
+        }
+
+        .video-preview-wrapper {
+            height: 157px; /* 16:9 de 280px */
+        }
+        
+        .video-preview-play-btn {
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .video-preview-card {
+            flex: 0 0 240px;
+            width: 240px;
+        }
+
+        .video-preview-wrapper {
+            height: 135px; /* 16:9 de 240px */
+        }
+    }
+
     .price-tag-compact {
         font-weight: 600;
         color: var(--bs-success);
@@ -196,7 +365,7 @@
         height: 100%;
         object-fit: cover;
         border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
     /* Overlay base controlável */
@@ -217,12 +386,14 @@
         left: 0;
         width: 100%;
         height: 80px;
-        background: linear-gradient(to bottom,
-                var(--body-bg) 0%,
-                rgba(var(--body-bg-rgb, 255, 255, 255), 0.95) 10%,
-                rgba(var(--body-bg-rgb, 255, 255, 255), 0.8) 30%,
-                rgba(var(--body-bg-rgb, 255, 255, 255), 0.5) 60%,
-                transparent 100%);
+        background: linear-gradient(
+            to bottom,
+            var(--body-bg) 0%,
+            rgba(var(--body-bg-rgb, 255, 255, 255), 0.95) 10%,
+            rgba(var(--body-bg-rgb, 255, 255, 255), 0.8) 30%,
+            rgba(var(--body-bg-rgb, 255, 255, 255), 0.5) 60%,
+            transparent 100%
+        );
         z-index: 4;
         pointer-events: none;
     }
@@ -234,33 +405,39 @@
         left: 0;
         width: 100%;
         height: 80px;
-        background: linear-gradient(to top,
-                var(--body-bg) 0%,
-                rgba(var(--body-bg-rgb, 255, 255, 255), 0.95) 10%,
-                rgba(var(--body-bg-rgb, 255, 255, 255), 0.8) 30%,
-                rgba(var(--body-bg-rgb, 255, 255, 255), 0.5) 60%,
-                transparent 100%);
+        background: linear-gradient(
+            to top,
+            var(--body-bg) 0%,
+            rgba(var(--body-bg-rgb, 255, 255, 255), 0.95) 10%,
+            rgba(var(--body-bg-rgb, 255, 255, 255), 0.8) 30%,
+            rgba(var(--body-bg-rgb, 255, 255, 255), 0.5) 60%,
+            transparent 100%
+        );
         z-index: 4;
         pointer-events: none;
     }
 
     /* Dark mode */
     [data-theme="dark"] .section-blur-top {
-        background: linear-gradient(to bottom,
-                rgb(18, 18, 18) 0%,
-                rgba(18, 18, 18, 0.95) 10%,
-                rgba(18, 18, 18, 0.8) 30%,
-                rgba(18, 18, 18, 0.5) 60%,
-                transparent 100%);
+        background: linear-gradient(
+            to bottom,
+            rgb(18, 18, 18) 0%,
+            rgba(18, 18, 18, 0.95) 10%,
+            rgba(18, 18, 18, 0.8) 30%,
+            rgba(18, 18, 18, 0.5) 60%,
+            transparent 100%
+        );
     }
 
     [data-theme="dark"] .section-blur-bottom {
-        background: linear-gradient(to top,
-                rgb(18, 18, 18) 0%,
-                rgba(18, 18, 18, 0.95) 10%,
-                rgba(18, 18, 18, 0.8) 30%,
-                rgba(18, 18, 18, 0.5) 60%,
-                transparent 100%);
+        background: linear-gradient(
+            to top,
+            rgb(18, 18, 18) 0%,
+            rgba(18, 18, 18, 0.95) 10%,
+            rgba(18, 18, 18, 0.8) 30%,
+            rgba(18, 18, 18, 0.5) 60%,
+            transparent 100%
+        );
     }
 
     .section-banner-overlay {
@@ -269,25 +446,21 @@
         left: 0;
         width: 100%;
         padding: 2rem 1.5rem;
-        background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 50%, transparent 100%);
+        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
         border-radius: 0 0 8px 8px;
         z-index: 2;
     }
 
     .section-banner-overlay h2 {
-        color: #fff !important;
+        color: white;
         margin-bottom: 0;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    }
-
-    .section-banner-overlay h2 i {
-        color: #fff !important;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     }
 
     .section-banner-overlay p {
-        color: rgba(255, 255, 255, 0.9) !important;
+        color: rgba(255,255,255,0.9);
         margin-bottom: 0;
-        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
     }
 
     /* Link "Ver todos" no banner da seção */
@@ -304,7 +477,7 @@
         border: 2px solid rgba(255, 255, 255, 0.3);
         border-radius: 50px;
         transition: all 0.3s ease;
-        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
     }
 
     .view-all-link-banner:hover {
@@ -312,7 +485,7 @@
         background: rgba(255, 255, 255, 0.3);
         border-color: rgba(255, 255, 255, 0.5);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
 
     /* ============================================
@@ -331,7 +504,7 @@
         overflow: hidden;
     }
 
-    .tolkien-banner>img {
+    .tolkien-banner > img {
         width: 100%;
         height: 100%;
         object-fit: cover;
@@ -344,10 +517,12 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(135deg,
-                rgba(15, 15, 25, 0.85) 0%,
-                rgba(30, 25, 15, 0.75) 50%,
-                rgba(45, 35, 20, 0.85) 100%);
+        background: linear-gradient(
+            135deg,
+            rgba(15, 15, 25, 0.85) 0%,
+            rgba(30, 25, 15, 0.75) 50%,
+            rgba(45, 35, 20, 0.85) 100%
+        );
         z-index: 1;
     }
 
@@ -373,7 +548,7 @@
         justify-content: center;
         font-size: 2rem;
         color: #1a1a1a;
-        box-shadow:
+        box-shadow: 
             0 0 30px rgba(201, 162, 39, 0.5),
             0 0 60px rgba(201, 162, 39, 0.3),
             inset 0 0 20px rgba(255, 255, 255, 0.3);
@@ -381,17 +556,14 @@
     }
 
     @keyframes ring-glow {
-
-        0%,
-        100% {
-            box-shadow:
+        0%, 100% { 
+            box-shadow: 
                 0 0 30px rgba(201, 162, 39, 0.5),
                 0 0 60px rgba(201, 162, 39, 0.3),
                 inset 0 0 20px rgba(255, 255, 255, 0.3);
         }
-
-        50% {
-            box-shadow:
+        50% { 
+            box-shadow: 
                 0 0 50px rgba(201, 162, 39, 0.7),
                 0 0 100px rgba(201, 162, 39, 0.5),
                 inset 0 0 30px rgba(255, 255, 255, 0.5);
@@ -473,9 +645,9 @@
     }
 
     .tolkien-book-card {
-        background: linear-gradient(145deg,
-                rgba(30, 25, 20, 0.95) 0%,
-                rgba(45, 35, 25, 0.95) 100%);
+        background: linear-gradient(145deg, 
+            rgba(30, 25, 20, 0.95) 0%, 
+            rgba(45, 35, 25, 0.95) 100%);
         border-radius: 16px;
         overflow: hidden;
         transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -487,7 +659,7 @@
     .tolkien-book-card:hover {
         transform: translateY(-10px) scale(1.02);
         border-color: rgba(201, 162, 39, 0.5);
-        box-shadow:
+        box-shadow: 
             0 20px 50px rgba(0, 0, 0, 0.4),
             0 0 30px rgba(201, 162, 39, 0.2);
     }
@@ -527,10 +699,12 @@
         left: -100%;
         width: 300%;
         height: 300%;
-        background: linear-gradient(135deg,
-                transparent 30%,
-                rgba(255, 255, 255, 0.1) 50%,
-                transparent 70%);
+        background: linear-gradient(
+            135deg,
+            transparent 30%,
+            rgba(255, 255, 255, 0.1) 50%,
+            transparent 70%
+        );
         transform: rotate(45deg);
         transition: all 0.6s ease;
         pointer-events: none;
@@ -602,15 +776,12 @@
         .tolkien-banner {
             height: 380px;
         }
-
         .tolkien-title {
             font-size: 2.2rem;
         }
-
         .tolkien-books-container {
             margin-top: -60px;
         }
-
         .tolkien-book-cover-wrapper {
             height: 240px;
         }
@@ -620,39 +791,31 @@
         .tolkien-banner {
             height: 320px;
         }
-
         .tolkien-title {
             font-size: 1.8rem;
         }
-
         .tolkien-subtitle {
             font-size: 0.8rem;
             letter-spacing: 2px;
         }
-
         .tolkien-description {
             font-size: 0.95rem;
             padding: 0 1rem;
         }
-
         .tolkien-icon-ring {
             width: 60px;
             height: 60px;
             font-size: 1.5rem;
         }
-
         .tolkien-books-container {
             margin-top: -50px;
         }
-
         .tolkien-book-cover-wrapper {
             height: 220px;
         }
-
         .tolkien-stats {
             gap: 0.5rem;
         }
-
         .tolkien-stat {
             font-size: 0.75rem;
             padding: 0.3rem 0.7rem;
@@ -663,15 +826,12 @@
         .tolkien-banner {
             height: 280px;
         }
-
         .tolkien-title {
             font-size: 1.5rem;
         }
-
         .tolkien-book-cover-wrapper {
             height: 200px;
         }
-
         .tolkien-nav-prev,
         .tolkien-nav-next {
             display: none;
@@ -695,17 +855,17 @@
     <!-- Seções Dinâmicas (usando estrutura de dicts para performance) -->
     {% for section in sections %}
     <!-- DEBUG: Secao {{ section.title }} - Banner URL: {{ section.banner_image_url }} -->
-    <section
-        class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative {% if forloop.first %}section-overlap-banner{% endif %}">
+    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative {% if forloop.first %}section-overlap-banner{% endif %}">
         <!-- Banner da Seção (se existir) -->
         {% if section.banner_image_url %}
         <div class="section-banner-wrapper" style="height: {{ section.banner_height|default:400 }}px;">
-            <img src="{{ section.banner_image_url }}" alt="{{ section.title }}" loading="lazy"
-                style="object-position: {{ section.banner_position_horizontal|default:'center' }} {{ section.banner_position_vertical|default:'center' }};">
+            <img src="{{ section.banner_image_url }}"
+                 alt="{{ section.title }}"
+                 loading="lazy"
+                 style="object-position: {{ section.banner_position_horizontal|default:'center' }} {{ section.banner_position_vertical|default:'center' }};">
 
             <!-- Overlay controlável -->
-            <div class="section-banner-overlay-base"
-                style="background: rgba(0, 0, 0, {{ section.banner_overlay_opacity|default:0.5 }});"></div>
+            <div class="section-banner-overlay-base" style="background: rgba(0, 0, 0, {{ section.banner_overlay_opacity|default:0.5 }});"></div>
 
             <!-- Desfoque nas bordas (opcional) -->
             {% if section.banner_blur_edges %}
@@ -719,26 +879,26 @@
                 {% if section.title %}
                 <h2>
                     {% if section.content_type == 'books' %}
-                    <i class="fas fa-book me-2"></i>
+                        <i class="fas fa-book me-2"></i>
                     {% elif section.content_type == 'authors' %}
-                    <i class="fas fa-user-edit me-2"></i>
+                        <i class="fas fa-user-edit me-2"></i>
                     {% elif section.content_type == 'videos' %}
-                    {% if 'instagram' in section.title|lower %}
-                    <i class="fab fa-instagram me-2"></i>
-                    {% else %}
-                    <i class="fas fa-video me-2"></i>
-                    {% endif %}
+                        {% if 'instagram' in section.title|lower %}
+                            <i class="fab fa-instagram me-2"></i>
+                        {% else %}
+                            <i class="fas fa-video me-2"></i>
+                        {% endif %}
                     {% endif %}
                     {{ section.title }}
                 </h2>
                 {% endif %}
                 {% if section.subtitle %}
-                <p>{{ section.subtitle }}</p>
+                    <p>{{ section.subtitle }}</p>
                 {% endif %}
                 {% if section.show_see_more and section.see_more_url %}
-                <a href="{{ section.see_more_url }}" class="view-all-link-banner">
-                    Ver todos <i class="fas fa-chevron-right ms-1"></i>
-                </a>
+                    <a href="{{ section.see_more_url }}" class="view-all-link-banner">
+                        Ver todos <i class="fas fa-chevron-right ms-1"></i>
+                    </a>
                 {% endif %}
             </div>
             {% endif %}
@@ -746,660 +906,635 @@
         {% endif %}
 
         <!-- Background com opacidade controlada (não afeta conteúdo) -->
-        <div class="section-background"
-            style="background-color: {% if section.background_color %}{{ section.background_color }}{% else %}var(--card-bg){% endif %};{% if section.background_image_url %} background-image: url('{{ section.background_image_url }}'); background-size: cover; background-position: center;{% endif %} opacity: {{ section.container_opacity|default:1.0|stringformat:'.2f' }};">
+        <div class="section-background" style="background-color: {% if section.background_color %}{{ section.background_color }}{% else %}var(--card-bg){% endif %}; opacity: {{ section.container_opacity|default:1.0|floatformat:2 }};"></div>
+        
+        <!-- Imagem de fundo do container (opcional, com opacidade própria) -->
+        {% if section.container_background_image_url %}
+        <div class="section-background-image" style="
+            background-image: url('{{ section.container_background_image_url }}');
+            background-size: {{ section.container_background_size|default:'cover' }};
+            background-position: {{ section.container_background_position|default:'center center' }};
+            background-repeat: no-repeat;
+            opacity: {{ section.container_background_image_opacity|default:0.3|floatformat:2 }};
+        "></div>
+        {% endif %}
 
-            <div class="container position-relative" style="z-index: 1;">
-                <!-- Cabeçalho da Seção (só exibe se não tiver banner E se houver título) -->
-                {% if not section.banner_image_url and section.title %}
-                <div class="carousel-header">
-                    <h2>
-                        {% if section.content_type == 'books' %}
+        <div class="container position-relative" style="z-index: 1;">
+            <!-- Cabeçalho da Seção (só exibe se não tiver banner E se houver título) -->
+            {% if not section.banner_image_url and section.title %}
+            <div class="carousel-header">
+                <h2>
+                    {% if section.content_type == 'books' %}
                         <i class="fas fa-book text-primary me-2"></i>
-                        {% elif section.content_type == 'authors' %}
+                    {% elif section.content_type == 'authors' %}
                         <i class="fas fa-user-edit text-success me-2"></i>
-                        {% elif section.content_type == 'videos' %}
+                    {% elif section.content_type == 'videos' %}
                         {% if 'instagram' in section.title|lower %}
-                        <i class="fab fa-instagram text-danger me-2"></i>
+                            <i class="fab fa-instagram text-danger me-2"></i>
                         {% else %}
-                        <i class="fas fa-video text-danger me-2"></i>
+                            <i class="fas fa-video text-danger me-2"></i>
                         {% endif %}
-                        {% endif %}
-                        {{ section.title }}
-                    </h2>
-                    {% if section.subtitle %}
-                    <p class="text-muted">{{ section.subtitle }}</p>
                     {% endif %}
-                    {% if section.show_see_more and section.see_more_url %}
+                    {{ section.title }}
+                </h2>
+                {% if section.subtitle %}
+                    <p class="text-muted">{{ section.subtitle }}</p>
+                {% endif %}
+                {% if section.show_see_more and section.see_more_url %}
                     <a href="{{ section.see_more_url }}" class="view-all-link">
                         Ver todos <i class="fas fa-chevron-right ms-1"></i>
                     </a>
-                    {% endif %}
-                </div>
                 {% endif %}
+            </div>
+            {% endif %}
 
-                <!-- Renderização por Layout -->
-                {% if section.layout == 'banner_only' %}
+            <!-- Renderização por Layout -->
+            {% if section.layout == 'banner_only' %}
                 <!-- Layout: Apenas Banner (sem renderizar itens) -->
 
-                {% elif section.layout == 'carousel' %}
+            {% elif section.layout == 'carousel' %}
                 <!-- Layout Carrossel (Swiper) -->
                 <div class="swiper books-swiper">
                     <div class="swiper-wrapper">
                         {% for item in section.items %}
-                        {% with obj=item.obj display_title=item.display_title %}
-                        <div class="swiper-slide">
-                            {% if section.content_type == 'books' %}
-                            <!-- Card de Livro -->
-                            {% if obj.slug %}
-                            <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
-                                <div class="card book-card h-100">
-                                    {% if obj.cover_image %}
-                                    <img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">
+                            {% with obj=item.obj display_title=item.display_title %}
+                            <div class="swiper-slide">
+                                {% if section.content_type == 'books' %}
+                                    <!-- Card de Livro -->
+                                    {% if obj.slug %}
+                                    <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
+                                        <div class="card book-card h-100">
+                                            {% if obj.cover_image %}
+                                                <img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">
+                                            {% else %}
+                                                <img src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover" alt="Sem capa">
+                                            {% endif %}
+                                            <div class="card-body">
+                                                <h5 class="card-title mb-1">{{ display_title|truncatewords:8 }}</h5>
+                                                {% if section.show_author and obj.author %}
+                                                    <p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>
+                                                {% endif %}
+                                                <div class="d-flex justify-content-between align-items-center book-info-compact">
+                                                    {% if section.show_price %}
+                                                    <span class="price-tag-compact">
+                                                        {% if obj.price %}R$ {{ obj.price|floatformat:2 }}{% else %}<span class="text-muted small">Consulte</span>{% endif %}
+                                                    </span>
+                                                    {% endif %}
+                                                    {% if section.show_rating %}
+                                                        {% if obj.average_rating %}
+                                                        <div class="rating-compact-home">
+                                                            <i class="fas fa-star text-warning"></i>
+                                                            <span class="rating-number">({{ obj.average_rating|floatformat:1 }})</span>
+                                                        </div>
+                                                        {% else %}<span class="text-muted small">Sem avaliações</span>{% endif %}
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
                                     {% else %}
-                                    <img src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover"
-                                        alt="Sem capa">
-                                    {% endif %}
-                                    <div class="card-body">
-                                        <h5 class="card-title mb-1">{{ display_title|truncatewords:8 }}</h5>
-                                        {% if section.show_author and obj.author %}
-                                        <p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>
-                                        {% endif %}
-                                        <div
-                                            class="d-flex justify-content-between align-items-center book-info-compact">
-                                            {% if section.show_price %}
-                                            <span class="price-tag-compact">
-                                                {% if obj.price %}R$ {{ obj.price|floatformat:2 }}{% else %}<span
-                                                    class="text-muted small">Consulte</span>{% endif %}
-                                            </span>
-                                            {% endif %}
-                                            {% if section.show_rating %}
-                                            {% if obj.average_rating %}
-                                            <div class="rating-compact-home">
-                                                <i class="fas fa-star text-warning"></i>
-                                                <span class="rating-number">({{ obj.average_rating|floatformat:1
-                                                    }})</span>
-                                            </div>
-                                            {% else %}<span class="text-muted small">Sem avaliações</span>{% endif %}
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                            {% else %}
-                            <div class="card book-card h-100">
-                                {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="book-cover"
-                                    alt="{{ obj.title }}">{% else %}<img
-                                    src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover"
-                                    alt="Sem capa">{% endif %}
-                                <div class="card-body">
-                                    <h5 class="card-title mb-1">{{ display_title|truncatewords:8 }}</h5>
-                                    {% if section.show_author and obj.author %}<p
-                                        class="card-text text-muted small mb-1">{{ obj.author.name }}</p>{% endif %}
-                                </div>
-                            </div>
-                            {% endif %}
-
-                            {% elif section.content_type == 'authors' %}
-                            <!-- Card de Autor -->
-                            {% if obj.slug %}<a href="{% url 'core:author_detail' obj.slug %}"
-                                class="text-decoration-none">{% else %}<div class="text-decoration-none">{% endif %}
-                                    <div class="card author-card text-center h-100">
+                                    <div class="card book-card h-100">
+                                        {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">{% else %}<img src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover" alt="Sem capa">{% endif %}
                                         <div class="card-body">
-                                            {% if obj.photo %}<img src="{{ obj.photo.url }}" class="author-photo"
-                                                alt="{{ obj.name }}">{% else %}<div class="author-placeholder"><i
-                                                    class="fas fa-user"></i></div>{% endif %}
-                                            <h5 class="card-title">{{ display_title }}</h5>
-                                            {% if obj.bio %}<p class="card-text text-muted small">{{
-                                                obj.bio|truncatewords:15 }}</p>{% endif %}
-                                            {% if obj.twitter or obj.instagram or obj.website %}
-                                            <div class="mt-3 social-links-home">
-                                                {% if obj.website %}<span class="social-icon-home" title="Website"><i
-                                                        class="fas fa-globe"></i></span>{% endif %}
-                                                {% if obj.twitter %}<span class="social-icon-home" title="Twitter"><i
-                                                        class="fab fa-twitter"></i></span>{% endif %}
-                                                {% if obj.instagram %}<span class="social-icon-home"
-                                                    title="Instagram"><i class="fab fa-instagram"></i></span>{% endif %}
-                                            </div>
-                                            {% endif %}
+                                            <h5 class="card-title mb-1">{{ display_title|truncatewords:8 }}</h5>
+                                            {% if section.show_author and obj.author %}<p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>{% endif %}
                                         </div>
                                     </div>
-                                    {% if obj.slug %}</a>{% else %}
-                        </div>{% endif %}
+                                    {% endif %}
 
-                        {% elif section.content_type == 'videos' %}
-                        <!-- Card de Vídeo -->
-                        <div class="card video-card h-100">
-                            <a href="#" class="video-link" data-video-platform="{{ obj.platform }}"
-                                data-video-embed="{{ obj.get_embed_url|default:'' }}" data-video-title="{{ obj.title }}"
-                                data-video-url="{{ obj.video_url }}"
-                                data-video-file="{% if obj.video_file %}{{ obj.video_file.url }}{% endif %}"
-                                onclick="openVideoModal(this); return false;">
-                                {% if obj.get_thumbnail %}<img src="{{ obj.get_thumbnail }}" class="video-thumbnail"
-                                    alt="{{ obj.title }}">{% else %}<div class="video-placeholder"><i
-                                        class="fas fa-video"></i></div>{% endif %}
-                                <div class="play-overlay"><i class="fas fa-play-circle"></i></div>
-                            </a>
-                            <div class="card-body p-3">
-                                <h5 class="card-title mb-0">{{ display_title|truncatewords:8 }}</h5>
+                                {% elif section.content_type == 'authors' %}
+                                    <!-- Card de Autor -->
+                                    {% if obj.slug %}<a href="{% url 'core:author_detail' obj.slug %}" class="text-decoration-none">{% else %}<div class="text-decoration-none">{% endif %}
+                                        <div class="card author-card text-center h-100">
+                                            <div class="card-body">
+                                                {% if obj.photo %}<img src="{{ obj.photo.url }}" class="author-photo" alt="{{ obj.name }}">{% else %}<div class="author-placeholder"><i class="fas fa-user"></i></div>{% endif %}
+                                                <h5 class="card-title">{{ display_title }}</h5>
+                                                {% if obj.bio %}<p class="card-text text-muted small">{{ obj.bio|truncatewords:15 }}</p>{% endif %}
+                                                {% if obj.twitter or obj.instagram or obj.website %}
+                                                    <div class="mt-3 social-links-home">
+                                                        {% if obj.website %}<span class="social-icon-home" title="Website"><i class="fas fa-globe"></i></span>{% endif %}
+                                                        {% if obj.twitter %}<span class="social-icon-home" title="Twitter"><i class="fab fa-twitter"></i></span>{% endif %}
+                                                        {% if obj.instagram %}<span class="social-icon-home" title="Instagram"><i class="fab fa-instagram"></i></span>{% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% if obj.slug %}</a>{% else %}</div>{% endif %}
+
+                                {% elif section.content_type == 'videos' %}
+                                    <!-- Card de Vídeo -->
+                                    <div class="card video-card h-100">
+                                        <a href="#" class="video-link"
+                                           data-video-platform="{{ obj.platform }}"
+                                           data-video-embed="{{ obj.get_embed_url|default:'' }}"
+                                           data-video-title="{{ obj.title }}"
+                                           data-video-url="{{ obj.video_url }}"
+                                           data-video-file="{% if obj.video_file %}{{ obj.video_file.url }}{% endif %}"
+                                           onclick="openVideoModal(this); return false;">
+                                            {% if obj.get_thumbnail %}<img src="{{ obj.get_thumbnail }}" class="video-thumbnail" alt="{{ obj.title }}">{% else %}<div class="video-placeholder"><i class="fas fa-video"></i></div>{% endif %}
+                                            <div class="play-overlay"><i class="fas fa-play-circle"></i></div>
+                                        </a>
+                                        <div class="card-body p-3">
+                                            <h5 class="card-title mb-0">{{ display_title|truncatewords:8 }}</h5>
+                                        </div>
+                                    </div>
+                                {% endif %}
                             </div>
-                        </div>
-                        {% endif %}
+                            {% endwith %}
+                        {% endfor %}
                     </div>
-                    {% endwith %}
-                    {% endfor %}
+                    <div class="swiper-button-prev"></div>
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-pagination"></div>
                 </div>
-                <div class="swiper-button-prev"></div>
-                <div class="swiper-button-next"></div>
-                <div class="swiper-pagination"></div>
-            </div>
 
             {% elif section.layout == 'grid' %}
-            <!-- Layout Grid (4 colunas) -->
-            <div class="row g-4">
-                {% for item in section.items %}
-                {% with obj=item.obj display_title=item.display_title %}
-                <div class="col-6 col-md-3">
-                    {% if section.content_type == 'books' %}
-                    {% if obj.slug %}
-                    <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
-                        <div class="card book-card h-100">
-                            {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="book-cover"
-                                alt="{{ obj.title }}">{% else %}<img
-                                src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover"
-                                alt="Sem capa">{% endif %}
-                            <div class="card-body">
-                                <h5 class="card-title mb-1">{{ display_title }}</h5>
-                                {% if section.show_author and obj.author %}<p class="card-text text-muted small mb-1">{{
-                                    obj.author.name }}</p>{% endif %}
-                                <div class="d-flex justify-content-between align-items-center book-info-compact">
-                                    {% if section.show_price %}<span class="price-tag-compact">{% if obj.price %}R$ {{
-                                        obj.price|floatformat:2 }}{% else %}<span
-                                            class="text-muted small">Consulte</span>{% endif %}</span>{% endif %}
-                                    {% if section.show_rating %}
-                                    {% if obj.average_rating %}
-                                    <div class="rating-compact-home"><i class="fas fa-star text-warning"></i> <span>{{
-                                            obj.average_rating|floatformat:1 }}</span></div>
-                                    {% else %}<span class="text-muted small">Sem avaliações</span>{% endif %}
-                                    {% endif %}
+                <!-- Layout Grid (4 colunas) -->
+                <div class="row g-4">
+                    {% for item in section.items %}
+                        {% with obj=item.obj display_title=item.display_title %}
+                        <div class="col-6 col-md-3">
+                            {% if section.content_type == 'books' %}
+                                {% if obj.slug %}
+                                <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
+                                    <div class="card book-card h-100">
+                                        {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">{% else %}<img src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover" alt="Sem capa">{% endif %}
+                                        <div class="card-body">
+                                            <h5 class="card-title mb-1">{{ display_title }}</h5>
+                                            {% if section.show_author and obj.author %}<p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>{% endif %}
+                                            <div class="d-flex justify-content-between align-items-center book-info-compact">
+                                                {% if section.show_price %}<span class="price-tag-compact">{% if obj.price %}R$ {{ obj.price|floatformat:2 }}{% else %}<span class="text-muted small">Consulte</span>{% endif %}</span>{% endif %}
+                                                {% if section.show_rating %}
+                                                    {% if obj.average_rating %}
+                                                    <div class="rating-compact-home"><i class="fas fa-star text-warning"></i> <span>{{ obj.average_rating|floatformat:1 }}</span></div>
+                                                    {% else %}<span class="text-muted small">Sem avaliações</span>{% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                                {% else %}
+                                <div class="card book-card h-100">
+                                    {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">{% else %}<img src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover" alt="Sem capa">{% endif %}
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-1">{{ display_title }}</h5>
+                                        {% if section.show_author and obj.author %}<p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>{% endif %}
+                                    </div>
                                 </div>
-                            </div>
+                                {% endif %}
+                            {% elif section.content_type == 'authors' %}
+                                <div class="card author-card text-center h-100">
+                                    <div class="card-body">
+                                        {% if obj.photo %}<img src="{{ obj.photo.url }}" class="author-photo" alt="{{ obj.name }}">{% else %}<div class="author-placeholder"><i class="fas fa-user"></i></div>{% endif %}
+                                        <h5 class="card-title">{{ display_title }}</h5>
+                                        {% if obj.bio %}<p class="card-text text-muted small">{{ obj.bio|truncatewords:15 }}</p>{% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
                         </div>
-                    </a>
-                    {% else %}
-                    <div class="card book-card h-100">
-                        {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="book-cover"
-                            alt="{{ obj.title }}">{% else %}<img src="{% static 'images/no-cover-placeholder.svg' %}"
-                            class="book-cover" alt="Sem capa">{% endif %}
-                        <div class="card-body">
-                            <h5 class="card-title mb-1">{{ display_title }}</h5>
-                            {% if section.show_author and obj.author %}<p class="card-text text-muted small mb-1">{{
-                                obj.author.name }}</p>{% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% elif section.content_type == 'authors' %}
-                    <div class="card author-card text-center h-100">
-                        <div class="card-body">
-                            {% if obj.photo %}<img src="{{ obj.photo.url }}" class="author-photo"
-                                alt="{{ obj.name }}">{% else %}<div class="author-placeholder"><i
-                                    class="fas fa-user"></i></div>{% endif %}
-                            <h5 class="card-title">{{ display_title }}</h5>
-                            {% if obj.bio %}<p class="card-text text-muted small">{{ obj.bio|truncatewords:15 }}</p>{% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
+                        {% endwith %}
+                    {% endfor %}
                 </div>
-                {% endwith %}
-                {% endfor %}
-            </div>
 
             {% elif section.layout == 'list' %}
-            <!-- Layout Lista -->
-            <div class="list-group">
-                {% for item in section.items %}
-                {% with obj=item.obj display_title=item.display_title %}
-                {% if section.content_type == 'books' %}
-                {% if obj.slug %}<a href="{% url 'core:book_detail' obj.slug %}"
-                    class="list-group-item list-group-item-action">{% else %}<div class="list-group-item">{% endif %}
-                        <div class="d-flex w-100 justify-content-between align-items-center">
-                            <div class="d-flex align-items-center">
-                                {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}"
-                                    style="width: 50px; height: 70px; object-fit: cover;" class="me-3"
-                                    alt="{{ obj.title }}">{% endif %}
-                                <div>
-                                    <h5 class="mb-1">{{ display_title }}</h5>
-                                    {% if section.show_author and obj.author %}<p class="mb-1 text-muted small">{{
-                                        obj.author.name }}</p>{% endif %}
+                <!-- Layout Lista -->
+                <div class="list-group">
+                    {% for item in section.items %}
+                        {% with obj=item.obj display_title=item.display_title %}
+                        {% if section.content_type == 'books' %}
+                            {% if obj.slug %}<a href="{% url 'core:book_detail' obj.slug %}" class="list-group-item list-group-item-action">{% else %}<div class="list-group-item">{% endif %}
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" style="width: 50px; height: 70px; object-fit: cover;" class="me-3" alt="{{ obj.title }}">{% endif %}
+                                        <div>
+                                            <h5 class="mb-1">{{ display_title }}</h5>
+                                            {% if section.show_author and obj.author %}<p class="mb-1 text-muted small">{{ obj.author.name }}</p>{% endif %}
+                                        </div>
+                                    </div>
+                                    {% if section.show_price %}<span class="badge bg-primary rounded-pill">R$ {{ obj.price|default:"--" }}</span>{% endif %}
                                 </div>
-                            </div>
-                            {% if section.show_price %}<span class="badge bg-primary rounded-pill">R$ {{
-                                obj.price|default:"--" }}</span>{% endif %}
-                        </div>
-                        {% if obj.slug %}</a>{% else %}</div>{% endif %}
-            {% endif %}
-            {% endwith %}
-            {% endfor %}
-        </div>
-
-        {% elif section.layout == 'featured' %}
-        <!-- Layout Destaque Grande - Imagem em cima, sinopse embaixo -->
-        <div class="row g-4">
-            {% for item in section.items %}
-            {% with obj=item.obj display_title=item.display_title %}
-            {% if forloop.first %}
-            <!-- Item em destaque (grande) - Layout vertical -->
-            <div class="col-12 col-lg-6">
-                {% if section.content_type == 'books' and obj.slug %}
-                <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link text-decoration-none">
-                    {% endif %}
-                    <div class="card featured-card h-100">
-                        <!-- Imagem grande em cima -->
-                        <div class="featured-cover-wrapper" style="height: 400px; overflow: hidden;">
-                            {% if obj.cover_image %}
-                            <img src="{{ obj.cover_image.url }}" class="w-100 h-100"
-                                style="object-fit: contain; background: linear-gradient(135deg, #1a1a2e, #16213e);"
-                                alt="{{ obj.title }}">
-                            {% else %}
-                            <div class="w-100 h-100 d-flex align-items-center justify-content-center"
-                                style="background: linear-gradient(135deg, #1a1a2e, #16213e);">
-                                <i class="fas fa-book fa-5x text-muted"></i>
-                            </div>
-                            {% endif %}
-                        </div>
-                        <!-- Sinopse embaixo -->
-                        <div class="card-body">
-                            <span class="badge bg-primary mb-2">⭐ Destaque</span>
-                            <h3 class="card-title">{{ display_title }}</h3>
-                            {% if section.show_author and obj.author %}
-                            <p class="text-muted mb-2"><i class="fas fa-user-edit me-1"></i>{{ obj.author.name }}</p>
-                            {% endif %}
-                            {% if obj.description %}
-                            <p class="card-text text-muted">{{ obj.description|truncatewords:40 }}</p>
-                            {% endif %}
-                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                {% if section.show_price and obj.price %}
-                                <span class="h5 text-primary mb-0">R$ {{ obj.price|floatformat:2 }}</span>
-                                {% endif %}
-                                {% if section.show_rating and obj.average_rating %}
-                                <span><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1
-                                    }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% if section.content_type == 'books' and obj.slug %}
-                </a>{% endif %}
-            </div>
-            <div class="col-12 col-lg-6">
-                <div class="row g-3">
-                    {% else %}
-                    <!-- Itens secundários (menores) -->
-                    <div class="col-6">
-                        {% if section.content_type == 'books' and obj.slug %}
-                        <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
-                            {% endif %}
-                            <div class="card book-card h-100">
-                                {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="book-cover"
-                                    alt="{{ obj.title }}">{% else %}<img
-                                    src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover"
-                                    alt="Sem capa">{% endif %}
-                                <div class="card-body p-2">
-                                    <h6 class="card-title mb-1">{{ display_title|truncatewords:5 }}</h6>
-                                    {% if section.show_author and obj.author %}<small class="text-muted">{{
-                                        obj.author.name }}</small>{% endif %}
-                                </div>
-                            </div>
-                            {% if section.content_type == 'books' and obj.slug %}
-                        </a>{% endif %}
-                    </div>
-                    {% endif %}
-                    {% if forloop.last and not forloop.first %}
+                            {% if obj.slug %}</a>{% else %}</div>{% endif %}
+                        {% endif %}
+                        {% endwith %}
+                    {% endfor %}
                 </div>
-            </div>
-            {% endif %}
-            {% endwith %}
-            {% endfor %}
-        </div>
 
-        {% elif section.layout == 'cards_large' %}
-        <!-- Layout Cards Grandes (2 colunas) -->
-        <div class="row g-4">
-            {% for item in section.items %}
-            {% with obj=item.obj display_title=item.display_title %}
-            <div class="col-12 col-md-6">
-                {% if section.content_type == 'books' and obj.slug %}
-                <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
-                    {% endif %}
-                    <div class="card h-100 shadow-sm">
-                        <div class="row g-0">
-                            <div class="col-4">
-                                {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}"
-                                    class="img-fluid rounded-start h-100" style="object-fit: cover; min-height: 200px;"
-                                    alt="{{ obj.title }}">{% else %}<div
-                                    class="bg-secondary h-100 d-flex align-items-center justify-content-center"
-                                    style="min-height: 200px;"><i class="fas fa-book fa-3x text-muted"></i></div>{%
-                                endif %}
+            {% elif section.layout == 'featured' %}
+                <!-- Layout Destaque Grande - Imagem em cima, sinopse embaixo -->
+                <div class="row g-4">
+                    {% for item in section.items %}
+                        {% with obj=item.obj display_title=item.display_title %}
+                        {% if forloop.first %}
+                        <!-- Item em destaque (grande) - Layout vertical -->
+                        <div class="col-12 col-lg-6">
+                            {% if section.content_type == 'books' and obj.slug %}
+                            <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link text-decoration-none">
+                            {% endif %}
+                                <div class="card featured-card h-100">
+                                    <!-- Imagem grande em cima -->
+                                    <div class="featured-cover-wrapper" style="height: 400px; overflow: hidden;">
+                                        {% if obj.cover_image %}
+                                        <img src="{{ obj.cover_image.url }}" 
+                                             class="w-100 h-100" 
+                                             style="object-fit: contain; background: linear-gradient(135deg, #1a1a2e, #16213e);" 
+                                             alt="{{ obj.title }}">
+                                        {% else %}
+                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center" 
+                                             style="background: linear-gradient(135deg, #1a1a2e, #16213e);">
+                                            <i class="fas fa-book fa-5x text-muted"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <!-- Sinopse embaixo -->
+                                    <div class="card-body">
+                                        <span class="badge bg-primary mb-2">⭐ Destaque</span>
+                                        <h3 class="card-title">{{ display_title }}</h3>
+                                        {% if section.show_author and obj.author %}
+                                        <p class="text-muted mb-2"><i class="fas fa-user-edit me-1"></i>{{ obj.author.name }}</p>
+                                        {% endif %}
+                                        {% if obj.description %}
+                                        <p class="card-text text-muted">{{ obj.description|truncatewords:40 }}</p>
+                                        {% endif %}
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
+                                            {% if section.show_price and obj.price %}
+                                            <span class="h5 text-primary mb-0">R$ {{ obj.price|floatformat:2 }}</span>
+                                            {% endif %}
+                                            {% if section.show_rating and obj.average_rating %}
+                                            <span><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1 }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% if section.content_type == 'books' and obj.slug %}</a>{% endif %}
+                        </div>
+                        <div class="col-12 col-lg-6">
+                            <div class="row g-3">
+                        {% else %}
+                        <!-- Itens secundários (menores) -->
+                        <div class="col-6">
+                            {% if section.content_type == 'books' and obj.slug %}
+                            <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
+                            {% endif %}
+                                <div class="card book-card h-100">
+                                    {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">{% else %}<img src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover" alt="Sem capa">{% endif %}
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title mb-1">{{ display_title|truncatewords:5 }}</h6>
+                                        {% if section.show_author and obj.author %}<small class="text-muted">{{ obj.author.name }}</small>{% endif %}
+                                    </div>
+                                </div>
+                            {% if section.content_type == 'books' and obj.slug %}</a>{% endif %}
+                        </div>
+                        {% endif %}
+                        {% if forloop.last and not forloop.first %}
                             </div>
-                            <div class="col-8">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ display_title }}</h5>
-                                    {% if section.show_author and obj.author %}<p class="card-text text-muted small">{{
-                                        obj.author.name }}</p>{% endif %}
-                                    {% if obj.description %}<p class="card-text small">{{
-                                        obj.description|truncatewords:25 }}</p>{% endif %}
-                                    <div class="d-flex justify-content-between align-items-center mt-2">
-                                        {% if section.show_price and obj.price %}<span class="text-primary fw-bold">R$
-                                            {{ obj.price|floatformat:2 }}</span>{% endif %}
-                                        {% if section.show_rating and obj.average_rating %}<span class="small"><i
-                                                class="fas fa-star text-warning"></i> {{
-                                            obj.average_rating|floatformat:1 }}</span>{% endif %}
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+
+            {% elif section.layout == 'cards_large' %}
+                <!-- Layout Cards Grandes (2 colunas) -->
+                <div class="row g-4">
+                    {% for item in section.items %}
+                        {% with obj=item.obj display_title=item.display_title %}
+                        <div class="col-12 col-md-6">
+                            {% if section.content_type == 'books' and obj.slug %}
+                            <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
+                            {% endif %}
+                                <div class="card h-100 shadow-sm">
+                                    <div class="row g-0">
+                                        <div class="col-4">
+                                            {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="img-fluid rounded-start h-100" style="object-fit: cover; min-height: 200px;" alt="{{ obj.title }}">{% else %}<div class="bg-secondary h-100 d-flex align-items-center justify-content-center" style="min-height: 200px;"><i class="fas fa-book fa-3x text-muted"></i></div>{% endif %}
+                                        </div>
+                                        <div class="col-8">
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ display_title }}</h5>
+                                                {% if section.show_author and obj.author %}<p class="card-text text-muted small">{{ obj.author.name }}</p>{% endif %}
+                                                {% if obj.description %}<p class="card-text small">{{ obj.description|truncatewords:25 }}</p>{% endif %}
+                                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                                    {% if section.show_price and obj.price %}<span class="text-primary fw-bold">R$ {{ obj.price|floatformat:2 }}</span>{% endif %}
+                                                    {% if section.show_rating and obj.average_rating %}<span class="small"><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1 }}</span>{% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% if section.content_type == 'books' and obj.slug %}</a>{% endif %}
+                        </div>
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+
+            {% elif section.layout == 'cards_small' %}
+                <!-- Layout Cards Pequenos (6 colunas) -->
+                <div class="row g-3">
+                    {% for item in section.items %}
+                        {% with obj=item.obj display_title=item.display_title %}
+                        <div class="col-4 col-md-2">
+                            {% if section.content_type == 'books' and obj.slug %}
+                            <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
+                            {% endif %}
+                                <div class="card book-card-small h-100 text-center">
+                                    {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="card-img-top" style="height: 150px; object-fit: cover;" alt="{{ obj.title }}">{% else %}<div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 150px;"><i class="fas fa-book fa-2x text-muted"></i></div>{% endif %}
+                                    <div class="card-body p-2">
+                                        <p class="card-title small mb-0" style="font-size: 0.75rem;">{{ display_title|truncatewords:4 }}</p>
+                                        {% if section.show_price and obj.price %}<small class="text-primary">R$ {{ obj.price|floatformat:0 }}</small>{% endif %}
+                                    </div>
+                                </div>
+                            {% if section.content_type == 'books' and obj.slug %}</a>{% endif %}
+                        </div>
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+
+            {% elif section.layout == 'banner_slider' %}
+                <!-- Layout Banner com Slider - Cards de livros em destaque -->
+                <div class="swiper banner-slider-swiper">
+                    <div class="swiper-wrapper">
+                        {% for item in section.items %}
+                            {% with obj=item.obj display_title=item.display_title %}
+                            <div class="swiper-slide">
+                                <!-- Card de livro com imagem grande -->
+                                <div class="banner-slide-card position-relative rounded-3 overflow-hidden" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
+                                    <div class="row g-0 h-100">
+                                        <!-- Imagem do livro -->
+                                        <div class="col-5 d-flex align-items-center justify-content-center p-4">
+                                            {% if obj.cover_image %}
+                                            <img src="{{ obj.cover_image.url }}" 
+                                                 class="img-fluid rounded shadow-lg" 
+                                                 style="max-height: 300px; object-fit: contain;" 
+                                                 alt="{{ obj.title }}">
+                                            {% else %}
+                                            <div class="d-flex align-items-center justify-content-center rounded" 
+                                                 style="width: 180px; height: 270px; background: rgba(255,255,255,0.1);">
+                                                <i class="fas fa-book fa-4x text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <!-- Informações do livro -->
+                                        <div class="col-7 d-flex flex-column justify-content-center p-4 text-white">
+                                            <h3 class="mb-2">{{ display_title }}</h3>
+                                            {% if section.show_author and obj.author %}
+                                            <p class="text-white-50 mb-3"><i class="fas fa-user-edit me-1"></i>{{ obj.author.name }}</p>
+                                            {% endif %}
+                                            {% if obj.description %}
+                                            <p class="text-white-50 mb-3" style="font-size: 0.9rem;">{{ obj.description|truncatewords:30 }}</p>
+                                            {% endif %}
+                                            <div class="d-flex align-items-center gap-3">
+                                                {% if section.show_price and obj.price %}
+                                                <span class="h4 text-warning mb-0">R$ {{ obj.price|floatformat:2 }}</span>
+                                                {% endif %}
+                                                {% if section.show_rating and obj.average_rating %}
+                                                <span><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1 }}</span>
+                                                {% endif %}
+                                            </div>
+                                            {% if section.content_type == 'books' and obj.slug %}
+                                            <a href="{% url 'core:book_detail' obj.slug %}" class="btn btn-primary mt-3" style="width: fit-content;">
+                                                <i class="fas fa-eye me-1"></i>Ver Detalhes
+                                            </a>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                            {% endwith %}
+                        {% endfor %}
                     </div>
-                    {% if section.content_type == 'books' and obj.slug %}
-                </a>{% endif %}
-            </div>
-            {% endwith %}
-            {% endfor %}
-        </div>
-
-        {% elif section.layout == 'cards_small' %}
-        <!-- Layout Cards Pequenos (6 colunas) -->
-        <div class="row g-3">
-            {% for item in section.items %}
-            {% with obj=item.obj display_title=item.display_title %}
-            <div class="col-4 col-md-2">
-                {% if section.content_type == 'books' and obj.slug %}
-                <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
-                    {% endif %}
-                    <div class="card book-card-small h-100 text-center">
-                        {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="card-img-top"
-                            style="height: 150px; object-fit: cover;" alt="{{ obj.title }}">{% else %}<div
-                            class="bg-secondary d-flex align-items-center justify-content-center"
-                            style="height: 150px;"><i class="fas fa-book fa-2x text-muted"></i></div>{% endif %}
-                        <div class="card-body p-2">
-                            <p class="card-title small mb-0" style="font-size: 0.75rem;">{{
-                                display_title|truncatewords:4 }}</p>
-                            {% if section.show_price and obj.price %}<small class="text-primary">R$ {{
-                                obj.price|floatformat:0 }}</small>{% endif %}
-                        </div>
-                    </div>
-                    {% if section.content_type == 'books' and obj.slug %}
-                </a>{% endif %}
-            </div>
-            {% endwith %}
-            {% endfor %}
-        </div>
-
-        {% elif section.layout == 'banner_slider' %}
-        <!-- Layout Banner com Slider - Cards de livros em destaque -->
-        <div class="swiper banner-slider-swiper">
-            <div class="swiper-wrapper">
-                {% for item in section.items %}
-                {% with obj=item.obj display_title=item.display_title %}
-                <div class="swiper-slide">
-                    <!-- Card de livro com imagem grande -->
-                    <div class="banner-slide-card position-relative rounded-3 overflow-hidden"
-                        style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
-                        <div class="row g-0 h-100">
-                            <!-- Imagem do livro -->
-                            <div class="col-5 d-flex align-items-center justify-content-center p-4">
-                                {% if obj.cover_image %}
-                                <img src="{{ obj.cover_image.url }}" class="img-fluid rounded shadow-lg"
-                                    style="max-height: 300px; object-fit: contain;" alt="{{ obj.title }}">
-                                {% else %}
-                                <div class="d-flex align-items-center justify-content-center rounded"
-                                    style="width: 180px; height: 270px; background: rgba(255,255,255,0.1);">
-                                    <i class="fas fa-book fa-4x text-muted"></i>
-                                </div>
-                                {% endif %}
-                            </div>
-                            <!-- Informações do livro -->
-                            <div class="col-7 d-flex flex-column justify-content-center p-4 text-white">
-                                <h3 class="mb-2">{{ display_title }}</h3>
-                                {% if section.show_author and obj.author %}
-                                <p class="text-white-50 mb-3"><i class="fas fa-user-edit me-1"></i>{{ obj.author.name }}
-                                </p>
-                                {% endif %}
-                                {% if obj.description %}
-                                <p class="text-white-50 mb-3" style="font-size: 0.9rem;">{{
-                                    obj.description|truncatewords:30 }}</p>
-                                {% endif %}
-                                <div class="d-flex align-items-center gap-3">
-                                    {% if section.show_price and obj.price %}
-                                    <span class="h4 text-warning mb-0">R$ {{ obj.price|floatformat:2 }}</span>
-                                    {% endif %}
-                                    {% if section.show_rating and obj.average_rating %}
-                                    <span><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1
-                                        }}</span>
-                                    {% endif %}
-                                </div>
-                                {% if section.content_type == 'books' and obj.slug %}
-                                <a href="{% url 'core:book_detail' obj.slug %}" class="btn btn-primary mt-3"
-                                    style="width: fit-content;">
-                                    <i class="fas fa-eye me-1"></i>Ver Detalhes
-                                </a>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
+                    <div class="swiper-button-prev"></div>
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-pagination"></div>
                 </div>
-                {% endwith %}
-                {% endfor %}
-            </div>
-            <div class="swiper-button-prev"></div>
-            <div class="swiper-button-next"></div>
-            <div class="swiper-pagination"></div>
-        </div>
 
-        {% elif section.layout == 'grid_masonry' %}
-        <!-- Layout Grid Masonry (Pinterest style) -->
-        <div class="row g-3" data-masonry='{"percentPosition": true }'>
-            {% for item in section.items %}
-            {% with obj=item.obj display_title=item.display_title %}
-            <div class="col-6 col-md-4 col-lg-3">
-                {% if section.content_type == 'books' and obj.slug %}
-                <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
-                    {% endif %}
-                    <div class="card masonry-card">
-                        {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="card-img-top"
-                            alt="{{ obj.title }}">{% else %}<div
-                            class="bg-secondary d-flex align-items-center justify-content-center"
-                            style="height: 200px;"><i class="fas fa-book fa-3x text-muted"></i></div>{% endif %}
-                        <div class="card-body">
-                            <h6 class="card-title">{{ display_title|truncatewords:6 }}</h6>
-                            {% if section.show_author and obj.author %}<small class="text-muted">{{ obj.author.name
-                                }}</small>{% endif %}
-                            {% if section.show_rating and obj.average_rating %}
-                            <div class="mt-2"><i class="fas fa-star text-warning"></i> {{
-                                obj.average_rating|floatformat:1 }}</div>
+            {% elif section.layout == 'grid_masonry' %}
+                <!-- Layout Grid Masonry (Pinterest style) -->
+                <div class="row g-3" data-masonry='{"percentPosition": true }'>
+                    {% for item in section.items %}
+                        {% with obj=item.obj display_title=item.display_title %}
+                        <div class="col-6 col-md-4 col-lg-3">
+                            {% if section.content_type == 'books' and obj.slug %}
+                            <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
                             {% endif %}
+                                <div class="card masonry-card">
+                                    {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="card-img-top" alt="{{ obj.title }}">{% else %}<div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;"><i class="fas fa-book fa-3x text-muted"></i></div>{% endif %}
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ display_title|truncatewords:6 }}</h6>
+                                        {% if section.show_author and obj.author %}<small class="text-muted">{{ obj.author.name }}</small>{% endif %}
+                                        {% if section.show_rating and obj.average_rating %}
+                                        <div class="mt-2"><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% if section.content_type == 'books' and obj.slug %}</a>{% endif %}
                         </div>
-                    </div>
-                    {% if section.content_type == 'books' and obj.slug %}
-                </a>{% endif %}
-            </div>
-            {% endwith %}
-            {% endfor %}
-        </div>
-
-        {% elif section.layout == 'horizontal_scroll' %}
-        <!-- Layout Scroll Horizontal -->
-        <div class="horizontal-scroll-container"
-            style="overflow-x: auto; white-space: nowrap; padding-bottom: 15px; -webkit-overflow-scrolling: touch;">
-            <div class="d-inline-flex gap-3">
-                {% for item in section.items %}
-                {% with obj=item.obj display_title=item.display_title %}
-                <div class="horizontal-scroll-item" style="width: 200px; flex-shrink: 0; white-space: normal;">
-                    {% if section.content_type == 'books' and obj.slug %}
-                    <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
-                        {% endif %}
-                        <div class="card book-card h-100">
-                            {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="book-cover"
-                                alt="{{ obj.title }}">{% else %}<img
-                                src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover"
-                                alt="Sem capa">{% endif %}
-                            <div class="card-body p-2">
-                                <h6 class="card-title mb-1">{{ display_title|truncatewords:5 }}</h6>
-                                {% if section.show_author and obj.author %}<small class="text-muted d-block">{{
-                                    obj.author.name }}</small>{% endif %}
-                                {% if section.show_price and obj.price %}<span class="small text-primary">R$ {{
-                                    obj.price|floatformat:2 }}</span>{% endif %}
-                            </div>
-                        </div>
-                        {% if section.content_type == 'books' and obj.slug %}
-                    </a>{% endif %}
+                        {% endwith %}
+                    {% endfor %}
                 </div>
-                {% endwith %}
-                {% endfor %}
-            </div>
-        </div>
 
-        {% elif section.layout == 'spotlight' %}
-        <!-- Layout Destaque com Overlay -->
-        <div class="row g-3">
-            {% for item in section.items %}
-            {% with obj=item.obj display_title=item.display_title %}
-            <div class="col-12 col-md-6 col-lg-4">
-                {% if section.content_type == 'books' and obj.slug %}
-                <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
-                    {% endif %}
-                    <div class="spotlight-card position-relative overflow-hidden"
-                        style="height: 300px; border-radius: 12px;">
-                        {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="w-100 h-100"
-                            style="object-fit: cover;" alt="{{ obj.title }}">{% else %}<div
-                            class="bg-gradient w-100 h-100"
-                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>{% endif %}
-                        <div class="spotlight-overlay position-absolute top-0 start-0 end-0 bottom-0 d-flex flex-column justify-content-end p-3"
-                            style="background: linear-gradient(transparent 40%, rgba(0,0,0,0.85) 100%);">
-                            <h5 class="text-white mb-1">{{ display_title|truncatewords:6 }}</h5>
-                            {% if section.show_author and obj.author %}<p class="text-white-50 small mb-1">{{
-                                obj.author.name }}</p>{% endif %}
-                            <div class="d-flex justify-content-between align-items-center">
-                                {% if section.show_price and obj.price %}<span class="text-warning fw-bold">R$ {{
-                                    obj.price|floatformat:2 }}</span>{% endif %}
-                                {% if section.show_rating and obj.average_rating %}<span class="text-white small"><i
-                                        class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1
-                                    }}</span>{% endif %}
+            {% elif section.layout == 'horizontal_scroll' %}
+                <!-- Layout Scroll Horizontal -->
+                <div class="horizontal-scroll-container" style="overflow-x: auto; white-space: nowrap; padding-bottom: 15px; -webkit-overflow-scrolling: touch;">
+                    <div class="d-inline-flex gap-3">
+                        {% for item in section.items %}
+                            {% with obj=item.obj display_title=item.display_title %}
+                            <div class="horizontal-scroll-item" style="width: 200px; flex-shrink: 0; white-space: normal;">
+                                {% if section.content_type == 'books' and obj.slug %}
+                                <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
+                                {% endif %}
+                                    <div class="card book-card h-100">
+                                        {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">{% else %}<img src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover" alt="Sem capa">{% endif %}
+                                        <div class="card-body p-2">
+                                            <h6 class="card-title mb-1">{{ display_title|truncatewords:5 }}</h6>
+                                            {% if section.show_author and obj.author %}<small class="text-muted d-block">{{ obj.author.name }}</small>{% endif %}
+                                            {% if section.show_price and obj.price %}<span class="small text-primary">R$ {{ obj.price|floatformat:2 }}</span>{% endif %}
+                                        </div>
+                                    </div>
+                                {% if section.content_type == 'books' and obj.slug %}</a>{% endif %}
                             </div>
-                        </div>
+                            {% endwith %}
+                        {% endfor %}
                     </div>
-                    {% if section.content_type == 'books' and obj.slug %}
-                </a>{% endif %}
-            </div>
-            {% endwith %}
-            {% endfor %}
-        </div>
-        {% endif %}
-</div>
-</section>
-{% endfor %}
+                </div>
 
-<!-- Mensagem caso não haja seções -->
-{% if not sections %}
-<div class="container text-center py-5">
-    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
-    <h3>Nenhuma seção configurada</h3>
-    <p class="text-muted">Configure seções no painel admin para exibi-las aqui.</p>
-    <a href="/admin/core/section/add/" class="btn btn-primary">Criar Primeira Seção</a>
-</div>
-{% endif %}
+            {% elif section.layout == 'spotlight' %}
+                <!-- Layout Destaque com Overlay -->
+                <div class="row g-3">
+                    {% for item in section.items %}
+                        {% with obj=item.obj display_title=item.display_title %}
+                        <div class="col-12 col-md-6 col-lg-4">
+                            {% if section.content_type == 'books' and obj.slug %}
+                            <a href="{% url 'core:book_detail' obj.slug %}" class="book-card-link">
+                            {% endif %}
+                                <div class="spotlight-card position-relative overflow-hidden" style="height: 300px; border-radius: 12px;">
+                                    {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ obj.title }}">{% else %}<div class="bg-gradient w-100 h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>{% endif %}
+                                    <div class="spotlight-overlay position-absolute top-0 start-0 end-0 bottom-0 d-flex flex-column justify-content-end p-3" style="background: linear-gradient(transparent 40%, rgba(0,0,0,0.85) 100%);">
+                                        <h5 class="text-white mb-1">{{ display_title|truncatewords:6 }}</h5>
+                                        {% if section.show_author and obj.author %}<p class="text-white-50 small mb-1">{{ obj.author.name }}</p>{% endif %}
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            {% if section.show_price and obj.price %}<span class="text-warning fw-bold">R$ {{ obj.price|floatformat:2 }}</span>{% endif %}
+                                            {% if section.show_rating and obj.average_rating %}<span class="text-white small"><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1 }}</span>{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% if section.content_type == 'books' and obj.slug %}</a>{% endif %}
+                        </div>
+                        {% endwith %}
+                    {% endfor %}
+                </div>
 
-<!-- ============================================
-         SEÇÃO ESPECIAL: AUTOR EM DESTAQUE
-         ============================================ -->
-{% if featured_author and featured_author_books %}
-<section class="tolkien-section">
-    <!-- Banner Épico -->
-    <div class="tolkien-banner">
-        {% if featured_author.home_banner_image %}
-        <img src="{{ featured_author.home_banner_image.url }}" alt="{{ featured_author.home_title }}" loading="lazy">
-        {% else %}
-        <img src="{% static 'images/tolkien_banner.png' %}"
-            alt="{{ featured_author.home_title|default:'Mundo de Tolkien' }}" loading="lazy">
-        {% endif %}
-        <div class="tolkien-banner-overlay"></div>
-        <div class="tolkien-banner-content">
-            <div class="tolkien-icon-ring">
-                <i class="fas fa-ring"></i>
-            </div>
-            <h2 class="tolkien-title">
-                <span class="tolkien-subtitle">{{ featured_author.home_subtitle|default:'Explore o Mundo de' }}</span>
-                {{ featured_author.home_title|default:'J.R.R. Tolkien' }}
-            </h2>
-            <p class="tolkien-description">
-                {{ featured_author.home_description|default:'Descubra a Terra-média através das obras do mestre da
-                fantasia' }}
-            </p>
-            <div class="tolkien-stats">
-                <span class="tolkien-stat">
-                    <i class="fas fa-book"></i> {{ featured_author_books|length }} Livros
-                </span>
-                {% if featured_author.stat_badge_1 %}
-                <span class="tolkien-stat-divider">•</span>
-                <span class="tolkien-stat">
-                    <i class="fas fa-scroll"></i> {{ featured_author.stat_badge_1 }}
-                </span>
-                {% endif %}
-                {% if featured_author.stat_badge_2 %}
-                <span class="tolkien-stat-divider">•</span>
-                <span class="tolkien-stat">
-                    <i class="fas fa-crown"></i> {{ featured_author.stat_badge_2 }}
-                </span>
-                {% endif %}
-            </div>
-            <a href="{% url 'core:tolkien_world' %}" class="btn mt-3"
-                style="background: linear-gradient(135deg, #f4d03f, #c9a227); color: #1a1a2e; font-weight: 600; padding: 0.6rem 1.5rem; border-radius: 50px; text-decoration: none; display: inline-block; transition: all 0.3s ease;">
-                <i class="fas {{ featured_author.home_button_icon|default:'fa-compass' }} me-2"></i>{{
-                featured_author.home_button_text|default:'Explorar Mundo de Tolkien' }}
-            </a>
-        </div>
-    </div>
-
-    <!-- Carrossel de Livros -->
-    <div class="container tolkien-books-container">
-        <div class="swiper tolkien-swiper">
-            <div class="swiper-wrapper">
-                {% for book in tolkien_books %}
-                <div class="swiper-slide">
-                    <a href="{% url 'core:book_detail' book.slug %}" class="tolkien-book-card-link">
-                        <div class="tolkien-book-card">
-                            <div class="tolkien-book-cover-wrapper">
-                                {% if book.cover_image %}
-                                <img src="{{ book.cover_image.url }}" class="tolkien-book-cover" alt="{{ book.title }}">
+            {% elif section.layout == 'video_cards' %}
+                <!-- Layout Cards de Vídeo com Preview (YouTube style) -->
+                <div class="video-cards-container">
+                    {% for item in section.items %}
+                        {% with obj=item.obj display_title=item.display_title %}
+                        <div class="video-preview-card" 
+                             data-video-platform="{{ obj.platform }}"
+                             data-video-embed="{{ obj.get_embed_url|default:'' }}"
+                             data-video-title="{{ obj.title }}"
+                             data-video-url="{{ obj.video_url|default:'' }}"
+                             data-video-file="{% if obj.video_file %}{{ obj.video_file.url }}{% endif %}"
+                             onmouseenter="playVideoPreview(this)"
+                             onmouseleave="stopVideoPreview(this)"
+                             onclick="openVideoModal(this)">
+                            <div class="video-preview-wrapper">
+                                {% if obj.get_thumbnail %}
+                                <img src="{{ obj.get_thumbnail }}" class="video-preview-thumbnail" alt="{{ obj.title }}">
                                 {% else %}
-                                <div class="tolkien-book-placeholder">
-                                    <i class="fas fa-book-open"></i>
+                                <div class="video-preview-placeholder">
+                                    <i class="fas fa-video"></i>
                                 </div>
                                 {% endif %}
-                                <div class="tolkien-book-shine"></div>
+                                
+                                <!-- Preview Container -->
+                                <div class="video-hover-preview" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5;"></div>
+
+                                <div class="video-preview-play-btn">
+                                    <i class="fas fa-play"></i>
+                                </div>
                             </div>
-                            <div class="tolkien-book-info">
-                                <h5 class="tolkien-book-title">{{ book.title|truncatewords:6 }}</h5>
-                                {% if book.page_count %}
-                                <span class="tolkien-book-pages">
-                                    <i class="fas fa-file-alt"></i> {{ book.page_count }} páginas
+                            <div class="video-preview-info">
+                                <h4 class="video-preview-title">{{ display_title|truncatewords:8 }}</h4>
+                                {% if obj.platform %}
+                                <span class="video-preview-platform">
+                                    {% if obj.platform == 'youtube' %}
+                                        <i class="fab fa-youtube"></i> YouTube
+                                    {% elif obj.platform == 'instagram' %}
+                                        <i class="fab fa-instagram"></i> Instagram
+                                    {% elif obj.platform == 'local' or obj.platform == 'upload' %}
+                                        <i class="fas fa-film"></i> Vídeo Local
+                                    {% else %}
+                                        <i class="fas fa-video"></i> {{ obj.platform }}
+                                    {% endif %}
                                 </span>
                                 {% endif %}
                             </div>
                         </div>
-                    </a>
+                        {% endwith %}
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-            <div class="swiper-button-prev tolkien-nav-prev"></div>
-            <div class="swiper-button-next tolkien-nav-next"></div>
-            <div class="swiper-pagination tolkien-pagination"></div>
+            {% endif %}
         </div>
-    </div>
-</section>
-{% endif %}
+    </section>
+    {% endfor %}
 
-<!-- Seção de Recomendações Inteligentes -->
-{% include 'recommendations/recommendations_section.html' %}
+    <!-- Mensagem caso não haja seções -->
+    {% if not sections %}
+    <div class="container text-center py-5">
+        <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+        <h3>Nenhuma seção configurada</h3>
+        <p class="text-muted">Configure seções no painel admin para exibi-las aqui.</p>
+        <a href="/admin/core/section/add/" class="btn btn-primary">Criar Primeira Seção</a>
+    </div>
+    {% endif %}
+
+    <!-- ============================================
+         SEÇÃO ESPECIAL: AUTOR EM DESTAQUE
+         ============================================ -->
+    {% if featured_author and featured_author_books %}
+    <section class="tolkien-section">
+        <!-- Banner Épico -->
+        <div class="tolkien-banner">
+            {% if featured_author.home_banner_image %}
+            <img src="{{ featured_author.home_banner_image.url }}" alt="{{ featured_author.home_title }}" loading="lazy">
+            {% else %}
+            <img src="{% static 'images/tolkien_banner.png' %}" alt="{{ featured_author.home_title|default:'Mundo de Tolkien' }}" loading="lazy">
+            {% endif %}
+            <div class="tolkien-banner-overlay"></div>
+            <div class="tolkien-banner-content">
+                <div class="tolkien-icon-ring">
+                    <i class="fas fa-ring"></i>
+                </div>
+                <h2 class="tolkien-title">
+                    <span class="tolkien-subtitle">{{ featured_author.home_subtitle|default:'Explore o Mundo de' }}</span>
+                    {{ featured_author.home_title|default:'J.R.R. Tolkien' }}
+                </h2>
+                <p class="tolkien-description">
+                    {{ featured_author.home_description|default:'Descubra a Terra-média através das obras do mestre da fantasia' }}
+                </p>
+                <div class="tolkien-stats">
+                    <span class="tolkien-stat">
+                        <i class="fas fa-book"></i> {{ featured_author_books|length }} Livros
+                    </span>
+                    {% if featured_author.stat_badge_1 %}
+                    <span class="tolkien-stat-divider">•</span>
+                    <span class="tolkien-stat">
+                        <i class="fas fa-scroll"></i> {{ featured_author.stat_badge_1 }}
+                    </span>
+                    {% endif %}
+                    {% if featured_author.stat_badge_2 %}
+                    <span class="tolkien-stat-divider">•</span>
+                    <span class="tolkien-stat">
+                        <i class="fas fa-crown"></i> {{ featured_author.stat_badge_2 }}
+                    </span>
+                    {% endif %}
+                </div>
+                <a href="{% url 'core:tolkien_world' %}" class="btn mt-3" style="background: linear-gradient(135deg, #f4d03f, #c9a227); color: #1a1a2e; font-weight: 600; padding: 0.6rem 1.5rem; border-radius: 50px; text-decoration: none; display: inline-block; transition: all 0.3s ease;">
+                    <i class="fas {{ featured_author.home_button_icon|default:'fa-compass' }} me-2"></i>{{ featured_author.home_button_text|default:'Explorar Mundo de Tolkien' }}
+                </a>
+            </div>
+        </div>
+
+        <!-- Carrossel de Livros -->
+        <div class="container tolkien-books-container">
+            <div class="swiper tolkien-swiper">
+                <div class="swiper-wrapper">
+                    {% for book in tolkien_books %}
+                    <div class="swiper-slide">
+                        <a href="{% url 'core:book_detail' book.slug %}" class="tolkien-book-card-link">
+                            <div class="tolkien-book-card">
+                                <div class="tolkien-book-cover-wrapper">
+                                    {% if book.cover_image %}
+                                    <img src="{{ book.cover_image.url }}" class="tolkien-book-cover" alt="{{ book.title }}">
+                                    {% else %}
+                                    <div class="tolkien-book-placeholder">
+                                        <i class="fas fa-book-open"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div class="tolkien-book-shine"></div>
+                                </div>
+                                <div class="tolkien-book-info">
+                                    <h5 class="tolkien-book-title">{{ book.title|truncatewords:6 }}</h5>
+                                    {% if book.page_count %}
+                                    <span class="tolkien-book-pages">
+                                        <i class="fas fa-file-alt"></i> {{ book.page_count }} páginas
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="swiper-button-prev tolkien-nav-prev"></div>
+                <div class="swiper-button-next tolkien-nav-next"></div>
+                <div class="swiper-pagination tolkien-pagination"></div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Seção de Recomendações Inteligentes -->
+    {% include 'recommendations/recommendations_section.html' %}
 
 </div>
 
@@ -1551,231 +1686,305 @@
 </div>
 
 <style>
-    /* Modal de Vídeo */
-    .video-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 9999;
+/* Modal de Vídeo */
+.video-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.video-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.video-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
+.video-modal-content {
+    position: relative;
+    width: 90%;
+    max-width: 1200px;
+    margin: 2rem auto;
+    background-color: var(--card-bg, #fff);
+    border-radius: 8px;
+    overflow: hidden;
+    animation: slideDown 0.3s ease;
+    z-index: 10000;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
         opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.3s ease, visibility 0.3s ease;
     }
-
-    .video-modal.show {
+    to {
+        transform: translateY(0);
         opacity: 1;
-        visibility: visible;
     }
+}
 
-    .video-modal-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.9);
-    }
+.video-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--primary-color, #ff6b35) 0%, var(--secondary-color, #f7931e) 100%);
+    color: white;
+}
 
+.video-modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.video-modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.video-modal-close:hover {
+    transform: rotate(90deg);
+}
+
+.video-modal-body {
+    padding: 0;
+}
+
+.video-embed-container {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+}
+
+.video-embed-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.video-fallback {
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-color, #333);
+}
+
+.video-fallback i {
+    color: var(--primary-color, #ff6b35);
+}
+
+.video-fallback .btn {
+    margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
     .video-modal-content {
-        position: relative;
-        width: 90%;
-        max-width: 1200px;
-        margin: 2rem auto;
-        background-color: var(--card-bg, #fff);
-        border-radius: 8px;
-        overflow: hidden;
-        animation: slideDown 0.3s ease;
-        z-index: 10000;
-    }
-
-    @keyframes slideDown {
-        from {
-            transform: translateY(-50px);
-            opacity: 0;
-        }
-
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
+        width: 95%;
+        margin: 1rem auto;
     }
 
     .video-modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1.5rem;
-        background: linear-gradient(135deg, var(--primary-color, #ff6b35) 0%, var(--secondary-color, #f7931e) 100%);
-        color: white;
+        padding: 1rem;
     }
 
     .video-modal-title {
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: 600;
-    }
-
-    .video-modal-close {
-        background: none;
-        border: none;
-        color: white;
-        font-size: 1.5rem;
-        cursor: pointer;
-        padding: 0;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.3s ease;
-    }
-
-    .video-modal-close:hover {
-        transform: rotate(90deg);
-    }
-
-    .video-modal-body {
-        padding: 0;
-    }
-
-    .video-embed-container {
-        position: relative;
-        padding-bottom: 56.25%;
-        /* 16:9 aspect ratio */
-        height: 0;
-        overflow: hidden;
-    }
-
-    .video-embed-container iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: none;
+        font-size: 1rem;
     }
 
     .video-fallback {
-        padding: 3rem;
-        text-align: center;
-        color: var(--text-color, #333);
+        padding: 2rem 1rem;
     }
-
-    .video-fallback i {
-        color: var(--primary-color, #ff6b35);
-    }
-
-    .video-fallback .btn {
-        margin-top: 1rem;
-    }
-
-    @media (max-width: 768px) {
-        .video-modal-content {
-            width: 95%;
-            margin: 1rem auto;
-        }
-
-        .video-modal-header {
-            padding: 1rem;
-        }
-
-        .video-modal-title {
-            font-size: 1rem;
-        }
-
-        .video-fallback {
-            padding: 2rem 1rem;
-        }
-    }
+}
 </style>
 
 <script>
-    function openVideoModal(element) {
-        const modal = document.getElementById('videoModal');
-        const title = element.getAttribute('data-video-title');
+    let previewTimeout;
+    let previewIframes = new Map(); // Track iframes to handle errors
+
+    function playVideoPreview(element) {
         const platform = element.getAttribute('data-video-platform');
-        const embedUrl = element.getAttribute('data-video-embed');
-        const videoUrl = element.getAttribute('data-video-url');
         const videoFile = element.getAttribute('data-video-file');
+        const videoUrl = element.getAttribute('data-video-url');
+        const embedUrl = element.getAttribute('data-video-embed');
+        const previewContainer = element.querySelector('.video-hover-preview');
+        
+        if (!previewContainer) return;
 
-        const modalTitle = document.getElementById('videoModalTitle');
-        const embedContainer = document.getElementById('videoEmbedContainer');
-        const fallback = document.getElementById('videoFallback');
-        const fallbackLink = document.getElementById('videoFallbackLink');
+        // Limpa qualquer timeout anterior
+        clearTimeout(previewTimeout);
 
-        modalTitle.textContent = title;
+        // Delay para evitar disparos acidentais
+        previewTimeout = setTimeout(() => {
+            previewContainer.style.display = 'block';
+            
+            if ((platform === 'local' || platform === 'upload') && videoFile) {
+                previewContainer.innerHTML = `<video src="${videoFile}" autoplay muted loop playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>`;
+            } 
+            else if (platform === 'youtube') {
+                let src = '';
+                let videoId = '';
 
-        // Prioridade 1: Vídeo upado localmente (player HTML5)
-        if (platform === 'upload' && videoFile && videoFile.trim() !== '') {
-            embedContainer.style.display = 'block';
-            fallback.style.display = 'none';
-            embedContainer.innerHTML = `<video controls autoplay style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
+                // Tenta usar o embedUrl direto (como o modal faz) para consistência
+                if (embedUrl && embedUrl.includes('embed/')) {
+                     // Extrair video ID do embedUrl
+                     const idMatch = embedUrl.match(/embed\/([^?&]+)/);
+                     if (idMatch) videoId = idMatch[1];
+                     // Usar URL limpa sem origin (origin causa Error 153 em localhost)
+                     src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&showinfo=0&playsinline=1`;
+                } 
+                else if (videoUrl) {
+                    // Fallback: Tenta extrair ID se não tiver embedUrl
+                    const match = videoUrl.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=|youtube\.com\/shorts\/)([^&?]+)/);
+                     if (match) {
+                        videoId = match[1];
+                        src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&showinfo=0&playsinline=1`;
+                     }
+                }
+
+                if (src && videoId) {
+                    const iframeId = `preview-iframe-${videoId}-${Date.now()}`;
+                    previewContainer.innerHTML = `<iframe id="${iframeId}" 
+                                                    src="${src}" 
+                                                    frameborder="0" 
+                                                    style="width: 100%; height: 100%; pointer-events: none;" 
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    referrerpolicy="strict-origin-when-cross-origin">
+                                                  </iframe>`;
+                    
+                    // Handle iframe load errors - fallback to thumbnail
+                    const iframe = previewContainer.querySelector('iframe');
+                    if (iframe) {
+                        iframe.onerror = function() {
+                            // Error 153 or similar - hide preview
+                            previewContainer.style.display = 'none';
+                            previewContainer.innerHTML = '';
+                        };
+                    }
+                }
+            }
+        }, 300); // 300ms de delay para evitar hover acidental
+    }
+
+    function stopVideoPreview(element) {
+        clearTimeout(previewTimeout);
+        const previewContainer = element.querySelector('.video-hover-preview');
+        if (previewContainer) {
+            previewContainer.style.display = 'none';
+            previewContainer.innerHTML = '';
+        }
+    }
+
+function openVideoModal(element) {
+    const modal = document.getElementById('videoModal');
+    const title = element.getAttribute('data-video-title');
+    const platform = element.getAttribute('data-video-platform');
+    const embedUrl = element.getAttribute('data-video-embed');
+    const videoUrl = element.getAttribute('data-video-url');
+    const videoFile = element.getAttribute('data-video-file');
+
+    const modalTitle = document.getElementById('videoModalTitle');
+    const embedContainer = document.getElementById('videoEmbedContainer');
+    const fallback = document.getElementById('videoFallback');
+    const fallbackLink = document.getElementById('videoFallbackLink');
+
+    modalTitle.textContent = title;
+
+    // Prioridade 1: Vídeo upado localmente (player HTML5)
+    if (platform === 'upload' && videoFile && videoFile.trim() !== '') {
+        embedContainer.style.display = 'block';
+        fallback.style.display = 'none';
+        embedContainer.innerHTML = `<video controls autoplay style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
                                         <source src="${videoFile}" type="video/mp4">
                                         <source src="${videoFile}" type="video/webm">
                                         Seu navegador não suporta vídeo HTML5.
                                     </video>`;
-        }
-        // Prioridade 2: YouTube ou Vimeo (iframe embed)
-        else if (embedUrl && embedUrl.trim() !== '' && embedUrl !== 'None' && (platform === 'youtube' || platform === 'vimeo')) {
-            // Mostra player integrado
-            embedContainer.style.display = 'block';
-            fallback.style.display = 'none';
-            embedContainer.innerHTML = `<iframe src="${embedUrl}?rel=0&modestbranding=1"
+    }
+    // Prioridade 2: YouTube ou Vimeo (iframe embed)
+    else if (embedUrl && embedUrl.trim() !== '' && embedUrl !== 'None' && (platform === 'youtube' || platform === 'vimeo')) {
+        // Mostra player integrado
+        embedContainer.style.display = 'block';
+        fallback.style.display = 'none';
+        embedContainer.innerHTML = `<iframe src="${embedUrl}?rel=0&modestbranding=1"
                                            frameborder="0"
                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                            allowfullscreen
                                            referrerpolicy="strict-origin-when-cross-origin">
                                     </iframe>`;
-        } else {
-            // Mostra fallback para Instagram/TikTok
-            embedContainer.style.display = 'none';
-            fallback.style.display = 'block';
-            fallbackLink.href = videoUrl;
+    } else {
+        // Mostra fallback para Instagram/TikTok
+        embedContainer.style.display = 'none';
+        fallback.style.display = 'block';
+        fallbackLink.href = videoUrl;
 
-            // Customiza mensagem baseado na plataforma
-            const icon = fallback.querySelector('i');
-            const message = fallback.querySelector('p');
-            const button = fallback.querySelector('.btn');
+        // Customiza mensagem baseado na plataforma
+        const icon = fallback.querySelector('i');
+        const message = fallback.querySelector('p');
+        const button = fallback.querySelector('.btn');
 
-            if (platform === 'instagram') {
-                icon.className = 'fab fa-instagram fa-3x mb-3';
-                message.textContent = 'Este vídeo do Instagram não pode ser reproduzido diretamente aqui.';
-                button.innerHTML = '<i class="fab fa-instagram"></i> Assistir no Instagram';
-            } else if (platform === 'tiktok') {
-                icon.className = 'fab fa-tiktok fa-3x mb-3';
-                message.textContent = 'Este vídeo do TikTok não pode ser reproduzido diretamente aqui.';
-                button.innerHTML = '<i class="fab fa-tiktok"></i> Assistir no TikTok';
-            }
+        if (platform === 'instagram') {
+            icon.className = 'fab fa-instagram fa-3x mb-3';
+            message.textContent = 'Este vídeo do Instagram não pode ser reproduzido diretamente aqui.';
+            button.innerHTML = '<i class="fab fa-instagram"></i> Assistir no Instagram';
+        } else if (platform === 'tiktok') {
+            icon.className = 'fab fa-tiktok fa-3x mb-3';
+            message.textContent = 'Este vídeo do TikTok não pode ser reproduzido diretamente aqui.';
+            button.innerHTML = '<i class="fab fa-tiktok"></i> Assistir no TikTok';
         }
-
-        modal.classList.add('show');
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
     }
 
-    function closeVideoModal() {
+    modal.classList.add('show');
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeVideoModal() {
+    const modal = document.getElementById('videoModal');
+    const embedContainer = document.getElementById('videoEmbedContainer');
+
+    modal.classList.remove('show');
+    setTimeout(() => {
+        modal.style.display = 'none';
+        embedContainer.innerHTML = ''; // Para o vídeo
+        document.body.style.overflow = '';
+    }, 300);
+}
+
+// Fechar modal com tecla ESC
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
         const modal = document.getElementById('videoModal');
-        const embedContainer = document.getElementById('videoEmbedContainer');
-
-        modal.classList.remove('show');
-        setTimeout(() => {
-            modal.style.display = 'none';
-            embedContainer.innerHTML = ''; // Para o vídeo
-            document.body.style.overflow = '';
-        }, 300);
-    }
-
-    // Fechar modal com tecla ESC
-    document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') {
-            const modal = document.getElementById('videoModal');
-            if (modal && modal.classList.contains('show')) {
-                closeVideoModal();
-            }
+        if (modal && modal.classList.contains('show')) {
+            closeVideoModal();
         }
-    });
+    }
+});
 </script>
 
 
@@ -1803,220 +2012,218 @@
 </div>
 
 <style>
-    /* Modal de Vídeo */
-    .video-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 9999;
+/* Modal de Vídeo */
+.video-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.video-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.video-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
+.video-modal-content {
+    position: relative;
+    width: 90%;
+    max-width: 1200px;
+    margin: 2rem auto;
+    background-color: var(--card-bg, #fff);
+    border-radius: 8px;
+    overflow: hidden;
+    animation: slideDown 0.3s ease;
+    z-index: 10000;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
         opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.3s ease, visibility 0.3s ease;
     }
-
-    .video-modal.show {
+    to {
+        transform: translateY(0);
         opacity: 1;
-        visibility: visible;
     }
+}
 
-    .video-modal-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.9);
-    }
+.video-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--primary-color, #ff6b35) 0%, var(--secondary-color, #f7931e) 100%);
+    color: white;
+}
 
+.video-modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.video-modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.video-modal-close:hover {
+    transform: rotate(90deg);
+}
+
+.video-modal-body {
+    padding: 0;
+}
+
+.video-embed-container {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+}
+
+.video-embed-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.video-fallback {
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-color, #333);
+}
+
+.video-fallback i {
+    color: var(--primary-color, #ff6b35);
+}
+
+.video-fallback .btn {
+    margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
     .video-modal-content {
-        position: relative;
-        width: 90%;
-        max-width: 1200px;
-        margin: 2rem auto;
-        background-color: var(--card-bg, #fff);
-        border-radius: 8px;
-        overflow: hidden;
-        animation: slideDown 0.3s ease;
-        z-index: 10000;
-    }
-
-    @keyframes slideDown {
-        from {
-            transform: translateY(-50px);
-            opacity: 0;
-        }
-
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
+        width: 95%;
+        margin: 1rem auto;
     }
 
     .video-modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1.5rem;
-        background: linear-gradient(135deg, var(--primary-color, #ff6b35) 0%, var(--secondary-color, #f7931e) 100%);
-        color: white;
+        padding: 1rem;
     }
 
     .video-modal-title {
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: 600;
-    }
-
-    .video-modal-close {
-        background: none;
-        border: none;
-        color: white;
-        font-size: 1.5rem;
-        cursor: pointer;
-        padding: 0;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.3s ease;
-    }
-
-    .video-modal-close:hover {
-        transform: rotate(90deg);
-    }
-
-    .video-modal-body {
-        padding: 0;
-    }
-
-    .video-embed-container {
-        position: relative;
-        padding-bottom: 56.25%;
-        /* 16:9 aspect ratio */
-        height: 0;
-        overflow: hidden;
-    }
-
-    .video-embed-container iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: none;
+        font-size: 1rem;
     }
 
     .video-fallback {
-        padding: 3rem;
-        text-align: center;
-        color: var(--text-color, #333);
+        padding: 2rem 1rem;
     }
-
-    .video-fallback i {
-        color: var(--primary-color, #ff6b35);
-    }
-
-    .video-fallback .btn {
-        margin-top: 1rem;
-    }
-
-    @media (max-width: 768px) {
-        .video-modal-content {
-            width: 95%;
-            margin: 1rem auto;
-        }
-
-        .video-modal-header {
-            padding: 1rem;
-        }
-
-        .video-modal-title {
-            font-size: 1rem;
-        }
-
-        .video-fallback {
-            padding: 2rem 1rem;
-        }
-    }
+}
 </style>
 
 <script>
-    function openVideoModal(element) {
-        const modal = document.getElementById('videoModal');
-        const title = element.getAttribute('data-video-title');
-        const platform = element.getAttribute('data-video-platform');
-        const embedUrl = element.getAttribute('data-video-embed');
-        const videoUrl = element.getAttribute('data-video-url');
+function openVideoModal(element) {
+    const modal = document.getElementById('videoModal');
+    const title = element.getAttribute('data-video-title');
+    const platform = element.getAttribute('data-video-platform');
+    const embedUrl = element.getAttribute('data-video-embed');
+    const videoUrl = element.getAttribute('data-video-url');
 
-        const modalTitle = document.getElementById('videoModalTitle');
-        const embedContainer = document.getElementById('videoEmbedContainer');
-        const fallback = document.getElementById('videoFallback');
-        const fallbackLink = document.getElementById('videoFallbackLink');
+    const modalTitle = document.getElementById('videoModalTitle');
+    const embedContainer = document.getElementById('videoEmbedContainer');
+    const fallback = document.getElementById('videoFallback');
+    const fallbackLink = document.getElementById('videoFallbackLink');
 
-        modalTitle.textContent = title;
+    modalTitle.textContent = title;
 
-        // Verifica se pode fazer embed (YouTube ou Vimeo)
-        if (embedUrl && embedUrl.trim() !== '' && embedUrl !== 'None' && (platform === 'youtube' || platform === 'vimeo')) {
-            // Mostra player integrado
-            embedContainer.style.display = 'block';
-            fallback.style.display = 'none';
-            embedContainer.innerHTML = `<iframe src="${embedUrl}?rel=0&modestbranding=1"
+    // Verifica se pode fazer embed (YouTube ou Vimeo)
+    if (embedUrl && embedUrl.trim() !== '' && embedUrl !== 'None' && (platform === 'youtube' || platform === 'vimeo')) {
+        // Mostra player integrado
+        embedContainer.style.display = 'block';
+        fallback.style.display = 'none';
+        embedContainer.innerHTML = `<iframe src="${embedUrl}?rel=0&modestbranding=1"
                                            frameborder="0"
                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                            allowfullscreen
                                            referrerpolicy="strict-origin-when-cross-origin">
                                     </iframe>`;
-        } else {
-            // Mostra fallback para Instagram/TikTok
-            embedContainer.style.display = 'none';
-            fallback.style.display = 'block';
-            fallbackLink.href = videoUrl;
+    } else {
+        // Mostra fallback para Instagram/TikTok
+        embedContainer.style.display = 'none';
+        fallback.style.display = 'block';
+        fallbackLink.href = videoUrl;
 
-            // Customiza mensagem baseado na plataforma
-            const icon = fallback.querySelector('i');
-            const message = fallback.querySelector('p');
-            const button = fallback.querySelector('.btn');
+        // Customiza mensagem baseado na plataforma
+        const icon = fallback.querySelector('i');
+        const message = fallback.querySelector('p');
+        const button = fallback.querySelector('.btn');
 
-            if (platform === 'instagram') {
-                icon.className = 'fab fa-instagram fa-3x mb-3';
-                message.textContent = 'Este vídeo do Instagram não pode ser reproduzido diretamente aqui.';
-                button.innerHTML = '<i class="fab fa-instagram"></i> Assistir no Instagram';
-            } else if (platform === 'tiktok') {
-                icon.className = 'fab fa-tiktok fa-3x mb-3';
-                message.textContent = 'Este vídeo do TikTok não pode ser reproduzido diretamente aqui.';
-                button.innerHTML = '<i class="fab fa-tiktok"></i> Assistir no TikTok';
-            }
+        if (platform === 'instagram') {
+            icon.className = 'fab fa-instagram fa-3x mb-3';
+            message.textContent = 'Este vídeo do Instagram não pode ser reproduzido diretamente aqui.';
+            button.innerHTML = '<i class="fab fa-instagram"></i> Assistir no Instagram';
+        } else if (platform === 'tiktok') {
+            icon.className = 'fab fa-tiktok fa-3x mb-3';
+            message.textContent = 'Este vídeo do TikTok não pode ser reproduzido diretamente aqui.';
+            button.innerHTML = '<i class="fab fa-tiktok"></i> Assistir no TikTok';
         }
-
-        modal.classList.add('show');
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
     }
 
-    function closeVideoModal() {
+    modal.classList.add('show');
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeVideoModal() {
+    const modal = document.getElementById('videoModal');
+    const embedContainer = document.getElementById('videoEmbedContainer');
+
+    modal.classList.remove('show');
+    setTimeout(() => {
+        modal.style.display = 'none';
+        embedContainer.innerHTML = ''; // Para o vídeo
+        document.body.style.overflow = '';
+    }, 300);
+}
+
+// Fechar modal com tecla ESC
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
         const modal = document.getElementById('videoModal');
-        const embedContainer = document.getElementById('videoEmbedContainer');
-
-        modal.classList.remove('show');
-        setTimeout(() => {
-            modal.style.display = 'none';
-            embedContainer.innerHTML = ''; // Para o vídeo
-            document.body.style.overflow = '';
-        }, 300);
-    }
-
-    // Fechar modal com tecla ESC
-    document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') {
-            const modal = document.getElementById('videoModal');
-            if (modal && modal.classList.contains('show')) {
-                closeVideoModal();
-            }
+        if (modal && modal.classList.contains('show')) {
+            closeVideoModal();
         }
-    });
+    }
+});
 </script>
 
-{% endblock %}{# force reload 1 #}
+{% endblock %}
