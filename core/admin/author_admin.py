@@ -112,17 +112,74 @@ class AuthorAdmin(admin.ModelAdmin):
         if not obj or not obj.pk:
             return "Salve o autor primeiro para poder associar livros."
         
-        # Widget com busca AJAX de livros
+        # Widget com busca AJAX de livros - compatível com tema escuro
         return format_html('''
-            <div id="book-search-container" style="margin-bottom: 20px;">
+            <style>
+                #book-search-container {{
+                    margin-bottom: 20px;
+                }}
+                #book-search-input {{
+                    width: 100%;
+                    padding: 10px;
+                    font-size: 14px;
+                    border: 1px solid var(--border-color, #ccc);
+                    border-radius: 4px;
+                    background: var(--body-bg, #fff);
+                    color: var(--body-fg, #333);
+                }}
+                #book-search-input::placeholder {{
+                    color: var(--body-quiet-color, #666);
+                }}
+                #book-search-results {{
+                    display: none;
+                    border: 1px solid var(--primary, #417690);
+                    border-radius: 4px;
+                    max-height: 300px;
+                    overflow-y: auto;
+                    background: var(--body-bg, #fff);
+                    margin-top: 5px;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                }}
+                .book-result-item {{
+                    padding: 10px 15px;
+                    cursor: pointer;
+                    border-bottom: 1px solid var(--hairline-color, #eee);
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    color: var(--body-fg, #333);
+                }}
+                .book-result-item:hover {{
+                    background: var(--darkened-bg, #e6f3ff);
+                }}
+                .book-result-title {{
+                    font-weight: bold;
+                    color: var(--body-fg, #333);
+                }}
+                .book-result-author {{
+                    font-size: 12px;
+                    color: var(--body-quiet-color, #888);
+                }}
+                .book-result-no-author {{
+                    font-size: 12px;
+                    color: var(--message-success-bg, #28a745);
+                }}
+                .book-search-empty {{
+                    padding: 15px;
+                    color: var(--body-quiet-color, #666);
+                }}
+                .book-search-hint {{
+                    margin-top: 10px;
+                    color: var(--body-quiet-color, #666);
+                    font-size: 12px;
+                }}
+            </style>
+            <div id="book-search-container">
                 <input type="text" id="book-search-input" 
                        placeholder="🔍 Digite o título do livro para buscar..." 
-                       style="width: 100%; padding: 10px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px;"
                        autocomplete="off">
-                <div id="book-search-results" 
-                     style="display: none; border: 1px solid #417690; border-radius: 4px; max-height: 300px; overflow-y: auto; background: #fff; margin-top: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                </div>
-                <p style="margin-top: 10px; color: #666; font-size: 12px;">
+                <div id="book-search-results"></div>
+                <p class="book-search-hint">
                     <strong>Dica:</strong> Após selecionar um livro, a página será recarregada com o livro associado.
                 </p>
             </div>
@@ -149,15 +206,13 @@ class AuthorAdmin(admin.ModelAdmin):
                             .then(function(data) {{
                                 results.innerHTML = '';
                                 if (data.results.length === 0) {{
-                                    results.innerHTML = '<div style="padding: 15px; color: #666;">Nenhum livro encontrado</div>';
+                                    results.innerHTML = '<div class="book-search-empty">Nenhum livro encontrado</div>';
                                 }} else {{
                                     data.results.forEach(function(book) {{
                                         var div = document.createElement('div');
-                                        div.style.cssText = 'padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px;';
-                                        div.innerHTML = '<span style="font-weight: bold;">' + book.title + '</span>' +
-                                                       (book.author ? '<span style="color: #888; font-size: 12px;">(' + book.author + ')</span>' : '<span style="color: #28a745; font-size: 12px;">(sem autor)</span>');
-                                        div.addEventListener('mouseover', function() {{ this.style.background = '#e6f3ff'; }});
-                                        div.addEventListener('mouseout', function() {{ this.style.background = '#fff'; }});
+                                        div.className = 'book-result-item';
+                                        div.innerHTML = '<span class="book-result-title">' + book.title + '</span>' +
+                                                       (book.author ? '<span class="book-result-author">(' + book.author + ')</span>' : '<span class="book-result-no-author">(sem autor)</span>');
                                         div.addEventListener('click', function() {{
                                             if (confirm('Associar "' + book.title + '" a este autor?')) {{
                                                 fetch('/admin-tools/associate-book/', {{
@@ -196,6 +251,7 @@ class AuthorAdmin(admin.ModelAdmin):
         ''', author_id=obj.pk)
     
     associate_books_widget.short_description = "Buscar Livros"
+
 
     def photo_preview(self, obj):
         """Preview da foto do autor."""
