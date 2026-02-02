@@ -289,7 +289,7 @@ class SectionAdmin(admin.ModelAdmin):
         })
     )
 
-    readonly_fields = ['created_at', 'updated_at', 'banner_image_preview', 'container_background_image_preview']
+    readonly_fields = ['created_at', 'updated_at', 'banner_image_preview', 'background_image_preview', 'container_background_image_preview']
 
     def banner_preview(self, obj):
         """Exibe preview do banner na lista."""
@@ -315,6 +315,20 @@ class SectionAdmin(admin.ModelAdmin):
         return format_html('<p style="color: #999; font-style: italic;">Nenhuma imagem de banner carregada</p>')
 
     banner_image_preview.short_description = 'Preview do Banner'
+
+    def background_image_preview(self, obj):
+        """Exibe preview da imagem de background no formulário."""
+        if obj.background_image:
+            return format_html(
+                '<div style="margin-top: 10px;">'
+                '<img src="{}" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />'
+                '<p style="margin-top: 8px; color: #666; font-size: 12px;">Preview do background atual</p>'
+                '</div>',
+                obj.background_image.url
+            )
+        return format_html('<p style="color: #999; font-style: italic;">Nenhuma imagem de background carregada</p>')
+
+    background_image_preview.short_description = 'Preview do Background'
 
     def container_background_image_preview(self, obj):
         """Exibe preview da imagem de fundo do container no formulário."""
