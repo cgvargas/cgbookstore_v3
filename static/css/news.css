@@ -1181,6 +1181,55 @@
     background: linear-gradient(to right, transparent, #e74c3c, transparent);
 }
 
+/* Dark theme - Tabelas do CKEditor */
+[data-theme="dark"] .article-content table {
+    background: #2a2a2a !important;
+    border-color: #444 !important;
+    color: #e0e0e0 !important;
+}
+
+[data-theme="dark"] .article-content table th {
+    background: #333 !important;
+    color: #e0e0e0 !important;
+    border-color: #444 !important;
+}
+
+[data-theme="dark"] .article-content table td {
+    background: #2a2a2a !important;
+    color: #e0e0e0 !important;
+    border-color: #444 !important;
+}
+
+[data-theme="dark"] .article-content table tr:nth-child(even) td {
+    background: #252525 !important;
+}
+
+[data-theme="dark"] .article-content table tr:hover td {
+    background: #363636 !important;
+}
+
+/* Também aplicar para tabelas fora de article-content */
+[data-theme="dark"] .ck-content table,
+[data-theme="dark"] table.ck-table-resized {
+    background: #2a2a2a !important;
+    border-color: #444 !important;
+    color: #e0e0e0 !important;
+}
+
+[data-theme="dark"] .ck-content table th,
+[data-theme="dark"] table.ck-table-resized th {
+    background: #333 !important;
+    color: #e0e0e0 !important;
+    border-color: #444 !important;
+}
+
+[data-theme="dark"] .ck-content table td,
+[data-theme="dark"] table.ck-table-resized td {
+    background: #2a2a2a !important;
+    color: #e0e0e0 !important;
+    border-color: #444 !important;
+}
+
 /* ===== TEMA CLARO - Artigos ===== */
 [data-theme="light"] .article-detail,
 [data-theme="light"] .article-header,
