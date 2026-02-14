@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'finance.apps.FinanceConfig',
     'new_authors.apps.NewAuthorsConfig',
     'news',
+    'ereader.apps.EreaderConfig',  # RetroReader - Leitor de E-Books
 
     # Third-party Apps
     'rest_framework',

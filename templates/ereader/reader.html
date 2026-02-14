@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ ebook.title }} - Leitor{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/retroreader.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="reader-page" id="reader-page" data-theme="{{ settings.theme|default:'dark' }}">
+
+    <!-- ========== HEADER ========== -->
+    <header class="reader-header">
+        <a href="{% url 'ereader:book_detail' ebook.id %}" class="back-btn" title="Voltar">
+            <i class="fas fa-arrow-left"></i>
+            <span>Voltar</span>
+        </a>
+
+        <div class="book-info">
+            <span class="book-title" id="book-title">{{ ebook.title }}</span>
+            <span class="book-chapter" id="chapter-title">Carregando...</span>
+        </div>
+
+        <div class="header-actions">
+            <button class="header-btn" id="btn-bookmark" title="Marcar página">
+                <i class="far fa-bookmark"></i>
+            </button>
+            <button class="header-btn" id="btn-panel" title="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="reader-main">
+
+        <!-- Viewport: visible window for the book -->
+        <div class="reader-viewport" id="reader-viewport">
+
+            <!-- Nav arrows -->
+            <button class="nav-arrow prev" id="btn-prev" title="Página anterior">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <!-- Book content frame -->
+            <div class="reader-content-frame" id="content-frame">
+                <div class="reader-content" id="reader-content">
+                    <!-- Book HTML is rendered here directly (no iframe) -->
+                </div>
+            </div>
+
+            <button class="nav-arrow next" id="btn-next" title="Próxima página">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+
+        </div>
+
+        <!-- Side panel overlay -->
+        <div class="reader-panel-overlay" id="panel-overlay"></div>
+
+        <!-- ========== SIDE PANEL ========== -->
+        <aside class="reader-panel" id="side-panel">
+            <div class="panel-header">
+                <h3 id="panel-title">Menu</h3>
+                <button class="panel-close-btn" id="btn-close-panel">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="panel-tabs">
+                <button class="panel-tab active" data-tab="toc">Índice</button>
+                <button class="panel-tab" data-tab="bookmarks">Marcadores</button>
+                <button class="panel-tab" data-tab="settings">Config</button>
+            </div>
+
+            <div class="panel-body">
+                <!-- TOC -->
+                <div class="panel-section active" id="section-toc">
+                    <ul class="toc-list" id="toc-list">
+                        <li class="empty-state">
+                            <i class="fas fa-list"></i>
+                            Carregando índice...
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Bookmarks -->
+                <div class="panel-section" id="section-bookmarks">
+                    <div id="bookmarks-container">
+                        <div class="empty-state">
+                            <i class="far fa-bookmark"></i>
+                            Nenhum marcador ainda
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div class="panel-section" id="section-settings">
+                    <!-- Theme -->
+                    <div class="setting-group">
+                        <label>Tema</label>
+                        <div class="setting-row">
+                            <button class="setting-btn" data-theme="dark">Escuro</button>
+                            <button class="setting-btn" data-theme="light">Claro</button>
+                            <button class="setting-btn" data-theme="sepia">Sépia</button>
+                        </div>
+                        <div class="setting-row" style="margin-top:6px;">
+                            <button class="setting-btn" data-theme="green">Verde</button>
+                            <button class="setting-btn" data-theme="amber">Âmbar</button>
+                        </div>
+                    </div>
+
+                    <!-- Font size -->
+                    <div class="setting-group">
+                        <label>Tamanho da fonte</label>
+                        <div class="font-size-controls">
+                            <button id="btn-font-down">−</button>
+                            <span class="size-value" id="font-size-value">18px</span>
+                            <button id="btn-font-up">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Font family -->
+                    <div class="setting-group">
+                        <label>Fonte</label>
+                        <div class="setting-row">
+                            <button class="setting-btn" data-font="serif">Serif</button>
+                            <button class="setting-btn" data-font="sans">Sans</button>
+                            <button class="setting-btn" data-font="mono">Mono</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="reader-footer">
+        <span class="page-info" id="page-info">— / —</span>
+        <div class="progress-bar-wrapper" id="progress-bar">
+            <div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+        <span class="progress-pct" id="progress-pct">0%</span>
+    </footer>
+
+    <!-- ========== LOADING ========== -->
+    <div class="reader-loading" id="loading-screen">
+        <div class="loader-spinner"></div>
+        <p class="loader-text" id="loader-text">Carregando livro...</p>
+        <p class="loader-progress" id="loader-progress"></p>
+    </div>
+
+</div>
+
+<!-- Book data injected by Django -->
+<script>
+    window.EBOOK_DATA = {
+        id: {{ ebook.id }},
+        title: "{{ ebook.title|escapejs }}",
+        author: "{{ ebook.author|escapejs }}",
+        epubUrl: "{% url 'ereader:epub_proxy' ebook.id %}",
+        savedProgress: {
+            cfi: "{{ progress.current_cfi|default:''|escapejs }}",
+            percentage: {{ progress.percentage|default:0 }},
+        },
+        apiUrls: {
+            saveProgress: "{% url 'ereader_api:save_progress' ebook.id %}",
+            getProgress: "{% url 'ereader_api:progress' ebook.id %}",
+            bookmarks: "{% url 'ereader_api:book_bookmarks' ebook.id %}",
+            createBookmark: "{% url 'ereader_api:create_bookmark' %}",
+            deleteBookmarkBase: "/api/ereader/bookmarks/",
+            highlights: "{% url 'ereader_api:book_highlights' ebook.id %}",
+            createHighlight: "{% url 'ereader_api:create_highlight' %}",
+            notes: "{% url 'ereader_api:book_notes' ebook.id %}",
+            createNote: "{% url 'ereader_api:create_note' %}",
+            settings: "{% url 'ereader_api:settings' %}",
+        },
+        csrfToken: "{{ csrf_token }}",
+    };
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="{% static 'js/retroreader.js' %}"></script>
+{% endblock %}

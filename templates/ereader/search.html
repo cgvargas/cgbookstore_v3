@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Buscar E-Books - RetroReader{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/retroreader.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="ereader-library">
+    <!-- Header -->
+    <div class="library-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="library-title">
+                        <span class="retro-icon">🔍</span>
+                        Buscar nos Arquivos
+                    </h1>
+                    <p class="library-subtitle">Encontre livros gratuitos no Project Gutenberg e Open Library</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="{% url 'ereader:library' %}" class="btn btn-retro-outline">
+                        ← Voltar à Biblioteca
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-4">
+        <!-- Busca -->
+        <div class="search-box mb-4">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" id="search-query" class="form-control retro-input" 
+                           placeholder="Digite título ou autor..." value="{{ query }}">
+                </div>
+                <div class="col-md-3">
+                    <select id="search-source" class="form-select retro-select">
+                        <option value="gutenberg" {% if source == 'gutenberg' %}selected{% endif %}>
+                            Project Gutenberg
+                        </option>
+                        <option value="openlibrary" {% if source == 'openlibrary' %}selected{% endif %}>
+                            Open Library
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button id="btn-search" class="btn btn-retro w-100">
+                        🔍 Buscar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading -->
+        <div id="search-loading" class="text-center py-5 d-none">
+            <div class="retro-tv-static mx-auto mb-3">
+                <span>📡</span>
+            </div>
+            <p class="text-muted">Sintonizando arquivos...</p>
+        </div>
+        
+        <!-- Resultados -->
+        <div id="search-results" class="books-grid">
+            <!-- Resultados via JS -->
+        </div>
+        
+        <!-- Estado inicial -->
+        <div id="initial-state" class="empty-state">
+            <div class="retro-tv-static">
+                <span class="static-icon">📚</span>
+            </div>
+            <h3>Milhões de Livros Gratuitos</h3>
+            <p>Busque por título ou autor para encontrar livros em domínio público</p>
+            <div class="suggested-searches mt-4">
+                <p class="text-muted">Sugestões:</p>
+                <button class="btn btn-sm btn-retro-outline suggested-search" data-query="Machado de Assis">Machado de Assis</button>
+                <button class="btn btn-sm btn-retro-outline suggested-search" data-query="Shakespeare">Shakespeare</button>
+                <button class="btn btn-sm btn-retro-outline suggested-search" data-query="Edgar Allan Poe">Edgar Allan Poe</button>
+                <button class="btn btn-sm btn-retro-outline suggested-search" data-query="Jane Austen">Jane Austen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-query');
+    const sourceSelect = document.getElementById('search-source');
+    const searchBtn = document.getElementById('btn-search');
+    const loading = document.getElementById('search-loading');
+    const results = document.getElementById('search-results');
+    const initialState = document.getElementById('initial-state');
+    
+    const csrfToken = '{{ csrf_token }}';
+    
+    // Busca
+    async function performSearch() {
+        const query = searchInput.value.trim();
+        const source = sourceSelect.value;
+        
+        if (!query) return;
+        
+        // Mostrar loading
+        loading.classList.remove('d-none');
+        results.innerHTML = '';
+        initialState.classList.add('d-none');
+        
+        try {
+            const response = await fetch(`/api/ereader/search/${source}/?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            loading.classList.add('d-none');
+            
+            if (data.books && data.books.length > 0) {
+                results.innerHTML = data.books.map(book => `
+                    <div class="book-card">
+                        <div class="book-cover">
+                            ${book.cover_image 
+                                ? `<img src="${book.cover_image}" alt="${book.title}" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\'><span>📖</span></div>'">`
+                                : '<div class="no-cover"><span>📖</span></div>'
+                            }
+                        </div>
+                        <div class="book-info">
+                            <h3 class="book-title">${book.title.substring(0, 50)}${book.title.length > 50 ? '...' : ''}</h3>
+                            <p class="book-author">${book.author}</p>
+                            <div class="book-meta">
+                                <span class="source-badge source-${source}">${source === 'gutenberg' ? 'Gutenberg' : 'Open Library'}</span>
+                            </div>
+                            <div class="book-actions">
+                                <button class="btn btn-sm btn-retro import-btn" 
+                                        data-source="${source}" 
+                                        data-id="${book.external_id}">
+                                    📥 Importar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Eventos de importação
+                document.querySelectorAll('.import-btn').forEach(btn => {
+                    btn.addEventListener('click', () => importBook(btn.dataset.source, btn.dataset.id, btn));
+                });
+            } else {
+                results.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Nenhum resultado</h3>
+                        <p>Tente outra busca ou outra fonte</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            loading.classList.add('d-none');
+            results.innerHTML = `
+                <div class="empty-state">
+                    <h3>Erro na busca</h3>
+                    <p>Tente novamente mais tarde</p>
+                </div>
+            `;
+        }
+    }
+    
+    // Importar livro
+    async function importBook(source, externalId, btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Importando...';
+        
+        try {
+            const response = await fetch(`/api/ereader/import/${source}/${externalId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                btn.innerHTML = '✅ Importado!';
+                btn.classList.remove('btn-retro');
+                btn.classList.add('btn-success');
+                
+                // Redirecionar após 1s
+                setTimeout(() => {
+                    window.location.href = `/ereader/book/${data.id}/`;
+                }, 1000);
+            } else {
+                btn.innerHTML = '❌ Erro';
+                btn.disabled = false;
+            }
+        } catch (error) {
+            btn.innerHTML = '❌ Erro';
+            btn.disabled = false;
+        }
+    }
+    
+    // Eventos
+    searchBtn.addEventListener('click', performSearch);
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') performSearch();
+    });
+    
+    // Sugestões
+    document.querySelectorAll('.suggested-search').forEach(btn => {
+        btn.addEventListener('click', () => {
+            searchInput.value = btn.dataset.query;
+            performSearch();
+        });
+    });
+    
+    // Se já veio com query
+    if (searchInput.value) {
+        performSearch();
+    }
+});
+</script>
+{% endblock %}

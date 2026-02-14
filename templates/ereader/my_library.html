@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Minha Biblioteca - RetroReader{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/retroreader.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="ereader-library">
+    <!-- Header -->
+    <div class="library-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="library-title">
+                        <span class="retro-icon">📚</span>
+                        Minha Biblioteca
+                    </h1>
+                    <p class="library-subtitle">Seus livros salvos para leitura</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="{% url 'ereader:library' %}" class="btn btn-retro-outline">
+                        🏠 Explorar Biblioteca
+                    </a>
+                    <a href="{% url 'ereader:search' %}" class="btn btn-retro">
+                        🔍 Buscar Mais
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-4">
+        <!-- Grid de Livros -->
+        <div class="books-grid">
+            {% for item in library_items %}
+            <div class="book-card">
+                <div class="book-cover">
+                    {% if item.ebook.cover_image %}
+                    <img src="{{ item.ebook.cover_image }}" alt="{{ item.ebook.title }}">
+                    {% else %}
+                    <div class="no-cover">
+                        <span>📖</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="book-info">
+                    <h3 class="book-title">{{ item.ebook.title|truncatechars:50 }}</h3>
+                    <p class="book-author">{{ item.ebook.author }}</p>
+                    
+                    <div class="book-meta">
+                        <span class="source-badge source-{{ item.ebook.source }}">
+                            {{ item.ebook.get_source_display }}
+                        </span>
+                    </div>
+                    
+                    <div class="book-actions">
+                        <a href="{% url 'ereader:read' item.ebook.id %}" class="btn btn-sm btn-retro">
+                            📺 Continuar
+                        </a>
+                        <form method="post" action="{% url 'ereader:remove_from_library' item.ebook.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-retro-outline" title="Remover">
+                                🗑️
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <div class="retro-tv-static">
+                    <span class="static-icon">📚</span>
+                </div>
+                <h3>Sua biblioteca está vazia</h3>
+                <p>Adicione livros para começar a ler!</p>
+                <a href="{% url 'ereader:library' %}" class="btn btn-retro">
+                    Explorar Biblioteca
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+.progress-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 0.5rem;
+}
+
+.progress-bar {
+    height: 4px;
+    background: var(--theme-amber);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    display: block;
+    text-align: center;
+    color: var(--theme-amber);
+    font-size: 0.7rem;
+    margin-top: 0.25rem;
+    font-family: 'Courier New', monospace;
+}
+</style>
+{% endblock %}

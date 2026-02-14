@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}RetroReader - Biblioteca de E-Books{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/retroreader.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="ereader-library">
+    <!-- Header da Biblioteca -->
+    <div class="library-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="library-title">
+                        <span class="retro-icon">📺</span>
+                        RetroReader
+                    </h1>
+                    <p class="library-subtitle">Biblioteca de E-Books Vintage</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'ereader:my_library' %}" class="btn btn-retro">
+                        📚 Minha Biblioteca
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'ereader:search' %}" class="btn btn-retro-outline">
+                        🔍 Buscar nos Arquivos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-4">
+        <!-- Filtros -->
+        <div class="library-filters mb-4">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="q" class="form-control retro-input" 
+                           placeholder="Buscar por título ou autor..." 
+                           value="{{ search_query|default:'' }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="source" class="form-select retro-select">
+                        <option value="">Todas as fontes</option>
+                        {% for value, label in sources %}
+                        <option value="{{ value }}" {% if current_source == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="language" class="form-select retro-select">
+                        <option value="">Todos os idiomas</option>
+                        {% for value, label in languages %}
+                        <option value="{{ value }}" {% if current_language == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-retro w-100">
+                        Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Grid de Livros -->
+        <div class="books-grid">
+            {% for ebook in ebooks %}
+            <div class="book-card">
+                <div class="book-cover">
+                    {% if ebook.cover_image %}
+                    <img src="{{ ebook.cover_image }}" alt="{{ ebook.title }}">
+                    {% else %}
+                    <div class="no-cover">
+                        <span>📖</span>
+                        <small>Sem capa</small>
+                    </div>
+                    {% endif %}
+                    
+                    {% if ebook.id in user_library_ids %}
+                    <span class="library-badge" title="Na sua biblioteca">📚</span>
+                    {% endif %}
+                </div>
+                
+                <div class="book-info">
+                    <h3 class="book-title">{{ ebook.title|truncatechars:50 }}</h3>
+                    <p class="book-author">{{ ebook.author }}</p>
+                    
+                    <div class="book-meta">
+                        <span class="source-badge source-{{ ebook.source }}">
+                            {{ ebook.get_source_display }}
+                        </span>
+                        <span class="lang-badge">{{ ebook.get_language_display }}</span>
+                    </div>
+                    
+                    <div class="book-actions">
+                        <a href="{% url 'ereader:book_detail' ebook.id %}" class="btn btn-sm btn-retro-outline">
+                            Ver Detalhes
+                        </a>
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'ereader:read' ebook.id %}" class="btn btn-sm btn-retro">
+                            📺 Ler
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <div class="retro-tv-static">
+                    <span class="static-icon">📺</span>
+                </div>
+                <h3>Nenhum livro encontrado</h3>
+                <p>Que tal buscar na biblioteca digital?</p>
+                <a href="{% url 'ereader:search' %}" class="btn btn-retro">
+                    Buscar nos Arquivos
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Paginação -->
+        {% if ebooks.has_other_pages %}
+        <nav class="pagination-retro">
+            {% if ebooks.has_previous %}
+            <a href="?page={{ ebooks.previous_page_number }}" class="btn btn-retro-outline">
+                ◀ Anterior
+            </a>
+            {% endif %}
+            
+            <span class="page-info">
+                Página {{ ebooks.number }} de {{ ebooks.paginator.num_pages }}
+            </span>
+            
+            {% if ebooks.has_next %}
+            <a href="?page={{ ebooks.next_page_number }}" class="btn btn-retro-outline">
+                Próxima ▶
+            </a>
+            {% endif %}
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

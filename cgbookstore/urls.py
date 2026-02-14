@@ -21,6 +21,8 @@ urlpatterns = [
     path('finance/', include('finance.urls', namespace='finance')),
     path('novos-autores/', include('new_authors.urls', namespace='new_authors')),
     path('noticias/', include('news.urls', namespace='news')),
+    path('ereader/', include('ereader.urls', namespace='ereader')),
+    path('api/ereader/', include('ereader.api_urls', namespace='ereader_api')),
     path('ckeditor5/', include('django_ckeditor_5.urls')),
     path('', include('core.urls', namespace='core')),
 ]
