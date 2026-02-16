@@ -265,3 +265,33 @@ def epub_proxy(request, book_id):
         
     except requests.RequestException as e:
         return HttpResponse(f'Erro ao baixar EPUB: {str(e)}', status=502)
+
+def debug_env_view(request):
+    """View para diagnosticar ambiente de produção"""
+    import sys
+    import pkg_resources
+    
+    info = []
+    info.append(f"<h1>Diagnóstico de Ambiente</h1>")
+    info.append(f"<strong>Python Version:</strong> {sys.version}")
+    info.append(f"<strong>Platform:</strong> {sys.platform}")
+    
+    try:
+        import mobi
+        info.append(f"<div style='color:green'><strong>Mobi Library:</strong> IMPORT SUCCESS - {mobi}</div>")
+    except Exception as e:
+        info.append(f"<div style='color:red'><strong>Mobi Library:</strong> IMPORT FAILED - {e}</div>")
+        
+    try:
+        dist = pkg_resources.get_distribution("mobi")
+        info.append(f"<strong>Mobi Package Info:</strong> {dist} - Location: {dist.location}")
+    except Exception as e:
+        info.append(f"<strong>Mobi Package Info:</strong> Failed to get info - {e}")
+
+    try:
+        dist = pkg_resources.get_distribution("ebooklib")
+        info.append(f"<strong>EbookLib Info:</strong> {dist}")
+    except Exception as e:
+        info.append(f"<strong>EbookLib Info:</strong> Failed to get info - {e}")
+        
+    return HttpResponse("<br><br>".join(info))

@@ -23,5 +23,8 @@ urlpatterns = [
     path('export/<int:book_id>/txt/', views_export.export_annotations_txt, name='export_txt'),
     path('export/<int:book_id>/html/', views_export.export_annotations_html, name='export_html'),
     path('export/all/', views_export.export_all_annotations, name='export_all'),
+    
+    # Debug
+    path('debug-env/', views.debug_env_view, name='debug_env'),
 ]
 
