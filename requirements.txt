@@ -30,6 +30,10 @@ django-pictures==1.3.3
 django-cleanup==9.0.0  # Auto-delete de arquivos órfãos
 # opencv-python removido - não utilizado no código
 
+# ========== EBOOK CONVERSION ==========
+ebooklib==0.18
+mobi==0.3.3
+
 # ========== CACHE COM REDIS ==========
 redis==5.2.0
 django-redis==6.0.0
