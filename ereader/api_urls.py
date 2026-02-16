@@ -15,20 +15,20 @@ urlpatterns = [
     
     # Marcadores
     path('bookmarks/', api.BookmarkListAPI.as_view(), name='bookmark_list'),
+    path('bookmarks/new/', api.CreateBookmarkAPI.as_view(), name='create_bookmark'),
     path('bookmarks/<int:book_id>/', api.BookBookmarksAPI.as_view(), name='book_bookmarks'),
-    path('bookmarks/create/', api.CreateBookmarkAPI.as_view(), name='create_bookmark'),
     path('bookmarks/<int:pk>/delete/', api.DeleteBookmarkAPI.as_view(), name='delete_bookmark'),
     
     # Destaques
     path('highlights/', api.HighlightListAPI.as_view(), name='highlight_list'),
+    path('highlights/new/', api.CreateHighlightAPI.as_view(), name='create_highlight'),
     path('highlights/<int:book_id>/', api.BookHighlightsAPI.as_view(), name='book_highlights'),
-    path('highlights/create/', api.CreateHighlightAPI.as_view(), name='create_highlight'),
     path('highlights/<int:pk>/delete/', api.DeleteHighlightAPI.as_view(), name='delete_highlight'),
     
     # Notas
     path('notes/', api.NoteListAPI.as_view(), name='note_list'),
+    path('notes/new/', api.CreateNoteAPI.as_view(), name='create_note'),
     path('notes/<int:book_id>/', api.BookNotesAPI.as_view(), name='book_notes'),
-    path('notes/create/', api.CreateNoteAPI.as_view(), name='create_note'),
     path('notes/<int:pk>/update/', api.UpdateNoteAPI.as_view(), name='update_note'),
     path('notes/<int:pk>/delete/', api.DeleteNoteAPI.as_view(), name='delete_note'),
     

@@ -135,6 +135,12 @@ class EBookReader {
         return new DOMParser().parseFromString(xmlString, 'application/xml');
     }
 
+    parseHtml(htmlString) {
+        // Parse EPUB XHTML as HTML so elements are in the HTML namespace
+        // and respond to CSS selectors properly
+        return new DOMParser().parseFromString(htmlString, 'text/html');
+    }
+
     parseManifest(opfDoc) {
         const manifest = {};
         // Handle namespaced and non-namespaced
@@ -259,9 +265,9 @@ class EBookReader {
                 continue;
             }
 
-            // Load XHTML content
+            // Load XHTML content (parse as HTML for proper CSS styling)
             const xhtml = await file.async('text');
-            const doc = this.parseXml(xhtml);
+            const doc = this.parseHtml(xhtml);
 
             // Get body content
             const body = doc.querySelector('body');
@@ -301,7 +307,7 @@ class EBookReader {
     }
 
     importNode(node) {
-        // Deep import, stripping <script> tags
+        // Deep import, stripping <script> tags and harmful inline styles
         if (node.nodeType === Node.ELEMENT_NODE) {
             if (node.tagName.toLowerCase() === 'script') {
                 return document.createComment('script removed');
@@ -309,11 +315,34 @@ class EBookReader {
             if (node.tagName.toLowerCase() === 'link') {
                 return document.createComment('link removed');
             }
+            // Strip <style> tags from EPUB (they override our theme)
+            if (node.tagName.toLowerCase() === 'style') {
+                return document.createComment('style removed');
+            }
         }
         try {
-            return document.importNode(node, true);
+            const imported = document.importNode(node, true);
+            // Strip color-related inline styles from all elements
+            if (imported.nodeType === Node.ELEMENT_NODE) {
+                this.stripInlineStyles(imported);
+            }
+            return imported;
         } catch {
             return document.createTextNode(node.textContent || '');
+        }
+    }
+
+    stripInlineStyles(el) {
+        // Remove color/background/font styles that conflict with our theme
+        if (el.style) {
+            el.style.removeProperty('color');
+            el.style.removeProperty('background');
+            el.style.removeProperty('background-color');
+            el.style.removeProperty('font-family');
+        }
+        // Recurse into children
+        for (const child of el.children) {
+            this.stripInlineStyles(child);
         }
     }
 
@@ -324,29 +353,73 @@ class EBookReader {
             : '';
 
         for (const img of imgs) {
-            const src = img.getAttribute('src') || img.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
+            let src = img.getAttribute('src') || img.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
             if (!src || src.startsWith('data:') || src.startsWith('blob:')) continue;
 
-            // Resolve relative path
-            const resolvedPath = this.basePath + spineDir + src;
+            // Decode URL (fix %20 spaces etc)
+            try { src = decodeURIComponent(src); } catch (e) { }
+
+            // Resolve relative path and normalize (handle ../)
+            let resolvedPath = this.normalizePath(this.basePath + spineDir + src);
 
             // Check cache
             if (this.blobUrls.has(resolvedPath)) {
-                img.setAttribute('src', this.blobUrls.get(resolvedPath));
+                const url = this.blobUrls.get(resolvedPath);
+                this.setImageSrc(img, url);
                 continue;
             }
 
-            // Create blob URL
-            const file = this.zip.file(resolvedPath);
+            // Try direct path first
+            let file = this.zip.file(resolvedPath);
+
+            // Fallback 1: try without basePath
+            if (!file) {
+                const altPath = this.normalizePath(spineDir + src);
+                file = this.zip.file(altPath);
+            }
+
+            // Fallback 2: try just the filename (search entire ZIP)
+            if (!file) {
+                const filename = src.split('/').pop();
+                const matches = this.zip.file(new RegExp('(^|/)' + filename.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'));
+                if (matches.length > 0) {
+                    file = matches[0];
+                    resolvedPath = file.name;
+                }
+            }
+
             if (file) {
                 try {
                     const blob = await file.async('blob');
                     const url = URL.createObjectURL(blob);
                     this.blobUrls.set(resolvedPath, url);
-                    img.setAttribute('src', url);
+                    this.setImageSrc(img, url);
                 } catch { /* skip broken images */ }
             }
         }
+    }
+
+    setImageSrc(img, url) {
+        if (img.tagName.toLowerCase() === 'image') {
+            img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', url);
+            img.setAttribute('href', url);
+        } else {
+            img.setAttribute('src', url);
+        }
+    }
+
+    normalizePath(path) {
+        // Resolve ../ and ./ in paths
+        const parts = path.split('/');
+        const result = [];
+        for (const part of parts) {
+            if (part === '..') {
+                result.pop();
+            } else if (part !== '.' && part !== '') {
+                result.push(part);
+            }
+        }
+        return result.join('/');
     }
 
     // ╔══════════════════════════════════════════╗
@@ -357,33 +430,40 @@ class EBookReader {
         const frame = this.el.frame;
         const content = this.el.content;
 
-        this.pageWidth = frame.clientWidth;
         const pageHeight = frame.clientHeight;
 
-        // Apply CSS column layout
+        // Calculate actual column width (content area minus padding)
+        const cs = getComputedStyle(content);
+        const padLeft = parseFloat(cs.paddingLeft) || 0;
+        const padRight = parseFloat(cs.paddingRight) || 0;
+        this.columnWidth = content.clientWidth - padLeft - padRight;
+        this.pageWidth = this.columnWidth; // for other references
+
+        // Apply CSS column layout using actual content width
         content.style.height = pageHeight + 'px';
-        content.style.columnWidth = this.pageWidth + 'px';
+        content.style.columnWidth = this.columnWidth + 'px';
         content.style.columnGap = this.columnGap + 'px';
 
         // Force layout
         void content.offsetHeight;
 
-        // Calculate total pages from scrollWidth
-        const step = this.pageWidth + this.columnGap;
-        this.totalPages = Math.max(1, Math.ceil(content.scrollWidth / step));
+        // Step = column width + gap (NOT frame width + gap)
+        this.pageStep = this.columnWidth + this.columnGap;
+        this.totalPages = Math.max(1, Math.ceil(content.scrollWidth / this.pageStep));
 
         // Clamp current page
         this.currentPage = Math.min(this.currentPage, this.totalPages);
 
         this.updateUI();
-        console.log(`[Reader] Paginação: ${this.totalPages} páginas (${this.pageWidth}×${frame.clientHeight})`);
+        console.log(`[Reader] Paginação: ${this.totalPages} páginas (col=${this.columnWidth}, step=${this.pageStep})`);
     }
 
     goToPage(page) {
         page = Math.max(1, Math.min(page, this.totalPages));
         this.currentPage = page;
 
-        const offset = (page - 1) * (this.pageWidth + this.columnGap);
+        // Use pageStep (columnWidth + gap) for correct column alignment
+        const offset = (page - 1) * this.pageStep;
         this.el.content.style.transform = `translateX(-${offset}px)`;
 
         this.updateUI();
@@ -422,7 +502,7 @@ class EBookReader {
     updateChapterTitle() {
         // Find which chapter is currently visible
         const chapters = this.el.content.querySelectorAll('.chapter-block');
-        const scrollOffset = (this.currentPage - 1) * (this.pageWidth + this.columnGap);
+        const scrollOffset = (this.currentPage - 1) * this.pageStep;
 
         let activeChapter = null;
         for (const ch of chapters) {
@@ -498,13 +578,13 @@ class EBookReader {
             });
         });
 
-        // Theme buttons
-        document.querySelectorAll('[data-theme]').forEach(btn => {
+        // Theme buttons (only settings panel buttons, not the reader-page itself)
+        document.querySelectorAll('.setting-btn[data-theme]').forEach(btn => {
             btn.addEventListener('click', () => this.setTheme(btn.dataset.theme));
         });
 
         // Font buttons
-        document.querySelectorAll('[data-font]').forEach(btn => {
+        document.querySelectorAll('.setting-btn[data-font]').forEach(btn => {
             btn.addEventListener('click', () => this.setFont(btn.dataset.font));
         });
 
@@ -558,7 +638,7 @@ class EBookReader {
         const chapter = this.el.content.querySelector(`[data-spine="${index}"]`);
         if (chapter) {
             // Calculate which page this chapter starts on
-            const step = this.pageWidth + this.columnGap;
+            const step = this.pageStep;
             const page = Math.max(1, Math.floor(chapter.offsetLeft / step) + 1);
             this.goToPage(page);
         }
@@ -572,8 +652,8 @@ class EBookReader {
     setTheme(theme) {
         this.settings.theme = theme;
         this.el.page.dataset.theme = theme;
-        // Update active btn
-        document.querySelectorAll('[data-theme]').forEach(b => {
+        // Update active btn (only settings panel buttons)
+        document.querySelectorAll('.setting-btn[data-theme]').forEach(b => {
             b.classList.toggle('active', b.dataset.theme === theme);
         });
         this.saveSettingsToServer();
@@ -613,10 +693,10 @@ class EBookReader {
         this.settings.theme = theme;
 
         // Apply initial state
-        document.querySelectorAll('[data-theme]').forEach(b => {
+        document.querySelectorAll('.setting-btn[data-theme]').forEach(b => {
             b.classList.toggle('active', b.dataset.theme === theme);
         });
-        document.querySelectorAll('[data-font]').forEach(b => {
+        document.querySelectorAll('.setting-btn[data-font]').forEach(b => {
             b.classList.toggle('active', b.dataset.font === this.settings.fontFamily);
         });
         this.el.fontSizeValue.textContent = this.settings.fontSize + 'px';
@@ -625,7 +705,7 @@ class EBookReader {
     async saveSettingsToServer() {
         try {
             await fetch(this.bookData.apiUrls.settings, {
-                method: 'POST',
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': this.bookData.csrfToken,
@@ -645,21 +725,37 @@ class EBookReader {
 
     restoreProgress() {
         const saved = this.bookData.savedProgress;
-        if (saved && saved.percentage > 0) {
+        if (!saved) return;
+
+        // Try to restore from Page Number (stored in CFI as "page:current:total")
+        if (saved.cfi && saved.cfi.startsWith('page:')) {
+            const parts = saved.cfi.split(':');
+            if (parts.length >= 2) {
+                const page = parseInt(parts[1], 10);
+                if (!isNaN(page) && page > 0) {
+                    console.log(`[Reader] Progresso restaurado via CFI: página ${page}`);
+                    this.goToPage(page);
+                    return;
+                }
+            }
+        }
+
+        // Fallback to percentage
+        if (saved.percentage > 0) {
             const pct = saved.percentage / 100;
             const targetPage = Math.max(1, Math.round(pct * this.totalPages));
             this.goToPage(targetPage);
-            console.log(`[Reader] Progresso restaurado: página ${targetPage} (${saved.percentage}%)`);
+            console.log(`[Reader] Progresso restaurado via %: página ${targetPage} (${saved.percentage}%)`);
         }
     }
 
     async saveProgress() {
         if (this.totalPages <= 1) return;
 
-        const percentage = Math.round(((this.currentPage - 1) / (this.totalPages - 1)) * 100);
+        const percentage = ((this.currentPage - 1) / (this.totalPages - 1)) * 100;
         const sessionDuration = Math.floor((Date.now() - this.sessionStartTime) / 60000);
 
-        // Save current_cfi as "page:N" for the new system
+        // Save current_cfi as "page:N:Total" for exact page restoration
         const cfi = `page:${this.currentPage}:${this.totalPages}`;
 
         try {
@@ -674,6 +770,7 @@ class EBookReader {
                     percentage: Math.min(100, Math.max(0, percentage)),
                     session_duration: sessionDuration,
                 }),
+                keepalive: true // Ensure request completes when closing tab
             });
         } catch (err) {
             console.error('[Reader] Erro ao salvar progresso:', err);
@@ -687,7 +784,20 @@ class EBookReader {
     }
 
     startAutoSave() {
-        this.autoSaveTimer = setInterval(() => this.saveProgress(), 60000);
+        // Save every 30 seconds
+        this.autoSaveTimer = setInterval(() => this.saveProgress(), 30000);
+
+        // Save on exit
+        window.addEventListener('beforeunload', () => {
+            this.saveProgress();
+        });
+
+        // Save on visibility change (mobile/tab switch)
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                this.saveProgress();
+            }
+        });
     }
 
     // ╔══════════════════════════════════════════╗
@@ -779,7 +889,7 @@ class EBookReader {
 
     async deleteBookmark(id) {
         try {
-            await fetch(this.bookData.apiUrls.deleteBookmarkBase + id + '/', {
+            await fetch(this.bookData.apiUrls.deleteBookmarkBase + id + '/delete/', {
                 method: 'DELETE',
                 headers: { 'X-CSRFToken': this.bookData.csrfToken },
             });

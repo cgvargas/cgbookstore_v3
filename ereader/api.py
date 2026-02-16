@@ -201,7 +201,8 @@ class CreateBookmarkAPI(APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
-        book = get_object_or_404(EBook, id=request.data.get('book_id'))
+        book_id = request.data.get('book_id') or request.data.get('ebook')
+        book = get_object_or_404(EBook, id=book_id)
         
         bookmark = Bookmark.objects.create(
             user=request.user,
@@ -278,7 +279,8 @@ class CreateHighlightAPI(APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
-        book = get_object_or_404(EBook, id=request.data.get('book_id'))
+        book_id = request.data.get('book_id') or request.data.get('ebook')
+        book = get_object_or_404(EBook, id=book_id)
         
         highlight = Highlight.objects.create(
             user=request.user,
@@ -354,7 +356,8 @@ class CreateNoteAPI(APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
-        book = get_object_or_404(EBook, id=request.data.get('book_id'))
+        book_id = request.data.get('book_id') or request.data.get('ebook')
+        book = get_object_or_404(EBook, id=book_id)
         
         note = ReadingNote.objects.create(
             user=request.user,
