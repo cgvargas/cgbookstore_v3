@@ -1,7 +1,7 @@
-import os
 import shutil
 import tempfile
 import traceback
+import zipfile
 from ebooklib import epub
 
 try:
@@ -94,6 +94,20 @@ def convert_kindle_to_epub(kindle_file_path):
         
         print(f"Escrevendo EPUB em: {epub_path}")
         epub.write_epub(epub_path, book, {})
+        
+        # Validar se o arquivo gerado é um ZIP válido (EPUB é um ZIP)
+        if not zipfile.is_zipfile(epub_path):
+            print(f"Erro CRÍTICO: O arquivo gerado em {epub_path} não é um ZIP válido e será descartado.")
+            return None
+            
+        try:
+             with zipfile.ZipFile(epub_path, 'r') as z:
+                 if z.testzip() is not None:
+                     print(f"Erro CRÍTICO: O arquivo ZIP gerado em {epub_path} está corrompido.")
+                     return None
+        except Exception as e:
+            print(f"Erro ao validar ZIP: {e}")
+            return None
         
         return epub_path
 
