@@ -384,15 +384,11 @@
                             </li>
                             <li><a class="dropdown-item text-primary fw-semibold"
                                     href="{% url 'new_authors:books_list' %}">Novos Autores</a></li>
-                            {% comment %}
-                            E-Reader: link desabilitado temporariamente até finalizar ajustes
-                            <li><hr class="dropdown-divider"></li>
-                            {% url 'ereader:library' as ereader_url %}
-                            {% if ereader_url %}
-                            <li><a class="dropdown-item text-warning fw-bold" href="{{ ereader_url }}">
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item text-warning fw-bold" href="{% url 'ereader:library' %}">
                                 <i class="fas fa-book-reader me-2"></i>Biblioteca Digital (E-Reader)</a></li>
-                            {% endif %}
-                            {% endcomment %}
                         </ul>
                     </li>
 
