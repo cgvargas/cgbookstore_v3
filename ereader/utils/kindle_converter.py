@@ -6,7 +6,11 @@ from ebooklib import epub
 
 try:
     import mobi
-except ImportError:
+except ImportError as e:
+    print(f"Erro ao importar biblioteca 'mobi': {e}")
+    mobi = None
+except Exception as e:
+    print(f"Erro CRÍTICO ao importar biblioteca 'mobi': {e}")
     mobi = None
 
 def convert_kindle_to_epub(kindle_file_path):
