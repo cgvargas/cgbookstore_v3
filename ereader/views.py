@@ -128,6 +128,9 @@ def book_detail_view(request, book_id):
 @login_required
 def reader_view(request, book_id):
     """Página do leitor RetroReader."""
+    from django.urls import reverse
+    import json
+    
     ebook = get_object_or_404(EBook, id=book_id, is_active=True)
     
     # Obter ou criar progresso
@@ -142,10 +145,35 @@ def reader_view(request, book_id):
     # Adicionar à biblioteca automaticamente se ainda não estiver
     UserLibrary.objects.get_or_create(user=request.user, ebook=ebook)
     
+    # Build EBOOK_DATA as a Python dict for safe JSON rendering
+    ebook_data_json = json.dumps({
+        'id': ebook.id,
+        'title': ebook.title,
+        'author': ebook.author,
+        'epubUrl': reverse('ereader:epub_proxy', args=[ebook.id]),
+        'savedProgress': {
+            'cfi': progress.current_cfi or '',
+            'percentage': float(progress.percentage),
+        },
+        'apiUrls': {
+            'saveProgress': reverse('ereader_api:save_progress', args=[ebook.id]),
+            'getProgress': reverse('ereader_api:progress', args=[ebook.id]),
+            'bookmarks': reverse('ereader_api:book_bookmarks', args=[ebook.id]),
+            'createBookmark': reverse('ereader_api:create_bookmark'),
+            'deleteBookmarkBase': '/api/ereader/bookmarks/',
+            'highlights': reverse('ereader_api:book_highlights', args=[ebook.id]),
+            'createHighlight': reverse('ereader_api:create_highlight'),
+            'notes': reverse('ereader_api:book_notes', args=[ebook.id]),
+            'createNote': reverse('ereader_api:create_note'),
+            'settings': reverse('ereader_api:settings'),
+        },
+    })
+    
     context = {
         'ebook': ebook,
         'progress': progress,
         'settings': settings,
+        'ebook_data_json': ebook_data_json,
     }
     return render(request, 'ereader/reader.html', context)
 
@@ -193,8 +221,32 @@ def epub_proxy(request, book_id):
         return HttpResponse('EPUB não disponível', status=404)
     
     # Se for arquivo local, redirecionar
+    # Se for arquivo local, servir diretamente via Django
     if epub_url.startswith('/'):
-        return redirect(epub_url)
+        try:
+            from django.conf import settings
+            import os
+            
+            # Remover MEDIA_URL do início para obter caminho relativo
+            if epub_url.startswith(settings.MEDIA_URL):
+                rel_path = epub_url[len(settings.MEDIA_URL):]
+            else:
+                rel_path = epub_url.lstrip('/')
+                
+            file_path = os.path.join(settings.MEDIA_ROOT, rel_path)
+            
+            if os.path.exists(file_path):
+                with open(file_path, 'rb') as f:
+                    file_content = f.read()
+                    
+                response = HttpResponse(file_content, content_type='application/epub+zip')
+                response['Content-Disposition'] = f'inline; filename="{os.path.basename(file_path)}"'
+                response['Access-Control-Allow-Origin'] = '*'
+                return response
+            else:
+                 return HttpResponse(f'Arquivo local não encontrado: {file_path}', status=404)
+        except Exception as e:
+            return HttpResponse(f'Erro ao ler arquivo local: {str(e)}', status=500)
     
     try:
         # Baixar o EPUB do servidor remoto
