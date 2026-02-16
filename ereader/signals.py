@@ -75,7 +75,8 @@ def convert_kindle_upload(sender, instance, **kwargs):
                     os.remove(epub_path)
                 except: pass
             else:
-                print("[KindleConverter] Falha na conversão. Mantendo arquivo original.")
+                print("[KindleConverter] Falha na conversão. O arquivo original será descartado pois não é um EPUB válido.")
+                instance.epub_file = None
                 
         except Exception as e:
             print(f"[KindleConverter] Erro no signal de conversão: {e}")
