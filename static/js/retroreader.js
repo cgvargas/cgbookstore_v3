@@ -216,18 +216,18 @@ class EBookReader {
         for (const np of navPoints) {
             const label = np.querySelector('navLabel > text')?.textContent?.trim() || '';
             const src = np.querySelector('content')?.getAttribute('src') || '';
-            const href = src.split('#')[0];
+            const [href, fragment] = src.includes('#') ? [src.split('#')[0], src.split('#')[1]] : [src, null];
             const spIdx = this.spine.findIndex(s => s.href === href || s.href.endsWith(href));
-            toc.push({ label, href, spineIndex: spIdx >= 0 ? spIdx : 0 });
+            toc.push({ label, href, fragment, spineIndex: spIdx >= 0 ? spIdx : 0 });
 
             // Sub-items (depth 1)
             const subPoints = np.querySelectorAll(':scope > navPoint');
             for (const sub of subPoints) {
                 const subLabel = sub.querySelector('navLabel > text')?.textContent?.trim() || '';
                 const subSrc = sub.querySelector('content')?.getAttribute('src') || '';
-                const subHref = subSrc.split('#')[0];
+                const [subHref, subFragment] = subSrc.includes('#') ? [subSrc.split('#')[0], subSrc.split('#')[1]] : [subSrc, null];
                 const subIdx = this.spine.findIndex(s => s.href === subHref || s.href.endsWith(subHref));
-                toc.push({ label: subLabel, href: subHref, spineIndex: subIdx >= 0 ? subIdx : 0, sub: true });
+                toc.push({ label: subLabel, href: subHref, fragment: subFragment, spineIndex: subIdx >= 0 ? subIdx : 0, sub: true });
             }
         }
         return toc;
@@ -242,9 +242,10 @@ class EBookReader {
         const links = doc.querySelectorAll('nav[*|type="toc"] a, nav.toc a, nav[role="doc-toc"] a');
         for (const a of links) {
             const label = a.textContent.trim();
-            const href = (a.getAttribute('href') || '').split('#')[0];
+            const rawHref = a.getAttribute('href') || '';
+            const [href, fragment] = rawHref.includes('#') ? [rawHref.split('#')[0], rawHref.split('#')[1]] : [rawHref, null];
             const spIdx = this.spine.findIndex(s => s.href === href || s.href.endsWith(href));
-            toc.push({ label, href, spineIndex: spIdx >= 0 ? spIdx : 0 });
+            toc.push({ label, href, fragment, spineIndex: spIdx >= 0 ? spIdx : 0 });
         }
         return toc.length > 0 ? toc : this.spine.map((s, i) => ({
             label: `Capítulo ${i + 1}`, href: s.href, spineIndex: i
@@ -631,20 +632,30 @@ class EBookReader {
             btn.className = 'toc-item' + (entry.sub ? ' sub' : '');
             btn.textContent = entry.label;
             btn.dataset.spine = entry.spineIndex;
-            btn.addEventListener('click', () => this.goToSpineItem(entry.spineIndex));
+            btn.addEventListener('click', () => this.goToSpineItem(entry.spineIndex, entry.fragment));
             li.appendChild(btn);
             this.el.tocList.appendChild(li);
         }
     }
 
-    goToSpineItem(index) {
+    goToSpineItem(index, fragment) {
         const chapter = this.el.content.querySelector(`[data-spine="${index}"]`);
-        if (chapter) {
-            // Calculate which page this chapter starts on
-            const step = this.pageStep;
-            const page = Math.max(1, Math.floor(chapter.offsetLeft / step) + 1);
-            this.goToPage(page);
+        if (!chapter) { this.closePanel(); return; }
+
+        let targetEl = chapter;
+
+        // If there's a fragment anchor, try to find the exact element
+        if (fragment) {
+            const anchor = chapter.querySelector(`#${CSS.escape(fragment)}`)
+                || chapter.querySelector(`[name="${CSS.escape(fragment)}"]`)
+                || this.el.content.querySelector(`#${CSS.escape(fragment)}`);
+            if (anchor) targetEl = anchor;
         }
+
+        // Calculate page from element's position in the column layout
+        const step = this.pageStep;
+        const page = Math.max(1, Math.floor(targetEl.offsetLeft / step) + 1);
+        this.goToPage(page);
         this.closePanel();
     }
 
