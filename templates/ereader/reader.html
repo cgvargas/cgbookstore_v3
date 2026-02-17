@@ -110,6 +110,7 @@
                         <div class="setting-row" style="margin-top:6px;">
                             <button class="setting-btn" data-theme="green">Verde</button>
                             <button class="setting-btn" data-theme="amber">Âmbar</button>
+                            <button class="setting-btn" data-theme="blue">Azul</button>
                         </div>
                     </div>
 
@@ -156,35 +157,15 @@
 
 </div>
 
-<!-- Book data injected by Django -->
+<!-- Book data injected by Django (safe JSON from view) -->
 <script>
-    window.EBOOK_DATA = {
-        id: {{ ebook.id }},
-        title: "{{ ebook.title|escapejs }}",
-        author: "{{ ebook.author|escapejs }}",
-        epubUrl: "{% url 'ereader:epub_proxy' ebook.id %}",
-        savedProgress: {
-            cfi: "{{ progress.current_cfi|default:''|escapejs }}",
-            percentage: {{ progress.percentage|default:0 }},
-        },
-        apiUrls: {
-            saveProgress: "{% url 'ereader_api:save_progress' ebook.id %}",
-            getProgress: "{% url 'ereader_api:progress' ebook.id %}",
-            bookmarks: "{% url 'ereader_api:book_bookmarks' ebook.id %}",
-            createBookmark: "{% url 'ereader_api:create_bookmark' %}",
-            deleteBookmarkBase: "/api/ereader/bookmarks/",
-            highlights: "{% url 'ereader_api:book_highlights' ebook.id %}",
-            createHighlight: "{% url 'ereader_api:create_highlight' %}",
-            notes: "{% url 'ereader_api:book_notes' ebook.id %}",
-            createNote: "{% url 'ereader_api:create_note' %}",
-            settings: "{% url 'ereader_api:settings' %}",
-        },
-        csrfToken: "{{ csrf_token }}",
-    };
+    window.EBOOK_DATA = {{ ebook_data_json|safe }};
+    window.EBOOK_DATA.csrfToken = "{{ csrf_token }}";
+    console.log('[EBOOK_DATA] Loaded:', window.EBOOK_DATA.id, window.EBOOK_DATA.title);
 </script>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="{% static 'js/retroreader.js' %}"></script>
+<script src="{% static 'js/jszip.min.js' %}?v=1.0"></script>
+<script src="{% static 'js/retroreader.js' %}?v=2.1"></script>
 {% endblock %}
