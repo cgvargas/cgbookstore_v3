@@ -613,6 +613,46 @@ class EBookReader {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(() => this.recalculatePages(), 200);
         });
+
+        // Internal anchor links inside book content
+        this.el.content.addEventListener('click', (e) => {
+            const link = e.target.closest('a[href]');
+            if (!link) return;
+
+            const href = link.getAttribute('href');
+
+            // Handle internal anchor links (#id)
+            if (href && href.startsWith('#')) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const targetId = href.substring(1);
+                if (!targetId) return;
+
+                // Find the target element by id or name
+                const target = this.el.content.querySelector(`#${CSS.escape(targetId)}`)
+                    || this.el.content.querySelector(`[name="${CSS.escape(targetId)}"]`);
+
+                if (target) {
+                    // Reset any native scroll that may have occurred
+                    this.el.content.scrollLeft = 0;
+                    this.el.frame.scrollLeft = 0;
+
+                    const step = this.pageStep;
+                    const page = Math.max(1, Math.floor(target.offsetLeft / step) + 1);
+                    console.log(`[Reader] Link interno: #${targetId} → página ${page}`);
+                    this.goToPage(page);
+                } else {
+                    console.warn(`[Reader] Âncora não encontrada: #${targetId}`);
+                }
+                return;
+            }
+
+            // Block external links from navigating away
+            if (href && !href.startsWith('#')) {
+                e.preventDefault();
+            }
+        });
     }
 
     // ╔══════════════════════════════════════════╗
