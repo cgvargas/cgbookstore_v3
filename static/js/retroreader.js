@@ -87,7 +87,10 @@ class EBookReader {
         // 1) Fetch EPUB as ArrayBuffer
         this.setLoaderText('Baixando livro...');
         const response = await fetch(this.bookData.epubUrl);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || `HTTP ${response.status}`);
+        }
         const arrayBuffer = await response.arrayBuffer();
         console.log('[Reader] EPUB baixado:', (arrayBuffer.byteLength / 1024).toFixed(0), 'KB');
 

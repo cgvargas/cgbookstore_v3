@@ -238,6 +238,14 @@ def epub_proxy(request, book_id):
             if os.path.exists(file_path):
                 with open(file_path, 'rb') as f:
                     file_content = f.read()
+                
+                # Validar que é um ZIP/EPUB (magic bytes: PK)
+                if not file_content[:2] == b'PK':
+                    return HttpResponse(
+                        'Arquivo não é um EPUB válido. O arquivo pode ser um .mobi que não foi convertido. '
+                        'Delete o livro e faça upload de um arquivo .epub.',
+                        status=400
+                    )
                     
                 response = HttpResponse(file_content, content_type='application/epub+zip')
                 response['Content-Disposition'] = f'inline; filename="{os.path.basename(file_path)}"'
@@ -253,12 +261,23 @@ def epub_proxy(request, book_id):
         response = requests.get(epub_url, timeout=30, stream=True)
         response.raise_for_status()
         
-        # Criar resposta com streaming para arquivos grandes
+        content = response.content
+        
+        # Validar que é um ZIP/EPUB (magic bytes: PK)
+        if not content[:2] == b'PK':
+            return HttpResponse(
+                'Arquivo baixado não é um EPUB válido (formato ZIP). '
+                'O arquivo pode ser um .mobi que não foi convertido corretamente. '
+                'Delete o livro e faça upload de um arquivo .epub.',
+                status=400
+            )
+        
+        # Criar resposta
         django_response = HttpResponse(
-            response.content,
+            content,
             content_type='application/epub+zip'
         )
-        django_response['Content-Disposition'] = f'inline; filename="{ebook.external_id}.epub"'
+        django_response['Content-Disposition'] = f'inline; filename="{ebook.external_id or ebook.id}.epub"'
         django_response['Access-Control-Allow-Origin'] = '*'
         
         return django_response
