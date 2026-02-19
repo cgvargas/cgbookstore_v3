@@ -25,12 +25,16 @@ class GutenbergService:
             Lista de dicionários com dados dos livros
         """
         try:
+            headers = {
+                'User-Agent': 'CGBookStore/1.0 (Educational Project; python-requests)'
+            }
             response = requests.get(
                 f"{self.BASE_URL}/books",
                 params={
                     'search': query,
-                    'languages': 'pt,en,es',
+                    # 'languages': 'pt,en,es', # Removido para permitir todos os idiomas
                 },
+                headers=headers,
                 timeout=10
             )
             response.raise_for_status()
@@ -66,11 +70,52 @@ class GutenbergService:
             response.raise_for_status()
             data = response.json()
             
-            return self._parse_book(data)
+            book = self._parse_book(data)
+            if book:
+                # Otimização de URL: Tentar encontrar versão direta (legacy) 
+                # para evitar redirecionamentos e problemas com epub3
+                best_url = self._find_best_epub_url(gutenberg_id, book['epub_url'])
+                book['epub_url'] = best_url
+            
+            return book
             
         except requests.RequestException as e:
             logger.error(f"Erro ao obter livro {gutenberg_id} do Gutenberg: {e}")
             return None
+
+    def _find_best_epub_url(self, gutenberg_id, original_url):
+        """
+        Tenta encontrar a melhor URL direta para o EPUB.
+        Prioriza: pg{id}-images.epub (Legacy com imagens) -> pg{id}.epub (Legacy sem imagens) -> Original
+        """
+        try:
+            # URLs diretas do cache (bypass redirect e epub3)
+            candidates = [
+                f"https://www.gutenberg.org/cache/epub/{gutenberg_id}/pg{gutenberg_id}-images.epub",
+                f"https://www.gutenberg.org/cache/epub/{gutenberg_id}/pg{gutenberg_id}.epub"
+            ]
+            
+            headers = {'User-Agent': 'CGBookStore/1.0 (Python)'}
+            
+            for url in candidates:
+                # Se a original já for uma dessas, retorna ela
+                if url == original_url:
+                    return original_url
+                    
+                # Verificar se existe (HEAD request rápido)
+                try:
+                    r = requests.head(url, headers=headers, timeout=5)
+                    if r.status_code == 200 and int(r.headers.get('Content-Length', 0)) > 1000:
+                        logger.info(f"URL otimizada encontrada para {gutenberg_id}: {url}")
+                        return url
+                except:
+                    continue
+            
+            return original_url
+            
+        except Exception as e:
+            logger.warning(f"Erro ao otimizar URL para {gutenberg_id}: {e}")
+            return original_url
     
     def _parse_book(self, data):
         """Converte dados da API para formato interno."""
@@ -90,16 +135,17 @@ class GutenbergService:
         )
         
         # Obter EPUB - tentar primeiro application/epub+zip
+        # A API geralmente retorna redirects ou versões epub3
         epub_url = formats.get('application/epub+zip', '')
         
-        # Se não tiver, construir URL padrão do Gutenberg
+        # Se não tiver, construir URL padrão do Gutenberg (fallback básico)
         if not epub_url and data.get('id'):
             gutenberg_id = data.get('id')
             epub_url = f"https://www.gutenberg.org/cache/epub/{gutenberg_id}/pg{gutenberg_id}.epub"
         
         # Detectar idioma
         languages = data.get('languages', ['en'])
-        language = languages[0] if languages else 'en'
+        language = self._normalize_language(languages[0] if languages else 'en')
         
         # Assuntos/categorias
         subjects = data.get('subjects', [])
@@ -112,7 +158,7 @@ class GutenbergService:
             'description': '',  # Gutenberg não fornece descrição
             'cover_image': cover_image,
             'epub_url': epub_url,
-            'language': self._normalize_language(language),
+            'language': language,
             'subjects': subjects + bookshelves,
             'source': 'gutenberg',
             'download_count': data.get('download_count', 0),

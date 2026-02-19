@@ -26,13 +26,17 @@ class OpenLibraryService:
             Lista de dicionários com dados dos livros
         """
         try:
+            headers = {
+                'User-Agent': 'CGBookStore/1.0 (Educational Project; python-requests)'
+            }
             response = requests.get(
                 f"{self.BASE_URL}/search.json",
                 params={
                     'q': query,
                     'limit': limit,
-                    'has_fulltext': 'true',  # Apenas livros com texto completo
+                    # 'has_fulltext': 'true', # Removido para ampliar resultados
                 },
+                headers=headers,
                 timeout=10
             )
             response.raise_for_status()
