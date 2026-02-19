@@ -309,10 +309,10 @@ class ChatbotKnowledgeAdmin(admin.ModelAdmin):
             label = 'Baixa'
 
         return format_html(
-            '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 3px;">{} ({:.0%})</span>',
+            '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 3px;">{} ({})</span>',
             color,
             label,
-            obj.confidence_score
+            f"{obj.confidence_score:.0%}"
         )
     confidence_badge.short_description = 'Confiança'
 

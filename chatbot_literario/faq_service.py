@@ -80,7 +80,7 @@ FAQ_DATA = {
                     "id": "livros_3",
                     "question": "Posso ler os livros online?",
                     "keywords": ["ler online", "leitura digital", "ebook", "ler livro", "download livro"],
-                    "answer": "A CG.BookStore é uma plataforma de descoberta e organização de livros. Você pode explorar, organizar sua biblioteca e receber recomendações. Para leitura digital, direcionamos para parceiros oficiais."
+                    "answer": "Sim! Pelo app você pode ler ebooks gratuitos. No menu superior (navbar), acesse Livros → Biblioteca Digital. Nessa página, é possível buscar pelo título ou autor e escolher a fonte entre Project Gutenberg e Open Library, ambas com obras gratuitas e legais para leitura."
                 },
                 {
                     "id": "livros_4",
