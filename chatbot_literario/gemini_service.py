@@ -129,7 +129,7 @@ ESCOPO:
     def __init__(self):
         """Inicializa o serviço do chatbot."""
         self.api_key = settings.GEMINI_API_KEY
-        self.model_name = 'models/gemini-flash-latest'  # Modelo testado e funcionando
+        self.model_name = 'models/gemini-1.5-pro'  # Atualizado para capacidades avançadas de contexto Pro
         self._model = None
 
         # Configurações de segurança mais permissivas para conteúdo literário

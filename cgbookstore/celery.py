@@ -3,8 +3,13 @@ Configuração do Celery para tarefas assíncronas.
 """
 
 import os
+import platform
 from celery import Celery
 from celery.schedules import crontab
+
+# Ajuste de segurança para execução no Windows (evita conflitos de fork/processos)
+if platform.system() == 'Windows':
+    os.environ.setdefault('FORKED_BY_MULTIPROCESSING', '1')
 
 # Define o settings module do Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cgbookstore.settings')

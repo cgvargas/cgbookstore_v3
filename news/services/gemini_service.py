@@ -54,9 +54,9 @@ class GeminiNewsService:
             gemini_key = getattr(settings, 'GEMINI_API_KEY', '')
             if gemini_key:
                 genai.configure(api_key=gemini_key)
-                self.gemini_model = genai.GenerativeModel('gemini-2.5-flash')
+                self.gemini_model = genai.GenerativeModel('gemini-1.5-pro')
                 self.provider = 'gemini'
-                self.model_name = 'gemini-2.5-flash'
+                self.model_name = 'gemini-1.5-pro'
                 logger.info(f"✅ AI Service inicializado com Gemini ({self.model_name})")
         
         if not self.provider:

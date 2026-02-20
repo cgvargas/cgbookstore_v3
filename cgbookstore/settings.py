@@ -1,36 +1,37 @@
 import logging
-import dj_database_url
-from decouple import config
+import environ
 import os
 from pathlib import Path
-
-# Supabase Configuration
-SUPABASE_URL = config('SUPABASE_URL', default='')
-SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='')
-SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='')
-
-logger = logging.getLogger(__name__)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Inicializar environ e carregar .env
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
+# Supabase Configuration
+SUPABASE_URL = env('SUPABASE_URL', default='')
+SUPABASE_ANON_KEY = env('SUPABASE_ANON_KEY', default='')
+SUPABASE_SERVICE_KEY = env('SUPABASE_SERVICE_KEY', default='')
+
+logger = logging.getLogger(__name__)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-9eojq)3m)cznln$43_3%1lh5ofx4qjh+!7+%51f5m+2(t@_swe')
+SECRET_KEY = env('SECRET_KEY', default='django-insecure-9eojq)3m)cznln$43_3%1lh5ofx4qjh+!7+%51f5m+2(t@_swe')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 
 # CSRF Trusted Origins para produção
-CSRF_TRUSTED_ORIGINS = config(
+CSRF_TRUSTED_ORIGINS = env.list(
     'CSRF_TRUSTED_ORIGINS',
-    default='http://localhost:8000,http://127.0.0.1:8000'
-).split(',')
+    default=['http://localhost:8000', 'http://127.0.0.1:8000']
+)
 
 
 # Application definition
@@ -111,12 +112,13 @@ WSGI_APPLICATION = 'cgbookstore.wsgi.application'
 # Database
 # Usar DATABASE_URL do ambiente, ou fallback para SQLite local em desenvolvimento
 DATABASES = {
-    'default': dj_database_url.config(
-        default=config('DATABASE_URL', default='sqlite:///' + str(BASE_DIR / 'db.sqlite3')),
-        conn_max_age=600,  # 10 minutos (aumentado de 60s para melhor pooling)
-        conn_health_checks=True,
+    'default': env.db_url(
+        'DATABASE_URL',
+        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3')
     )
 }
+DATABASES['default']['CONN_MAX_AGE'] = 600
+DATABASES['default']['CONN_HEALTH_CHECKS'] = True
 
 # Adicionar opções de timeout ao banco de dados (apenas para PostgreSQL)
 if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
@@ -150,7 +152,7 @@ if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
             # Opção 1: Usuário configura DATABASE_IPV4 com o IP fixo
             # Opção 2: Tentamos resolver DNS para IPv4 (pode falhar)
 
-            manual_ipv4 = config('DATABASE_IPV4', default='')
+            manual_ipv4 = env('DATABASE_IPV4', default='')
             if manual_ipv4:
                 # Usuário configurou IP manualmente - RECOMENDADO
                 logger.info(f"✅ Usando IP IPv4 configurado manualmente: {manual_ipv4}")
@@ -211,7 +213,7 @@ if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
+        'LOCATION': env('REDIS_URL', default='redis://127.0.0.1:6379/1'),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'CONNECTION_POOL_KWARGS': {
@@ -223,7 +225,7 @@ CACHES = {
             'IGNORE_EXCEPTIONS': True,  # Fallback se Redis cair
         },
         'KEY_PREFIX': 'cgbookstore',
-        'TIMEOUT': config('REDIS_CACHE_TIMEOUT', default=300, cast=int),
+        'TIMEOUT': env.int('REDIS_CACHE_TIMEOUT', default=300),
     }
 }
 
@@ -264,8 +266,8 @@ USE_TZ = True
 # CELERY CONFIGURATION
 # ==============================================================================
 
-CELERY_BROKER_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
-CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
+CELERY_BROKER_URL = env('REDIS_URL', default='redis://127.0.0.1:6379/0')
+CELERY_RESULT_BACKEND = env('REDIS_URL', default='redis://127.0.0.1:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -274,6 +276,8 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutos
 CELERY_RESULT_EXPIRES = 3600  # 1 hora
 
+# Otimização Celery: Usar pool 'solo' em Windows para evitar problemas com threads/processos filhos
+CELERY_WORKER_POOL = env('CELERY_WORKER_POOL', default='solo' if os.name == 'nt' else 'prefork')
 # Tarefas agendadas (Celery Beat)
 from celery.schedules import crontab
 CELERY_BEAT_SCHEDULE = {
@@ -294,7 +298,7 @@ CELERY_BEAT_SCHEDULE = {
 
 # Token secreto para endpoints de cron externos (cron-job.org)
 # Configure no Render: CRON_SECRET_TOKEN=seu_token_aleatorio_aqui
-CRON_SECRET_TOKEN = config('CRON_SECRET_TOKEN', default=None)
+CRON_SECRET_TOKEN = env('CRON_SECRET_TOKEN', default=None)
 
 
 # Static files (CSS, JavaScript, Images)
@@ -311,7 +315,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Controle de uso do Supabase Storage
-USE_SUPABASE_STORAGE = config('USE_SUPABASE_STORAGE', default=True, cast=bool)
+USE_SUPABASE_STORAGE = env.bool('USE_SUPABASE_STORAGE', default=True)
 
 # Configuração de Storage Backends (Django 4.2+)
 if USE_SUPABASE_STORAGE and SUPABASE_URL and SUPABASE_ANON_KEY:
@@ -339,7 +343,7 @@ else:
 
 
 # Google Books API Configuration
-GOOGLE_BOOKS_API_KEY = config('GOOGLE_BOOKS_API_KEY', default='')
+GOOGLE_BOOKS_API_KEY = env('GOOGLE_BOOKS_API_KEY', default='')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -372,51 +376,51 @@ REST_FRAMEWORK = {
 # ==============================================================================
 # Escolha o provedor de IA para o chatbot: 'gemini' ou 'groq'
 # Groq recomendado - gratuito, rápido e sem limites rígidos
-AI_PROVIDER = config('AI_PROVIDER', default='groq')
+AI_PROVIDER = env('AI_PROVIDER', default='groq')
 
 # Google Gemini AI
-GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
+GEMINI_API_KEY = env('GEMINI_API_KEY', default='')
 
 # Groq AI (Recomendado - Mais rápido e free tier generoso)
 # Crie sua chave em: https://console.groq.com/keys
-GROQ_API_KEY = config('GROQ_API_KEY', default='')
+GROQ_API_KEY = env('GROQ_API_KEY', default='')
 
 # Unsplash API (para imagens em posts gerados por IA)
 # Criar conta gratuita em: https://unsplash.com/developers
-UNSPLASH_ACCESS_KEY = config('UNSPLASH_ACCESS_KEY', default='')
+UNSPLASH_ACCESS_KEY = env('UNSPLASH_ACCESS_KEY', default='')
 
 # ==============================================================================
 # MERCADO PAGO - MÓDULO FINANCEIRO
 # ==============================================================================
-MERCADOPAGO_ACCESS_TOKEN = config('MERCADOPAGO_ACCESS_TOKEN', default='')
-MERCADOPAGO_PUBLIC_KEY = config('MERCADOPAGO_PUBLIC_KEY', default='')
-SITE_URL = config('SITE_URL', default='http://localhost:8000')
+MERCADOPAGO_ACCESS_TOKEN = env('MERCADOPAGO_ACCESS_TOKEN', default='')
+MERCADOPAGO_PUBLIC_KEY = env('MERCADOPAGO_PUBLIC_KEY', default='')
+SITE_URL = env('SITE_URL', default='http://localhost:8000')
 
 # Email Configuration
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@cgbookstore.com')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@cgbookstore.com')
 
 # Em DEBUG mode, SEMPRE usar console para evitar delays de SMTP
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Determinar backend de email baseado no ambiente para produção
-elif config('USE_BREVO_API', default=False, cast=bool):
+elif env.bool('USE_BREVO_API', default=False):
     # Usar Brevo API (recomendado para produção)
     EMAIL_BACKEND = 'cgbookstore.backends.brevo.BrevoBackend'
-    BREVO_API_KEY = config('EMAIL_HOST_PASSWORD', default='')  # Reutilizar mesma env var
-elif config('USE_SENDGRID_API', default=False, cast=bool):
+    BREVO_API_KEY = env('EMAIL_HOST_PASSWORD', default='')  # Reutilizar mesma env var
+elif env.bool('USE_SENDGRID_API', default=False):
     # Usar SendGrid Web API (alternativa)
     EMAIL_BACKEND = 'cgbookstore.backends.sendgrid.SendGridBackend'
-    SENDGRID_API_KEY = config('EMAIL_HOST_PASSWORD', default='')
+    SENDGRID_API_KEY = env('EMAIL_HOST_PASSWORD', default='')
 else:
     # Usar backend padrão (console ou SMTP)
-    EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+    EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 
     # SMTP Configuration (usado em produção se não usar APIs)
-    EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-    EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-    EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-    EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+    EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
+    EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+    EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+    EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+    EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 
 # Configurações de Recomendações
 RECOMMENDATIONS_CONFIG = {
@@ -509,10 +513,10 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 
 # Configuração dos providers sociais (Google e Facebook)
 # Credenciais serão carregadas do .env
-GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
-GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='')
-FACEBOOK_APP_ID = config('FACEBOOK_APP_ID', default='')
-FACEBOOK_APP_SECRET = config('FACEBOOK_APP_SECRET', default='')
+GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID', default='')
+GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET', default='')
+FACEBOOK_APP_ID = env('FACEBOOK_APP_ID', default='')
+FACEBOOK_APP_SECRET = env('FACEBOOK_APP_SECRET', default='')
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -614,7 +618,7 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': config('DJANGO_LOG_LEVEL', default='INFO'),
+            'level': env('DJANGO_LOG_LEVEL', default='INFO'),
             'propagate': False,
         },
     },
