@@ -12,58 +12,58 @@ def news_home(request):
     """Página principal do jornal/notícias - estilo grade de jornal"""
 
     # Breaking news / Última hora
-    breaking_news = Article.objects.filter(
+    breaking_news = Article.objects.defer('content').filter(
         is_published=True,
         is_breaking=True
     ).order_by('-published_at').first()
 
     # Artigo em destaque principal (prioridade 5)
-    featured_main = Article.objects.filter(
+    featured_main = Article.objects.defer('content').filter(
         is_published=True,
         is_featured=True,
         priority=5
     ).order_by('-published_at').first()
 
     # Destaques secundários (prioridade 3-4)
-    featured_secondary = Article.objects.filter(
+    featured_secondary = Article.objects.defer('content').filter(
         is_published=True,
         is_featured=True,
         priority__in=[3, 4]
     ).order_by('-published_at')[:3]
 
     # Destaques para navegador lateral esquerdo (todos os artigos em destaque)
-    sidebar_highlights = Article.objects.filter(
+    sidebar_highlights = Article.objects.defer('content').filter(
         is_published=True,
         is_featured=True
     ).order_by('-priority', '-published_at')[:8]
 
     # Últimas notícias
-    latest_news = Article.objects.filter(
+    latest_news = Article.objects.defer('content').filter(
         is_published=True,
         content_type='news'
     ).order_by('-published_at')[:6]
 
     # Entrevistas recentes
-    interviews = Article.objects.filter(
+    interviews = Article.objects.defer('content').filter(
         is_published=True,
         content_type='interview'
     ).order_by('-published_at')[:3]
 
     # Próximos eventos
-    events = Article.objects.filter(
+    events = Article.objects.defer('content').filter(
         is_published=True,
         content_type='event',
         event_date__isnull=False
     ).order_by('event_date')[:4]
 
     # Guias e artigos
-    guides = Article.objects.filter(
+    guides = Article.objects.defer('content').filter(
         is_published=True,
         content_type__in=['guide', 'article']
     ).order_by('-published_at')[:4]
 
     # Dica da semana
-    tip_of_week = Article.objects.filter(
+    tip_of_week = Article.objects.defer('content').filter(
         is_published=True,
         content_type='tip'
     ).order_by('-published_at').first()
@@ -116,7 +116,7 @@ def article_detail(request, slug):
     article.increment_views()
 
     # Artigos relacionados (mesma categoria ou tags)
-    related_articles = Article.objects.filter(
+    related_articles = Article.objects.defer('content').filter(
         Q(category=article.category) | Q(tags__in=article.tags.all()),
         is_published=True
     ).exclude(id=article.id).distinct().order_by('-published_at')[:4]
@@ -133,7 +133,7 @@ def category_articles(request, slug):
     """Lista artigos de uma categoria"""
     category = get_object_or_404(Category, slug=slug, is_active=True)
 
-    articles_list = Article.objects.filter(
+    articles_list = Article.objects.defer('content').filter(
         category=category,
         is_published=True
     ).order_by('-published_at')
@@ -155,7 +155,7 @@ def tag_articles(request, slug):
     """Lista artigos de uma tag"""
     tag = get_object_or_404(Tag, slug=slug)
 
-    articles_list = Article.objects.filter(
+    articles_list = Article.objects.defer('content').filter(
         tags=tag,
         is_published=True
     ).order_by('-published_at')
@@ -181,7 +181,7 @@ def content_type_articles(request, content_type):
     if content_type not in valid_types:
         return redirect('news:home')
 
-    articles_list = Article.objects.filter(
+    articles_list = Article.objects.defer('content').filter(
         content_type=content_type,
         is_published=True
     ).order_by('-published_at')
@@ -205,7 +205,7 @@ def search_articles(request):
     query = request.GET.get('q', '')
 
     if query:
-        articles_list = Article.objects.filter(
+        articles_list = Article.objects.defer('content').filter(
             Q(title__icontains=query) |
             Q(subtitle__icontains=query) |
             Q(excerpt__icontains=query) |
