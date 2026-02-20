@@ -76,9 +76,25 @@ def search_books(
         if api_key:
             params['key'] = api_key
 
-        # Fazer requisição
-        response = requests.get(GOOGLE_BOOKS_API_URL, params=params, timeout=10)
-        response.raise_for_status()
+        # Fazer requisição com retry em caso de Rate Limit (429)
+        import time
+        max_retries = 3
+        base_delay = 1
+        
+        for attempt in range(max_retries):
+            response = requests.get(GOOGLE_BOOKS_API_URL, params=params, timeout=10)
+            
+            if response.status_code == 429:
+                if attempt < max_retries - 1:
+                    sleep_time = base_delay * (2 ** attempt)
+                    logger.warning(f"Rate limit do Google Books atingido. Tentativa {attempt + 1}/{max_retries}. Aguardando {sleep_time}s...")
+                    time.sleep(sleep_time)
+                    continue
+                else:
+                    return {'error': 'Limite de requisições da API excedido. Aguarde alguns minutos e tente novamente.'}
+            
+            response.raise_for_status()
+            break
 
         data = response.json()
 
@@ -122,8 +138,25 @@ def get_book_by_id(google_book_id: str) -> Optional[Dict]:
         if api_key:
             params['key'] = api_key
 
-        response = requests.get(url, params=params, timeout=10)
-        response.raise_for_status()
+        import time
+        max_retries = 3
+        base_delay = 1
+        
+        for attempt in range(max_retries):
+            response = requests.get(url, params=params, timeout=10)
+            
+            if response.status_code == 429:
+                if attempt < max_retries - 1:
+                    sleep_time = base_delay * (2 ** attempt)
+                    logger.warning(f"Rate limit do Google Books atingido no ID {google_book_id}. Tentativa {attempt + 1}/{max_retries}. Aguardando {sleep_time}s...")
+                    time.sleep(sleep_time)
+                    continue
+                else:
+                    logger.error(f"Rate limit do Google Books atingido definitivamente para {google_book_id}.")
+                    return None
+            
+            response.raise_for_status()
+            break
 
         return extract_book_info(response.json())
 
@@ -250,8 +283,25 @@ def download_cover(image_url: str, book_slug: str, existing_cover: str = None) -
         logger.info(f"Baixando capa otimizada: {optimized_url}")
 
         # Baixar imagem com timeout maior para imagens grandes
-        response = requests.get(optimized_url, timeout=15)
-        response.raise_for_status()
+        import time
+        max_retries = 3
+        base_delay = 1
+        
+        for attempt in range(max_retries):
+            response = requests.get(optimized_url, timeout=15)
+            
+            if response.status_code == 429:
+                if attempt < max_retries - 1:
+                    sleep_time = base_delay * (2 ** attempt)
+                    logger.warning(f"Rate limit ao baixar capa {optimized_url}. Tentativa {attempt + 1}/{max_retries}. Aguardando {sleep_time}s...")
+                    time.sleep(sleep_time)
+                    continue
+                else:
+                    logger.error(f"Rate limit definitivo ao baixar capa: {optimized_url}")
+                    return None
+            
+            response.raise_for_status()
+            break
 
         # Verificar se é realmente uma imagem
         content_type = response.headers.get('Content-Type', '')
