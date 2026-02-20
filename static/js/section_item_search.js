@@ -3,17 +3,17 @@
  * Permite buscar livros e autores por nome ao invés de digitar ID
  */
 
-(function($) {
+(function ($) {
     'use strict';
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Adicionar botão de busca ao lado do campo object_id
         addSearchButtons();
     });
 
     function addSearchButtons() {
         // Encontrar todos os campos object_id
-        $('input[name$="object_id"]').each(function() {
+        $('input[name$="object_id"]').each(function () {
             const $input = $(this);
             const $row = $input.closest('tr, .form-row');
 
@@ -41,15 +41,15 @@
 
             // Adicionar hover effect
             $searchBtn.hover(
-                function() { $(this).css('background', '#2e5266'); },
-                function() { $(this).css('background', '#417690'); }
+                function () { $(this).css('background', '#2e5266'); },
+                function () { $(this).css('background', '#417690'); }
             );
 
             // Inserir botão após o input
             $input.after($searchBtn);
 
             // Adicionar evento de clique
-            $searchBtn.on('click', function() {
+            $searchBtn.on('click', function () {
                 openSearchModal($input, $row);
             });
         });
@@ -79,6 +79,9 @@
         } else if (contentTypeText.includes('video') || contentTypeText.includes('vídeo')) {
             searchUrl = '/admin/core/video/';
             modelName = 'Vídeo';
+        } else if (contentTypeText.includes('news') || contentTypeText.includes('notícia') || contentTypeText.includes('article') || contentTypeText.includes('artigo')) {
+            searchUrl = '/admin/news/article/';
+            modelName = 'Notícia/Artigo';
         } else {
             alert('Tipo de conteúdo não suportado para busca.');
             return;
@@ -125,8 +128,8 @@
         $('.module').first().prepend($instruction);
 
         // Remover após 30 segundos
-        setTimeout(function() {
-            $instruction.fadeOut(500, function() {
+        setTimeout(function () {
+            $instruction.fadeOut(500, function () {
                 $(this).remove();
             });
         }, 30000);

@@ -66,6 +66,7 @@ class AutocompleteSearchWidget(forms.TextInput):
         if (ctText.includes('book') || ctText.includes('livro')) type = 'book';
         else if (ctText.includes('author') || ctText.includes('autor')) type = 'author';
         else if (ctText.includes('video') || ctText.includes('vídeo')) type = 'video';
+        else if (ctText.includes('news') || ctText.includes('notícia') || ctText.includes('article') || ctText.includes('artigo')) type = 'article';
         
         if (!type) {
             results.innerHTML = "<div style='padding:10px;color:#333;background:#fff5cc;border-left:3px solid #ffc107;'>⚠️ Selecione um tipo primeiro</div>";

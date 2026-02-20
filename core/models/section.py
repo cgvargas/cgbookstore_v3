@@ -15,6 +15,7 @@ class Section(models.Model):
         ('books', 'Livros'),
         ('authors', 'Autores'),
         ('videos', 'Vídeos'),
+        ('news', 'Notícias'),
         ('mixed', 'Misto'),
     ]
 

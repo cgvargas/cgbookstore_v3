@@ -24,7 +24,7 @@
                     <p class="lead">{{ quiz.description }}</p>
 
                     {% if quiz.featured_image %}
-                    <img src="{{ quiz.featured_image.url }}" class="img-fluid rounded mb-4" alt="{{ quiz.title }}">
+                    <img src="{% if quiz.featured_image.name %}{{ quiz.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" class="img-fluid rounded mb-4" alt="{{ quiz.title }}">
                     {% endif %}
 
                     <form method="post" action="{% url 'news:submit_quiz' quiz.slug %}">

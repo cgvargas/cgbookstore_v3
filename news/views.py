@@ -107,7 +107,10 @@ def news_home(request):
 
 def article_detail(request, slug):
     """Página de detalhes do artigo"""
-    article = get_object_or_404(Article, slug=slug, is_published=True)
+    if request.user.is_staff:
+        article = get_object_or_404(Article, slug=slug)
+    else:
+        article = get_object_or_404(Article, slug=slug, is_published=True)
 
     # Incrementar visualizações
     article.increment_views()

@@ -342,7 +342,7 @@
 
                 {% if chronicle.featured_image %}
                 <div class="article-image">
-                    <img src="{{ chronicle.featured_image.url }}" alt="{{ chronicle.title }}">
+                    <img src="{% if chronicle.featured_image.name %}{{ chronicle.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ chronicle.title }}">
                 </div>
                 {% endif %}
 

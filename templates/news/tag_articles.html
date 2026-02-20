@@ -28,7 +28,7 @@
         {% for article in articles %}
         <div class="news-card">
             <a href="{% url 'news:article_detail' article.slug %}">
-                <img src="{{ article.featured_image.url }}" alt="{{ article.title }}">
+                <img src="{% if article.featured_image.name %}{{ article.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ article.title }}">
                 <div class="news-card-body">
                     <span class="news-category">{{ article.get_content_type_display }}</span>
                     <h4>{{ article.title }}</h4>

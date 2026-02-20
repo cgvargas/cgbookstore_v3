@@ -1038,6 +1038,37 @@
                                             <h5 class="card-title mb-0">{{ display_title|truncatewords:8 }}</h5>
                                         </div>
                                     </div>
+                                {% elif section.content_type == 'news' %}
+                                    <!-- Card de Notícia -->
+                                    <div class="card h-100 news-card border-0 shadow-sm">
+                                        <a href="{% url 'news:article_detail' obj.slug %}" class="text-decoration-none text-dark">
+                                            <div class="position-relative">
+                                                {% if obj.featured_image.name %}
+                                                <img src="{% if obj.featured_image.name %}{{ obj.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ obj.title }}">
+                                                {% else %}
+                                                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                    <i class="fas fa-newspaper fa-3x text-muted"></i>
+                                                </div>
+                                                {% endif %}
+                                                {% if obj.category %}
+                                                <span class="badge position-absolute top-0 end-0 m-2" style="background-color: {{ obj.category.color|default:'#0d6efd' }};">
+                                                    {{ obj.category.name }}
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="card-body">
+                                                <h5 class="card-title text-truncate" title="{{ display_title }}">{{ display_title }}</h5>
+                                                <p class="card-text small text-muted mb-0">
+                                                    <i class="far fa-calendar-alt me-1"></i> {{ obj.published_at|date:"d M Y" }}
+                                                </p>
+                                                {% if obj.excerpt %}
+                                                <p class="card-text mt-2 small text-secondary" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                                    {{ obj.excerpt }}
+                                                </p>
+                                                {% endif %}
+                                            </div>
+                                        </a>
+                                    </div>
                                 {% endif %}
                             </div>
                             {% endwith %}
@@ -1090,6 +1121,32 @@
                                         {% if obj.bio %}<p class="card-text text-muted small">{{ obj.bio|truncatewords:15 }}</p>{% endif %}
                                     </div>
                                 </div>
+                            {% elif section.content_type == 'news' %}
+                                <!-- Card de Notícia Grid -->
+                                <div class="card h-100 news-card border-0 shadow-sm">
+                                    <a href="{% url 'news:article_detail' obj.slug %}" class="text-decoration-none text-dark">
+                                        <div class="position-relative">
+                                            {% if obj.featured_image.name %}
+                                            <img src="{% if obj.featured_image.name %}{{ obj.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" class="card-img-top" style="height: 180px; object-fit: cover;" alt="{{ obj.title }}">
+                                            {% else %}
+                                            <div class="bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
+                                                <i class="fas fa-newspaper fa-3x text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                            {% if obj.category %}
+                                            <span class="badge position-absolute top-0 end-0 m-2" style="background-color: {{ obj.category.color|default:'#0d6efd' }};">
+                                                {{ obj.category.name }}
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="card-body">
+                                            <h5 class="card-title text-truncate" title="{{ display_title }}" style="font-size: 1rem;">{{ display_title }}</h5>
+                                            <p class="card-text small text-muted mb-2">
+                                                <i class="far fa-calendar-alt me-1"></i> {{ obj.published_at|date:"d M, Y" }}
+                                            </p>
+                                        </div>
+                                    </a>
+                                </div>
                             {% endif %}
                         </div>
                         {% endwith %}
@@ -1114,6 +1171,32 @@
                                     {% if section.show_price %}<span class="badge bg-primary rounded-pill">R$ {{ obj.price|default:"--" }}</span>{% endif %}
                                 </div>
                             {% if obj.slug %}</a>{% else %}</div>{% endif %}
+                        {% elif section.content_type == 'news' %}
+                            <a href="{% url 'news:article_detail' obj.slug %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <div class="d-flex">
+                                        {% if obj.featured_image.name %}
+                                        <img src="{% if obj.featured_image.name %}{{ obj.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 4px;" class="me-3" alt="{{ obj.title }}">
+                                        {% else %}
+                                        <div class="bg-light me-3 d-flex align-items-center justify-content-center rounded" style="width: 80px; height: 60px;">
+                                            <i class="fas fa-newspaper text-muted"></i>
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <h5 class="mb-1" style="font-size: 1rem;">{{ display_title }}</h5>
+                                            {% if obj.excerpt %}
+                                            <p class="mb-1 small text-muted text-truncate" style="max-width: 500px;">{{ obj.excerpt }}</p>
+                                            {% endif %}
+                                            <small class="text-muted"><i class="far fa-clock me-1"></i>{{ obj.published_at|timesince }} atrás</small>
+                                        </div>
+                                    </div>
+                                    {% if obj.category %}
+                                    <div>
+                                        <span class="badge rounded-pill" style="background-color: {{ obj.category.color|default:'#6c757d' }};">{{ obj.category.name }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </a>
                         {% endif %}
                         {% endwith %}
                     {% endfor %}

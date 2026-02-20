@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q
 from core.models import Book, Author, Video
+from news.models import Article
 
 
 @staff_member_required
@@ -60,6 +61,16 @@ def section_item_autocomplete(request):
         results = [
             {'id': video.id, 'text': video.title}
             for video in videos
+        ]
+    
+    elif content_type == 'article':
+        articles = Article.objects.filter(
+            title__icontains=query
+        ).order_by('-published_at', '-created_at')[:20]
+        
+        results = [
+            {'id': article.id, 'text': article.title}
+            for article in articles
         ]
     
     return JsonResponse({'results': results})

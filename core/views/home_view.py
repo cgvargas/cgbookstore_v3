@@ -6,6 +6,7 @@ from django.db.models import Q, Prefetch
 from django.core.cache import cache
 from django.contrib.contenttypes.models import ContentType
 from core.models import Section, SectionItem, Event, Book, Banner, Author, Video, FeaturedAuthorSettings
+from news.models import Article
 import logging
 import time
 
@@ -160,11 +161,13 @@ class HomeView(TemplateView):
         book_ids = set()
         author_ids = set()
         video_ids = set()
+        article_ids = set()
 
         # Obter content types (cached pelo Django)
         book_ct = ContentType.objects.get_for_model(Book)
         author_ct = ContentType.objects.get_for_model(Author)
         video_ct = ContentType.objects.get_for_model(Video)
+        article_ct = ContentType.objects.get_for_model(Article)
 
         for section in sections:
             for item in section.items.all():
@@ -174,11 +177,14 @@ class HomeView(TemplateView):
                     author_ids.add(item.object_id)
                 elif item.content_type_id == video_ct.id:
                     video_ids.add(item.object_id)
+                elif item.content_type_id == article_ct.id:
+                    article_ids.add(item.object_id)
 
         # Buscar TODOS os objetos de uma vez
         books_map = {}
         authors_map = {}
         videos_map = {}
+        articles_map = {}
 
         if book_ids:
             # Otimização: usar only() para carregar apenas campos necessários
@@ -194,8 +200,16 @@ class HomeView(TemplateView):
             authors_map = {author.id: author for author in authors}
 
         if video_ids:
-            videos = Video.objects.filter(id__in=video_ids)
+            videos = Video.objects.filter(id__in=video_ids, active=True)
             videos_map = {video.id: video for video in videos}
+
+        if article_ids:
+            articles = Article.objects.filter(id__in=article_ids, is_published=True).select_related('category', 'author').only(
+                'id', 'title', 'slug', 'excerpt', 'published_at',
+                'category__name', 'category__slug', 'category__color',
+                'author__username', 'featured_image'
+            )
+            articles_map = {article.id: article for article in articles}
 
         # Construir estrutura de dados serializável
         sections_data = []
@@ -214,6 +228,9 @@ class HomeView(TemplateView):
                 elif item.content_type_id == video_ct.id:
                     obj = videos_map.get(item.object_id)
                     obj_type = 'video'
+                elif item.content_type_id == article_ct.id:
+                    obj = articles_map.get(item.object_id)
+                    obj_type = 'article'
 
                 if obj is None:
                     continue

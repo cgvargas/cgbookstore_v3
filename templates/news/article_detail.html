@@ -59,7 +59,7 @@
 
         <!-- Imagem Destaque -->
         <figure class="article-featured-image">
-            <img src="{{ article.featured_image.url }}" alt="{{ article.title }}">
+            <img src="{% if article.featured_image.name %}{{ article.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ article.title }}">
             {% if article.image_caption %}
             <figcaption>{{ article.image_caption }}</figcaption>
             {% endif %}
@@ -186,7 +186,7 @@
                 <div class="col-md-6 col-lg-3">
                     <div class="related-article-card">
                         <a href="{% url 'news:article_detail' related.slug %}">
-                            <img src="{{ related.featured_image.url }}" alt="{{ related.title }}">
+                            <img src="{% if related.featured_image.name %}{{ related.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ related.title }}">
                             <h5>{{ related.title }}</h5>
                             <span>{{ related.get_content_type_display }}</span>
                         </a>

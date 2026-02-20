@@ -665,7 +665,7 @@
             <a href="{{ article.get_absolute_url }}" class="text-decoration-none">
                 <div class="universe-article-card">
                     {% if article.featured_image %}
-                    <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" loading="lazy">
+                    <img src="{% if article.featured_image.name %}{{ article.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ article.title }}" loading="lazy">
                     {% endif %}
                     <div class="card-body">
                         <span class="badge mb-2">{{ article.get_content_type_display }}</span>

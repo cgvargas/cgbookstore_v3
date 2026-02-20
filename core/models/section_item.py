@@ -25,7 +25,7 @@ class SectionItem(models.Model):
         ContentType,
         on_delete=models.CASCADE,
         limit_choices_to={
-            'model__in': ('book', 'author', 'video')
+            'model__in': ('book', 'author', 'video', 'article')
         },
         verbose_name="Tipo de Conteúdo"
     )
