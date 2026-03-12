@@ -426,9 +426,9 @@
             <div class="tab-content" id="bookTabsContent">
                 <!-- Aba Sobre -->
                 <div class="tab-pane fade show active" id="sobre" role="tabpanel" aria-labelledby="sobre-tab">
-                    <div class="card border-0 shadow-sm bg-dark text-light p-3">
+                    <div class="card border-0 shadow-sm p-3" style="background-color: var(--card-bg); color: var(--text-primary);">
                         <div class="card-body" style="line-height: 1.5;">
-                            <p class="card-text text-white">{{ book.description|linebreaksbr }}</p>
+                            <p class="card-text">{{ book.description|linebreaksbr }}</p>
                         </div>
                     </div>
                 </div>
@@ -439,7 +439,7 @@
                     <!-- NOVO: ESTATÍSTICAS E AUTOR -->
                     <div class="row mb-5">
                         <div class="col-12">
-                            <h4 class="mb-3 text-white"><i class="fas fa-chart-bar text-info me-2"></i> Estatísticas</h4>
+                            <h4 class="mb-3"><i class="fas fa-chart-bar text-info me-2"></i> Estatísticas</h4>
                         </div>
                         
                         <!-- Coluna 1: Barras de Progresso de Avaliação -->
@@ -533,11 +533,11 @@
                     </div>
                     <!-- FIM: ESTATÍSTICAS E AUTOR -->
 
-                    <div class="card border-0 shadow-sm bg-dark text-light p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3 flex-wrap">
-                            <h4 class="mb-2 mb-md-0 text-white"><i class="fas fa-comments text-warning me-2"></i>Opiniões da Comunidade</h4>
+                    <div class="card border-0 shadow-sm p-4" style="background-color: var(--card-bg); color: var(--text-primary);">
+                        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap" style="border-color: var(--border-color) !important;">
+                            <h4 class="mb-2 mb-md-0"><i class="fas fa-comments text-warning me-2"></i>Opiniões da Comunidade</h4>
                             <div class="d-flex gap-2">
-                                <a href="{% url 'core:book_reviews' book.id %}" class="btn btn-outline-light rounded-pill px-4 shadow-sm">
+                                <a href="{% url 'core:book_reviews' book.id %}" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
                                     <i class="fas fa-list me-1"></i> Ver Mais Opiniões
                                 </a>
                                 {% if user.is_authenticated %}
@@ -562,7 +562,7 @@
                                 <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-warning text-dark px-3 mt-1 shadow-sm fs-6">
                                     Sua Avaliação Atual
                                 </span>
-                                <div class="card-body mt-3 text-white">
+                                <div class="card-body mt-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <span class="fs-5 text-warning fw-bold">
                                             {{ user_review.rating }} <i class="fas fa-star text-warning"></i>
@@ -571,14 +571,14 @@
                                     </div>
                                     
                                         {% if user_review.title %}
-                                            <h5 class="card-title fw-bold text-white mb-2 fs-5">{{ user_review.title }}</h5>
+                                            <h5 class="card-title fw-bold mb-2 fs-5">{{ user_review.title }}</h5>
                                         {% endif %}
                                         <div class="review-text-container position-relative">
                                             <div class="card-text text-truncate-multiline" style="line-height: 1.5;">{{ user_review.review_text|linebreaksbr }}</div>
                                             <button class="btn btn-link text-warning p-0 text-decoration-none btn-read-more d-none mt-1 fw-bold"><i class="fas fa-chevron-down me-1"></i>Ler resenha completa</button>
                                         </div>
                                         
-                                        <div class="mt-4 pt-3 border-top border-secondary d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2" style="border-color: var(--border-color) !important;">
                                             <div class="d-flex gap-2">
                                                 {% if user_review.contains_spoilers %}
                                                     <span class="badge bg-danger px-3 py-2 rounded-pill shadow-sm"><i class="fas fa-exclamation-triangle me-1"></i> Tem Spoilers</span>
@@ -590,7 +590,7 @@
                                                 {% endif %}
                                             </div>
                                             <div class="d-flex gap-2">
-                                                <button class="btn btn-sm btn-outline-light rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#reviewModal"><i class="fas fa-edit"></i> Editar</button>
+                                                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#reviewModal"><i class="fas fa-edit"></i> Editar</button>
                                                 <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="deleteReview({{ user_review.id }})"><i class="fas fa-trash-alt"></i> Excluir</button>
                                             </div>
                                         </div>
@@ -602,8 +602,8 @@
                             <!-- Lista de resenhas públicas -->
                             <div class="review-list">
                                 {% for review in reviews %}
-                                    <div class="card bg-transparent border-secondary mb-4 rounded-4 shadow-sm">
-                                        <div class="card-body p-4 text-white">
+                                    <div class="card bg-transparent border-secondary mb-4 rounded-4 shadow-sm" style="border-color: var(--border-color) !important;">
+                                        <div class="card-body p-4">
                                             <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
                                                 <div class="d-flex align-items-center gap-3">
                                                     {% if review.user.profile.avatar %}
@@ -614,20 +614,20 @@
                                                         </div>
                                                     {% endif %}
                                                     <div>
-                                                        <h5 class="mb-0 fw-bold text-white">{{ review.user.first_name|default:review.user.username }}</h5>
+                                                        <h5 class="mb-0 fw-bold">{{ review.user.first_name|default:review.user.username }}</h5>
                                                         <small class="text-secondary d-block mt-1"><i class="far fa-clock me-1"></i> {{ review.created_at|date:"d M Y" }}</small>
                                                     </div>
                                                 </div>
-                                                <div class="bg-dark px-3 py-2 rounded-pill border border-warning shadow-sm">
+                                                <div class="px-3 py-2 rounded-pill border border-warning shadow-sm" style="background-color: var(--card-bg);">
                                                     <span class="text-warning fs-5 fw-bold">{{ review.rating }} <i class="fas fa-star"></i></span>
                                                 </div>
                                             </div>
                                             
                                             {% if review.title %}
-                                                <h5 class="card-subtitle mt-2 mb-2 fw-bold text-light fs-5">{{ review.title }}</h5>
+                                                <h5 class="card-subtitle mt-2 mb-2 fw-bold fs-5">{{ review.title }}</h5>
                                             {% endif %}
                                             
-                                                <div class="review-content text-light position-relative" style="line-height: 1.5;">
+                                                <div class="review-content position-relative" style="line-height: 1.5;">
                                                     {% if review.contains_spoilers %}
                                                         <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-50 py-3 mt-3 d-flex align-items-center justify-content-between rounded-4 shadow-sm spoiler-warning">
                                                             <span><i class="fas fa-lock me-2 fs-5"></i> <strong>Aviso de Spoiler!</strong> O leitor marcou revelações sensíveis da trama.</span>
@@ -645,7 +645,7 @@
                                                     {% endif %}
                                                 </div>
                                                 
-                                                <div class="mt-4 pt-4 border-top border-secondary d-flex justify-content-between align-items-center flex-wrap">
+                                                <div class="mt-4 pt-4 border-top d-flex justify-content-between align-items-center flex-wrap" style="border-color: var(--border-color) !important;">
                                                     <div>
                                                         {% if review.would_recommend %}
                                                             <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill"><i class="fas fa-check-circle me-1"></i> Recomendado</span>
@@ -666,10 +666,10 @@
                                 </div>
                         {% else %}
                             {% if not user_review %}
-                                <div class="text-center py-5 mt-3 bg-dark bg-gradient rounded-4 border border-secondary text-muted shadow-sm">
-                                    <i class="fas fa-ghost fa-4x text-secondary mb-3 opacity-50 block"></i>
-                                    <h4 class="text-white opacity-75 mt-3">Silêncio na Biblioteca...</h4>
-                                    <p class="fs-5 mt-2">Ninguém comentou ainda. Seja o primeiro leitor a eternizar sua opinião sobre "{{ book.title }}"!</p>
+                                <div class="text-center py-5 mt-3 rounded-4 border shadow-sm" style="background-color: var(--body-bg); border-color: var(--border-color) !important;">
+                                    <i class="fas fa-ghost fa-4x text-muted mb-3 opacity-50 block"></i>
+                                    <h4 class="mt-3">Silêncio na Biblioteca...</h4>
+                                    <p class="fs-5 mt-2 text-muted">Ninguém comentou ainda. Seja o primeiro leitor a eternizar sua opinião sobre "{{ book.title }}"!</p>
                                 </div>
                             {% endif %}
                         {% endif %}
