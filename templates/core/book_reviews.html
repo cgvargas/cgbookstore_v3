@@ -1,0 +1,512 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Resenhas - {{ book.title }} - CGBookStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Truncamento de texto para resenhas longas */
+    .text-truncate-multiline {
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .cursor-pointer {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Início</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'core:book_list' %}">Livros</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'core:book_detail' book.id %}">{{ book.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Resenhas da Comunidade</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Coluna Esquerda: Cópia parcial do detalhe (Conforme Layout Anexo) -->
+        <div class="col-md-3 mb-4">
+            <div class="card bg-dark border-secondary shadow-lg overflow-hidden position-sticky" style="top: 20px;">
+                {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}" class="card-img-top" alt="Capa de {{ book.title }}">
+                {% else %}
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 380px;">
+                        <i class="fas fa-book fa-5x text-dark opacity-50"></i>
+                    </div>
+                {% endif %}
+                
+                <div class="card-body bg-dark text-center pb-3">
+                    <div class="d-grid gap-2">
+                        {% if book.purchase_partner_url %}
+                            <a href="{{ book.purchase_partner_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-success fw-bold d-flex align-items-center justify-content-center">
+                                <i class="fas fa-shopping-cart fa-lg me-2"></i>
+                                {% if book.purchase_partner_name %}
+                                    Comprar na {{ book.purchase_partner_name }}
+                                {% else %}
+                                    Comprar agora
+                                {% endif %}
+                                <i class="fas fa-external-link-alt ms-2 small"></i>
+                            </a>
+                        {% else %}
+                            <button class="btn btn-outline-secondary d-flex align-items-center justify-content-center" disabled>
+                                <i class="fas fa-store-slash fa-lg me-2"></i>Lojas parceiras indisponíveis
+                            </button>
+                        {% endif %}
+
+                        <div class="btn-group w-100 mt-2 border border-info rounded">
+                            {% if user.is_authenticated %}
+                                <button type="button" class="btn btn-info fw-bold text-dark d-flex align-items-center justify-content-center py-2" onclick="addToShelf({{ book.id }}, 'want_to_read')" style="width: 80%;">
+                                    <i class="fas fa-book-reader fa-lg me-2"></i>Adicionar à Biblioteca
+                                </button>
+                                <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split text-dark border-start border-dark" data-bs-toggle="dropdown" aria-expanded="false" style="width: 20%;">
+                                    <span class="visually-hidden">Toggle Dropdown</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow w-100">
+                                    <li><a class="dropdown-item py-2" href="#" onclick="addToShelf({{ book.id }}, 'want_to_read')"><i class="fas fa-bookmark text-primary me-2"></i>Quero Ler</a></li>
+                                    <li><a class="dropdown-item py-2" href="#" onclick="addToShelf({{ book.id }}, 'reading')"><i class="fas fa-book-open text-warning me-2"></i>Lendo Atualmente</a></li>
+                                    <li><a class="dropdown-item py-2" href="#" onclick="addToShelf({{ book.id }}, 'read')"><i class="fas fa-check-circle text-success me-2"></i>Já Li</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item py-2" href="{% url 'core:library' %}"><i class="fas fa-cog text-secondary me-2"></i>Gerenciar Biblioteca</a></li>
+                                </ul>
+                            {% else %}
+                                <a href="{% url 'account_login' %}?next={{ request.path }}" class="btn btn-info fw-bold text-dark w-100 py-2 d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-lock fa-lg me-2"></i>Faça login para adicionar
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3 g-2">
+                         <div class="col-6">
+                              <a href="{% url 'debates:create_topic' book_id=book.id %}" class="btn btn-outline-info w-100 py-2 fs-6"><i class="fas fa-comments me-1"></i> Criar Debate</a>
+                         </div>
+                         <div class="col-6">
+                              <a href="{% url 'debates:list' %}?book={{ book.id }}" class="btn btn-outline-light w-100 py-2 fs-6"><i class="fas fa-eye me-1"></i> Ver Debates</a>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coluna Direita: Listagem de Resenhas -->
+        <div class="col-md-9 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+                <h2 class="mb-0 text-white"><i class="fas fa-users text-warning me-2"></i> Resenhas da Comunidade</h2>
+                 <a href="{% url 'core:book_detail' book.id %}#aval-e-resenhas" class="btn btn-outline-light rounded-pill px-4"><i class="fas fa-arrow-left me-1"></i> Voltar ao Livro</a>
+            </div>
+
+            <!-- Resenha do próprio usuário em Destaque -->
+            {% if user_review %}
+                <div class="card border-warning bg-transparent border-2 mb-5 rounded-4 position-relative">
+                    <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-warning text-dark px-3 mt-1 shadow-sm fs-6">
+                        Sua Avaliação Atual
+                    </span>
+                    <div class="card-body mt-3 text-white">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fs-5 text-warning fw-bold">
+                                {{ user_review.rating }} <i class="fas fa-star text-warning"></i>
+                            </span>
+                            <small class="text-secondary">{{ user_review.updated_at|date:"d M Y" }}</small>
+                        </div>
+                        
+                        {% if user_review.title %}
+                            <h5 class="card-title fw-bold text-white mb-2 fs-5">{{ user_review.title }}</h5>
+                        {% endif %}
+                        
+                        <div class="review-text-container position-relative">
+                            <div class="card-text text-truncate-multiline" style="line-height: 1.5;">{{ user_review.review_text|linebreaksbr }}</div>
+                            <button class="btn btn-link text-warning p-0 text-decoration-none btn-read-more d-none mt-1 fw-bold"><i class="fas fa-chevron-down me-1"></i>Ler resenha completa</button>
+                        </div>
+                        
+                        <div class="mt-4 pt-3 border-top border-secondary d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div class="d-flex gap-2">
+                                {% if user_review.contains_spoilers %}
+                                    <span class="badge bg-danger px-3 py-2 rounded-pill shadow-sm"><i class="fas fa-exclamation-triangle me-1"></i> Tem Spoilers</span>
+                                {% endif %}
+                                {% if user_review.would_recommend %}
+                                    <span class="badge bg-success bg-opacity-25 text-success px-3 py-2 border border-success rounded-pill fw-bold"><i class="fas fa-thumbs-up me-1"></i> Recomendado</span>
+                                {% else %}
+                                    <span class="badge bg-secondary bg-opacity-25 text-secondary px-3 py-2 border border-secondary rounded-pill fw-bold"><i class="fas fa-thumbs-down me-1"></i> Não Recomenda</span>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex gap-3 align-items-center text-secondary user-select-none">
+                                <div class="interaction-btn hover-warning transition-base cursor-pointer" onclick="toggleReviewLike({{ user_review.id }})" title="Gostei">
+                                    <i class="fas fa-heart"></i> <span id="like-count-{{ user_review.id }}" class="ms-1 fw-bold">{{ user_review.likes_count }}</span>
+                                </div>
+                                <div class="interaction-btn cursor-pointer" onclick="toggleCommentSection({{ user_review.id }})" title="Comentários">
+                                    <i class="fas fa-comment-dots"></i> <span id="comment-count-{{ user_review.id }}" class="ms-1 fw-bold">{{ user_review.comments_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Seção de Comentários da resenha do usuário -->
+                        <div id="comment-section-{{ user_review.id }}" class="d-none mt-3 pt-3 border-top border-secondary">
+                            <div id="comment-list-{{ user_review.id }}" class="mb-3">
+                                <div class="text-secondary small text-center py-2">
+                                    <i class="fas fa-spinner fa-spin me-1"></i> Carregando comentários...
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 align-items-start mt-2">
+                                {% if user.profile.avatar %}
+                                    <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="rounded-circle" width="32" height="32" style="object-fit:cover; flex-shrink:0;">
+                                {% else %}
+                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white" style="width:32px;height:32px;flex-shrink:0;"><i class="fas fa-user fa-xs"></i></div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <textarea id="comment-input-{{ user_review.id }}"
+                                              class="form-control form-control-sm bg-dark text-white border-secondary"
+                                              rows="2"
+                                              placeholder="Escrever um comentário..."
+                                              maxlength="1000"
+                                              style="resize:none;"></textarea>
+                                    <div class="d-flex justify-content-end mt-1">
+                                        <button class="btn btn-sm btn-warning text-dark fw-bold px-3 rounded-pill" onclick="submitComment({{ user_review.id }})">
+                                            <i class="fas fa-paper-plane me-1"></i> Enviar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if reviews %}
+                <!-- Lista de resenhas públicas -->
+                <div class="review-list">
+                    {% for review in reviews %}
+                        <div class="card bg-transparent border-secondary mb-4 rounded-4 shadow-sm" id="review-{{ review.id }}">
+                            <div class="card-body p-4 text-white">
+                                <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+                                    <div class="d-flex align-items-center gap-3">
+                                        {% if review.user.profile.avatar %}
+                                            <img src="{{ review.user.profile.avatar.url }}" alt="Avatar" class="rounded-circle border border-2 border-primary shadow-sm" width="55" height="55" style="object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-primary rounded-circle d-flex text-white align-items-center justify-content-center border border-2 border-primary shadow-sm" style="width: 55px; height: 55px;">
+                                                <i class="fas fa-user fs-4"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <h5 class="mb-0 fw-bold text-white">{{ review.user.first_name|default:review.user.username }}</h5>
+                                            <small class="text-secondary d-block mt-1"><i class="far fa-clock me-1"></i> {{ review.created_at|date:"d M Y" }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="bg-dark px-3 py-2 rounded-pill border border-warning shadow-sm">
+                                        <span class="text-warning fs-5 fw-bold">{{ review.rating }} <i class="fas fa-star"></i></span>
+                                    </div>
+                                </div>
+                                
+                                {% if review.title %}
+                                    <h5 class="card-subtitle mt-2 mb-2 fw-bold text-light fs-5">{{ review.title }}</h5>
+                                {% endif %}
+                                
+                                <div class="review-content text-light position-relative" style="line-height: 1.5;">
+                                    {% if review.contains_spoilers %}
+                                        <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-50 py-3 mt-3 d-flex align-items-center justify-content-between rounded-4 shadow-sm spoiler-warning">
+                                            <span><i class="fas fa-lock me-2 fs-5"></i> <strong>Aviso de Spoiler!</strong> O leitor marcou revelações sensíveis da trama.</span>
+                                            <button class="btn btn-sm btn-outline-danger fw-bold rounded-pill" onclick="this.closest('.review-content').querySelector('.spoiler-text').classList.remove('d-none'); this.parentElement.classList.add('d-none');">Ler Mesmo Assim</button>
+                                        </div>
+                                        <div class="spoiler-text d-none mt-3 p-4 bg-black bg-opacity-50 rounded-4 border border-secondary text-light">
+                                            <div class="text-truncate-multiline spoiler-content">{{ review.review_text|linebreaksbr }}</div>
+                                            <button class="btn btn-link text-warning p-0 text-decoration-none btn-read-more d-none mt-2 fw-bold"><i class="fas fa-chevron-down me-1"></i>Ler resenha completa</button>
+                                        </div>
+                                    {% else %}
+                                        <div class="mt-3 review-text-container">
+                                            <div class="text-truncate-multiline">{{ review.review_text|linebreaksbr }}</div>
+                                            <button class="btn btn-link text-warning p-0 text-decoration-none btn-read-more d-none mt-2 fw-bold"><i class="fas fa-chevron-down me-1"></i>Ler resenha completa</button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mt-4 pt-4 border-top border-secondary d-flex justify-content-between align-items-center flex-wrap">
+                                    <div>
+                                        {% if review.would_recommend %}
+                                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill"><i class="fas fa-check-circle me-1"></i> Recomendado</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-center text-secondary user-select-none">
+                                        <div class="interaction-btn hover-warning transition-base cursor-pointer" onclick="toggleReviewLike({{ review.id }})" title="Gostei">
+                                            <i class="fas fa-heart"></i> <span id="like-count-{{ review.id }}" class="ms-1 fw-bold">{{ review.likes_count }}</span>
+                                        </div>
+                                        <div class="interaction-btn cursor-pointer" onclick="toggleCommentSection({{ review.id }})" title="Comentários">
+                                            <i class="fas fa-comment-dots"></i> <span id="comment-count-{{ review.id }}" class="ms-1 fw-bold">{{ review.comments_count }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Seção de Comentários (expansível via JS) -->
+                                <div id="comment-section-{{ review.id }}" class="d-none mt-3 pt-3 border-top border-secondary">
+                                    <!-- Lista de comentários (carregada via AJAX) -->
+                                    <div id="comment-list-{{ review.id }}" class="mb-3">
+                                        <div class="text-secondary small text-center py-2">
+                                            <i class="fas fa-spinner fa-spin me-1"></i> Carregando comentários...
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Formulário de novo comentário -->
+                                    {% if user.is_authenticated %}
+                                    <div class="d-flex gap-2 align-items-start mt-2">
+                                        {% if user.profile.avatar %}
+                                            <img src="{{ user.profile.avatar.url }}" class="rounded-circle" width="32" height="32" style="object-fit:cover; flex-shrink:0;">
+                                        {% else %}
+                                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white" style="width:32px;height:32px;flex-shrink:0;"><i class="fas fa-user fa-xs"></i></div>
+                                        {% endif %}
+                                        <div class="flex-grow-1">
+                                            <textarea id="comment-input-{{ review.id }}" 
+                                                      class="form-control form-control-sm bg-dark text-white border-secondary" 
+                                                      rows="2" 
+                                                      placeholder="Escrever um comentário..." 
+                                                      maxlength="1000"
+                                                      style="resize:none;"></textarea>
+                                            <div class="d-flex justify-content-end mt-1">
+                                                <button class="btn btn-sm btn-warning text-dark fw-bold px-3 rounded-pill" onclick="submitComment({{ review.id }})">
+                                                    <i class="fas fa-paper-plane me-1"></i> Enviar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-secondary small text-center mt-2">
+                                        <a href="{% url 'account_login' %}?next={{ request.path }}" class="text-warning">Faça login</a> para comentar.
+                                    </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Paginação Padrão -->
+                {% if is_paginated %}
+                    <nav aria-label="Navegação de resenhas" class="mt-5 mb-5">
+                        <ul class="pagination pagination-lg justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link bg-dark text-warning border-secondary" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                                </li>
+                            {% endif %}
+                            
+                            <li class="page-item disabled">
+                                <span class="page-link bg-secondary text-white border-secondary">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                            </li>
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link bg-dark text-warning border-secondary" href="?page={{ page_obj.next_page_number }}">Próxima</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+                
+            {% else %}
+                {% if not user_review %}
+                    <div class="text-center py-5 mt-3 bg-dark bg-gradient rounded-4 border border-secondary text-muted shadow-sm">
+                        <i class="fas fa-ghost fa-4x text-secondary mb-3 opacity-50 block"></i>
+                        <h4 class="text-white opacity-75 mt-3">Silêncio na Biblioteca...</h4>
+                        <p class="fs-5 mt-2">Ninguém comentou ainda. Seja o primeiro leitor a eternizar sua opinião sobre "{{ book.title }}"!</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/library-manager.js' %}"></script>
+<script>
+    // Ver mais lógica
+    document.addEventListener('DOMContentLoaded', function() {
+        const textContainers = document.querySelectorAll('.text-truncate-multiline');
+        textContainers.forEach(container => {
+            if (container.scrollHeight > container.clientHeight) {
+                const btn = container.nextElementSibling;
+                if (btn && btn.classList.contains('btn-read-more')) {
+                    btn.classList.remove('d-none');
+                    btn.addEventListener('click', function() {
+                        if (container.style.webkitLineClamp === 'initial') {
+                            container.style.webkitLineClamp = '4';
+                            this.innerHTML = '<i class="fas fa-chevron-down me-1"></i>Ler resenha completa';
+                        } else {
+                            container.style.webkitLineClamp = 'initial';
+                            this.innerHTML = '<i class="fas fa-chevron-up me-1"></i>Ocultar';
+                        }
+                    });
+                }
+            }
+        });
+    });
+
+    function deleteReview(reviewId) {
+        if (confirm('Tem certeza que deseja excluir sua resenha? Esta ação não pode ser desfeita.')) {
+            fetch(`/livros/resenhas/${reviewId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Erro ao excluir: ' + (data.error || 'Erro desconhecido.'));
+                }
+            });
+        }
+    }
+
+    function toggleReviewLike(reviewId) {
+        {% if user.is_authenticated %}
+            fetch(`/livros/resenhas/${reviewId}/like/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const countSpan = document.getElementById(`like-count-${reviewId}`);
+                    const icon = countSpan.previousElementSibling;
+                    
+                    countSpan.textContent = data.likes_count;
+                    if (data.liked) {
+                        icon.classList.remove('text-secondary');
+                        icon.classList.add('text-danger');
+                    } else {
+                        icon.classList.remove('text-danger');
+                        icon.classList.add('text-secondary');
+                    }
+                }
+            });
+        {% else %}
+            window.location.href = "{% url 'account_login' %}?next={{ request.path }}";
+        {% endif %}
+    }
+
+    // Carregamento de comentários iniciado? (evita recarregar após 1ª vez)
+    const loadedSections = {};
+
+    function toggleCommentSection(reviewId) {
+        const section = document.getElementById(`comment-section-${reviewId}`);
+        if (!section) return;
+
+        const isHidden = section.classList.contains('d-none');
+        section.classList.toggle('d-none');
+
+        // Carrega somente na primeira abertura
+        if (isHidden && !loadedSections[reviewId]) {
+            loadedSections[reviewId] = true;
+            loadComments(reviewId);
+        }
+    }
+
+    function loadComments(reviewId) {
+        fetch(`/livros/resenhas/${reviewId}/comments/`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            const list = document.getElementById(`comment-list-${reviewId}`);
+            if (!data.comments || data.comments.length === 0) {
+                list.innerHTML = '<p class="text-secondary small text-center py-2">Nenhum comentário ainda. Seja o primeiro!</p>';
+                return;
+            }
+            list.innerHTML = data.comments.map(c => `
+                <div class="d-flex gap-2 mb-3 align-items-start" id="comment-item-${c.id}">
+                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white flex-shrink-0" style="width:30px;height:30px;font-size:12px;">
+                        ${c.author.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="flex-grow-1 bg-dark bg-opacity-75 border border-secondary rounded-3 px-3 py-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong class="text-warning small">${c.author}</strong>
+                            <div class="d-flex align-items-center gap-2">
+                                <small class="text-secondary">${c.created_at}</small>
+                                ${c.can_delete ? `<button class="btn btn-link text-danger p-0" style="font-size:11px;" onclick="deleteComment(${c.id}, ${reviewId})" title="Excluir comentário"><i class="fas fa-times"></i></button>` : ''}
+                            </div>
+                        </div>
+                        <p class="mb-0 text-light small" style="white-space:pre-wrap;">${c.content}</p>
+                    </div>
+                </div>
+            `).join('');
+        });
+    }
+
+    function submitComment(reviewId) {
+        {% if user.is_authenticated %}
+            const input = document.getElementById(`comment-input-${reviewId}`);
+            const content = input ? input.value.trim() : '';
+
+            if (!content) {
+                input.classList.add('is-invalid');
+                setTimeout(() => input.classList.remove('is-invalid'), 2000);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('content', content);
+
+            fetch(`/livros/resenhas/${reviewId}/comment/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    input.value = '';
+                    // Atualizar contador
+                    const counter = document.getElementById(`comment-count-${reviewId}`);
+                    if (counter) counter.textContent = data.comments_count;
+                    // Recarregar lista
+                    loadedSections[reviewId] = false;
+                    loadComments(reviewId);
+                    loadedSections[reviewId] = true;
+                } else {
+                    alert('Erro: ' + (data.error || 'Não foi possível enviar o comentário.'));
+                }
+            });
+        {% else %}
+            window.location.href = "{% url 'account_login' %}?next={{ request.path }}";
+        {% endif %}
+    }
+
+    function deleteComment(commentId, reviewId) {
+        if (!confirm('Excluir este comentário?')) return;
+
+        fetch(`/livros/resenhas/comment/${commentId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const el = document.getElementById(`comment-item-${commentId}`);
+                if (el) el.remove();
+                const counter = document.getElementById(`comment-count-${reviewId}`);
+                if (counter) counter.textContent = data.comments_count;
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -3,69 +3,243 @@
 
 {% block title %}Debates - CG.BookStore{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ============================================================================
+       PREMIUM CSS – DEBATES LIST
+       ============================================================================ */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+    }
+
+    @keyframes floatOrb {
+        0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+        33% { transform: translate(30px, -50px) scale(1.1) rotate(120deg); }
+        66% { transform: translate(-20px, 20px) scale(0.9) rotate(240deg); }
+        100% { transform: translate(0, 0) scale(1) rotate(360deg); }
+    }
+    
+    @keyframes gradientShift {
+        to { background-position: 200% center; }
+    }
+
+    .glowing-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(90px);
+        z-index: 0;
+        opacity: 0.7;
+        pointer-events: none;
+        animation: floatOrb 20s infinite ease-in-out;
+    }
+    .orb-primary { background: radial-gradient(circle at center, rgba(var(--primary-rgb, 0, 113, 133), 0.5), transparent 80%); }
+    .orb-secondary { background: radial-gradient(circle at center, rgba(138, 43, 226, 0.4), transparent 80%); animation-delay: -7s; animation-direction: reverse; }
+
+    .glass-effect {
+        background: rgba(255, 255, 255, 0.7);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border-radius: 1.5rem;
+        position: relative;
+        z-index: 2;
+    }
+    [data-theme='dark'] .glass-effect {
+        background: rgba(30, 30, 30, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .text-gradient {
+        background: linear-gradient(120deg, var(--primary-color) 0%, #8a2be2 50%, var(--primary-color) 100%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: gradientShift 6s linear infinite;
+    }
+
+    .debates-page-wrapper {
+        position: relative;
+        overflow: hidden;
+        padding: 4rem 0;
+    }
+
+    .debates-title {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 900;
+        letter-spacing: -1px;
+    }
+
+    /* Search Bar */
+    .debates-search .form-control {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(var(--primary-rgb, 0, 113, 133), 0.2);
+        padding: 0.9rem 1.5rem;
+        border-radius: 50px;
+        font-size: 1rem;
+    }
+    .debates-search .form-control:focus {
+        background: var(--card-bg);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 0, 113, 133), 0.15);
+    }
+    [data-theme='dark'] .debates-search .form-control {
+        background: rgba(0, 0, 0, 0.2);
+    }
+    .btn-gradient {
+        background: linear-gradient(135deg, var(--primary-color), #8a2be2);
+        color: white;
+        border: none;
+        padding: 0.9rem 1.8rem;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(var(--primary-rgb, 0, 113, 133), 0.3);
+    }
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(var(--primary-rgb, 0, 113, 133), 0.4);
+        color: white;
+    }
+
+    /* Topic Card */
+    .topic-card {
+        background: rgba(255, 255, 255, 0.7);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(200, 200, 200, 0.3);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        transition: all 0.35s ease;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        position: relative;
+        z-index: 2;
+    }
+    .topic-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(var(--primary-rgb, 0, 113, 133), 0.12);
+        border-color: var(--primary-color);
+        color: inherit;
+    }
+    [data-theme='dark'] .topic-card {
+        background: rgba(30, 30, 30, 0.5);
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+    .topic-card h5 {
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    .topic-card .topic-meta {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    .topic-card .stat-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: rgba(var(--primary-rgb, 0, 113, 133), 0.1);
+        color: var(--primary-color);
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+    }
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--primary-color);
+        opacity: 0.5;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container my-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-comments me-2"></i>Debates Literários</h1>
-    </div>
+<div class="debates-page-wrapper">
+    <div class="glowing-orb orb-primary" style="width: 500px; height: 500px; top: -10%; left: -5%;"></div>
+    <div class="glowing-orb orb-secondary" style="width: 400px; height: 400px; bottom: 5%; right: -5%;"></div>
 
-    <!-- Busca -->
-    <form method="GET" class="mb-4">
-        <div class="input-group">
-            <input type="text" name="q" class="form-control" placeholder="Buscar debates..." value="{{ search_query }}">
-            <button class="btn btn-primary" type="submit">
-                <i class="fas fa-search"></i> Buscar
-            </button>
+    <div class="container position-relative" style="z-index: 2;">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="debates-title text-gradient"><i class="fas fa-comments me-3"></i>Debates Literários</h1>
+            <p class="lead text-secondary mt-2">Participe de conversas apaixonantes sobre seus livros favoritos</p>
         </div>
-    </form>
 
-    <!-- Lista de Tópicos -->
-    {% if topics %}
-    <div class="list-group">
-        {% for topic in topics %}
-        <a href="{% url 'debates:topic_detail' topic.slug %}" class="list-group-item list-group-item-action">
-            <div class="d-flex w-100 justify-content-between">
-                <div class="flex-grow-1">
-                    {% if topic.is_pinned %}
-                    <span class="badge bg-warning text-dark me-2">
-                        <i class="fas fa-thumbtack"></i> Fixado
-                    </span>
-                    {% endif %}
-                    {% if topic.is_locked %}
-                    <span class="badge bg-secondary me-2">
-                        <i class="fas fa-lock"></i> Bloqueado
-                    </span>
-                    {% endif %}
-                    <h5 class="mb-1">{{ topic.title }}</h5>
-                    <p class="mb-1 text-muted">{{ topic.description|truncatewords:20 }}</p>
-                    <small class="text-muted">
-                        <i class="fas fa-book me-1"></i>{{ topic.book.title }} |
-                        <i class="fas fa-user me-1"></i>{{ topic.creator.username }} |
-                        <i class="far fa-clock me-1"></i>{{ topic.created_at|date:"d/m/Y H:i" }}
-                    </small>
-                </div>
-                <div class="text-end">
-                    <div class="badge bg-primary mb-2">
-                        <i class="fas fa-comment"></i> {{ topic.posts_count }}
+        <!-- Search -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-8">
+                <form method="GET" class="debates-search">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control" placeholder="Buscar debates..." value="{{ search_query }}">
+                        <button class="btn-gradient" type="submit">
+                            <i class="fas fa-search me-1"></i> Buscar
+                        </button>
                     </div>
-                    <br>
-                    <small class="text-muted">
-                        <i class="fas fa-eye"></i> {{ topic.views_count }}
-                    </small>
-                </div>
+                </form>
             </div>
-        </a>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="alert alert-info">
-        <i class="fas fa-info-circle me-2"></i>
-        {% if search_query %}
-        Nenhum debate encontrado para "{{ search_query }}".
+        </div>
+
+        <!-- Topic List -->
+        {% if topics %}
+        <div class="row g-3">
+            {% for topic in topics %}
+            <div class="col-12">
+                <a href="{% url 'debates:topic_detail' topic.slug %}" class="topic-card d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="mb-1">
+                            {% if topic.is_pinned %}
+                            <span class="badge bg-warning text-dark me-1" style="font-size: 0.7rem;">
+                                <i class="fas fa-thumbtack"></i> Fixado
+                            </span>
+                            {% endif %}
+                            {% if topic.is_locked %}
+                            <span class="badge bg-secondary me-1" style="font-size: 0.7rem;">
+                                <i class="fas fa-lock"></i> Bloqueado
+                            </span>
+                            {% endif %}
+                        </div>
+                        <h5 class="mb-1">{{ topic.title }}</h5>
+                        <p class="mb-2 text-secondary" style="font-size: 0.95rem;">{{ topic.description|truncatewords:25 }}</p>
+                        <div class="topic-meta">
+                            <i class="fas fa-book me-1"></i>{{ topic.book.title }}
+                            <span class="mx-2">•</span>
+                            <i class="fas fa-user me-1"></i>{{ topic.creator.username }}
+                            <span class="mx-2">•</span>
+                            <i class="far fa-clock me-1"></i>{{ topic.created_at|date:"d/m/Y" }}
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column align-items-end gap-2 ms-3">
+                        <span class="stat-badge">
+                            <i class="fas fa-comment"></i> {{ topic.posts_count }}
+                        </span>
+                        <span class="stat-badge" style="background: rgba(138, 43, 226, 0.1); color: #8a2be2;">
+                            <i class="fas fa-eye"></i> {{ topic.views_count }}
+                        </span>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
         {% else %}
-        Nenhum debate ainda. Seja o primeiro a criar!
+        <div class="glass-effect p-5 empty-state">
+            <i class="fas fa-comments d-block"></i>
+            {% if search_query %}
+            <h4 class="fw-bold text-dark mb-2">Nenhum debate encontrado</h4>
+            <p class="text-secondary">Nenhum resultado para "{{ search_query }}". Tente outra busca.</p>
+            {% else %}
+            <h4 class="fw-bold text-dark mb-2">Nenhum debate ainda</h4>
+            <p class="text-secondary">Seja o primeiro a criar! Acesse a página de um livro e inicie uma discussão.</p>
+            {% endif %}
+        </div>
         {% endif %}
     </div>
-    {% endif %}
 </div>
 {% endblock %}

@@ -35,10 +35,12 @@ class BookReview(models.Model):
         verbose_name='Livro'
     )
 
-    rating = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(5)],
+    rating = models.DecimalField(
+        max_digits=2,
+        decimal_places=1,
+        validators=[MinValueValidator(0.0), MaxValueValidator(5.0)],
         verbose_name='Avaliação',
-        help_text='Nota de 1 a 5 estrelas'
+        help_text='Nota de 0.0 a 5.0'
     )
 
     title = models.CharField(
@@ -128,3 +130,75 @@ class BookReview(models.Model):
         if is_new and hasattr(self.user, 'profile'):
             xp_amount = 25 if self.review_text else 10  # Mais XP se escreveu resenha
             self.user.profile.add_xp(xp_amount)
+
+
+class ReviewLike(models.Model):
+    """
+    Representa uma curtida (like) dada por um usuário a uma resenha.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='review_likes',
+        verbose_name='Usuário'
+    )
+    review = models.ForeignKey(
+        'BookReview',
+        on_delete=models.CASCADE,
+        related_name='likes',
+        verbose_name='Resenha'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Criado em'
+    )
+
+    class Meta:
+        verbose_name = 'Curtida em Resenha'
+        verbose_name_plural = 'Curtidas em Resenhas'
+        unique_together = ['user', 'review']
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} curtiu resenha {self.review.id}"
+
+
+class ReviewComment(models.Model):
+    """
+    Representa um comentário feito por um usuário em uma resenha de outro.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='review_comments',
+        verbose_name='Autor'
+    )
+    review = models.ForeignKey(
+        'BookReview',
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Resenha'
+    )
+    content = models.TextField(
+        verbose_name='Comentário'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name='Ativo'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Criado em'
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Atualizado em'
+    )
+
+    class Meta:
+        verbose_name = 'Comentário em Resenha'
+        verbose_name_plural = 'Comentários em Resenhas'
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Comentário de {self.user.username} na resenha {self.review.id}"

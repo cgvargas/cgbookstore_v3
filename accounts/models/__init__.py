@@ -5,7 +5,7 @@ Importações dos modelos da app accounts.
 from .user_profile import UserProfile
 from .book_shelf import BookShelf
 from .reading_progress import ReadingProgress
-from .book_review import BookReview
+from .book_review import BookReview, ReviewLike, ReviewComment
 from .base_notification import BaseNotification, NotificationRegistry
 from .reading_notification import ReadingNotification, SystemNotification
 from .campaign_notification import CampaignNotification
@@ -26,6 +26,8 @@ __all__ = [
     'BookShelf',
     'ReadingProgress',
     'BookReview',
+    'ReviewLike',
+    'ReviewComment',
     'BaseNotification',
     'NotificationRegistry',
     'ReadingNotification',

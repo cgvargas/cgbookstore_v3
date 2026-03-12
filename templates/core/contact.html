@@ -2,42 +2,176 @@
 
 {% block title %}Contato - CG.BookStore{% endblock %}
 
-{% block content %}
-<div class="container py-5">
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <h1 class="mb-4">Entre em Contato</h1>
-            <p class="lead mb-4">
-                Tem dúvidas, sugestões ou precisa de ajuda? Envie sua mensagem e retornaremos em breve.
-            </p>
+{% block extra_css %}
+<style>
+    /* ============================================================================
+       PREMIUM CSS PARA A PÁGINA CONTATO
+       ============================================================================ */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+    }
 
-            <div class="row mb-5">
+    @keyframes floatOrb {
+        0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+        33% { transform: translate(30px, -50px) scale(1.1) rotate(120deg); }
+        66% { transform: translate(-20px, 20px) scale(0.9) rotate(240deg); }
+        100% { transform: translate(0, 0) scale(1) rotate(360deg); }
+    }
+    
+    @keyframes gradientShift {
+        to { background-position: 200% center; }
+    }
+
+    .glowing-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(90px);
+        z-index: 0;
+        opacity: 0.7;
+        pointer-events: none;
+        animation: floatOrb 20s infinite ease-in-out;
+    }
+
+    .orb-primary { background: radial-gradient(circle at center, rgba(var(--primary-rgb, 0, 113, 133), 0.5), transparent 80%); }
+    .orb-secondary { background: radial-gradient(circle at center, rgba(138, 43, 226, 0.4), transparent 80%); animation-delay: -7s; animation-direction: reverse; }
+
+    .glass-effect {
+        background: rgba(255, 255, 255, 0.7);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border-radius: 1.5rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    [data-theme='dark'] .glass-effect {
+        background: rgba(30, 30, 30, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .text-gradient {
+        background: linear-gradient(120deg, var(--primary-color) 0%, #8a2be2 50%, var(--primary-color) 100%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: gradientShift 6s linear infinite;
+    }
+
+    .icon-gradient {
+        background: linear-gradient(135deg, var(--primary-color), #8a2be2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .contact-title {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 900;
+        letter-spacing: -1px;
+    }
+
+    .contact-info-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .contact-info-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(var(--primary-rgb, 0, 113, 133), 0.15);
+        border-color: var(--primary-color);
+    }
+    
+    .contact-page-wrapper {
+        position: relative;
+        overflow: hidden;
+        padding-top: 4rem;
+        padding-bottom: 4rem;
+    }
+
+    .form-control {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(var(--primary-rgb, 0, 113, 133), 0.2);
+        padding: 0.8rem 1.2rem;
+        border-radius: 0.8rem;
+    }
+
+    .form-control:focus {
+        background: var(--card-bg);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb, 0, 113, 133), 0.25);
+    }
+
+    [data-theme='dark'] .form-control {
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-gradient {
+        background: linear-gradient(135deg, var(--primary-color), #8a2be2);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(var(--primary-rgb, 0, 113, 133), 0.3);
+    }
+
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(var(--primary-rgb, 0, 113, 133), 0.4);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="contact-page-wrapper">
+    <div class="glowing-orb orb-primary" style="width: 500px; height: 500px; top: -10%; left: -5%;"></div>
+    <div class="glowing-orb orb-secondary" style="width: 400px; height: 400px; bottom: 10%; right: -5%;"></div>
+
+    <div class="container py-5 position-relative z-2">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="mb-4 contact-title text-gradient">Entre em Contato</h1>
+                <p class="lead mb-5 text-secondary">
+                    Tem dúvidas, sugestões ou precisa de ajuda? Envie sua mensagem e retornaremos em breve.
+                </p>
+            </div>
+        </div>
+
+        <div class="row mb-5 justify-content-center">
+            <div class="row mb-5 justify-content-center">
                 <div class="col-md-4 mb-3">
-                    <div class="text-center">
-                        <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
-                        <h5>Email</h5>
-                        <p class="text-muted">contato@cgbookstore.com.br</p>
+                    <div class="glass-effect contact-info-card text-center p-4">
+                        <i class="fas fa-envelope fa-3x text-primary mb-3 icon-gradient"></i>
+                        <h5 class="fw-bold text-dark">Email</h5>
+                        <p class="text-secondary mb-0">contato@cgbookstore.com.br</p>
                     </div>
                 </div>
                 <div class="col-md-4 mb-3">
-                    <div class="text-center">
-                        <i class="fas fa-phone fa-3x text-primary mb-3"></i>
-                        <h5>Telefone</h5>
-                        <p class="text-muted">(21) 9999-9999</p>
+                    <div class="glass-effect contact-info-card text-center p-4">
+                        <i class="fas fa-phone fa-3x text-primary mb-3 icon-gradient"></i>
+                        <h5 class="fw-bold text-dark">Telefone</h5>
+                        <p class="text-secondary mb-0">(21) 9999-9999</p>
                     </div>
                 </div>
                 <div class="col-md-4 mb-3">
-                    <div class="text-center">
-                        <i class="fas fa-map-marker-alt fa-3x text-primary mb-3"></i>
-                        <h5>Localização</h5>
-                        <p class="text-muted">Nilópolis, RJ</p>
+                    <div class="glass-effect contact-info-card text-center p-4">
+                        <i class="fas fa-map-marker-alt fa-3x text-primary mb-3 icon-gradient"></i>
+                        <h5 class="fw-bold text-dark">Localização</h5>
+                        <p class="text-secondary mb-0">Nilópolis, RJ</p>
                     </div>
                 </div>
             </div>
 
-            <div class="card shadow-sm">
-                <div class="card-body p-4">
-                    <h3 class="card-title mb-4">Envie sua Mensagem</h3>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="glass-effect">
+                        <div class="card-body p-5">
+                            <h3 class="mb-4 fw-bold text-dark">Envie sua Mensagem</h3>
                     
                     <form method="POST">
                         {% csrf_token %}
@@ -90,8 +224,8 @@
                             {% endif %}
                         </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn-gradient">
                                 <i class="fas fa-paper-plane me-2"></i>Enviar Mensagem
                             </button>
                         </div>
@@ -99,11 +233,12 @@
                 </div>
             </div>
 
-            <div class="alert alert-info mt-4">
-                <i class="fas fa-info-circle me-2"></i>
-                <strong>Tempo de resposta:</strong> Respondemos todas as mensagens em até 24 horas úteis.
+            <div class="alert glass-effect mt-5 text-center border-0" style="background: rgba(var(--primary-rgb, 0, 113, 133), 0.1);">
+                <i class="fas fa-info-circle me-2 text-primary"></i>
+                <strong class="text-dark">Tempo de resposta:</strong> <span class="text-secondary">Respondemos todas as mensagens em até 24 horas úteis.</span>
             </div>
         </div>
+    </div>
     </div>
 </div>
 {% endblock %}

@@ -10,80 +10,182 @@
        CSS CORRIGIDO E MELHORADO PARA A PÁGINA SOBRE
        ============================================================================ */
 
+    /* Global Refinements */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+    }
+
     /* Animações */
     @keyframes fadeInUp {
         from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(30px);
         }
-
         to {
             opacity: 1;
             transform: translateY(0);
         }
     }
+    
+    @keyframes floatOrb {
+        0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+        33% { transform: translate(30px, -50px) scale(1.1) rotate(120deg); }
+        66% { transform: translate(-20px, 20px) scale(0.9) rotate(240deg); }
+        100% { transform: translate(0, 0) scale(1) rotate(360deg); }
+    }
+    
+    @keyframes revealLine {
+        from { height: 0; }
+        to { height: 100%; }
+    }
 
-    /* Hero Section */
+    /* Glowing Orbs & Glassmorphism - Enhanced */
+    .glowing-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(90px);
+        z-index: 0;
+        opacity: 0.7;
+        pointer-events: none;
+        animation: floatOrb 20s infinite ease-in-out;
+    }
+
+    .orb-primary {
+        background: radial-gradient(circle at center, rgba(var(--primary-rgb, 0, 113, 133), 0.5), rgba(var(--primary-rgb, 0, 113, 133), 0.1) 60%, transparent 80%);
+    }
+
+    .orb-secondary {
+        background: radial-gradient(circle at center, rgba(138, 43, 226, 0.4), rgba(138, 43, 226, 0.1) 60%, transparent 80%);
+        animation-delay: -7s;
+        animation-direction: reverse;
+    }
+
+    .orb-accent {
+        background: radial-gradient(circle at center, rgba(255, 107, 107, 0.3), transparent 70%);
+        animation-delay: -12s;
+    }
+
+    .glass-effect {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+    }
+
+    [data-theme='dark'] .glass-effect {
+        background: rgba(20, 20, 25, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+
+    /* Hero Section - Premium Overhaul */
     .hero-about {
-        padding: 6rem 0;
-        background: linear-gradient(135deg, rgba(0, 113, 133, 0.05), rgba(0, 113, 133, 0.02));
+        padding: 10rem 0 8rem;
         text-align: center;
-        border-bottom: 1px solid var(--border-color);
         position: relative;
         overflow: hidden;
-    }
-
-    /* Elemento decorativo sutil no fundo */
-    .hero-about::before {
-        content: '';
-        position: absolute;
-        top: -50px;
-        right: -50px;
-        width: 300px;
-        height: 300px;
-        background: radial-gradient(circle, rgba(var(--primary-rgb, 0, 113, 133), 0.1) 0%, transparent 70%);
-        border-radius: 50%;
-        z-index: 0;
-    }
-
-    [data-theme='dark'] .hero-about {
-        background: linear-gradient(135deg, rgba(93, 195, 209, 0.1), rgba(93, 195, 209, 0.05));
+        background: transparent;
+        border-bottom: 1px solid rgba(150, 150, 150, 0.1);
     }
 
     .hero-content {
         position: relative;
-        z-index: 1;
-        animation: fadeInUp 0.8s ease-out;
+        z-index: 2;
+        animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+        color: var(--primary-color);
+        background: rgba(var(--primary-rgb, 0, 113, 133), 0.1);
+        border: 1px solid rgba(var(--primary-rgb, 0, 113, 133), 0.2);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 15px rgba(var(--primary-rgb, 0, 113, 133), 0.15);
     }
 
     .hero-about h1 {
-        font-size: 3.5rem;
-        font-weight: 800;
-        color: var(--primary-color);
-        /* Fallback */
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+        font-size: clamp(3rem, 6vw, 5rem);
+        font-weight: 900;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        letter-spacing: -2px;
+        color: var(--text-primary);
+        word-break: break-word;
+    }
+    
+    .text-gradient {
+        background: linear-gradient(120deg, var(--primary-color) 0%, #8a2be2 50%, var(--primary-color) 100%);
+        background-size: 200% auto;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        margin-bottom: 1.5rem;
-        letter-spacing: -1px;
+        animation: gradientShift 6s linear infinite;
+    }
+    
+    @keyframes gradientShift {
+        to { background-position: 200% center; }
     }
 
     .hero-about p.lead {
-        font-size: 1.35rem;
+        font-size: clamp(1.1rem, 2vw, 1.4rem);
         color: var(--text-secondary);
-        max-width: 800px;
-        margin: 0 auto;
+        max-width: 750px;
+        margin: 0 auto 3rem;
         line-height: 1.6;
+        word-break: break-word;
+    }
+    
+    /* Stats Row in Hero */
+    .hero-stats {
+        display: flex;
+        justify-content: center;
+        gap: 3rem;
+        margin-top: 4rem;
+        animation: fadeInUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        opacity: 0;
+        animation-delay: 0.2s;
+        flex-wrap: wrap;
+    }
+    
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
     }
 
     /* Títulos de Seção */
     .section-title {
-        font-weight: 700;
-        color: var(--text-primary);
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 800;
+        letter-spacing: -1px;
         position: relative;
-        padding-bottom: 15px;
-        margin-bottom: 40px;
+        padding-bottom: 20px;
+        margin-bottom: 50px;
     }
 
     .section-title::after {
@@ -91,10 +193,10 @@
         position: absolute;
         left: 0;
         bottom: 0;
-        width: 60px;
-        height: 4px;
-        background: var(--primary-color);
-        border-radius: 2px;
+        width: 80px;
+        height: 5px;
+        background: linear-gradient(90deg, var(--primary-color), #8a2be2);
+        border-radius: 5px;
     }
 
     .section-title.text-center::after {
@@ -102,24 +204,39 @@
         transform: translateX(-50%);
     }
 
-    /* Seção Nossa História com Timeline */
+    /* Seção Nossa História com Timeline Refinada */
     .story-section {
-        padding: 5rem 0;
+        padding: 8rem 0;
+        position: relative;
     }
 
     .quote-box {
-        margin-top: 1.5rem;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        background-color: var(--card-bg);
-        border-left: 4px solid var(--primary-color);
-        box-shadow: var(--shadow-sm);
+        margin-top: 2rem;
+        padding: 2rem;
+        border-radius: 1rem;
+        border-left: 0;
+        position: relative;
+    }
+    
+    .quote-box::before {
+        content: '"';
+        position: absolute;
+        top: -10px;
+        left: 20px;
+        font-size: 5rem;
+        line-height: 1;
+        font-family: serif;
+        color: var(--primary-color);
+        opacity: 0.2;
     }
 
     .quote-text {
-        margin: 0;
-        font-style: italic;
-        color: var(--text-secondary);
+        font-size: 1.25rem;
+        font-weight: 500;
+        line-height: 1.8;
+        color: var(--text-primary);
+        position: relative;
+        z-index: 1;
     }
 
     .timeline {
@@ -128,58 +245,67 @@
         padding: 1rem 0;
     }
 
-    /* Linha conectora */
+    /* Linha conectora fluida */
     .timeline::before {
         content: '';
         position: absolute;
-        left: 20px;
+        left: 24px;
         top: 0;
-        bottom: 0;
-        width: 2px;
-        background: linear-gradient(to bottom, var(--primary-color) 0%, var(--border-color) 80%);
+        width: 4px;
+        border-radius: 4px;
+        background: linear-gradient(to bottom, var(--primary-color) 0%, rgba(138, 43, 226, 0.8) 50%, rgba(150, 150, 150, 0.2) 100%);
+        animation: revealLine 2s ease-out forwards;
     }
 
     .timeline-item {
-        margin-bottom: 40px;
+        margin-bottom: 60px;
         position: relative;
+        opacity: 0;
+        animation: fadeInUp 0.8s forwards;
     }
-
-    .timeline-item:last-child {
-        margin-bottom: 0;
-    }
+    
+    .timeline-item:nth-child(1) { animation-delay: 0.2s; }
+    .timeline-item:nth-child(2) { animation-delay: 0.4s; }
+    .timeline-item:nth-child(3) { animation-delay: 0.6s; }
+    .timeline-item:nth-child(4) { animation-delay: 0.8s; }
 
     .timeline-icon {
         position: absolute;
         left: 0;
         top: 0;
-        width: 42px;
-        height: 42px;
-        background: var(--primary-color);
+        width: 52px;
+        height: 52px;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
         color: white;
-        /* Sempre branco para contraste com a cor primária */
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.2rem;
-        box-shadow: 0 0 0 4px var(--body-bg);
-        /* Halo effect */
-        z-index: 1;
-        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-size: 1.4rem;
+        box-shadow: 0 0 0 8px var(--body-bg), 0 10px 20px rgba(0,0,0,0.1);
+        z-index: 2;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     .timeline-item:hover .timeline-icon {
-        transform: scale(1.15);
+        transform: scale(1.15) rotate(10deg);
+        box-shadow: 0 0 0 8px var(--body-bg), 0 15px 30px rgba(var(--primary-rgb, 0, 113, 133), 0.4);
     }
 
     .timeline-content {
-        margin-left: 70px;
+        margin-left: 90px;
+        padding-top: 5px;
     }
 
     .timeline-year {
-        font-weight: 700;
+        font-weight: 800;
+        font-size: 1.4rem;
         color: var(--primary-color);
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+        background: rgba(var(--primary-rgb, 0, 113, 133), 0.1);
+        padding: 4px 12px;
+        border-radius: 20px;
     }
 
     .timeline-title {
@@ -193,100 +319,193 @@
         color: var(--text-secondary);
     }
 
-    /* Seção de Features Alternadas */
+    /* Seção de Features - Reimagined */
     .feature-section {
-        padding: 4rem 0;
+        padding: 6rem 0;
+        position: relative;
         overflow: hidden;
     }
 
-    .feature-section:nth-child(odd) {
-        background-color: var(--card-bg);
+    .feature-section:nth-child(even) {
+        background: linear-gradient(to right, rgba(var(--primary-rgb, 0, 113, 133), 0.05), transparent);
     }
 
     .feature-image-wrapper {
-        border-radius: 1rem;
+        border-radius: 2rem;
         overflow: hidden;
-        box-shadow: var(--shadow-md);
+        position: relative;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+        isolation: isolate;
+        transform-style: preserve-3d;
+        transform: perspective(1000px) rotateY(0deg);
+        transition: transform 0.6s ease;
+    }
+    
+    .feature-image-wrapper::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 2rem;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        z-index: 2;
+        pointer-events: none;
     }
 
     .feature-image {
         width: 100%;
         height: 100%;
-        min-height: 350px;
+        min-height: 400px;
         object-fit: cover;
-        transition: transform 0.6s ease;
+        transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
     .feature-section:hover .feature-image {
-        transform: scale(1.03);
+        transform: scale(1.05);
     }
 
-    .feature-icon {
-        font-size: 2.5rem;
+    .feature-icon-box {
+        width: 70px;
+        height: 70px;
+        border-radius: 1.2rem;
+        background: linear-gradient(135deg, rgba(var(--primary-rgb, 0, 113, 133), 0.15), rgba(var(--primary-rgb, 0, 113, 133), 0.05));
+        border: 1px solid rgba(var(--primary-rgb, 0, 113, 133), 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
         color: var(--primary-color);
-        margin-bottom: 1rem;
-        display: inline-block;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .feature-section:hover .feature-icon-box {
+        transform: translateY(-5px);
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        color: white;
+        box-shadow: 0 15px 30px rgba(var(--primary-rgb, 0, 113, 133), 0.3);
     }
 
     .feature-title {
-        font-weight: 700;
-        font-size: 2rem;
-        margin-bottom: 1rem;
+        font-weight: 800;
+        font-size: clamp(2rem, 3vw, 2.5rem);
+        margin-bottom: 1.2rem;
         color: var(--text-primary);
+        letter-spacing: -1px;
     }
 
     .feature-text {
-        font-size: 1.15rem;
+        font-size: 1.2rem;
         color: var(--text-secondary);
         line-height: 1.7;
-        margin-bottom: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .btn-gradient {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        font-weight: 600;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 20px rgba(var(--primary-rgb, 0, 113, 133), 0.25);
+    }
+    
+    .btn-gradient:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 25px rgba(var(--primary-rgb, 0, 113, 133), 0.4);
+        color: white;
     }
 
-    /* Seção Criadores (CGVargas) */
+
+    /* Seção Criadores (CGVargas) - Ultramodern */
     .creators-section {
-        padding: 5rem 0;
-        background-color: var(--card-bg);
-        border-top: 1px solid var(--border-color);
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .cgvargas-card {
-        background: var(--body-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 1.5rem;
-        padding: 3rem;
-        box-shadow: var(--shadow-sm);
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        padding: 8rem 0;
+        background: transparent;
         position: relative;
         overflow: hidden;
     }
 
-    /* Detalhe de borda top */
+    .cgvargas-card {
+        background: rgba(255, 255, 255, 0.7);
+        -webkit-backdrop-filter: blur(24px);
+        backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 2rem;
+        padding: 4rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+        transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        z-index: 2;
+    }
+
+    [data-theme='dark'] .cgvargas-card {
+        background: rgba(20, 20, 25, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+
+    /* Borda Gradiente Superior Animated */
     .cgvargas-card::before {
         content: '';
         position: absolute;
         top: 0;
         left: 0;
-        width: 100%;
+        width: 200%;
         height: 6px;
-        background: linear-gradient(90deg, var(--primary-color), var(--primary-hover));
+        background: linear-gradient(90deg, var(--primary-color), #8a2be2, var(--primary-color));
+        animation: gradientShift 4s linear infinite;
+        z-index: 3;
     }
 
     .cgvargas-card:hover {
-        transform: translateY(-8px);
-        box-shadow: var(--shadow-lg);
+        transform: translateY(-10px) scale(1.01);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.1);
+    }
+    
+    [data-theme='dark'] .cgvargas-card:hover {
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+    }
+
+    .cgvargas-icon-wrapper {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(var(--primary-rgb, 0, 113, 133), 0.1), transparent);
+        border: 2px solid rgba(var(--primary-rgb, 0, 113, 133), 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .cgvargas-icon-wrapper::after {
+        content: '';
+        position: absolute;
+        inset: -10px;
+        border-radius: 50%;
+        border: 1px dashed var(--primary-color);
+        animation: rotate 20s linear infinite;
+        opacity: 0.3;
+    }
+    
+    @keyframes rotate {
+        100% { transform: rotate(360deg); }
     }
 
     .cgvargas-icon {
-        font-size: 5rem;
-        color: var(--primary-color);
-        margin-bottom: 1.5rem;
-        display: inline-block;
-        transition: transform 0.5s ease;
+        font-size: 4rem;
+        background: linear-gradient(135deg, var(--primary-color), #8a2be2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
     .cgvargas-card:hover .cgvargas-icon {
-        transform: rotateY(180deg);
+        transform: scale(1.1) rotate(5deg);
     }
 
     .cgvargas-slogan {
@@ -312,17 +531,33 @@
     }
 
     .future-card {
-        background: var(--card-bg);
+        background: rgba(255, 255, 255, 0.7);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
         padding: 1.5rem;
         border-radius: 1rem;
-        border: 1px solid var(--border-color);
+        border: 1px solid rgba(200, 200, 200, 0.3);
         height: 100%;
-        transition: background-color 0.3s ease;
+        transition: all 0.4s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    }
+
+    [data-theme='dark'] .future-card {
+        background: rgba(30, 30, 30, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
 
     .future-card:hover {
-        background: var(--body-bg);
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.9);
         border-color: var(--primary-color);
+        box-shadow: 0 12px 30px rgba(0, 113, 133, 0.15);
+    }
+
+    [data-theme='dark'] .future-card:hover {
+        background: rgba(40, 40, 40, 0.8);
+        box-shadow: 0 12px 30px rgba(93, 195, 209, 0.15);
     }
 
     .future-feature-item {
@@ -385,15 +620,37 @@
 {% block content %}
 <!-- HERO -->
 <section class="hero-about">
+    <div class="glowing-orb orb-primary" style="width: 600px; height: 600px; top: -20%; left: -10%;"></div>
+    <div class="glowing-orb orb-secondary" style="width: 500px; height: 500px; top: -10%; right: -5%;"></div>
+    <div class="glowing-orb orb-accent" style="width: 400px; height: 400px; bottom: 0%; left: 50%; transform: translateX(-50%);"></div>
+    
     <div class="container hero-content">
-        <h1>Um universo literário para leitores apaixonados</h1>
-        <p class="lead">Nascemos do desejo de conectar pessoas a histórias transformadoras, reinventando a forma como
-            você descobre, organiza e compartilha sua paixão pela leitura.</p>
+        <div class="hero-badge">
+            <i class="bi bi-stars"></i> Nova Experiência CGBookStore
+        </div>
+        <h1>Um universo literário<br><span class="text-gradient">para leitores apaixonados</span></h1>
+        <p class="lead">Nascemos do desejo de conectar pessoas a histórias transformadoras, reinventando a forma como você descobre, organiza e compartilha sua paixão pela leitura.</p>
+        
+        <div class="hero-stats">
+            <div class="stat-item glass-effect px-4 py-3 rounded-4">
+                <span class="stat-value text-gradient">+2M</span>
+                <span class="stat-label">Títulos Acessíveis</span>
+            </div>
+            <div class="stat-item glass-effect px-4 py-3 rounded-4">
+                <span class="stat-value text-gradient">IA</span>
+                <span class="stat-label">Recomendações V.2</span>
+            </div>
+            <div class="stat-item glass-effect px-4 py-3 rounded-4">
+                <span class="stat-value text-gradient">24/7</span>
+                <span class="stat-label">Chatbot Literário</span>
+            </div>
+        </div>
     </div>
 </section>
 
 <!-- HISTÓRIA -->
-<div class="container">
+<div class="container position-relative">
+    <div class="glowing-orb orb-secondary" style="top: 10%; right: 50%; opacity: 0.3;"></div>
     <section class="story-section">
         <div class="row align-items-center">
             <div class="col-lg-5 mb-5 mb-lg-0">
@@ -439,6 +696,14 @@
                                 aprimoramos nossas ferramentas com inteligência artificial.</p>
                         </div>
                     </li>
+                    <li class="timeline-item">
+                        <div class="timeline-icon" style="background: linear-gradient(135deg, var(--primary-color), #8a2be2);"><i class="bi bi-robot"></i></div>
+                        <div class="timeline-content glass-effect p-4 rounded-4 mt-2">
+                            <h5 class="timeline-year" style="color: #8a2be2;">2026 - O Futuro Agora</h5>
+                            <h6 class="timeline-title">Expansão da IA e Comunidade Literária</h6>
+                            <p class="timeline-text mb-0">Implementamos o Chatbot Literário avançado, sistemas modulares de gamificação, infraestrutura otimizada e recomendações AI-Driven de ponta.</p>
+                        </div>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -450,24 +715,23 @@
     <section class="feature-section">
         <div class="container">
             <div class="row align-items-center g-5">
-                <div class="col-lg-6">
+                <div class="col-lg-6 position-relative">
+                    <div class="glowing-orb orb-primary" style="width: 300px; height: 300px; top: 10%; left: 10%; z-index: 1;"></div>
                     <div class="feature-image-wrapper">
-                        <img src="https://images.unsplash.com/photo-1550399105-c4db5fb85c18?auto=format&fit=crop&w=1171&q=80"
-                            alt="Organização de livros" class="feature-image">
+                        <img src="{% static 'images/about/livraria_digital.png' %}"
+                            alt="Sua biblioteca digital do futuro" class="feature-image">
                     </div>
                 </div>
-                <div class="col-lg-6">
-                    <i class="bi bi-bookshelf feature-icon"></i>
-                    <h3 class="feature-title">Sua Biblioteca, Suas Regras</h3>
-                    <p class="feature-text">Organize sua vida literária com prateleiras virtuais. Separe o que está
-                        lendo, o que já leu e seus próximos alvos. Tenha o controle total da sua jornada de leitura em
-                        um só lugar.</p>
+                <div class="col-lg-6 ps-lg-5">
+                    <div class="feature-icon-box">
+                        <i class="bi bi-bookshelf"></i>
+                    </div>
+                    <h3 class="feature-title">Sua Biblioteca,<br>Suas Regras</h3>
+                    <p class="feature-text">Organize sua vida literária com prateleiras virtuais avançadas. Separe o que está lendo, os desejados e as leituras passadas. Controle sua jornada de modo incrivelmente prazeroso.</p>
                     {% if user.is_authenticated %}
-                    <a href="{% url 'core:library' %}" class="btn btn-outline-primary rounded-pill px-4">Conheça sua
-                        biblioteca</a>
+                    <a href="{% url 'core:library' %}" class="btn-gradient d-inline-block text-decoration-none">Acessar Biblioteca</a>
                     {% else %}
-                    <a href="{% url 'account_signup' %}" class="btn btn-outline-primary rounded-pill px-4">Crie sua
-                        biblioteca</a>
+                    <a href="{% url 'account_signup' %}" class="btn-gradient d-inline-block text-decoration-none">Criar Biblioteca Grátis</a>
                     {% endif %}
                 </div>
             </div>
@@ -477,19 +741,20 @@
     <section class="feature-section">
         <div class="container">
             <div class="row align-items-center g-5 flex-lg-row-reverse">
-                <div class="col-lg-6">
+                <div class="col-lg-6 position-relative">
+                    <div class="glowing-orb orb-secondary" style="width: 300px; height: 300px; top: 10%; right: 10%; z-index: 1;"></div>
                     <div class="feature-image-wrapper">
-                        <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1290&q=80"
-                            alt="Pessoa escolhendo livro" class="feature-image">
+                        <img src="{% static 'images/about/rede_neural.png' %}"
+                            alt="Recomendações com Inteligência Artificial" class="feature-image">
                     </div>
                 </div>
-                <div class="col-lg-6">
-                    <i class="bi bi-magic feature-icon"></i>
-                    <h3 class="feature-title">Recomendações que te Entendem</h3>
-                    <p class="feature-text">Nossa tecnologia inteligente aprende com seus gostos para sugerir livros que
-                        têm tudo a ver com você. Diga adeus à dúvida de qual será sua próxima leitura.</p>
-                    <a href="{% url 'core:book_list' %}" class="btn btn-outline-primary rounded-pill px-4">Descubra
-                        novos livros</a>
+                <div class="col-lg-6 pe-lg-5">
+                    <div class="feature-icon-box">
+                        <i class="bi bi-magic"></i>
+                    </div>
+                    <h3 class="feature-title">Recomendações com<br>Inteligência Artificial</h3>
+                    <p class="feature-text">O motor integrado analisa seu perfil e sugere pérolas escondidas da nossa coleção. Chega de "ressaca literária" com nossas engines avançadas selecionando seu próximo sucesso.</p>
+                    <a href="{% url 'core:book_list' %}" class="btn-gradient d-inline-block text-decoration-none">Desbravar Catálogo</a>
                 </div>
             </div>
         </div>
@@ -498,19 +763,20 @@
     <section class="feature-section">
         <div class="container">
             <div class="row align-items-center g-5">
-                <div class="col-lg-6">
+                <div class="col-lg-6 position-relative">
+                    <div class="glowing-orb orb-accent" style="width: 300px; height: 300px; top: 10%; left: 10%; z-index: 1;"></div>
                     <div class="feature-image-wrapper">
-                        <img src="{% static 'images/evento-literario.jpg' %}" alt="Evento literário"
+                        <img src="{% static 'images/about/rede_global.png' %}" alt="Conexão Global Literária"
                             class="feature-image">
                     </div>
                 </div>
-                <div class="col-lg-6">
-                    <i class="bi bi-calendar-event feature-icon"></i>
-                    <h3 class="feature-title">Conecte-se com o Mundo Literário</h3>
-                    <p class="feature-text">Fique por dentro dos principais eventos do universo dos livros — de
-                        lançamentos a encontros com autores e clubes de leitura.</p>
-                    <a href="{% url 'core:events' %}" class="btn btn-outline-primary rounded-pill px-4">Ver agenda de
-                        eventos</a>
+                <div class="col-lg-6 ps-lg-5">
+                    <div class="feature-icon-box">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                    <h3 class="feature-title">Conecte-se com o<br>Mundo Literário</h3>
+                    <p class="feature-text">Fique por dentro dos principais eventos do universo dos livros — de lançamentos a encontros com autores e interações que movem a comunidade.</p>
+                    <a href="{% url 'core:events' %}" class="btn-gradient d-inline-block text-decoration-none">Ver Agenda Literária</a>
                 </div>
             </div>
         </div>
@@ -526,24 +792,26 @@
 
 <!-- CGVARGAS -->
 <section class="creators-section">
-    <div class="container">
+    <div class="glowing-orb orb-primary" style="bottom: -10%; left: -5%;"></div>
+    <div class="glowing-orb orb-accent" style="top: -10%; right: -5%;"></div>
+    <div class="container position-relative z-1">
         <h2 class="section-title text-center">Criado com Paixão</h2>
-        <div class="row justify-content-center">
+        <div class="row justify-content-center mt-5">
             <div class="col-lg-10">
-                <div class="cgvargas-card">
+                <div class="cgvargas-card text-center text-md-start">
                     <div class="row align-items-center">
-                        <div class="col-md-3 text-center mb-4 mb-md-0">
-                            <i class="bi bi-building cgvargas-icon"></i>
+                        <div class="col-md-3 mb-4 mb-md-0 d-flex justify-content-center">
+                            <div class="cgvargas-icon-wrapper">
+                                <i class="bi bi-buildings-fill cgvargas-icon"></i>
+                            </div>
                         </div>
-                        <div class="col-md-9">
-                            <h3 class="fw-bold text-primary">CGVargas Informática</h3>
-                            <p class="cgvargas-slogan">"Transformamos ideias em soluções digitais"</p>
-                            <p class="text-secondary">A CG BookStore é um projeto da CGVargas Informática, uma empresa
-                                que une tecnologia e criatividade para construir plataformas digitais de alto impacto
-                                que simplificam a vida das pessoas.</p>
-                            <a href="https://www.cgvargas.com.br" target="_blank"
-                                class="btn btn-primary rounded-pill px-4 mt-2">
-                                Conheça nosso trabalho <i class="bi bi-box-arrow-up-right ms-1"></i>
+                        <div class="col-md-9 ps-md-4">
+                            <h3 class="fw-bold mb-1" style="font-size: 2.2rem; color: var(--text-primary);">CGVargas Informática</h3>
+                            <p class="cgvargas-slogan fs-5 mb-4">"Transformamos ideias em soluções digitais extraordinárias"</p>
+                            <p class="text-secondary fs-6 mb-4 lh-lg">A CG BookStore é o principal laboratório e case de sucesso da CGVargas Informática. Unimos arquitetura de ponta em Python/Django com tecnologias assíncronas e Interfaces fluidas, simplificando como pessoas vivenciam o digital.</p>
+                            <a href="https://www.cgvargas.com.br" target="_blank" rel="noopener noreferrer"
+                                class="btn-gradient d-inline-block text-decoration-none mt-2">
+                                Nosso ecossistema de trabalho <i class="bi bi-arrow-right ms-2"></i>
                             </a>
                         </div>
                     </div>

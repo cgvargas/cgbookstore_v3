@@ -54,6 +54,9 @@ from core.views.banner_views import (
     track_banner_click,
 )
 
+# Resenhas (BookReviews)
+from core.views import review_views
+
 # GAMIFICAÇÃO - Views Principais (FASE 2.1)
 from core.views.gamification_views import (
     dashboard_view,
@@ -126,12 +129,19 @@ urlpatterns = [
     path('api/reading/stats/<int:book_id>/', get_reading_stats, name='get_reading_stats'),
 
     # ==========================================
-    # APIs AJAX - BUSCA E IMPORTAÇÃO DE LIVROS
+    # APIs AJAX - BUSCA, IMPORTAÇÃO DE LIVROS E RESENHAS
     # ==========================================
     path('api/books/search-local/', book_search_views.local_books_search_api, name='api_search_local'),
     path('api/books/search-google/', book_search_views.google_books_search_user, name='api_search_google'),
     path('api/books/import-google/<str:google_book_id>/', book_search_views.import_google_book_user,
          name='api_import_google'),
+    path('api/books/<int:book_id>/review/', review_views.save_book_review, name='save_book_review'),
+    path('livros/resenhas/<int:review_id>/delete/', review_views.delete_book_review, name='delete_book_review'),
+    path('livros/resenhas/<int:review_id>/like/', review_views.toggle_review_like, name='toggle_review_like'),
+    path('livros/resenhas/<int:review_id>/comment/', review_views.add_review_comment, name='add_review_comment'),
+    path('livros/resenhas/<int:review_id>/comments/', review_views.get_review_comments, name='get_review_comments'),
+    path('livros/resenhas/comment/<int:comment_id>/delete/', review_views.delete_review_comment, name='delete_review_comment'),
+    path('livros/<int:book_id>/resenhas/', review_views.BookReviewListView.as_view(), name='book_reviews'),
 
     # ==========================================
     # APIs AJAX - NOTIFICAÇÕES

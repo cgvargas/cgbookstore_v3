@@ -24,6 +24,51 @@
     .alert-sm {
         font-size: 0.875rem;
     }
+    
+    /* Truncamento de texto para resenhas longas */
+    .text-truncate-multiline {
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    
+    /* Tema escuro para os campos do modal de resenha */
+    #reviewModal .form-control,
+    #reviewModal .form-select,
+    #reviewModal input[type="number"],
+    #reviewModal input[type="text"],
+    #reviewModal textarea {
+        background-color: #1a1a2e !important;
+        color: #fff !important;
+        border-color: #495057 !important;
+    }
+    
+    #reviewModal .form-control:focus,
+    #reviewModal .form-select:focus,
+    #reviewModal input[type="number"]:focus,
+    #reviewModal input[type="text"]:focus,
+    #reviewModal textarea:focus {
+        background-color: #16213e !important;
+        color: #fff !important;
+        border-color: #ffc107 !important;
+        box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.2) !important;
+    }
+    
+    #reviewModal .form-control::placeholder,
+    #reviewModal textarea::placeholder {
+        color: #adb5bd !important;
+    }
+
+    /* Alinha o campo de nota */
+    #reviewModal input[type="number"] {
+        max-width: 120px;
+    }
 </style>
 {% endblock %}
 
@@ -41,7 +86,7 @@
     <!-- Detalhes do Livro -->
     <div class="row">
         <!-- Coluna da Capa -->
-        <div class="col-md-4 mb-4">
+        <div class="col-md-3 mb-4">
             <div class="card shadow-sm">
                 {% if book.cover_image %}
                     <img src="{{ book.cover_image.url }}" class="card-img-top" alt="{{ book.title }}">
@@ -66,8 +111,8 @@
                     </a>
                 {% else %}
                     <button class="btn btn-outline-secondary btn-lg" disabled>
-                        <i class="fas fa-clock me-2"></i>
-                        Em breve disponível para compra
+                        <i class="fas fa-store-slash me-2"></i>
+                        Lojas parceiras indisponíveis
                     </button>
                 {% endif %}
 
@@ -127,14 +172,6 @@
                                     {% endfor %}
                                 {% endif %}
 
-                                <!-- Opção de criar nova prateleira -->
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="#" onclick="showCustomShelfModal({{ book.id }}); return false;">
-                                        <i class="fas fa-plus-circle text-warning me-2"></i>Nova Prateleira Personalizada
-                                    </a>
-                                </li>
-
                                 <!-- Link para gerenciar biblioteca -->
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
@@ -143,42 +180,6 @@
                                     </a>
                                 </li>
                             </ul>
-                            <!-- Modal - Criar Prateleira Personalizada -->
-                            <div class="modal fade" id="customShelfModal" tabindex="-1" aria-labelledby="customShelfModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="customShelfModalLabel">
-                                                <i class="fas fa-folder-plus me-2"></i>Nova Prateleira Personalizada
-                                            </h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <form id="customShelfForm">
-                                                <div class="mb-3">
-                                                    <label for="customShelfName" class="form-label">Nome da Prateleira</label>
-                                                    <input type="text"
-                                                           class="form-control"
-                                                           id="customShelfName"
-                                                           placeholder="Ex: Ficção Científica Favorita"
-                                                           maxlength="100"
-                                                           required>
-                                                    <div class="form-text">Máximo 100 caracteres</div>
-                                                    <div id="customShelfError" class="text-danger mt-2" style="display: none;"></div>
-                                                </div>
-                                            </form>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                <i class="fas fa-times me-2"></i>Cancelar
-                                            </button>
-                                            <button type="button" class="btn btn-primary" id="createCustomShelfBtn" onclick="createAndAddToCustomShelf()">
-                                                <i class="fas fa-check me-2"></i>Criar e Adicionar
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         <!-- Indicador de prateleiras atuais -->
@@ -285,7 +286,7 @@
         </div>
 
         <!-- Coluna de Informações -->
-        <div class="col-md-8">
+        <div class="col-md-9">
             <!-- Título e Subtítulo -->
             <h1 class="display-5 fw-bold">{{ book.title }}</h1>
             {% if book.subtitle %}
@@ -408,51 +409,504 @@
                 </div>
             </div>
 
-            <!-- Descrição -->
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="fas fa-info-circle me-2"></i>Sobre este livro
-                    </h5>
-                    <p class="card-text">{{ book.description|linebreaks }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
+            <!-- Abas de Conteúdo -->
+            <ul class="nav nav-tabs mt-5 mb-4 border-bottom-0" id="bookTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active fs-5 text-dark fw-bold border-0 bg-transparent" id="sobre-tab" data-bs-toggle="tab" data-bs-target="#sobre" type="button" role="tab" aria-controls="sobre" aria-selected="true" style="padding-bottom: 2px; border-bottom: 3px solid #198754 !important;">
+                        <i class="fas fa-info-circle me-1"></i> Sinopse
+                    </button>
+                </li>
+                <li class="nav-item ms-3" role="presentation">
+                    <button class="nav-link fs-5 text-muted border-0 bg-transparent" id="avaliacoes-tab" data-bs-toggle="tab" data-bs-target="#avaliacoes" type="button" role="tab" aria-controls="avaliacoes" aria-selected="false">
+                        <i class="fas fa-star me-1 text-warning"></i> Avaliações e Resenhas
+                    </button>
+                </li>
+            </ul>
 
-    <!-- Livros Relacionados -->
-    {% if related_books %}
-    <hr class="my-5">
-    <h3 class="mb-4">
-        <i class="fas fa-book me-2"></i>Livros Relacionados
-    </h3>
-    <div class="row">
-        {% for related_book in related_books %}
-        <div class="col-md-3 mb-4">
-            <div class="card h-100 shadow-sm">
-                {% if related_book.cover_image %}
-                    <img src="{{ related_book.cover_image.url }}" class="card-img-top" alt="{{ related_book.title }}">
-                {% else %}
-                    <img src="{% static 'images/no-cover-placeholder.svg' %}"
-                         class="card-img-top" alt="Sem capa">
-                {% endif %}
-                <div class="card-body">
-                    <h6 class="card-title">{{ related_book.title|truncatewords:5 }}</h6>
-                    <p class="card-text text-muted small">{{ related_book.author.name }}</p>
-                    <a href="{% url 'core:book_detail' related_book.slug %}" class="btn btn-sm btn-outline-primary w-100">
-                        Ver Detalhes
-                    </a>
+            <div class="tab-content" id="bookTabsContent">
+                <!-- Aba Sobre -->
+                <div class="tab-pane fade show active" id="sobre" role="tabpanel" aria-labelledby="sobre-tab">
+                    <div class="card border-0 shadow-sm bg-dark text-light p-3">
+                        <div class="card-body" style="line-height: 1.5;">
+                            <p class="card-text text-white">{{ book.description|linebreaksbr }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aba Avaliações -->
+                <div class="tab-pane fade" id="avaliacoes" role="tabpanel" aria-labelledby="avaliacoes-tab">
+                    
+                    <!-- NOVO: ESTATÍSTICAS E AUTOR -->
+                    <div class="row mb-5">
+                        <div class="col-12">
+                            <h4 class="mb-3 text-white"><i class="fas fa-chart-bar text-info me-2"></i> Estatísticas</h4>
+                        </div>
+                        
+                        <!-- Coluna 1: Barras de Progresso de Avaliação -->
+                        <div class="col-md-5 mb-4 mb-md-0">
+                            <div class="card border-0 shadow-sm rounded-4 h-100 p-4" style="background-color: var(--card-bg); color: var(--text-primary);">
+                                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3" style="border-color: var(--border-color) !important;">
+                                    <h6 class="fw-bold mb-0">Avaliações</h6>
+                                    <div class="text-end">
+                                        <span class="fs-5 fw-bold">{{ review_stats.average|floatformat:1 }}</span> <i class="fas fa-star text-warning"></i> 
+                                        <small class="text-muted ms-1">/ {{ review_stats.total }}</small>
+                                    </div>
+                                </div>
+                                
+                                {% for star in "54321"|make_list %}
+                                    <div class="d-flex align-items-center mb-2" style="font-size: 0.85rem;">
+                                        <div style="width: 65px;" class="fw-semibold">
+                                            {{ star }} estrelas
+                                        </div>
+                                        <div class="progress flex-grow-1 mx-3" style="height: 12px; background-color: var(--border-color); border-radius: 10px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: {% if star == '5' %}{{ review_stats.percentages.5 }}{% elif star == '4' %}{{ review_stats.percentages.4 }}{% elif star == '3' %}{{ review_stats.percentages.3 }}{% elif star == '2' %}{{ review_stats.percentages.2 }}{% elif star == '1' %}{{ review_stats.percentages.1 }}{% endif %}%; 
+                                                        background-color: #0073bb; border-radius: 10px;" 
+                                                 aria-valuenow="{% if star == '5' %}{{ review_stats.percentages.5 }}{% elif star == '4' %}{{ review_stats.percentages.4 }}{% elif star == '3' %}{{ review_stats.percentages.3 }}{% elif star == '2' %}{{ review_stats.percentages.2 }}{% elif star == '1' %}{{ review_stats.percentages.1 }}{% endif %}" aria-valuemin="0" aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                        <div style="width: 35px;" class="text-end text-muted">
+                                            {% if star == '5' %}{{ review_stats.percentages.5 }}{% elif star == '4' %}{{ review_stats.percentages.4 }}{% elif star == '3' %}{{ review_stats.percentages.3 }}{% elif star == '2' %}{{ review_stats.percentages.2 }}{% elif star == '1' %}{{ review_stats.percentages.1 }}{% endif %}%
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Coluna 2: Card do Autor -->
+                        <div class="col-md-7">
+                            <div class="card border border-light shadow-sm rounded-4 h-100" style="background-color: var(--card-bg); color: var(--text-primary);">
+                                <div class="card-body p-4 d-flex align-items-start gap-4 flex-wrap flex-md-nowrap">
+                                    {% if book.author %}
+                                        <div class="author-avatar shrink-0 text-center">
+                                            {% if book.author.photo %}
+                                                <img src="{{ book.author.photo.url }}" alt="Foto de {{ book.author.name }}" class="rounded-4 object-fit-cover shadow-sm" style="width: 100px; height: 100px; object-position: top;">
+                                            {% else %}
+                                                <div class="bg-secondary rounded-4 d-flex justify-content-center align-items-center shadow-sm" style="width: 100px; height: 100px;">
+                                                    <i class="fas fa-user fa-3x text-white opacity-50"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="author-info flex-grow-1">
+                                            <h5 class="fw-bold mb-2">{{ book.author.name }}</h5>
+                                            {% if book.author.bio %}
+                                                <p class="mb-3 text-truncate-multiline text-muted" style="font-size: 0.95rem; -webkit-line-clamp: 3;">
+                                                    {{ book.author.bio|linebreaksbr }}
+                                                </p>
+                                            {% else %}
+                                                <p class="text-muted fst-italic mb-3" style="font-size: 0.95rem;">Biografia não informada pelo autor ou editora.</p>
+                                            {% endif %}
+                                            
+                                            <div class="d-flex align-items-center gap-2 mt-auto">
+                                                {% if book.author.website %}
+                                                    <a href="{{ book.author.website }}" target="_blank" rel="noopener noreferrer" class="text-truncate d-inline-block small" style="max-width: 250px;">
+                                                        <i class="fas fa-link text-info me-1"></i> {{ book.author.website }}
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="author-stats d-flex flex-column gap-3 border-start ps-4 pt-2 text-muted" style="min-width: 140px; border-color: var(--border-color) !important;">
+                                            <div class="d-flex align-items-center small">
+                                                <i class="fas fa-book fa-fw me-2 opacity-75"></i> {{ book.author.get_books_count|default:"0" }} Livros
+                                            </div>
+                                            <div class="d-flex align-items-center small mt-1">
+                                                <i class="fas fa-users fa-fw me-2 opacity-75"></i> 0 Seguidores
+                                            </div>
+                                            <div class="d-flex gap-2 mt-2">
+                                                {% if book.author.twitter %}
+                                                    <a href="https://twitter.com/{{ book.author.twitter }}" target="_blank" class="text-muted"><i class="fab fa-twitter px-1"></i></a>
+                                                {% endif %}
+                                                {% if book.author.instagram %}
+                                                    <a href="https://instagram.com/{{ book.author.instagram }}" target="_blank" class="text-muted"><i class="fab fa-instagram px-1"></i></a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center w-100 py-3 text-muted">
+                                            <i class="fas fa-user-slash fa-2x mb-2 opacity-50"></i>
+                                            <p class="mb-0">Dados do autor não disponíveis para este livro.</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- FIM: ESTATÍSTICAS E AUTOR -->
+
+                    <div class="card border-0 shadow-sm bg-dark text-light p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3 flex-wrap">
+                            <h4 class="mb-2 mb-md-0 text-white"><i class="fas fa-comments text-warning me-2"></i>Opiniões da Comunidade</h4>
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'core:book_reviews' book.id %}" class="btn btn-outline-light rounded-pill px-4 shadow-sm">
+                                    <i class="fas fa-list me-1"></i> Ver Mais Opiniões
+                                </a>
+                                {% if user.is_authenticated %}
+                                    <button type="button" class="btn btn-warning text-dark fw-bold px-4 rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                                        {% if user_review %}
+                                            <i class="fas fa-edit me-1"></i> Editar Resenha
+                                        {% else %}
+                                            <i class="fas fa-star text-dark me-1"></i> Avaliar Livro
+                                        {% endif %}
+                                    </button>
+                                {% else %}
+                                    <a href="{% url 'account_login' %}?next={{ request.path }}" class="btn btn-outline-warning rounded-pill px-4">
+                                        Faça login para avaliar
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if user_review %}
+                            <!-- Resenha do próprio usuário -->
+                            <div class="card border-warning bg-transparent border-2 mb-5 rounded-4 position-relative">
+                                <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-warning text-dark px-3 mt-1 shadow-sm fs-6">
+                                    Sua Avaliação Atual
+                                </span>
+                                <div class="card-body mt-3 text-white">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fs-5 text-warning fw-bold">
+                                            {{ user_review.rating }} <i class="fas fa-star text-warning"></i>
+                                        </span>
+                                        <small class="text-secondary">{{ user_review.updated_at|date:"d M Y" }}</small>
+                                    </div>
+                                    
+                                        {% if user_review.title %}
+                                            <h5 class="card-title fw-bold text-white mb-2 fs-5">{{ user_review.title }}</h5>
+                                        {% endif %}
+                                        <div class="review-text-container position-relative">
+                                            <div class="card-text text-truncate-multiline" style="line-height: 1.5;">{{ user_review.review_text|linebreaksbr }}</div>
+                                            <button class="btn btn-link text-warning p-0 text-decoration-none btn-read-more d-none mt-1 fw-bold"><i class="fas fa-chevron-down me-1"></i>Ler resenha completa</button>
+                                        </div>
+                                        
+                                        <div class="mt-4 pt-3 border-top border-secondary d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                            <div class="d-flex gap-2">
+                                                {% if user_review.contains_spoilers %}
+                                                    <span class="badge bg-danger px-3 py-2 rounded-pill shadow-sm"><i class="fas fa-exclamation-triangle me-1"></i> Tem Spoilers</span>
+                                                {% endif %}
+                                                {% if user_review.would_recommend %}
+                                                    <span class="badge bg-success bg-opacity-25 text-success px-3 py-2 border border-success rounded-pill fw-bold"><i class="fas fa-thumbs-up me-1"></i> Recomendado</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary bg-opacity-25 text-secondary px-3 py-2 border border-secondary rounded-pill fw-bold"><i class="fas fa-thumbs-down me-1"></i> Não Recomenda</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button class="btn btn-sm btn-outline-light rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#reviewModal"><i class="fas fa-edit"></i> Editar</button>
+                                                <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="deleteReview({{ user_review.id }})"><i class="fas fa-trash-alt"></i> Excluir</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                        {% if reviews %}
+                            <!-- Lista de resenhas públicas -->
+                            <div class="review-list">
+                                {% for review in reviews %}
+                                    <div class="card bg-transparent border-secondary mb-4 rounded-4 shadow-sm">
+                                        <div class="card-body p-4 text-white">
+                                            <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    {% if review.user.profile.avatar %}
+                                                        <img src="{{ review.user.profile.avatar.url }}" alt="Avatar" class="rounded-circle border border-2 border-primary shadow-sm" width="55" height="55" style="object-fit: cover;">
+                                                    {% else %}
+                                                        <div class="bg-primary rounded-circle d-flex text-white align-items-center justify-content-center border border-2 border-primary shadow-sm" style="width: 55px; height: 55px;">
+                                                            <i class="fas fa-user fs-4"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <h5 class="mb-0 fw-bold text-white">{{ review.user.first_name|default:review.user.username }}</h5>
+                                                        <small class="text-secondary d-block mt-1"><i class="far fa-clock me-1"></i> {{ review.created_at|date:"d M Y" }}</small>
+                                                    </div>
+                                                </div>
+                                                <div class="bg-dark px-3 py-2 rounded-pill border border-warning shadow-sm">
+                                                    <span class="text-warning fs-5 fw-bold">{{ review.rating }} <i class="fas fa-star"></i></span>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if review.title %}
+                                                <h5 class="card-subtitle mt-2 mb-2 fw-bold text-light fs-5">{{ review.title }}</h5>
+                                            {% endif %}
+                                            
+                                                <div class="review-content text-light position-relative" style="line-height: 1.5;">
+                                                    {% if review.contains_spoilers %}
+                                                        <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-50 py-3 mt-3 d-flex align-items-center justify-content-between rounded-4 shadow-sm spoiler-warning">
+                                                            <span><i class="fas fa-lock me-2 fs-5"></i> <strong>Aviso de Spoiler!</strong> O leitor marcou revelações sensíveis da trama.</span>
+                                                            <button class="btn btn-sm btn-outline-danger fw-bold rounded-pill" onclick="this.closest('.review-content').querySelector('.spoiler-text').classList.remove('d-none'); this.parentElement.classList.add('d-none');">Ler Mesmo Assim</button>
+                                                        </div>
+                                                        <div class="spoiler-text d-none mt-3 p-4 bg-black bg-opacity-50 rounded-4 border border-secondary text-light">
+                                                            <div class="text-truncate-multiline spoiler-content">{{ review.review_text|linebreaksbr }}</div>
+                                                            <button class="btn btn-link text-warning p-0 text-decoration-none btn-read-more d-none mt-2 fw-bold"><i class="fas fa-chevron-down me-1"></i>Ler resenha completa</button>
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="mt-3 review-text-container">
+                                                            <div class="text-truncate-multiline">{{ review.review_text|linebreaksbr }}</div>
+                                                            <button class="btn btn-link text-warning p-0 text-decoration-none btn-read-more d-none mt-2 fw-bold"><i class="fas fa-chevron-down me-1"></i>Ler resenha completa</button>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                
+                                                <div class="mt-4 pt-4 border-top border-secondary d-flex justify-content-between align-items-center flex-wrap">
+                                                    <div>
+                                                        {% if review.would_recommend %}
+                                                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill"><i class="fas fa-check-circle me-1"></i> Recomendado</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="d-flex gap-3 align-items-center text-secondary user-select-none">
+                                                        <div class="interaction-btn hover-warning transition-base cursor-pointer" onclick="toggleReviewLike({{ review.id }})" title="Gostei">
+                                                            <i class="fas fa-heart"></i> <span id="like-count-{{ review.id }}" class="ms-1 fw-bold">{{ review.likes_count }}</span>
+                                                        </div>
+                                                        <a href="{% url 'core:book_reviews' book.id %}#review-{{ review.id }}" class="interaction-btn text-decoration-none text-secondary hover-info transition-base" title="Comentários">
+                                                            <i class="fas fa-comment-dots"></i> <span class="ms-1 fw-bold">{{ review.comments_count }}</span>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                        {% else %}
+                            {% if not user_review %}
+                                <div class="text-center py-5 mt-3 bg-dark bg-gradient rounded-4 border border-secondary text-muted shadow-sm">
+                                    <i class="fas fa-ghost fa-4x text-secondary mb-3 opacity-50 block"></i>
+                                    <h4 class="text-white opacity-75 mt-3">Silêncio na Biblioteca...</h4>
+                                    <p class="fs-5 mt-2">Ninguém comentou ainda. Seja o primeiro leitor a eternizar sua opinião sobre "{{ book.title }}"!</p>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
             </div>
+
+            <!-- Livros Relacionados -->
+            {% if related_books %}
+            <hr class="my-5 border-secondary opacity-25">
+            <h4 class="mb-4">
+                <i class="fas fa-layer-group me-2 text-primary"></i>Titulos Semelhantes
+            </h4>
+            <div class="row">
+                {% for related_book in related_books %}
+                <div class="col-6 col-md-4 col-lg-3 mb-4">
+                    <div class="card h-100 shadow-sm border-0 rounded-3 text-center" style="background-color: var(--card-bg);">
+                        <div class="p-3 pb-0 text-center">
+                            {% if related_book.cover_image %}
+                                <img src="{{ related_book.cover_image.url }}" class="card-img-top rounded-2 shadow-sm" alt="{{ related_book.title }}" style="object-fit: contain; max-height: 180px;">
+                            {% else %}
+                                <img src="{% static 'images/no-cover-placeholder.svg' %}"
+                                     class="card-img-top opacity-50" style="object-fit: contain; max-height: 180px;" alt="Sem capa">
+                            {% endif %}
+                        </div>
+                        <div class="card-body p-3 d-flex flex-column justify-content-between">
+                            <div>
+                                <h6 class="card-title fw-bold text-truncate" style="font-size: 0.95rem;" title="{{ related_book.title }}">{{ related_book.title }}</h6>
+                                <p class="card-text text-muted small text-truncate" title="{{ related_book.author.name }}">{{ related_book.author.name }}</p>
+                            </div>
+                            <a href="{% url 'core:book_detail' related_book.slug %}" class="btn btn-sm btn-outline-primary w-100 mt-2 rounded-pill">
+                                Ver Livro
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
-        {% endfor %}
     </div>
-    {% endif %}
 </div>
+
+<!-- Modal de Avaliação / Resenha -->
+{% if user.is_authenticated and review_form %}
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark border-secondary text-white shadow-lg rounded-4">
+            <div class="modal-header border-bottom border-secondary bg-gradient">
+                <h4 class="modal-title fw-bold" id="reviewModalLabel">
+                    <i class="fas fa-star text-warning me-2 fs-3"></i> 
+                    {% if user_review %}Editar{% else %}Escrever{% endif %} Resenha
+                </h4>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="reviewForm" novalidate>
+                {% csrf_token %}
+                <div class="modal-body p-4 p-md-5">
+                    
+                    <!-- Exibe os campos de Django Form -->
+                    <div class="row g-4 text-white">
+                         {% for field in review_form %}
+                            <div class="col-12 {% if field.name == 'rating' %}col-md-6{% endif %}">
+                                <label class="form-label fw-bold opacity-75 {% if field.name == 'contains_spoilers' or field.name == 'would_recommend' %}d-inline-block ms-2 c-pointer{% endif %}" for="{{ field.id_for_label }}">
+                                    {{ field.label }}
+                                </label>
+                                {% if field.name == 'contains_spoilers' or field.name == 'would_recommend' %}
+                                    <div class="form-check form-switch fs-5 mt-2 ms-2">
+                                        {{ field }}
+                                        <label class="form-check-label ms-2 opacity-50" for="{{ field.id_for_label }}">{{ field.help_text }}</label>
+                                    </div>
+                                {% else %}
+                                    {{ field }}
+                                {% endif %}
+                                {% if field.help_text and field.name != 'contains_spoilers' and field.name != 'would_recommend' %}
+                                    <div class="form-text text-muted">{{ field.help_text }}</div>
+                                {% endif %}
+                            </div>
+                         {% endfor %}
+                    </div>
+                    
+                    <div id="reviewErrorAlert" class="alert alert-danger d-none mt-4 border-danger shadow-sm rounded-3"></div>
+                </div>
+                <div class="modal-footer border-top border-secondary bg-dark">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning text-dark rounded-pill fw-bold px-5" id="saveReviewBtn">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                        <i class="fas fa-paper-plane me-2"></i> Publicar Avaliação
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 {{ block.super }}
 <script src="{% static 'js/library-manager.js' %}"></script>
 <script src="{% static 'js/reading-progress.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const reviewForm = document.getElementById('reviewForm');
+        if (reviewForm) {
+            reviewForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const saveBtn = document.getElementById('saveReviewBtn');
+                const spinner = saveBtn.querySelector('.spinner-border');
+                const errorAlert = document.getElementById('reviewErrorAlert');
+                
+                // UX Feedback
+                saveBtn.disabled = true;
+                spinner.classList.remove('d-none');
+                errorAlert.classList.add('d-none');
+                
+                const formData = new FormData(reviewForm);
+                
+                fetch("{% url 'core:save_book_review' book.id %}", {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    } // CSRF is magically retrieved from the embedded form token
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Refresh page is safest way to rebuild user context
+                        window.location.reload();
+                    } else {
+                        errorAlert.classList.remove('d-none');
+                        const errorMsg = data.errors ? Object.values(data.errors).join('<br>') : data.message;
+                        errorAlert.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i> ' + (errorMsg || "Verifique as entradas novamente.");
+                        
+                        saveBtn.disabled = false;
+                        spinner.classList.add('d-none');
+                    }
+                })
+                .catch(err => {
+                    errorAlert.classList.remove('d-none');
+                    errorAlert.innerHTML = '<i class="fas fa-wifi me-2"></i> Erro de rede. Tente mais tarde.';
+                    saveBtn.disabled = false;
+                    spinner.classList.add('d-none');
+                });
+            });
+        }
+    });
+
+    // Custom Tabs Behaviour Colors 
+    const tabs = document.querySelectorAll('button[data-bs-toggle="tab"]');
+    tabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function (event) {
+            tabs.forEach(t => {
+                t.classList.remove('text-dark', 'fw-bold', 'border-success');
+                t.classList.add('text-muted');
+                t.style.borderBottom = 'none';
+            });
+            event.target.classList.add('text-dark', 'fw-bold');
+            event.target.classList.remove('text-muted');
+            event.target.style.borderBottom = '3px solid #198754';
+        });
+    });
+
+    // Ver mais lógica
+    document.addEventListener('DOMContentLoaded', function() {
+        const textContainers = document.querySelectorAll('.text-truncate-multiline');
+        textContainers.forEach(container => {
+            // Se o texto for maior que o container (ou seja, foi truncado)
+            if (container.scrollHeight > container.clientHeight) {
+                const btn = container.nextElementSibling;
+                if (btn && btn.classList.contains('btn-read-more')) {
+                    btn.classList.remove('d-none');
+                    btn.addEventListener('click', function() {
+                        if (container.style.webkitLineClamp === 'initial') {
+                            container.style.webkitLineClamp = '4';
+                            this.innerHTML = '<i class="fas fa-chevron-down me-1"></i>Ler resenha completa';
+                        } else {
+                            container.style.webkitLineClamp = 'initial';
+                            this.innerHTML = '<i class="fas fa-chevron-up me-1"></i>Ocultar';
+                        }
+                    });
+                }
+            }
+        });
+    });
+
+    // Função de deletar resenha
+    function deleteReview(reviewId) {
+        if (confirm('Tem certeza que deseja excluir sua resenha? Esta ação não pode ser desfeita.')) {
+            fetch(`/livros/resenhas/${reviewId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Erro ao excluir: ' + (data.error || 'Erro desconhecido.'));
+                }
+            });
+        }
+    }
+
+    // Função de curtir resenha
+    function toggleReviewLike(reviewId) {
+        {% if user.is_authenticated %}
+            fetch(`/livros/resenhas/${reviewId}/like/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const countSpan = document.getElementById(`like-count-${reviewId}`);
+                    const icon = countSpan.previousElementSibling;
+                    
+                    countSpan.textContent = data.likes_count;
+                    if (data.liked) {
+                        icon.classList.remove('text-secondary');
+                        icon.classList.add('text-danger');
+                    } else {
+                        icon.classList.remove('text-danger');
+                        icon.classList.add('text-secondary');
+                    }
+                }
+            });
+        {% else %}
+            window.location.href = "{% url 'account_login' %}?next={{ request.path }}";
+        {% endif %}
+    }
+</script>
 {% endblock %}

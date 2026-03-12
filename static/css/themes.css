@@ -878,3 +878,139 @@ textarea {
 [data-theme="dark"] .navbar-toggler:focus {
     box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25) !important;
 }
+
+/* ==========================================
+   BOOK DETAIL - ADAPTAÇÃO AO TEMA CLARO
+   Corrige cards bg-dark hardcoded
+   ========================================== */
+
+/* Card de sinopse e avaliações (tab-pane internos) */
+[data-theme="light"] .card.bg-dark,
+[data-theme="light"] .card.bg-dark .card-body,
+:root:not([data-theme="dark"]) .card.bg-dark,
+:root:not([data-theme="dark"]) .card.bg-dark .card-body {
+    background-color: #ffffff !important;
+    color: #0f1111 !important;
+}
+
+/* Bordas escuras viram cinzas no tema claro */
+[data-theme="light"] .card.border-secondary,
+[data-theme="light"] .border-secondary,
+:root:not([data-theme="dark"]) .card.border-secondary {
+    border-color: #dee2e6 !important;
+}
+
+/* Texto branco e claro vira escuro no tema claro */
+[data-theme="light"] .card.bg-dark .text-white,
+[data-theme="light"] .card.bg-dark .text-light,
+[data-theme="light"] .card.bg-dark .card-text,
+[data-theme="light"] .card.bg-dark h1,
+[data-theme="light"] .card.bg-dark h2,
+[data-theme="light"] .card.bg-dark h3,
+[data-theme="light"] .card.bg-dark h4,
+[data-theme="light"] .card.bg-dark h5,
+[data-theme="light"] .card.bg-dark p,
+:root:not([data-theme="dark"]) .card.bg-dark .text-white,
+:root:not([data-theme="dark"]) .card.bg-dark .text-light,
+:root:not([data-theme="dark"]) .card.bg-dark .card-text {
+    color: #0f1111 !important;
+}
+
+/* Texto secundário nas resenhas */
+[data-theme="light"] .card.bg-dark .text-secondary,
+:root:not([data-theme="dark"]) .card.bg-dark .text-secondary {
+    color: #6c757d !important;
+}
+
+/* Card "Sua Avaliação Atual" com borda warning */
+[data-theme="light"] .card.border-warning.bg-transparent,
+:root:not([data-theme="dark"]) .card.border-warning.bg-transparent {
+    background-color: #fff8e1 !important;
+}
+
+[data-theme="light"] .card.border-warning.bg-transparent .text-white,
+[data-theme="light"] .card.border-warning.bg-transparent .card-text,
+:root:not([data-theme="dark"]) .card.border-warning.bg-transparent .text-white,
+:root:not([data-theme="dark"]) .card.border-warning.bg-transparent .card-text {
+    color: #0f1111 !important;
+}
+
+/* Border-top separator dentro de cards escuros */
+[data-theme="light"] .card.bg-dark .border-top.border-secondary,
+:root:not([data-theme="dark"]) .card.bg-dark .border-top.border-secondary {
+    border-color: #e0e0e0 !important;
+}
+
+/* Modal de resenha - tema claro */
+[data-theme="light"] #reviewModal .modal-content,
+:root:not([data-theme="dark"]) #reviewModal .modal-content {
+    background-color: #ffffff !important;
+    color: #0f1111 !important;
+}
+
+[data-theme="light"] #reviewModal .modal-header,
+[data-theme="light"] #reviewModal .modal-footer,
+:root:not([data-theme="dark"]) #reviewModal .modal-header,
+:root:not([data-theme="dark"]) #reviewModal .modal-footer {
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+}
+
+[data-theme="light"] #reviewModal .text-white,
+:root:not([data-theme="dark"]) #reviewModal .text-white {
+    color: #0f1111 !important;
+}
+
+[data-theme="light"] #reviewModal .form-control,
+[data-theme="light"] #reviewModal input[type="number"],
+[data-theme="light"] #reviewModal input[type="text"],
+[data-theme="light"] #reviewModal textarea,
+:root:not([data-theme="dark"]) #reviewModal .form-control,
+:root:not([data-theme="dark"]) #reviewModal input[type="number"],
+:root:not([data-theme="dark"]) #reviewModal input[type="text"],
+:root:not([data-theme="dark"]) #reviewModal textarea {
+    background-color: #ffffff !important;
+    color: #0f1111 !important;
+    border-color: #adb5bd !important;
+}
+
+/* Spoiler alert dentro de card dark */
+[data-theme="light"] .spoiler-text,
+:root:not([data-theme="dark"]) .spoiler-text {
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+}
+
+/* Badge bg-dark em resenhas (rating badge) */
+[data-theme="light"] .bg-dark.px-3.py-2.rounded-pill,
+:root:not([data-theme="dark"]) .bg-dark.px-3.py-2.rounded-pill {
+    background-color: #e9ecef !important;
+}
+
+/* Botões btn-outline-light (Ex: Ver Mais Opiniões) viram botões com texto e borda escura */
+[data-theme="light"] .btn-outline-light,
+:root:not([data-theme="dark"]) .btn-outline-light {
+    color: #1a1a2e !important;
+    border-color: #adb5bd !important;
+}
+
+[data-theme="light"] .btn-outline-light:hover,
+:root:not([data-theme="dark"]) .btn-outline-light:hover {
+    background-color: #f8f9fa !important;
+    color: #ff6b35 !important;
+    border-color: #ff6b35 !important;
+}
+
+/* Botão de Fechar do Modal (btn-close-white Bootstrap usa filter: invert) - remover no tema claro */
+[data-theme="light"] .btn-close-white,
+:root:not([data-theme="dark"]) .btn-close-white {
+    filter: none !important;
+}
+
+/* Correções de textos e containers fora dos cards no book_reviews.html e afins */
+[data-theme="light"] .container .text-white:not(.navbar *):not(.footer-modern *):not(.banner-overlay *):not(.badge),
+[data-theme="light"] .container .text-light:not(.navbar *):not(.footer-modern *):not(.banner-overlay *):not(.badge),
+:root:not([data-theme="dark"]) .container .text-white:not(.navbar *):not(.footer-modern *):not(.banner-overlay *):not(.badge),
+:root:not([data-theme="dark"]) .container .text-light:not(.navbar *):not(.footer-modern *):not(.banner-overlay *):not(.badge) {
+    color: #0f1111 !important;
+}

@@ -3,15 +3,158 @@
 
 {% block title %}{{ topic.title }} - Debates{% endblock %}
 
+{% block extra_css %}
+<style>
+    h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', 'Inter', system-ui, sans-serif; }
+
+    @keyframes floatOrb {
+        0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+        33% { transform: translate(30px, -50px) scale(1.1) rotate(120deg); }
+        66% { transform: translate(-20px, 20px) scale(0.9) rotate(240deg); }
+        100% { transform: translate(0, 0) scale(1) rotate(360deg); }
+    }
+    @keyframes gradientShift { to { background-position: 200% center; } }
+
+    .glowing-orb {
+        position: absolute; border-radius: 50%; filter: blur(90px);
+        z-index: 0; opacity: 0.7; pointer-events: none;
+        animation: floatOrb 20s infinite ease-in-out;
+    }
+    .orb-primary { background: radial-gradient(circle at center, rgba(var(--primary-rgb, 0, 113, 133), 0.5), transparent 80%); }
+    .orb-secondary { background: radial-gradient(circle at center, rgba(138, 43, 226, 0.4), transparent 80%); animation-delay: -7s; animation-direction: reverse; }
+
+    .text-gradient {
+        background: linear-gradient(120deg, var(--primary-color) 0%, #8a2be2 50%, var(--primary-color) 100%);
+        background-size: 200% auto;
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: gradientShift 6s linear infinite;
+    }
+
+    .glass-effect {
+        background: rgba(255, 255, 255, 0.7);
+        -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border-radius: 1.5rem;
+    }
+    [data-theme='dark'] .glass-effect {
+        background: rgba(30, 30, 30, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .detail-wrapper { position: relative; overflow: hidden; padding: 4rem 0; }
+
+    .topic-header-card {
+        border: none;
+        border-radius: 1.5rem;
+    }
+    .topic-header-card .card-body { padding: 2rem; }
+    .topic-header-card h2 {
+        font-weight: 800;
+        font-size: 1.8rem;
+        color: var(--text-primary);
+    }
+    .topic-header-card .lead {
+        color: var(--text-secondary);
+        line-height: 1.7;
+    }
+    .topic-header-card .topic-meta-info {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .post-card {
+        border: none;
+        border-radius: 1.2rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+    .post-card:hover {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    }
+    .post-card .card-body { padding: 1.5rem; }
+
+    .vote-controls .btn {
+        border-radius: 50%;
+        width: 36px; height: 36px;
+        display: flex; align-items: center; justify-content: center;
+        padding: 0;
+    }
+    .vote-score {
+        font-size: 1.1rem;
+        color: var(--primary-color);
+    }
+
+    .replies .card {
+        border-radius: 1rem;
+        border: 1px solid rgba(200, 200, 200, 0.3);
+    }
+    [data-theme='dark'] .replies .card {
+        background: rgba(40, 40, 40, 0.5);
+        border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .new-post-card {
+        border: none;
+        border-radius: 1.5rem;
+    }
+    .new-post-card .card-header {
+        border-radius: 1.5rem 1.5rem 0 0;
+        background: linear-gradient(135deg, var(--primary-color), #8a2be2);
+        border: none;
+        font-weight: 700;
+    }
+
+    .form-control {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(var(--primary-rgb, 0, 113, 133), 0.2);
+        border-radius: 0.8rem;
+        padding: 0.8rem 1.2rem;
+    }
+    .form-control:focus {
+        background: var(--card-bg);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb, 0, 113, 133), 0.2);
+    }
+    [data-theme='dark'] .form-control { background: rgba(0, 0, 0, 0.2); }
+
+    .btn-gradient {
+        background: linear-gradient(135deg, var(--primary-color), #8a2be2);
+        color: white; border: none; padding: 0.7rem 1.5rem;
+        border-radius: 50px; font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(var(--primary-rgb, 0, 113, 133), 0.3);
+    }
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(var(--primary-rgb, 0, 113, 133), 0.4);
+        color: white;
+    }
+
+    .back-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.2s ease;
+    }
+    .back-link:hover { color: var(--primary-color); }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container my-5">
-    <!-- Botão Voltar -->
-    <a href="{% url 'debates:list' %}" class="btn btn-link text-muted mb-2 p-0" title="Voltar para lista de debates">
-        <i class="fas fa-arrow-left me-1"></i>Debates
+<div class="detail-wrapper">
+    <div class="glowing-orb orb-primary" style="width: 500px; height: 500px; top: -10%; left: -5%;"></div>
+    <div class="glowing-orb orb-secondary" style="width: 400px; height: 400px; bottom: 5%; right: -5%;"></div>
+
+<div class="container position-relative" style="z-index: 2;">
+    <a href="{% url 'debates:list' %}" class="back-link mb-3 d-inline-block">
+        <i class="fas fa-arrow-left me-1"></i>Voltar aos Debates
     </a>
 
     <!-- Header do Tópico -->
-    <div class="card mb-4">
+    <div class="glass-effect topic-header-card mb-4">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
@@ -95,8 +238,8 @@
     <!-- Formulário Novo Post (apenas se usuário não tem posts ainda) -->
     {% if user.is_authenticated and not topic.is_locked %}
         {% if not user_has_posts %}
-        <div class="card mb-4" id="new-post-form">
-            <div class="card-header bg-primary text-white">
+        <div class="glass-effect new-post-card mb-4" id="new-post-form">
+            <div class="card-header text-white">
                 <i class="fas fa-plus me-2"></i>Nova Resposta
             </div>
             <div class="card-body">
@@ -104,7 +247,7 @@
                     {% csrf_token %}
                     <label for="new-post-content" class="form-label visually-hidden">Escreva sua resposta</label>
                     <textarea class="form-control mb-3" id="new-post-content" name="content" rows="4" placeholder="Escreva sua resposta..." required></textarea>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn-gradient">
                         <i class="fas fa-paper-plane me-2"></i>Enviar
                     </button>
                 </form>
@@ -121,7 +264,7 @@
     <!-- Posts -->
     <div id="posts-container">
         {% for post in posts %}
-        <div class="card mb-3 post-card" data-post-id="{{ post.id }}">
+        <div class="glass-effect mb-3 post-card" data-post-id="{{ post.id }}">
             <div class="card-body">
                 <div class="d-flex">
 
@@ -291,6 +434,7 @@
         <i class="fas fa-info-circle me-2"></i>Seja o primeiro a comentar neste debate!
     </div>
     {% endif %}
+</div>
 </div>
 
 <script>

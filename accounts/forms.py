@@ -3,6 +3,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from accounts.models import UserProfile
 from core.models import Category
+from accounts.models import UserProfile, BookReview
+from accounts.models import UserProfile, BookReview
 
 
 class UserRegisterForm(UserCreationForm):
@@ -111,4 +113,44 @@ class UserProfileForm(forms.ModelForm):
             profile.save()
         
         return profile
+
+
+class BookReviewForm(forms.ModelForm):
+    """Formulário para avaliação e resenha de livros."""
+    class Meta:
+        model = BookReview
+        fields = ['rating', 'title', 'review_text', 'contains_spoilers', 'would_recommend']
+        widgets = {
+            'rating': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0.0',
+                'max': '5.0',
+                'step': '0.1',
+                'placeholder': 'Ex: 4.5',
+                'required': True
+            }),
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Resuma sua avaliação em uma frase (opcional)'
+            }),
+            'review_text': forms.Textarea(attrs={
+                'class': 'form-control text-white',
+                'rows': 4,
+                'placeholder': 'O que você achou deste livro? (opcional)'
+            }),
+            'contains_spoilers': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'would_recommend': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }
+        labels = {
+            'rating': 'Avaliação (0.0 a 5.0)',
+            'title': 'Título da Resenha',
+            'review_text': 'Resenha',
+            'contains_spoilers': 'Contém Spoilers',
+            'would_recommend': 'Eu recomendo este livro',
+        }
+
 
