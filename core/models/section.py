@@ -84,14 +84,6 @@ class Section(models.Model):
         help_text="Ex: #f8f9fa, transparent"
     )
 
-    background_image = models.ImageField(
-        upload_to='sections/backgrounds/',
-        blank=True,
-        null=True,
-        verbose_name="Imagem de Background",
-        help_text="Imagem de fundo para o container da seção (recomendado: 1920x600px)"
-    )
-
     banner_image = models.ImageField(
         upload_to='sections/banners/',
         blank=True,

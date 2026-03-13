@@ -257,8 +257,6 @@ class HomeView(TemplateView):
 
             # Extrair URL do banner se existir
             banner_url = section.banner_image.url if section.banner_image else None
-            # Extrair URL do background se existir
-            background_url = section.background_image.url if section.background_image else None
 
             section_dict = {
                 'id': section.id,
@@ -268,7 +266,6 @@ class HomeView(TemplateView):
                 'layout': section.layout,
                 'css_class': section.css_class,
                 'background_color': section.background_color,
-                'background_image_url': background_url,
                 'container_opacity': section.container_opacity,
                 # Container background image settings
                 'container_background_image_url': section.container_background_image.url if section.container_background_image else None,
