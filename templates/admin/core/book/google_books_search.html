@@ -493,8 +493,12 @@
                 </div>
 
                 {% if book.average_rating %}
-                    <div class="book-rating">
+                    <div class="book-rating" title="Avaliação e total no Google Books">
                         ⭐ {{ book.average_rating }}/5 ({{ book.ratings_count|default:0 }})
+                    </div>
+                {% else %}
+                    <div class="book-rating" style="color: #666;" title="O Google Books não forneceu avaliações para esta edição">
+                        ⭐ Sem avaliação / 5 (0)
                     </div>
                 {% endif %}
 
