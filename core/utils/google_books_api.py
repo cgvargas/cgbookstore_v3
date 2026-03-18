@@ -11,6 +11,7 @@ from django.core.files.storage import default_storage
 from django.conf import settings
 from datetime import datetime
 import logging
+from django.utils.html import strip_tags
 
 logger = logging.getLogger(__name__)
 
@@ -226,7 +227,7 @@ def extract_book_info(item: Dict) -> Optional[Dict]:
             'authors': volume_info.get('authors', []),
             'publisher': volume_info.get('publisher'),
             'published_date': volume_info.get('publishedDate'),
-            'description': volume_info.get('description'),
+            'description': strip_tags(volume_info.get('description')) if volume_info.get('description') else None,
             'isbn_13': isbn_13,
             'isbn_10': isbn_10,
             'page_count': volume_info.get('pageCount'),
