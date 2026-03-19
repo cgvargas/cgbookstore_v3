@@ -855,7 +855,7 @@
     <!-- Seções Dinâmicas (usando estrutura de dicts para performance) -->
     {% for section in sections %}
     <!-- DEBUG: Secao {{ section.title }} - Banner URL: {{ section.banner_image_url }} -->
-    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative {% if forloop.first %}section-overlap-banner{% endif %}">
+    <section class="{% if section.css_class %}{{ section.css_class }}{% else %}books-carousel-section{% endif %} position-relative {% if forloop.first %}section-overlap-banner{% endif %}{% if section.container_background_image_url %} has-bg-image{% endif %}">
         <!-- Banner da Seção (se existir) -->
         {% if section.banner_image_url %}
         <div class="section-banner-wrapper" style="height: {{ section.banner_height|default:400 }}px;">

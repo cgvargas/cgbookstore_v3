@@ -37,6 +37,37 @@
     /* Não interfere em cliques */
 }
 
+/* =============================================
+   SEÇÃO COM IMAGEM DE FUNDO CUSTOMIZADA
+   Cards ficam transparentes para revelar o background
+   ============================================= */
+.has-bg-image .card,
+.has-bg-image .card.book-card,
+.has-bg-image .swiper-slide .book-card {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+.has-bg-image .card .card-body,
+.has-bg-image .swiper-slide .card-body {
+    background: transparent !important;
+}
+
+.has-bg-image .card .card-title,
+.has-bg-image .card .card-text,
+.has-bg-image .swiper-slide .card-title,
+.has-bg-image .swiper-slide .card-text {
+    color: var(--text-primary) !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.has-bg-image .list-group-item {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
 
 .carousel-header {
     display: flex;
