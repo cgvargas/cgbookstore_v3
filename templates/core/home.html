@@ -862,7 +862,7 @@
             <img src="{{ section.banner_image_url }}"
                  alt="{{ section.title }}"
                  loading="lazy"
-                 style="object-position: {{ section.banner_position_horizontal|default:'center' }} {{ section.banner_position_vertical|default:'center' }};">
+                 style="display: block; width: 100%; height: 100%; object-fit: cover; object-position: {{ section.banner_position_horizontal|default:'center' }} {{ section.banner_position_vertical|default:'center' }};">
 
             <!-- Overlay controlável -->
             <div class="section-banner-overlay-base" style="background: rgba(0, 0, 0, {{ section.banner_overlay_opacity|default:0.5 }});"></div>
