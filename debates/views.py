@@ -6,11 +6,24 @@ from django.db.models import Q, Count, Prefetch
 from django.views.decorators.http import require_POST
 from django.core.cache import cache
 from django_ratelimit.decorators import ratelimit
+from django.conf import settings
 from .models import DebateTopic, DebatePost, DebateVote
 from core.models import Book
 
 
-@ratelimit(key='ip', rate='200/h', method='GET')
+def conditional_ratelimit(rate, key='ip', method='GET'):
+    """
+    Aplica rate limiting apenas em Produção (se DEBUG=False).
+    Em desenvolvimento (DEBUG=True), permite requisições ilimitadas.
+    """
+    def decorator(func):
+        if settings.DEBUG:
+            return func
+        return ratelimit(key=key, rate=rate, method=method, block=True)(func)
+    return decorator
+
+
+@conditional_ratelimit(key='ip', rate='200/h', method='GET')
 def debates_list(request):
     """Lista todos os tópicos de debate - Limite: 200 visualizações por hora por IP"""
     # Filtro por livro
@@ -108,12 +121,32 @@ def topic_detail(request, slug):
 
 
 @login_required
-@ratelimit(key='user', rate='10/h', method='POST')
+@conditional_ratelimit(key='user', rate='10/h', method='POST')
 def create_topic(request, book_id):
-    """Criar novo tópico de debate - Limite: 10 tópicos por hora"""
+    """Criar novo tópico de debate - Limite: 10 tópicos por hora. Assinantes criam ilimitado, Free criam 1 por livro."""
     book = get_object_or_404(Book, id=book_id)
 
     if request.method == 'POST':
+        # Verificar limite de tópicos para usuários não-premium
+        is_premium = False
+        if hasattr(request.user, 'profile'):
+            is_premium = request.user.profile.is_premium_active()
+
+        if not is_premium:
+            # Usuários gratuitos só podem criar 1 tópico por livro
+            user_topics_count = DebateTopic.objects.filter(
+                book=book,
+                creator=request.user
+            ).count()
+
+            if user_topics_count >= 1:
+                messages.error(
+                    request, 
+                    'Usuários gratuitos podem criar apenas 1 tópico por livro. '
+                    'Para criar mais tópicos, assine o plano Premium! (Você ainda pode responder ilimitadamente a outros tópicos)'
+                )
+                return redirect('core:book_detail', pk=book_id)
+
         title = request.POST.get('title', '').strip()
         description = request.POST.get('description', '').strip()
 
@@ -140,7 +173,7 @@ def create_topic(request, book_id):
 
 @login_required
 @require_POST
-@ratelimit(key='user', rate='60/h', method='POST')
+@conditional_ratelimit(key='user', rate='60/h', method='POST')
 def create_post(request, topic_slug):
     """Criar post em um tópico - Limite: 60 posts por hora"""
     topic = get_object_or_404(DebateTopic, slug=topic_slug)
@@ -158,26 +191,8 @@ def create_post(request, topic_slug):
     if parent_id:
         parent = get_object_or_404(DebatePost, id=parent_id, topic=topic)
 
-    # Verificar limite de posts para usuários não-premium
-    if hasattr(request.user, 'profile'):
-        is_premium = request.user.profile.is_premium_active()
-    else:
-        is_premium = False
-
-    if not is_premium:
-        # Contar posts do usuário neste tópico
-        user_posts_count = topic.posts.filter(
-            author=request.user,
-            is_deleted=False
-        ).count()
-
-        # Limite de 5 posts por tópico para não-premium
-        MAX_POSTS_FREE = 5
-        if user_posts_count >= MAX_POSTS_FREE:
-            return JsonResponse({
-                'success': False,
-                'error': f'Usuários não-premium podem fazer no máximo {MAX_POSTS_FREE} posts por debate. Assine o plano premium para participar ilimitadamente!'
-            }, status=403)
+    # REMOVIDO: O limite de respostas por tópico para usuários free.
+    # Agora a monetização foca na CRIAÇÃO de tópicos, permitindo que as discussões fluam livremente.
 
     post = DebatePost.objects.create(
         topic=topic,
@@ -201,7 +216,7 @@ def create_post(request, topic_slug):
 
 @login_required
 @require_POST
-@ratelimit(key='user', rate='100/h', method='POST')
+@conditional_ratelimit(key='user', rate='100/h', method='POST')
 def vote_post(request, post_id):
     """Votar em um post - Limite: 100 votos por hora"""
     post = get_object_or_404(DebatePost, id=post_id)

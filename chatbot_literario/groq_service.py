@@ -69,34 +69,32 @@ REGRAS ABSOLUTAS:
 11. QUANDO VOCÊ CONSEGUIR RESPONDER: Responda normalmente e finalize!
     - Se você SABE a resposta (bio, autor, sinopse), dê a resposta completa e ponto final
     - NÃO adicione sugestões desnecessárias se a resposta está completa
-    - Exemplo: "Quem é o autor?" → "Raphael Montes é um escritor brasileiro de suspense..." (FIM - não precisa sugerir Skoob)
+    - Exemplo: "Quem é o autor?" → "Raphael Montes é um escritor brasileiro de suspense..."
 
 12. QUANDO NÃO CONSEGUIR RESPONDER COMPLETAMENTE:
-    - Se o usuário pedir algo que você NÃO TEM (lista completa, dados específicos), aí sim sugira recursos externos
-    - Exemplo: "Me dê TODOS os títulos do autor" → Liste os que conhece + sugira Skoob para lista completa
+    - Se o usuário pedir algo que você NÃO TEM (lista completa, dados específicos), avise com honestidade
+    - Exemplo: "Me dê TODOS os títulos do autor" → Liste os que conhece e avise que pode haver outros
 
 13. QUANDO O USUÁRIO PEDIR AJUDA GENÉRICA (após você já ter respondido):
-    - Se você já deu as informações que tinha, sugira recursos externos como resposta final
-    - Exemplo: "Me ajude por favor" → Sugira Skoob, Goodreads, Amazon
+    - Se você já deu as informações que tinha, sugira que o usuário explore nossa loja ou blog
+    - Exemplo: "Me ajude por favor" → Sugira pesquisar nosso acervo ou seção de Notícias
 
 EXEMPLOS:
 
 ✅ CORRETO (você sabe a resposta - finalize naturalmente):
 "Quem escreveu Quarta Asa?" → "**Quarta Asa** foi escrito por **Rebecca Yarros**. É um romance de fantasia muito popular!"
 "Me apresente a bio do autor" → "Raphael Montes é um escritor brasileiro de suspense e mistério. Nasceu em 1990 no Rio de Janeiro..."
-(NÃO precisa adicionar "consulte o Skoob para mais" se você respondeu bem!)
 
 ✅ CORRETO (você NÃO tem a informação completa):
 "Me apresente TODOS os títulos do autor!"
-→ "De **Raphael Montes**, conheço: **Jantar Secreto**, **Dias Perfeitos** e **O Financiador**. Para a bibliografia completa, consulte o Skoob ou Amazon."
+→ "De **Raphael Montes**, conheço: **Jantar Secreto**, **Dias Perfeitos** e **O Financiador**. Estes são os livros que tenho em nossa base de dados."
 
 ✅ CORRETO (pedido de ajuda genérico - resposta final):
 "Me ajude por favor!"
-→ "Para mais informações sobre esse autor:
-📚 **Skoob** (skoob.com.br) - maior rede de leitores do Brasil
-📚 **Goodreads** - biografias e listas completas
-📚 **Amazon** - página do autor
-Ou use a 🔍 lupa aqui em cima!"
+→ "Para mais informações:
+📚 Explore nossa loja para encontrar livros do autor
+📰 Consulte nossa seção de Notícias para novidades literárias
+🔍 Ou use a barra de pesquisa no topo da página!"
 
 ❌ ERRADO (promessa vazia):
 "Não tenho certeza, mas posso ajudar a buscar mais informações" → NUNCA FAÇA ISSO
@@ -118,10 +116,9 @@ ESCOPO:
     - Você NÃO tem capacidade de acessar a internet em tempo real
     - Se perguntarem se você pode pesquisar na internet, seja HONESTO:
     ✅ DIGA: "Não consigo acessar a internet em tempo real, mas posso te dizer o que sei! 
-             Para notícias recentes, recomendo:
+             Para novidades e análises completas, recomendo:
              📰 Consultar nossa seção de Notícias
-             🔍 Pesquisar no Google por '[termo]'
-             📚 Verificar no Skoob ou Goodreads"
+             📚 Explorar nosso acervo na loja"
     - NUNCA diga que vai buscar na internet se você não pode
 
 ❌ Assuntos fora de literatura: redirecione gentilmente"""
@@ -521,13 +518,28 @@ Se o FAQ responder completamente, NÃO adicione informações extras."""
                             verified_data = self.knowledge_service.format_multiple_books_for_prompt(books, max_books=3)
                             return f"{message}\n\n{verified_data}"
 
-            # INTENT 8: Adaptações e franquias - buscar notícias primeiro
+            # INTENT 8: Adaptações e franquias - buscar notícias e livros do autor
             elif intent_type in ['adaptation_info', 'franchise_info']:
-                logger.info(f"Intent '{intent_type}' detectado - buscando notícias relevantes")
+                logger.info(f"Intent '{intent_type}' detectado - buscando notícias e livros relevantes")
                 
                 # Extrair termo de busca da mensagem
                 search_terms = []
                 message_lower = message.lower()
+                
+                # Palavras-chave de franquias conhecidas com autores associados
+                franchise_authors = {
+                    'witcher': 'Sapkowski',
+                    'harry potter': 'Rowling',
+                    'senhor dos anéis': 'Tolkien',
+                    'game of thrones': 'Martin',
+                    'percy jackson': 'Riordan',
+                    'hunger games': 'Collins',
+                    'divergente': 'Roth',
+                    'maze runner': 'Dashner',
+                    'dune': 'Herbert',
+                    'narnia': 'Lewis',
+                    'fundação': 'Asimov',
+                }
                 
                 # Palavras-chave comuns para extrair o assunto
                 for word in ['diablo', 'witcher', 'harry potter', 'senhor dos anéis', 'game of thrones', 
@@ -537,17 +549,65 @@ Se o FAQ responder completamente, NÃO adicione informações extras."""
                 
                 # Se não encontrou termo específico, usar palavras-chave da mensagem
                 if not search_terms:
-                    stopwords = ['o', 'a', 'os', 'as', 'sobre', 'que', 'você', 'tem', 'de', 'da', 'do', 'informação', 'informações', 'franquia', 'adaptação']
+                    stopwords = ['o', 'a', 'os', 'as', 'sobre', 'que', 'você', 'tem', 'de', 'da', 'do', 'informação', 'informações', 'franquia', 'adaptação', 'fora', 'universo', 'mundo', 'outra', 'outro', 'alguma', 'algum', 'obra', 'obras']
                     words = [w for w in message_lower.split() if w not in stopwords and len(w) > 3]
                     search_terms = words[:2]
                 
-                # Buscar notícias
+                # Buscar notícias primeiro
                 for term in search_terms:
                     articles = self.knowledge_service.search_news_articles(term, limit=3)
                     if articles:
                         news_data = self.knowledge_service.format_news_for_prompt(articles)
                         logger.info(f"✅ Encontradas {len(articles)} notícias sobre '{term}'")
                         return f"{message}\n\n{news_data}"
+                
+                # FALLBACK: Se não encontrou notícias, buscar livros do autor da franquia
+                author_found = None
+                franchise_found = None
+                for franchise, author in franchise_authors.items():
+                    if franchise in message_lower:
+                        author_found = author
+                        franchise_found = franchise
+                        break
+                
+                # Detectar se o usuário perguntou sobre obras FORA da franquia
+                asking_outside = any(p in message_lower for p in [
+                    'fora do universo', 'fora do mundo de', 'fora da franquia',
+                    'fora da saga', 'fora da série',
+                    'além do universo', 'além da franquia', 'além da saga',
+                    'outra obra', 'outras obras', 'outro livro', 'outros livros',
+                    'não seja do universo', 'não seja da franquia',
+                ])
+                
+                if author_found:
+                    if asking_outside:
+                        # Usuário quer obras FORA da franquia - injetar aviso anti-alucinação
+                        # NÃO mostrar livros da franquia (que é o que temos no banco)
+                        logger.info(f"🚫 Usuário perguntou sobre obras FORA de '{franchise_found}' - injetando aviso anti-alucinação")
+                        return f"""{message}
+
+[AVISO DO SISTEMA]
+O usuário está perguntando sobre obras do autor FORA do universo de {franchise_found.title()}.
+Não temos informações verificadas sobre outras obras deste autor na nossa base de dados.
+NÃO invente títulos de livros. Se você conhece obras reais e verificadas do autor fora dessa franquia, pode mencioná-las.
+Caso contrário, diga honestamente que não tem essa informação verificada.
+[/AVISO DO SISTEMA]"""
+                    else:
+                        # Buscar livros do autor normalmente
+                        logger.info(f"📚 Buscando livros do autor '{author_found}' como fallback para franchise_info")
+                        books = self.knowledge_service.search_books_by_author(author_found, limit=10)
+                        if books:
+                            verified_data = self.knowledge_service.format_multiple_books_for_prompt(books, max_books=5)
+                            return f"{message}\n\n{verified_data}"
+                        else:
+                            # Autor conhecido mas sem livros no banco
+                            logger.warning(f"⚠️ Autor '{author_found}' não encontrado no banco de dados")
+                            return f"""{message}
+
+[AVISO DO SISTEMA]
+Não temos informações verificadas sobre obras deste autor na nossa base de dados.
+NÃO invente títulos de livros. Se você não tem certeza, diga honestamente que não tem essa informação verificada.
+[/AVISO DO SISTEMA]"""
                 
                 logger.info(f"⚠️ Nenhuma notícia encontrada para: {search_terms}")
 

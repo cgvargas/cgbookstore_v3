@@ -39,9 +39,14 @@ class KnowledgeBaseService:
         2. Se falhar, tenta match por palavras-chave (fuzzy)
         3. Ordena por confiança e popularidade
 
+        NOTA: Não filtra por knowledge_type porque os tipos de intent
+        da detecção (franchise_info, adaptation_info, etc.) não correspondem
+        aos KNOWLEDGE_TYPES do modelo (author_query, book_info, etc.).
+        A relevância é validada pela similaridade de texto.
+
         Args:
             question: Pergunta do usuário
-            knowledge_type: Tipo de conhecimento (opcional)
+            knowledge_type: Tipo de conhecimento (ignorado - busca ampla)
             min_confidence: Confiança mínima (0-1)
 
         Returns:
@@ -51,11 +56,9 @@ class KnowledgeBaseService:
             # Normalizar pergunta
             question_normalized = question.lower().strip()
 
-            # Filtro base
+            # Filtro base - NÃO filtra por knowledge_type para garantir
+            # que correções admin sejam encontradas independente do intent
             base_filter = Q(is_active=True) & Q(confidence_score__gte=min_confidence)
-
-            if knowledge_type:
-                base_filter &= Q(knowledge_type=knowledge_type)
 
             # === ESTRATÉGIA 1: Busca Exata ===
             exact_match = ChatbotKnowledge.objects.filter(
@@ -76,36 +79,49 @@ class KnowledgeBaseService:
                 fuzzy_matches = ChatbotKnowledge.objects.filter(
                     base_filter,
                     keywords__overlap=keywords
-                ).order_by('-confidence_score', '-times_used')[:3]
+                ).order_by('-confidence_score', '-times_used')[:5]  # Aumenta pool para análise
 
-                # Se encontrou matches, pegar o melhor
-                if fuzzy_matches:
-                    best_match = fuzzy_matches[0]
+                # Se encontrou matches, testar similaridades
+                best_match = None
+                best_similarity = 0.0
 
-                    # Calcular similaridade
-                    similarity = self._calculate_similarity(keywords, best_match.keywords)
+                for match in fuzzy_matches:
+                    similarity = self._calculate_similarity(keywords, match.keywords)
+                    if similarity > best_similarity:
+                        best_similarity = similarity
+                        best_match = match
 
-                    # Só usar se similaridade for > 50%
-                    if similarity > 0.5:
-                        logger.info(
-                            f"✅ Knowledge Base: Match FUZZY encontrado para '{question[:50]}' "
-                            f"(similaridade: {similarity:.2%})"
-                        )
-                        best_match.increment_usage()
-                        return self._serialize_knowledge(best_match)
+                # Reduzido threshold de 0.5 (50%) para 0.25 (25%) para capturar variações do usuário (ex: uso de pronomes diferentes)
+                if best_match and best_similarity >= 0.25:
+                    logger.info(
+                        f"✅ Knowledge Base: Match FUZZY encontrado para '{question[:50]}' "
+                        f"(similaridade: {best_similarity:.2%})"
+                    )
+                    best_match.increment_usage()
+                    return self._serialize_knowledge(best_match)
 
-            # === ESTRATÉGIA 3: Busca por Substring ===
-            # Tenta encontrar perguntas que contenham parte da pergunta atual
-            if len(question_normalized) > 20:
-                substring_match = ChatbotKnowledge.objects.filter(
-                    base_filter,
-                    original_question__icontains=question_normalized[:20]
-                ).order_by('-confidence_score').first()
+            # === ESTRATÉGIA 3: Busca por Substring (Melhorada) ===
+            # Em vez de tentar os primeiros 20 chars contidos na pergunta do KB
+            # (que falha se a estrutura da frase mudar), tentar ver se a pergunta do KB 
+            # está CONTIDA na pergunta atual, ou usar um overlap menor
+            
+            # Limpar pergunta removendo palavras curtas para a busca
+            clean_q = " ".join([w for w in question_normalized.split() if w not in ['e', 'o', 'a', 'um', 'uma', 'de', 'do', 'da'] and len(w) > 3])
+            
+            if len(clean_q) > 10:
+                # Procurar perguntas no banco que compartilham pelo menos uma substring com a atual
+                # Truncando em palavras para tentar achar uma frase em comum
+                first_few_words = " ".join(clean_q.split()[:3])
+                if first_few_words:
+                    substring_match = ChatbotKnowledge.objects.filter(
+                        base_filter,
+                        original_question__icontains=first_few_words
+                    ).order_by('-confidence_score').first()
 
-                if substring_match:
-                    logger.info(f"✅ Knowledge Base: Match por SUBSTRING para '{question[:50]}'")
-                    substring_match.increment_usage()
-                    return self._serialize_knowledge(substring_match)
+                    if substring_match:
+                        logger.info(f"✅ Knowledge Base: Match por SUBSTRING (frase: '{first_few_words}') para '{question[:50]}'")
+                        substring_match.increment_usage()
+                        return self._serialize_knowledge(substring_match)
 
             logger.info(f"ℹ️ Knowledge Base: Nenhum conhecimento prévio para '{question[:50]}'")
             return None
@@ -154,16 +170,17 @@ class KnowledgeBaseService:
 
     def _extract_keywords(self, text: str) -> List[str]:
         """
-        Extrai palavras-chave de um texto.
+        Extrai palavras-chave de um texto com normalização básica.
 
         Remove stop words e palavras muito curtas.
+        Aplica stemming básico em português (plural→singular, sufixos verbais).
         Retorna até 10 palavras-chave mais relevantes.
 
         Args:
             text: Texto para extrair keywords
 
         Returns:
-            Lista de palavras-chave
+            Lista de palavras-chave normalizadas
         """
         # Stop words em português (palavras comuns a ignorar)
         stop_words = {
@@ -178,6 +195,9 @@ class KnowledgeBaseService:
             'ele', 'ela', 'eles', 'elas', 'eu', 'tu', 'você',
             'me', 'te', 'se', 'lhe', 'nos', 'vos',
             'mais', 'menos', 'muito', 'pouco', 'todo', 'toda',
+            'cite', 'diga', 'fale', 'deste', 'desta', 'desse', 'dessa',
+            'alguma', 'algum', 'alguns', 'algumas', 'outra', 'outro', 'outras', 'outros',
+            'também', 'ainda', 'já', 'então', 'assim',
         }
 
         # Limpar e dividir
@@ -188,14 +208,52 @@ class KnowledgeBaseService:
         keywords = []
         for word in words:
             # Remover pontuação
-            word = word.strip('?,!.;:\"\'()[]{}')
+            word = word.strip('?,!.;:"\'()[]{}')
 
             # Adicionar se não for stop word e tiver tamanho adequado
-            if word and len(word) > 3 and word not in stop_words:
-                keywords.append(word)
+            if word and len(word) > 2 and word not in stop_words:
+                # Normalização básica de português (stemming simples)
+                normalized = self._normalize_word(word)
+                if normalized not in keywords:  # Evitar duplicatas
+                    keywords.append(normalized)
 
-        # Limitar a 10 palavras-chave mais relevantes (primeiras palavras tendem a ser mais importantes)
+        # Limitar a 10 palavras-chave mais relevantes
         return keywords[:10]
+
+    def _normalize_word(self, word: str) -> str:
+        """
+        Normalização básica de palavra em português (stemming simples).
+        
+        Remove sufixos comuns de plural, gênero e conjugação verbal
+        para que 'obras'→'obra', 'autores'→'autor', 'escreveu'→'escrev'.
+        """
+        # Plurais irregulares (-ões → -ão, -ães → -ão)
+        if word.endswith('ões') and len(word) > 4:
+            return word[:-3] + 'ão'
+        if word.endswith('ães') and len(word) > 4:
+            return word[:-3] + 'ão'
+        
+        # Plural -es (ex: autores → autor)
+        if word.endswith('ores') and len(word) > 5:
+            return word[:-2]
+        if word.endswith('res') and len(word) > 4:
+            return word[:-1]
+        
+        # Plural simples -s (ex: obras → obra, livros → livro)
+        if word.endswith('s') and not word.endswith('ss') and len(word) > 3:
+            return word[:-1]
+        
+        # Sufixos verbais comuns
+        for suffix in ['aram', 'eram', 'iram', 'endo', 'ando', 'indo']:
+            if word.endswith(suffix) and len(word) > len(suffix) + 2:
+                return word[:-len(suffix)]
+        
+        # Passado simples (-ou, -eu, -iu)
+        for suffix in ['ou', 'eu', 'iu']:
+            if word.endswith(suffix) and len(word) > len(suffix) + 2:
+                return word[:-len(suffix)]
+        
+        return word
 
     def _calculate_similarity(self, keywords1: List[str], keywords2: List[str]) -> float:
         """

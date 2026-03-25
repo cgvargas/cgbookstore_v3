@@ -1518,6 +1518,10 @@
             {% endif %}
         </div>
     </section>
+
+    {% if 'lançamentos' in section.title|lower %}
+        {% include 'recommendations/recommendations_section.html' %}
+    {% endif %}
     {% endfor %}
 
     <!-- Mensagem caso não haja seções -->
@@ -1616,8 +1620,7 @@
     </section>
     {% endif %}
 
-    <!-- Seção de Recomendações Inteligentes -->
-    {% include 'recommendations/recommendations_section.html' %}
+
 
 </div>
 

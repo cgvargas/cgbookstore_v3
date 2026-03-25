@@ -2,10 +2,13 @@
 Administração Django para o Chatbot Literário.
 Inclui interface para correções e gerenciamento da Knowledge Base.
 """
+import logging
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
 from .models import ChatSession, ChatMessage, ConversationContext, ChatbotKnowledge
+
+logger = logging.getLogger(__name__)
 
 
 @admin.register(ChatSession)
@@ -61,7 +64,8 @@ class ChatMessageAdmin(admin.ModelAdmin):
                 'corrected_by',
                 'corrected_at'
             ),
-            'description': 'Marque "Tem Correção" e preencha "Conteúdo Corrigido" para corrigir esta resposta.'
+            'description': 'Marque "Tem Correção" e preencha "Conteúdo Corrigido". '
+                           'Ao salvar, a correção será automaticamente adicionada à Knowledge Base.'
         }),
         ('Feedback e Performance', {
             'fields': ('user_feedback', 'tokens_used', 'response_time'),
@@ -70,6 +74,89 @@ class ChatMessageAdmin(admin.ModelAdmin):
     )
 
     actions = ['create_knowledge_from_correction', 'mark_as_corrected']
+
+    # Mapeamento de intent types para KNOWLEDGE_TYPES válidos do modelo
+    INTENT_TO_KNOWLEDGE_TYPE = {
+        'author_query': 'author_query',
+        'author_search': 'author_query',
+        'book_detail': 'book_info',
+        'book_recommendation': 'recommendation',
+        'book_reference': 'book_info',
+        'series_info': 'series_info',
+        'category_search': 'category_search',
+        'franchise_info': 'general',
+        'adaptation_info': 'general',
+    }
+
+    def save_model(self, request, obj, form, change):
+        """
+        Override para auto-salvar correções na Knowledge Base.
+        
+        Quando o admin marca has_correction=True e preenche corrected_content,
+        a correção é automaticamente salva na Knowledge Base para uso futuro.
+        """
+        # Verificar se é uma correção nova (has_correction mudou para True)
+        if obj.has_correction and obj.corrected_content and obj.role == 'assistant':
+            # Preencher campos de correção automaticamente
+            if not obj.corrected_by:
+                obj.corrected_by = request.user
+            if not obj.corrected_at:
+                obj.corrected_at = timezone.now()
+
+        super().save_model(request, obj, form, change)
+
+        # Auto-criar entrada na Knowledge Base
+        if obj.has_correction and obj.corrected_content and obj.role == 'assistant':
+            self._auto_create_knowledge(request, obj)
+
+    def _auto_create_knowledge(self, request, message):
+        """Cria automaticamente entrada na Knowledge Base a partir de uma correção."""
+        from .knowledge_base_service import get_knowledge_service
+
+        try:
+            kb_service = get_knowledge_service()
+
+            # Encontrar mensagem do usuário anterior (pergunta)
+            user_message = message.session.messages.filter(
+                role='user',
+                created_at__lt=message.created_at
+            ).order_by('-created_at').first()
+
+            if not user_message:
+                return
+
+            # Mapear intent type para knowledge_type válido
+            raw_type = message.rag_intent_detected or 'general'
+            knowledge_type = self.INTENT_TO_KNOWLEDGE_TYPE.get(raw_type, 'general')
+
+            # Verificar se já existe entrada para esta pergunta
+            from .models import ChatbotKnowledge
+            existing = ChatbotKnowledge.objects.filter(
+                original_question__iexact=user_message.content
+            ).first()
+
+            if existing:
+                # Atualizar entrada existente
+                existing.correct_response = message.corrected_content
+                existing.incorrect_response = message.content
+                existing.confidence_score = 1.0
+                existing.is_active = True
+                existing.save()
+                logger.info(f"✅ Knowledge Base ATUALIZADO: ID={existing.id}")
+            else:
+                # Criar nova entrada
+                kb_service.add_correction(
+                    original_question=user_message.content,
+                    incorrect_response=message.content,
+                    correct_response=message.corrected_content,
+                    knowledge_type=knowledge_type,
+                    created_by=request.user,
+                    confidence_score=1.0
+                )
+                logger.info(f"✅ Knowledge Base: Nova correção auto-salva para '{user_message.content[:50]}'")
+
+        except Exception as e:
+            logger.error(f"Erro ao auto-salvar no Knowledge Base: {e}", exc_info=True)
 
     def content_preview(self, obj):
         """Exibe prévia do conteúdo."""
