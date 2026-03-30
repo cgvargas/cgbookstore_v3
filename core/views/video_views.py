@@ -16,7 +16,9 @@ class VideoListView(ListView):
 
     def get_queryset(self):
         """Retorna vídeos ativos ordenados por data de criação"""
-        queryset = Video.objects.filter(active=True).order_by('-created_at')
+        queryset = Video.objects.filter(active=True).select_related(
+            'related_book', 'related_book__author'
+        ).order_by('-created_at')
 
         # Busca por título ou descrição
         search = self.request.GET.get('q')

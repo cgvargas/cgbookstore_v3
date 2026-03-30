@@ -27,6 +27,13 @@ class BookDetailView(DetailView):
             category=book.category
         ).exclude(id=book.id)[:4]
 
+        # Vídeos relacionados ao livro (adaptações, trailers, entrevistas)
+        from core.models import Video
+        context['book_videos'] = Video.objects.filter(
+            related_book=book,
+            active=True
+        ).order_by('-featured', '-created_at')
+
         # === ESTATÍSTICAS DE AVALIAÇÃO (Visíveis para todos) ===
         from accounts.models import BookReview
         from django.db.models import Count, Avg
