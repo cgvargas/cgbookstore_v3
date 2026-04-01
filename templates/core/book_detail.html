@@ -296,7 +296,14 @@
             <!-- Autor -->
             <p class="lead">
                 <i class="fas fa-user me-2"></i>
-                <strong>Por:</strong> {{ book.author.name }}
+                <strong>Por:</strong>
+                {% if book.author.slug %}
+                <a href="{% url 'core:author_detail' book.author.slug %}"
+                   class="author-name-link text-decoration-none fw-semibold"
+                   title="Ver página do autor">{{ book.author.name }}</a>
+                {% else %}
+                {{ book.author.name }}
+                {% endif %}
             </p>
 
             <!-- Avaliação (se houver) -->
@@ -488,7 +495,15 @@
                                             {% endif %}
                                         </div>
                                         <div class="author-info flex-grow-1">
-                                            <h5 class="fw-bold mb-2">{{ book.author.name }}</h5>
+                                            <h5 class="fw-bold mb-2">
+                                                {% if book.author.slug %}
+                                                <a href="{% url 'core:author_detail' book.author.slug %}"
+                                                   class="author-name-link text-decoration-none"
+                                                   title="Ver página do autor">{{ book.author.name }}</a>
+                                                {% else %}
+                                                {{ book.author.name }}
+                                                {% endif %}
+                                            </h5>
                                             {% if book.author.bio %}
                                                 <p class="mb-3 text-truncate-multiline text-muted" style="font-size: 0.95rem; -webkit-line-clamp: 3;">
                                                     {{ book.author.bio|linebreaksbr }}
@@ -698,7 +713,14 @@
                         <div class="card-body p-3 d-flex flex-column justify-content-between">
                             <div>
                                 <h6 class="card-title fw-bold text-truncate" style="font-size: 0.95rem;" title="{{ related_book.title }}">{{ related_book.title }}</h6>
-                                <p class="card-text text-muted small text-truncate" title="{{ related_book.author.name }}">{{ related_book.author.name }}</p>
+                                <p class="card-text text-muted small text-truncate" title="{{ related_book.author.name }}">
+                                    {% if related_book.author.slug %}
+                                    <a href="{% url 'core:author_detail' related_book.author.slug %}"
+                                       class="text-muted text-decoration-none author-name-link">{{ related_book.author.name }}</a>
+                                    {% else %}
+                                    {{ related_book.author.name }}
+                                    {% endif %}
+                                </p>
                             </div>
                             <a href="{% url 'core:book_detail' related_book.slug %}" class="btn btn-sm btn-outline-primary w-100 mt-2 rounded-pill">
                                 Ver Livro
@@ -953,6 +975,18 @@
 .book-video-thumb-wrapper:hover .book-video-play-btn--vimeo { background: #1ab7ea; }
 .book-video-play-btn--generic { background: rgba(80,80,80,0.92); }
 .book-video-thumb-wrapper:hover .book-video-play-btn--generic { background: rgba(80,80,80,1); }
+
+/* === Link do nome do autor === */
+.author-name-link {
+    color: inherit;
+    transition: color 0.2s ease, text-decoration-color 0.2s ease;
+    text-underline-offset: 3px;
+}
+.author-name-link:hover {
+    text-decoration: underline !important;
+    color: var(--bs-primary, #0d6efd);
+    opacity: 0.9;
+}
 </style>
 
 <!-- Modal de Avaliação / Resenha -->
