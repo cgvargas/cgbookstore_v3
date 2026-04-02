@@ -51,11 +51,13 @@ class BannerAdmin(admin.ModelAdmin):
                 'description'
             )
         }),
-        ('Imagem', {
+        ('Mídia (Imagem ou Vídeo)', {
             'fields': (
+                'video_file',
                 'image',
                 'image_preview'
-            )
+            ),
+            'description': 'Se um vídeo for selecionado, ele assume o fundo principal. A imagem entra como fallback automático.'
         }),
         ('Posicionamento da Imagem', {
             'fields': (
@@ -114,13 +116,18 @@ class BannerAdmin(admin.ModelAdmin):
     )
 
     def image_preview(self, obj):
-        """Preview da imagem do banner."""
-        if obj.image:
+        """Preview da mídia do banner."""
+        if obj.video_file:
+            return format_html(
+                '<video src="{}" style="max-height: 100px; max-width: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" muted autoplay loop></video>',
+                obj.video_file.url
+            )
+        elif obj.image:
             return format_html(
                 '<img src="{}" style="max-height: 100px; max-width: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />',
                 obj.image.url
             )
-        return "Sem imagem"
+        return "Sem mídia"
 
     image_preview.short_description = "Preview"
 

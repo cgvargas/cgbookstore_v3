@@ -12,11 +12,20 @@
                  style="height: {{ banner.height|default:700 }}px;">
                     <div class="banner-image-wrapper">
                         <!-- OTIMIZAÇÃO LCP: primeiro banner com prioridade alta -->
-                        <img src="{{ banner.image.url }}"
-                             alt="{{ banner.title }}"
-                             class="banner-image"
-                             {% if forloop.first %}fetchpriority="high" loading="eager"{% else %}loading="lazy"{% endif %}
-                             style="object-position: {{ banner.image_position_horizontal|default:'center' }} {{ banner.image_position_vertical|default:'center' }};">
+                        {% if banner.video_file %}
+                            <video class="banner-image"
+                                   {% if banner.image %}poster="{{ banner.image.url }}"{% endif %}
+                                   autoplay loop muted playsinline
+                                   style="object-position: {{ banner.image_position_horizontal|default:'center' }} {{ banner.image_position_vertical|default:'center' }};">
+                                <source src="{{ banner.video_file.url }}" type="video/mp4">
+                            </video>
+                        {% elif banner.image %}
+                            <img src="{{ banner.image.url }}"
+                                 alt="{{ banner.title }}"
+                                 class="banner-image"
+                                 {% if forloop.first %}fetchpriority="high" loading="eager"{% else %}loading="lazy"{% endif %}
+                                 style="object-position: {{ banner.image_position_horizontal|default:'center' }} {{ banner.image_position_vertical|default:'center' }};">
+                        {% endif %}
 
                         <!-- Overlay com opacidade controlável -->
                         <div class="banner-overlay" style="background: rgba(0, 0, 0, {{ banner.overlay_opacity|default:0.3 }});"></div>

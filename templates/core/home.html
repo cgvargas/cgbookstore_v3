@@ -2,9 +2,13 @@
 {% load static %}
 {% load custom_filters %}
 
-{# OTIMIZAÇÃO LCP: Preload da imagem do primeiro banner #}
-{% if banners and banners.0.image %}
-<link rel="preload" as="image" href="{{ banners.0.image.url }}" fetchpriority="high">
+{# OTIMIZAÇÃO LCP: Preload da imagem/vídeo do primeiro banner #}
+{% if banners %}
+    {% if banners.0.video_file %}
+        <link rel="preload" as="video" href="{{ banners.0.video_file.url }}" fetchpriority="high">
+    {% elif banners.0.image %}
+        <link rel="preload" as="image" href="{{ banners.0.image.url }}" fetchpriority="high">
+    {% endif %}
 {% endif %}
 
 {% block extra_css %}

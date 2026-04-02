@@ -31,12 +31,23 @@ class Banner(models.Model):
         help_text="Texto descritivo exibido no banner (opcional)"
     )
 
-    # Imagem do banner
+    # Imagem/Vídeo do banner
     image = models.ImageField(
         upload_to='banners/home/',
         storage=SupabaseMediaStorage(),
+        blank=True,
+        null=True,
         verbose_name="Imagem do Banner",
-        help_text="Imagem do banner (recomendado: 1920x600px, máx. 5MB)"
+        help_text="Imagem do banner (recomendado: 1920x600px, máx. 5MB). Usado como fallback se não houver vídeo."
+    )
+
+    video_file = models.FileField(
+        upload_to='banners/home/videos/',
+        storage=SupabaseMediaStorage(),
+        blank=True,
+        null=True,
+        verbose_name="Vídeo do Banner (MP4)",
+        help_text="Selecione um arquivo de vídeo (preferencialmente MP4, curtos e leves, sem áudio). Ele substituirá a imagem como fundo animado."
     )
 
     # Link de ação
