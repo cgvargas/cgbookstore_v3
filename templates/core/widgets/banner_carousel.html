@@ -16,8 +16,10 @@
                             <video class="banner-image"
                                    {% if banner.image %}poster="{{ banner.image.url }}"{% endif %}
                                    autoplay loop muted playsinline
-                                   style="object-position: {{ banner.image_position_horizontal|default:'center' }} {{ banner.image_position_vertical|default:'center' }};">
-                                <source src="{{ banner.video_file.url }}" type="video/mp4">
+                                   oncanplay="this.play()"
+                                   onloadedmetadata="this.muted = true"
+                                   style="object-position: {{ banner.image_position_horizontal|default:'center' }} {{ banner.image_position_vertical|default:'center' }}; background-color: var(--card-bg);">
+                                <source src="{{ banner.video_file.url }}">
                             </video>
                         {% elif banner.image %}
                             <img src="{{ banner.image.url }}"
