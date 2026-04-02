@@ -151,6 +151,28 @@ class Book(models.Model):
         help_text="Código ISO 639-1 (ex: pt, en, es, fr)"
     )
 
+    # ========== FORMATOS DE LEITURA DISPONÍVEIS ==========
+    available_kindle = models.BooleanField(
+        default=False,
+        verbose_name="Disponível em Kindle",
+        help_text="Marque se o livro está disponível no formato Kindle/eBook"
+    )
+    available_audiobook = models.BooleanField(
+        default=False,
+        verbose_name="Disponível em Audiolivro",
+        help_text="Marque se o livro está disponível no formato Audiolivro"
+    )
+    available_print = models.BooleanField(
+        default=False,
+        verbose_name="Disponível em Livro Físico",
+        help_text="Marque se o livro está disponível no formato impresso"
+    )
+    available_pdf = models.BooleanField(
+        default=False,
+        verbose_name="Disponível em PDF",
+        help_text="Marque se o livro está disponível no formato PDF"
+    )
+
     # ========== METADADOS ==========
     created_at = models.DateTimeField(
         auto_now_add=True,

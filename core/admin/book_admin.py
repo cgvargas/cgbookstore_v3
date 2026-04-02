@@ -75,6 +75,13 @@ class BookAdmin(admin.ModelAdmin):
             'description': 'Configure o preço médio de mercado e o parceiro comercial onde o livro pode ser adquirido'
             # ← NOVA DESCRIÇÃO
         }),
+        ('Formatos de Leitura Disponíveis', {
+            'fields': (
+                ('available_print', 'available_kindle',
+                 'available_audiobook', 'available_pdf'),
+            ),
+            'description': 'Selecione os formatos em que este livro está disponível para o leitor'
+        }),
         ('Integração Google Books', {
             'classes': ('collapse',),
             'fields': (
