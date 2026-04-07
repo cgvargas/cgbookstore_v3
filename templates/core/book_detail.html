@@ -218,12 +218,14 @@
                                     <div class="col-md-6 mb-3 mb-md-0">
                                         <label for="currentPage" class="form-label fw-bold">Página Atual:</label>
                                         <div class="input-group">
+                                            {% localize off %}
                                             <input type="number" class="form-control" id="currentPage"
                                                    value="{{ reading_progress.current_page }}"
                                                    min="0" max="{{ book.page_count }}">
                                             <span class="input-group-text">
                                                 de <strong id="totalPages" class="ms-1">{{ book.page_count|default:reading_progress.total_pages }}</strong>
                                             </span>
+                                            {% endlocalize %}
                                         </div>
                                     </div>
                                     <div class="col-md-6">

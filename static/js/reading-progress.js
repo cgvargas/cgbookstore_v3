@@ -109,7 +109,9 @@ const ReadingProgressManager = {
         async onUpdateProgress() {
             const { widget, currentPageInput } = ReadingProgressManager.elements;
             const bookId = widget.dataset.bookId;
-            const totalPages = parseInt(document.getElementById('totalPages').textContent, 10);
+            // Remove separadores de milhar (ex: "1.000" → "1000") antes do parseInt
+            const totalPagesRaw = document.getElementById('totalPages').textContent.trim().replace(/\./g, '').replace(/,/g, '');
+            const totalPages = parseInt(totalPagesRaw, 10);
             const currentPage = parseInt(currentPageInput.value, 10);
 
             if (isNaN(currentPage) || currentPage < 0 || currentPage > totalPages) {
