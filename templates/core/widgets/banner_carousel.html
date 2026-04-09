@@ -13,13 +13,12 @@
                     <div class="banner-image-wrapper">
                         <!-- OTIMIZAÇÃO LCP: primeiro banner com prioridade alta -->
                         {% if banner.video_file %}
-                            <video class="banner-image"
+                            <video class="banner-image" src="{{ banner.video_file.url }}"
                                    {% if banner.image %}poster="{{ banner.image.url }}"{% endif %}
                                    autoplay loop muted playsinline
                                    oncanplay="this.play()"
                                    onloadedmetadata="this.muted = true"
                                    style="object-position: {{ banner.image_position_horizontal|default:'center' }} {{ banner.image_position_vertical|default:'center' }}; background-color: var(--card-bg);">
-                                <source src="{{ banner.video_file.url }}">
                             </video>
                         {% elif banner.image %}
                             <img src="{{ banner.image.url }}"
