@@ -62,6 +62,7 @@ class HomeView(TemplateView):
                 'description': b.description,
                 'height': b.height,
                 'image': {'url': b.image.url} if b.image else None,  # Estrutura compatível com template {{ b.image.url }}
+                'video_file': {'url': b.video_file.url} if hasattr(b, 'video_file') and b.video_file else None,
                 'image_position_horizontal': b.image_position_horizontal,
                 'image_position_vertical': b.image_position_vertical,
                 'overlay_opacity': b.overlay_opacity,
