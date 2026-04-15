@@ -77,23 +77,30 @@ def search_books(
         if api_key:
             params['key'] = api_key
 
-        # Fazer requisição com retry em caso de Rate Limit (429)
+        # Fazer requisição com retry em caso de Rate Limit (429) ou indisponibilidade (503)
         import time
         max_retries = 3
         base_delay = 1
-        
+        RETRYABLE_CODES = {429, 503, 502, 504}
+
         for attempt in range(max_retries):
             response = requests.get(GOOGLE_BOOKS_API_URL, params=params, timeout=10)
-            
-            if response.status_code == 429:
+
+            if response.status_code in RETRYABLE_CODES:
                 if attempt < max_retries - 1:
-                    sleep_time = base_delay * (2 ** attempt)
-                    logger.warning(f"Rate limit do Google Books atingido. Tentativa {attempt + 1}/{max_retries}. Aguardando {sleep_time}s...")
+                    sleep_time = base_delay * (2 ** attempt)  # 1s, 2s, 4s
+                    if response.status_code == 429:
+                        logger.warning(f"Rate limit do Google Books atingido. Tentativa {attempt + 1}/{max_retries}. Aguardando {sleep_time}s...")
+                    else:
+                        logger.warning(f"Serviço Google Books indisponível (HTTP {response.status_code}). Tentativa {attempt + 1}/{max_retries}. Aguardando {sleep_time}s...")
                     time.sleep(sleep_time)
                     continue
                 else:
-                    return {'error': 'Limite de requisições da API excedido. Aguarde alguns minutos e tente novamente.'}
-            
+                    if response.status_code == 429:
+                        return {'error': 'Limite de requisições da API excedido. Aguarde alguns minutos e tente novamente.'}
+                    else:
+                        return {'error': 'O serviço do Google Books está temporariamente indisponível. Tente novamente em alguns instantes.'}
+
             response.raise_for_status()
             break
 
@@ -142,20 +149,21 @@ def get_book_by_id(google_book_id: str) -> Optional[Dict]:
         import time
         max_retries = 3
         base_delay = 1
-        
+        RETRYABLE_CODES = {429, 503, 502, 504}
+
         for attempt in range(max_retries):
             response = requests.get(url, params=params, timeout=10)
-            
-            if response.status_code == 429:
+
+            if response.status_code in RETRYABLE_CODES:
                 if attempt < max_retries - 1:
-                    sleep_time = base_delay * (2 ** attempt)
-                    logger.warning(f"Rate limit do Google Books atingido no ID {google_book_id}. Tentativa {attempt + 1}/{max_retries}. Aguardando {sleep_time}s...")
+                    sleep_time = base_delay * (2 ** attempt)  # 1s, 2s, 4s
+                    logger.warning(f"Google Books indisponível (HTTP {response.status_code}) para ID {google_book_id}. Tentativa {attempt + 1}/{max_retries}. Aguardando {sleep_time}s...")
                     time.sleep(sleep_time)
                     continue
                 else:
-                    logger.error(f"Rate limit do Google Books atingido definitivamente para {google_book_id}.")
+                    logger.error(f"Google Books indisponível definitivamente (HTTP {response.status_code}) para {google_book_id}.")
                     return None
-            
+
             response.raise_for_status()
             break
 
@@ -287,20 +295,21 @@ def download_cover(image_url: str, book_slug: str, existing_cover: str = None) -
         import time
         max_retries = 3
         base_delay = 1
-        
+        RETRYABLE_CODES = {429, 503, 502, 504}
+
         for attempt in range(max_retries):
             response = requests.get(optimized_url, timeout=15)
-            
-            if response.status_code == 429:
+
+            if response.status_code in RETRYABLE_CODES:
                 if attempt < max_retries - 1:
-                    sleep_time = base_delay * (2 ** attempt)
-                    logger.warning(f"Rate limit ao baixar capa {optimized_url}. Tentativa {attempt + 1}/{max_retries}. Aguardando {sleep_time}s...")
+                    sleep_time = base_delay * (2 ** attempt)  # 1s, 2s, 4s
+                    logger.warning(f"Serviço indisponível (HTTP {response.status_code}) ao baixar capa {optimized_url}. Tentativa {attempt + 1}/{max_retries}. Aguardando {sleep_time}s...")
                     time.sleep(sleep_time)
                     continue
                 else:
-                    logger.error(f"Rate limit definitivo ao baixar capa: {optimized_url}")
+                    logger.error(f"Serviço definitivamente indisponível (HTTP {response.status_code}) ao baixar capa: {optimized_url}")
                     return None
-            
+
             response.raise_for_status()
             break
 
