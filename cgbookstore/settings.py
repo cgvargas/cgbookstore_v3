@@ -229,11 +229,20 @@ CACHES = {
     }
 }
 
-# Cache de sessões em Redis (MUITO mais rápido que banco)
-# Reduz latência em ~20-50ms por request
-SESSION_ENGINE = 'django.contrib.sessions.backends.db' # Falback para DB devido a lentidao no Redis
-# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-SESSION_CACHE_ALIAS = 'default'
+# Sessões armazenadas no banco de dados (padrão Django - mais confiável)
+# Não usar Redis para sessões pois causa problemas quando Redis está indisponível
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# Nome único do cookie de sessão (evita conflito entre projetos Django)
+SESSION_COOKIE_NAME = 'cgbookstore_sessionid'
+
+# Segurança do cookie de sessão
+# 'Lax' = cookie é enviado em navegações normais e evita CSRF, mas permite
+#          que abas do mesmo navegador compartilhem a sessão (comportamento padrão)
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Tempo de vida da sessão (2 semanas = padrão Django)
+SESSION_COOKIE_AGE = 1209600
 
 
 # Password validation
