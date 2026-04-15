@@ -1014,3 +1014,139 @@ textarea {
 :root:not([data-theme="dark"]) .container .text-light:not(.navbar *):not(.footer-modern *):not(.banner-overlay *):not(.badge) {
     color: #0f1111 !important;
 }
+
+/* ============================================================
+   MODO ADMINISTRATIVO — OVERRIDES DE TEMA
+   Garante legibilidade em tema claro E escuro para superusuário
+============================================================ */
+
+/* ── TEMA ESCURO: navbar e footer roxo profundo (mantém o design original) ── */
+[data-theme="dark"] .admin-mode-navbar,
+[data-theme="dark"] .admin-mode-navbar.navbar-dark {
+    background: linear-gradient(135deg, #1a0533 0%, #2d0a5e 50%, #1a0533 100%) !important;
+    border-bottom: 2px solid #7c3aed !important;
+    box-shadow: 0 2px 20px rgba(124, 58, 237, 0.4) !important;
+}
+
+[data-theme="dark"] .admin-mode-footer {
+    background: linear-gradient(135deg, #0f0020 0%, #1a0040 50%, #0f0020 100%) !important;
+}
+
+/* ── TEMA CLARO: navbar índigo-ardósia elegante ── */
+:root:not([data-theme="dark"]) .admin-mode-navbar,
+[data-theme="light"] .admin-mode-navbar,
+:root:not([data-theme="dark"]) .admin-mode-navbar.navbar-dark,
+[data-theme="light"] .admin-mode-navbar.navbar-dark {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #1e1b4b 100%) !important;
+    border-bottom: 2px solid #818cf8 !important;
+    box-shadow: 0 2px 16px rgba(99, 102, 241, 0.35) !important;
+}
+
+/* Textos do navbar admin no tema claro — sempre brancos */
+:root:not([data-theme="dark"]) .admin-mode-navbar .navbar-brand,
+:root:not([data-theme="dark"]) .admin-mode-navbar .nav-link,
+[data-theme="light"] .admin-mode-navbar .navbar-brand,
+[data-theme="light"] .admin-mode-navbar .nav-link {
+    color: #ffffff !important;
+}
+
+:root:not([data-theme="dark"]) .admin-mode-navbar .nav-link:hover,
+[data-theme="light"] .admin-mode-navbar .nav-link:hover {
+    color: #a5b4fc !important;
+}
+
+/* Theme switcher btn no navbar admin em tema claro */
+:root:not([data-theme="dark"]) .admin-mode-navbar #themeSwitcherBtn,
+[data-theme="light"] .admin-mode-navbar #themeSwitcherBtn {
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+:root:not([data-theme="dark"]) .admin-mode-navbar #themeSwitcherBtn i,
+[data-theme="light"] .admin-mode-navbar #themeSwitcherBtn i {
+    color: #ffffff !important;
+}
+
+:root:not([data-theme="dark"]) .admin-mode-navbar #themeSwitcherBtn:hover,
+[data-theme="light"] .admin-mode-navbar #themeSwitcherBtn:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Ícone de busca no navbar admin em tema claro */
+:root:not([data-theme="dark"]) .admin-mode-navbar .btn-search-navbar,
+[data-theme="light"] .admin-mode-navbar .btn-search-navbar {
+    color: #ffffff !important;
+}
+
+/* Hamburger menu no navbar admin em tema claro */
+:root:not([data-theme="dark"]) .admin-mode-navbar .navbar-toggler-icon,
+[data-theme="light"] .admin-mode-navbar .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+:root:not([data-theme="dark"]) .admin-mode-navbar .navbar-toggler,
+[data-theme="light"] .admin-mode-navbar .navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* ── TEMA CLARO: footer índigo escuro com texto legível ── */
+:root:not([data-theme="dark"]) .admin-mode-footer,
+[data-theme="light"] .admin-mode-footer {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%) !important;
+    color: #e0e7ff !important;
+    box-shadow: 0 -2px 16px rgba(99, 102, 241, 0.3) !important;
+}
+
+/* Textos do footer admin em tema claro — usar tons de índigo claro */
+:root:not([data-theme="dark"]) .admin-mode-footer .footer-brand-description,
+:root:not([data-theme="dark"]) .admin-mode-footer .footer-links a,
+:root:not([data-theme="dark"]) .admin-mode-footer .footer-contact-item,
+[data-theme="light"] .admin-mode-footer .footer-brand-description,
+[data-theme="light"] .admin-mode-footer .footer-links a,
+[data-theme="light"] .admin-mode-footer .footer-contact-item {
+    color: #c7d2fe !important;
+}
+
+:root:not([data-theme="dark"]) .admin-mode-footer .footer-links a:hover,
+[data-theme="light"] .admin-mode-footer .footer-links a:hover {
+    color: #a5b4fc !important;
+}
+
+:root:not([data-theme="dark"]) .admin-mode-footer .footer-brand-logo,
+:root:not([data-theme="dark"]) .admin-mode-footer .footer-section-title,
+[data-theme="light"] .admin-mode-footer .footer-brand-logo,
+[data-theme="light"] .admin-mode-footer .footer-section-title {
+    color: #ffffff !important;
+}
+
+:root:not([data-theme="dark"]) .admin-mode-footer .footer-social a,
+[data-theme="light"] .admin-mode-footer .footer-social a {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+}
+
+:root:not([data-theme="dark"]) .admin-mode-footer .footer-social a:hover,
+[data-theme="light"] .admin-mode-footer .footer-social a:hover {
+    background: #6366f1 !important;
+    color: #ffffff !important;
+}
+
+:root:not([data-theme="dark"]) .admin-mode-footer .footer-bottom,
+[data-theme="light"] .admin-mode-footer .footer-bottom {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-top: 1px solid rgba(165, 180, 252, 0.3) !important;
+    color: #c7d2fe !important;
+}
+
+:root:not([data-theme="dark"]) .admin-mode-footer .footer-copyright,
+:root:not([data-theme="dark"]) .admin-mode-footer .footer-credit,
+[data-theme="light"] .admin-mode-footer .footer-copyright,
+[data-theme="light"] .admin-mode-footer .footer-credit {
+    color: #c7d2fe !important;
+}
+
+/* Linha decorativa admin — sempre roxa em qualquer tema */
+:root:not([data-theme="dark"]) .admin-decorative-line,
+[data-theme="light"] .admin-decorative-line {
+    background: linear-gradient(90deg, #4f46e5, #818cf8, #a5b4fc, #818cf8, #4f46e5) !important;
+}
