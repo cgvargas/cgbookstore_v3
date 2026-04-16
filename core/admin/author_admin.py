@@ -1,11 +1,23 @@
-"""
-Admin para Author com autocomplete para associar livros existentes.
-"""
 from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from core.models import Author, Book
+from core.models import Author, Book, AuthorWork
+
+
+class AuthorWorkInline(admin.TabularInline):
+    """Inline para gerenciar as obras lançadas pelo autor."""
+
+    model = AuthorWork
+    extra = 1
+    fields = ['order', 'year', 'title', 'format', 'publisher', 'notes']
+    verbose_name = "Obra Lançada"
+    verbose_name_plural = "Obras Lançadas"
+    ordering = ['order', 'year']
+
+    class Media:
+        css = {'all': []}
+
 
 
 class BookInlineForm(forms.ModelForm):
@@ -84,7 +96,7 @@ class AuthorAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     readonly_fields = ['created_at', 'photo_preview', 'associate_books_widget']
     date_hierarchy = 'created_at'
-    inlines = [BookInline]
+    inlines = [BookInline, AuthorWorkInline]
 
     fieldsets = (
         ('Informações Básicas', {

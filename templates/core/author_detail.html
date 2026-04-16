@@ -11,8 +11,8 @@
         <i class="fas fa-arrow-left me-1"></i>Autores
     </a>
 
-    <!-- Header do Autor -->
-    <div class="card mb-4">
+    <!-- Header do Autor + Card Pasta com Abas -->
+    <div class="card mb-4 author-folder-card">
         <div class="card-body">
             <div class="row">
                 <!-- Foto do Autor -->
@@ -52,37 +52,105 @@
                     {% endif %}
                 </div>
 
-                <!-- Informações do Autor -->
+                <!-- Informações do Autor + Abas -->
                 <div class="col-md-9">
-                    <h1 class="mb-3">{{ author.name }}</h1>
+                    <h1 class="mb-2">{{ author.name }}</h1>
 
                     <!-- Estatísticas -->
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <span class="badge bg-primary me-2">
                             <i class="fas fa-book"></i> {{ books_count }} livro{{ books_count|pluralize }}
                         </span>
                     </div>
 
-                    <!-- Biografia -->
-                    {% if author.bio %}
-                    <div class="author-bio">
-                        <h5 class="mb-3">
-                            <i class="fas fa-user-circle me-2"></i>Sobre o Autor
-                        </h5>
-                        <p class="text-justify">{{ author.bio|linebreaks }}</p>
+                    <!-- Card Pasta com Abas -->
+                    <div class="folder-tabs-card">
+                        <!-- Abas (linguetas da pasta) -->
+                        <div class="folder-tabs-nav" role="tablist">
+                            <button class="folder-tab active"
+                                    id="tab-bio"
+                                    role="tab"
+                                    aria-controls="panel-bio"
+                                    aria-selected="true"
+                                    onclick="switchAuthorTab('bio', this)">
+                                <i class="fas fa-user-circle me-2"></i>Biografia
+                            </button>
+                            <button class="folder-tab"
+                                    id="tab-obras"
+                                    role="tab"
+                                    aria-controls="panel-obras"
+                                    aria-selected="false"
+                                    onclick="switchAuthorTab('obras', this)">
+                                <i class="fas fa-list-alt me-2"></i>Obras Lançadas
+                            </button>
+                        </div>
+
+                        <!-- Conteúdo das Abas -->
+                        <div class="folder-tabs-content">
+                            <!-- Aba: Biografia -->
+                            <div class="folder-tab-panel active"
+                                 id="panel-bio"
+                                 role="tabpanel"
+                                 aria-labelledby="tab-bio">
+                                {% if author.bio %}
+                                <p class="text-justify author-bio-text">{{ author.bio|linebreaks }}</p>
+                                {% else %}
+                                <div class="folder-empty-state">
+                                    <i class="fas fa-feather-alt fa-2x mb-3 text-muted"></i>
+                                    <p class="text-muted mb-0">Biografia do autor ainda não disponível.</p>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Aba: Obras Lançadas -->
+                            <div class="folder-tab-panel"
+                                 id="panel-obras"
+                                 role="tabpanel"
+                                 aria-labelledby="tab-obras">
+                                {% if author.works.all %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover obras-table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th><i class="fas fa-calendar-alt me-1"></i>Ano (BR)</th>
+                                                <th><i class="fas fa-book-open me-1"></i>Título</th>
+                                                <th><i class="fas fa-tag me-1"></i>Formato</th>
+                                                <th><i class="fas fa-store me-1"></i>Editora / Loja</th>
+                                                <th><i class="fas fa-info-circle me-1"></i>Observações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for obra in author.works.all %}
+                                            <tr>
+                                                <td class="obra-ano">{{ obra.year }}</td>
+                                                <td class="obra-titulo fw-semibold">{{ obra.title }}</td>
+                                                <td>
+                                                    <span class="badge obra-formato-badge">{{ obra.format }}</span>
+                                                </td>
+                                                <td class="obra-editora">{{ obra.publisher }}</td>
+                                                <td class="obra-obs text-muted small">{{ obra.notes|default:"—" }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <div class="folder-empty-state">
+                                    <i class="fas fa-books fa-2x mb-3 text-muted"></i>
+                                    <p class="text-muted mb-0">Nenhuma obra cadastrada para este autor.</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-                    {% else %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Biografia do autor ainda não disponível.
-                    </div>
-                    {% endif %}
+                    <!-- Fim Card Pasta -->
+
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Livros do Autor -->
+    <!-- Livros do Autor no Catálogo -->
     <div class="card">
         <div class="card-header bg-primary text-white">
             <h4 class="mb-0">
@@ -186,16 +254,148 @@
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-/* Biografia */
-.author-bio {
-    background: var(--bs-light);
-    padding: 1.5rem;
-    border-radius: 0.5rem;
-    border-left: 4px solid var(--bs-primary);
-}
+/* ============================
+   Card Pasta com Abas - Autor
+   ============================ */
 
 .text-justify {
     text-align: justify;
+}
+
+/* Container principal do card pasta */
+.folder-tabs-card {
+    border: 1px solid var(--border-color);
+    border-radius: 0 0.5rem 0.5rem 0.5rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Navegação de abas (linguetas) */
+.folder-tabs-nav {
+    display: flex;
+    gap: 3px;
+    padding: 0 0 0 2px;
+    background: transparent;
+    position: relative;
+    top: 1px;
+    z-index: 1;
+}
+
+.folder-tab {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    border-radius: 0.5rem 0.5rem 0 0;
+    background-color: var(--body-bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+}
+
+.folder-tab:hover {
+    background-color: var(--card-bg);
+    color: var(--primary-color);
+}
+
+.folder-tab.active {
+    background-color: var(--card-bg);
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--card-bg);
+    font-weight: 600;
+    box-shadow: 0 -2px 0 var(--primary-color) inset;
+}
+
+/* Conteúdo das abas */
+.folder-tabs-content {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0 0.5rem 0.5rem 0.5rem;
+    padding: 1.5rem;
+    min-height: 160px;
+}
+
+/* Painéis individuais */
+.folder-tab-panel {
+    display: none;
+    animation: fadeTabIn 0.25s ease;
+}
+
+.folder-tab-panel.active {
+    display: block;
+}
+
+@keyframes fadeTabIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Texto da bio */
+.author-bio-text {
+    line-height: 1.8;
+    color: var(--text-primary);
+}
+
+/* Estado vazio */
+.folder-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    text-align: center;
+    min-height: 120px;
+}
+
+/* Tabela de Obras */
+.obras-table thead th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-top: none;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 0.6rem 0.75rem;
+}
+
+.obras-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.obra-ano {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+}
+
+.obra-titulo {
+    font-size: 0.92rem;
+    color: var(--text-primary);
+}
+
+.obra-editora {
+    font-size: 0.88rem;
+    color: var(--text-primary);
+}
+
+.obra-obs {
+    font-size: 0.82rem;
+    max-width: 200px;
+    color: var(--text-muted);
+}
+
+.obra-formato-badge {
+    background-color: rgba(0, 113, 133, 0.12);
+    color: var(--primary-color);
+    font-weight: 500;
+    font-size: 0.78rem;
 }
 
 /* Cards de Livros */
@@ -272,25 +472,75 @@
     font-size: 0.7rem;
 }
 
-/* Dark Mode */
-[data-theme="dark"] .author-bio {
-    background: rgba(255,255,255,0.05);
+/* ============================
+   Dark Mode
+   ============================ */
+/* As variáveis --card-bg, --border-color, --primary-color etc.
+   já são sobrescritas automaticamente pelo themes.css no dark mode.
+   Somente ajustes que não dependem de variáveis são necessários aqui. */
+
+[data-theme="dark"] .obra-formato-badge {
+    background-color: rgba(93, 195, 209, 0.12);
+    color: var(--primary-color);
 }
 
 [data-theme="dark"] .book-card {
-    background-color: var(--bs-dark);
-    border-color: rgba(255,255,255,0.1);
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
 }
 
 [data-theme="dark"] .book-card:hover {
-    box-shadow: 0 8px 16px rgba(255,255,255,0.1);
+    box-shadow: var(--shadow-md);
 }
 
 [data-theme="dark"] .book-cover-wrapper {
-    background: rgba(255,255,255,0.05);
+    background: var(--card-bg);
 }
 
-/* Responsivo */
+/* Tabela de Obras - Dark Mode
+   Sobrescreve as variáveis internas do Bootstrap que retornam valores claros */
+[data-theme="dark"] .obras-table {
+    /* Variáveis internas do Bootstrap */
+    --bs-table-bg: var(--card-bg);
+    --bs-table-color: var(--text-primary);
+    --bs-table-border-color: var(--border-color);
+    --bs-table-striped-bg: var(--body-bg);
+    --bs-table-hover-bg: var(--body-bg);
+    --bs-table-hover-color: var(--text-primary);
+    --bs-table-striped-color: var(--text-primary);
+    /* Cor direta do elemento */
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    background-color: var(--card-bg);
+}
+
+[data-theme="dark"] .obras-table > :not(caption) > * > * {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border-bottom-color: var(--border-color);
+    box-shadow: none;
+}
+
+[data-theme="dark"] .obras-table thead > tr > th {
+    background-color: var(--card-bg);
+    color: var(--text-secondary);
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .obras-table tbody > tr {
+    background-color: var(--card-bg);
+}
+
+[data-theme="dark"] .obras-table tbody > tr:hover > td,
+[data-theme="dark"] .obras-table tbody > tr:hover > th {
+    background-color: var(--body-bg);
+    color: var(--text-primary);
+    --bs-table-bg-state: var(--body-bg);
+}
+
+/* ============================
+   Responsivo
+   ============================ */
 @media (max-width: 768px) {
     .author-detail-photo,
     .author-detail-placeholder {
@@ -301,6 +551,45 @@
     .author-detail-placeholder {
         font-size: 3.5rem;
     }
+
+    .folder-tab {
+        padding: 0.4rem 0.85rem;
+        font-size: 0.8rem;
+    }
+
+    .folder-tabs-content {
+        padding: 1rem;
+    }
+
+    .obra-obs {
+        max-width: 120px;
+    }
 }
 </style>
+
+<script>
+/**
+ * Alterna entre as abas do card pasta do autor.
+ * @param {string} tabId - ID do painel a ativar ('bio' ou 'obras')
+ * @param {HTMLElement} clickedBtn - Botão clicado
+ */
+function switchAuthorTab(tabId, clickedBtn) {
+    // Desativar todas as abas e painéis
+    document.querySelectorAll('.folder-tab').forEach(function(btn) {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+    });
+    document.querySelectorAll('.folder-tab-panel').forEach(function(panel) {
+        panel.classList.remove('active');
+    });
+
+    // Ativar a aba e painel clicados
+    clickedBtn.classList.add('active');
+    clickedBtn.setAttribute('aria-selected', 'true');
+    var targetPanel = document.getElementById('panel-' + tabId);
+    if (targetPanel) {
+        targetPanel.classList.add('active');
+    }
+}
+</script>
 {% endblock %}

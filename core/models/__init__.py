@@ -5,6 +5,7 @@ Estrutura modular para facilitar manutenção e escalabilidade.
 
 from .category import Category
 from .author import Author
+from .author_work import AuthorWork
 from .book import Book
 from .video import Video
 from .section import Section
@@ -17,6 +18,7 @@ from .literary_universe import LiteraryUniverse, UniverseContentItem, UniverseBa
 __all__ = [
     'Category',
     'Author',
+    'AuthorWork',
     'Book',
     'Video',
     'Section',
