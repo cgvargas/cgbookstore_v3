@@ -17,6 +17,7 @@ class BookAdmin(admin.ModelAdmin):
         'author',
         'category',
         'price',
+        'is_presale',
         'purchase_partner_name',
         'average_rating',
         'has_google_books_data',
@@ -26,6 +27,7 @@ class BookAdmin(admin.ModelAdmin):
     list_filter = [
         'category',
         'language',
+        'is_presale',
         'publication_date',
         'created_at',
         'author'
@@ -92,6 +94,14 @@ class BookAdmin(admin.ModelAdmin):
                 'info_link'
             ),
             'description': 'Campos preenchidos automaticamente ao importar do Google Books API'
+        }),
+        ('Pré-Venda / Lançamento', {
+            'fields': (
+                'is_presale',
+                'presale_release_date',
+                'presale_info',
+            ),
+            'description': '✅ Ative para exibir o banner verde de pré-venda na página do livro',
         }),
         ('Metadados', {
             'classes': ('collapse',),

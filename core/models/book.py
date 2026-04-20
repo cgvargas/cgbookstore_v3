@@ -173,6 +173,25 @@ class Book(models.Model):
         help_text="Marque se o livro está disponível no formato PDF"
     )
 
+    # ========== PRÉ-VENDA / LANÇAMENTO ==========
+    is_presale = models.BooleanField(
+        default=False,
+        verbose_name="Em Pré-Venda",
+        help_text="Marque se este livro está em pré-venda / pré-lançamento"
+    )
+    presale_release_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Data Prevista de Lançamento",
+        help_text="Data prevista para o lançamento oficial do livro"
+    )
+    presale_info = models.CharField(
+        max_length=300,
+        blank=True,
+        verbose_name="Mensagem de Pré-Venda",
+        help_text="Texto de destaque exibido na página do livro (ex: 'Garanta já o seu exemplar antes do lançamento!')"
+    )
+
     # ========== METADADOS ==========
     created_at = models.DateTimeField(
         auto_now_add=True,
