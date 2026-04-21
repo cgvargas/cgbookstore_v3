@@ -192,6 +192,19 @@ class Book(models.Model):
         help_text="Texto de destaque exibido na página do livro (ex: 'Garanta já o seu exemplar antes do lançamento!')"
     )
 
+    # ========== DESTAQUE / INFORMAÇÃO ESPECIAL ==========
+    show_highlight = models.BooleanField(
+        default=False,
+        verbose_name="Exibir Mensagem de Destaque",
+        help_text="Se marcado, exibirá uma mensagem personalizada em destaque na cor verde."
+    )
+    highlight_message = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Mensagem de Destaque",
+        help_text="Texto que aparecerá no topo da página de detalhes (ex: 'Participe do evento com o autor!')"
+    )
+
     # ========== METADADOS ==========
     created_at = models.DateTimeField(
         auto_now_add=True,

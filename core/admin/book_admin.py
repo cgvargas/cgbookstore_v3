@@ -103,6 +103,13 @@ class BookAdmin(admin.ModelAdmin):
             ),
             'description': '✅ Ative para exibir o banner verde de pré-venda na página do livro',
         }),
+        ('Destaque e Mensagens', {
+            'fields': (
+                'show_highlight',
+                'highlight_message',
+            ),
+            'description': '💡 Use para exibir anúncios ou informações importantes em destaque (cor verde).',
+        }),
         ('Metadados', {
             'classes': ('collapse',),
             'fields': (
