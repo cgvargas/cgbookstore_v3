@@ -1605,11 +1605,20 @@
                                 </div>
                                 <div class="tolkien-book-info">
                                     <h5 class="tolkien-book-title">{{ book.title|truncatewords:6 }}</h5>
-                                    {% if book.page_count %}
-                                    <span class="tolkien-book-pages">
-                                        <i class="fas fa-file-alt"></i> {{ book.page_count }} páginas
-                                    </span>
-                                    {% endif %}
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        {% if book.page_count %}
+                                        <span class="tolkien-book-pages">
+                                            <i class="fas fa-file-alt"></i> {{ book.page_count }} páginas
+                                        </span>
+                                        {% endif %}
+                                        
+                                        {% if book.average_rating %}
+                                        <div class="ms-auto">
+                                            <i class="fas fa-star text-warning" style="font-size: 0.7rem;"></i>
+                                            <span class="text-white-50 small" style="font-size: 0.7rem;">{{ book.average_rating|floatformat:1 }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </a>

@@ -194,14 +194,14 @@
                                     <div class="rating-compact">
                                         <span class="stars-small">
                                             {% for i in 5|range %}
-                                                {% if i < book.average_rating %}
+                                                {% if i < book.rating_stars %}
                                                     <i class="fas fa-star text-warning"></i>
                                                 {% else %}
                                                     <i class="far fa-star text-muted"></i>
                                                 {% endif %}
                                             {% endfor %}
                                         </span>
-                                        <small class="text-muted ms-1">({{ book.reviews_count }})</small>
+                                        <small class="text-muted ms-1">{{ book.average_rating|floatformat:1 }} ({{ book.reviews_count }})</small>
                                     </div>
                                     {% endif %}
                                 </div>

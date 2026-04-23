@@ -553,11 +553,20 @@
             </div>
             <div class="universe-book-body">
                 <h5>{{ book.title }}</h5>
-                {% if book.page_count %}
-                <span class="pages">
-                    <i class="fas fa-file-alt"></i> {{ book.page_count }} páginas
-                </span>
-                {% endif %}
+                <div class="d-flex justify-content-between align-items-center">
+                    {% if book.page_count %}
+                    <span class="pages">
+                        <i class="fas fa-file-alt"></i> {{ book.page_count }} páginas
+                    </span>
+                    {% endif %}
+                    
+                    {% if book.average_rating %}
+                    <div class="rating-universe ms-auto">
+                        <i class="fas fa-star text-warning" style="font-size: 0.8rem;"></i>
+                        <span class="text-muted small" style="font-size: 0.75rem;">{{ book.average_rating|floatformat:1 }}</span>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </a>
         {% endfor %}
