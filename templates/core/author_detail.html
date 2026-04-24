@@ -201,7 +201,7 @@
                                                 {% endif %}
                                             {% endfor %}
                                         </span>
-                                        <small class="text-muted ms-1">{{ book.average_rating|floatformat:1 }} ({{ book.reviews_count }})</small>
+                                        <small class="text-muted ms-1">{{ book.average_rating|floatformat:1 }}{% if book.reviews_count > 0 %} ({{ book.reviews_count }}){% endif %}</small>
                                     </div>
                                     {% endif %}
                                 </div>
