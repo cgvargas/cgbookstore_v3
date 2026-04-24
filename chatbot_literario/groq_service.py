@@ -627,7 +627,7 @@ NÃO invente títulos de livros. Se você não tem certeza, diga honestamente qu
         INTEGRADO COM RAG: Busca dados verificados no banco antes de gerar resposta.
 
         Args:
-            message: Mensagem do usuário
+            message: Mensagem do usuário (pode conter prefixo '[Usuário: nome] ' na 1ª msg)
             conversation_history: Lista de mensagens anteriores no formato:
                 [{"role": "user", "content": "mensagem"}, {"role": "assistant", "content": "resposta"}]
 
@@ -640,16 +640,36 @@ NÃO invente títulos de livros. Se você não tem certeza, diga honestamente qu
         try:
             logger.info(f"Enviando mensagem ao Groq: {message[:100]}...")
 
-            # === RAG STEP 1: Detectar intenção ===
-            rag_intent = self._detect_rag_intent(message)
+            # === PRÉ-PROCESSAMENTO: Separar prefixo de contexto da mensagem limpa ===
+            # Na primeira mensagem, a view injeta '[Usuário: nome] ' para personalização.
+            # O RAG/KB precisa receber a mensagem LIMPA (sem prefixo) para fazer match
+            # correto com as perguntas salvas pelos admins na Knowledge Base.
+            user_prefix_match = re.match(r'^\[Usuário: .+?\] ', message)
+            if user_prefix_match:
+                clean_message = message[user_prefix_match.end():]  # mensagem sem prefixo
+                logger.info(f"Prefixo de usuário detectado e removido para RAG. Mensagem limpa: '{clean_message[:80]}'")
+            else:
+                clean_message = message  # sem prefixo, usar diretamente
 
-            # === RAG STEP 2: Buscar conhecimento verificado ===
-            enriched_message = self._apply_rag_knowledge(message, rag_intent)
+            # === RAG STEP 1: Detectar intenção (usando mensagem LIMPA) ===
+            rag_intent = self._detect_rag_intent(clean_message)
 
-            if enriched_message != message:
+            # === RAG STEP 2: Buscar conhecimento verificado (usando mensagem LIMPA) ===
+            enriched_clean = self._apply_rag_knowledge(clean_message, rag_intent)
+
+            # Verificar se o RAG encontrou dados locais
+            rag_found_data = enriched_clean != clean_message
+
+            if rag_found_data:
                 logger.info("✅ RAG ativado: Mensagem enriquecida com dados verificados do banco")
+                # Reintegrar prefixo de usuário na mensagem enriquecida (para a IA cumprimentar)
+                if user_prefix_match:
+                    enriched_message = message[:user_prefix_match.end()] + enriched_clean
+                else:
+                    enriched_message = enriched_clean
             else:
                 logger.info("ℹ️ RAG não ativado: Mensagem sem enriquecimento")
+                enriched_message = message  # manter mensagem original (com prefixo) para a IA
 
             # Preparar mensagens para a API
             messages = [{"role": "system", "content": self.SYSTEM_PROMPT}]
