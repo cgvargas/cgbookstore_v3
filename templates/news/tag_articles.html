@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}#{{ tag.name }} - Notícias{% endblock %}
+{% block title %}#{{ tag.name }} - CG.Fandom News{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/news.css' %}">
@@ -12,7 +12,7 @@
     <div class="mb-4">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'news:home' %}">Notícias</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'news:home' %}">CG.Fandom News</a></li>
                 <li class="breadcrumb-item active">#{{ tag.name }}</li>
             </ol>
         </nav>
@@ -73,7 +73,7 @@
     <div class="alert alert-info">
         <i class="fas fa-info-circle"></i> Ainda não há artigos com a tag <strong>#{{ tag.name }}</strong>.
         <br><br>
-        <a href="{% url 'news:home' %}" class="btn btn-primary">Voltar para Notícias</a>
+        <a href="{% url 'news:home' %}" class="btn btn-primary">Voltar para CG.Fandom News</a>
     </div>
     {% endif %}
 </div>

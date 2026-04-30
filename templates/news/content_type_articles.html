@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ content_type_display }} - Notícias{% endblock %}
+{% block title %}{{ content_type_display }} - CG.Fandom News{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/news.css' %}">
@@ -12,7 +12,7 @@
     <div class="mb-4">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'news:home' %}">Notícias</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'news:home' %}">CG.Fandom News</a></li>
                 <li class="breadcrumb-item active">{{ content_type_display }}</li>
             </ol>
         </nav>
@@ -71,7 +71,7 @@
     <div class="alert alert-info">
         <i class="fas fa-info-circle"></i> Ainda não há {{ content_type_display|lower }} cadastrados.
         <br><br>
-        <a href="{% url 'news:home' %}" class="btn btn-primary">Voltar para Notícias</a>
+        <a href="{% url 'news:home' %}" class="btn btn-primary">Voltar para CG.Fandom News</a>
     </div>
     {% endif %}
 </div>

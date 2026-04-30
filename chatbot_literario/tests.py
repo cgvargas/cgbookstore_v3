@@ -85,8 +85,8 @@ class ChatMessageModelTest(TestCase):
             role='user',
             content='Qual é o melhor livro de Asimov?'
         )
-        self.assertTrue(message.is_from_user)
-        self.assertFalse(message.is_from_assistant)
+        self.assertTrue(message.is_from_user())
+        self.assertFalse(message.is_from_assistant())
 
     def test_assistant_message_creation(self):
         """Testa criação de mensagem do assistente."""
@@ -95,8 +95,8 @@ class ChatMessageModelTest(TestCase):
             role='assistant',
             content='Recomendo "Fundação", é um clássico!'
         )
-        self.assertFalse(message.is_from_user)
-        self.assertTrue(message.is_from_assistant)
+        self.assertFalse(message.is_from_user())
+        self.assertTrue(message.is_from_assistant())
 
     def test_message_str(self):
         """Testa representação string da mensagem."""
@@ -105,7 +105,7 @@ class ChatMessageModelTest(TestCase):
             role='user',
             content='Olá, chatbot!'
         )
-        self.assertIn('user', str(message))
+        self.assertIn('Usuário', str(message))
 
     def test_messages_ordering(self):
         """Testa ordenação de mensagens (cronológica)."""
@@ -135,8 +135,9 @@ class ChatbotKnowledgeModelTest(TestCase):
             password='adminpass123'
         )
         self.knowledge = ChatbotKnowledge.objects.create(
-            question_pattern="Qual é o melhor livro de Asimov?",
-            answer="O mais famoso é 'Fundação', mas 'Eu, Robô' também é excelente.",
+            original_question="Qual é o melhor livro de Asimov?",
+            incorrect_response="Não sei informar.",
+            correct_response="O mais famoso é 'Fundação', mas 'Eu, Robô' também é excelente.",
             knowledge_type='book_info',
             created_by=self.admin,
             is_active=True,
@@ -145,8 +146,8 @@ class ChatbotKnowledgeModelTest(TestCase):
 
     def test_knowledge_creation(self):
         """Testa criação de conhecimento."""
-        self.assertIn("Asimov", self.knowledge.question_pattern)
-        self.assertIn("Fundação", self.knowledge.answer)
+        self.assertIn("Asimov", self.knowledge.original_question)
+        self.assertIn("Fundação", self.knowledge.correct_response)
         self.assertTrue(self.knowledge.is_active)
 
     def test_knowledge_str(self):
@@ -160,12 +161,13 @@ class ChatbotKnowledgeModelTest(TestCase):
         self.assertEqual(self.knowledge.times_used, initial_count + 1)
 
     def test_knowledge_types(self):
-        """Testa diferentes tipos de conhecimento."""
-        types = ['book_info', 'author_info', 'general', 'correction']
+        """Testa diferentes tipos de conhecimento válidos."""
+        types = ['author_query', 'book_info', 'recommendation', 'series_info', 'category_search', 'general']
         for ktype in types:
             knowledge = ChatbotKnowledge.objects.create(
-                question_pattern=f"Pergunta tipo {ktype}",
-                answer=f"Resposta tipo {ktype}",
+                original_question=f"Pergunta tipo {ktype}",
+                incorrect_response=f"Resposta incorreta tipo {ktype}",
+                correct_response=f"Resposta correta tipo {ktype}",
                 knowledge_type=ktype,
                 created_by=self.admin
             )

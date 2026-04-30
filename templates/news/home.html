@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Notícias Literárias - CG Bookstore{% endblock %}
+{% block title %}CG.Fandom News - CG Bookstore{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/news.css' %}">
@@ -12,7 +12,7 @@
     <!-- HEADER DO JORNAL -->
     <div class="journal-header">
         <div class="container">
-            <h1 class="journal-title">📰 Notícias Literárias</h1>
+            <h1 class="journal-title">📰 CG.Fandom News</h1>
             <p class="journal-subtitle">Seu portal de cultura, livros e eventos</p>
 
             <!-- Navegação de Categorias -->
@@ -168,7 +168,7 @@
                 {% if not is_newsletter_subscribed %}
                 <div class="newsletter-sidebar">
                     <h4>📧 Newsletter</h4>
-                    <p>Receba as últimas notícias literárias no seu e-mail!</p>
+                    <p>Receba as últimas do CG.Fandom News no seu e-mail!</p>
                     <form method="post" action="{% url 'news:subscribe_newsletter' %}">
                         {% csrf_token %}
                         <input type="email" name="email" placeholder="Seu e-mail" required>

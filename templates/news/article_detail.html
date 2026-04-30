@@ -2,7 +2,7 @@
 {% load static %}
 {% load news_tags %}
 
-{% block title %}{{ article.title }} - Notícias{% endblock %}
+{% block title %}{{ article.title }} - CG.Fandom News{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/news.css' %}">
@@ -14,7 +14,7 @@
         <!-- Breadcrumb -->
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'news:home' %}">Notícias</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'news:home' %}">CG.Fandom News</a></li>
                 {% if article.category %}
                 <li class="breadcrumb-item"><a
                         href="{% url 'news:category_articles' article.category.slug %}">{{article.category.name }}</a>

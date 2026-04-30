@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ quiz.title }} - Quiz{% endblock %}
+{% block title %}{{ quiz.title }} - CG.Fandom News Quiz{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/news.css' %}">
@@ -13,7 +13,7 @@
         <div class="col-lg-8">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'news:home' %}">Notícias</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'news:home' %}">CG.Fandom News</a></li>
                     <li class="breadcrumb-item active">Quiz</li>
                 </ol>
             </nav>

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Buscar: {{ query }} - Notícias{% endblock %}
+{% block title %}Buscar: {{ query }} - CG.Fandom News{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/news.css' %}">
@@ -12,7 +12,7 @@
     <div class="mb-4">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'news:home' %}">Notícias</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'news:home' %}">CG.Fandom News</a></li>
                 <li class="breadcrumb-item active">Busca</li>
             </ol>
         </nav>
@@ -24,7 +24,7 @@
         <!-- Formulário de busca -->
         <form method="get" action="{% url 'news:search' %}" class="mb-4">
             <div class="input-group input-group-lg">
-                <input type="text" class="form-control" name="q" value="{{ query }}" placeholder="Buscar notícias..." required>
+                <input type="text" class="form-control" name="q" value="{{ query }}" placeholder="Buscar no CG.Fandom News..." required>
                 <button class="btn btn-primary" type="submit">
                     <i class="fas fa-search"></i> Buscar
                 </button>
