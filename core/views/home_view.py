@@ -290,9 +290,11 @@ class HomeView(TemplateView):
                 'show_rating': section.show_rating,
                 'show_author': section.show_author,
                 'items_per_row': section.items_per_row,
-                # Links
+                # Links — auto-gerar see_more_url se não configurada
                 'show_see_more': section.show_see_more,
-                'see_more_url': section.see_more_url,
+                'see_more_url': section.see_more_url if section.see_more_url else (
+                    f'/livros/?shelf={section.id}' if section.show_see_more and section.content_type == 'books' else ''
+                ),
                 # Items
                 'items': items_data,
             }
