@@ -120,6 +120,232 @@
         padding: 6px 14px;
         font-size: 0.85rem;
     }
+
+    /* ===== SEÇÃO: CONTEÚDO RELACIONADO ===== */
+    .related-content-section {
+        border-top: 1px solid var(--border-color, #dee2e6);
+        padding-top: 1.5rem;
+    }
+
+    .related-content-title {
+        color: var(--text-primary, #212529);
+        font-weight: 700;
+        font-size: 1.15rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .related-content-title i {
+        color: #28a745;
+    }
+
+    /* Card principal */
+    .related-card {
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--card-bg, #fff);
+        border: 1px solid var(--border-color, #dee2e6);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .related-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+    }
+
+    /* Imagem / Thumbnail */
+    .related-card-image {
+        position: relative;
+        width: 100%;
+        padding-top: 56.25%; /* 16:9 */
+        overflow: hidden;
+    }
+
+    .related-card-image img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .related-card:hover .related-card-image img {
+        transform: scale(1.06);
+    }
+
+    /* Placeholder sem imagem */
+    .related-card-placeholder {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1a3a2a 0%, #2d6a4f 50%, #40916c 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255,255,255,0.4);
+    }
+
+    /* Overlay gradiente */
+    .related-card-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 60%;
+        background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    /* Botão Play (vídeos) */
+    .related-card-play {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.9);
+        width: 50px;
+        height: 50px;
+        background: rgba(40, 167, 69, 0.9);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.1rem;
+        z-index: 2;
+        opacity: 0.85;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        box-shadow: 0 4px 12px rgba(40,167,69,0.4);
+    }
+
+    .related-card-play i {
+        margin-left: 3px; /* Centraliza o ícone play visualmente */
+    }
+
+    .related-card:hover .related-card-play {
+        transform: translate(-50%, -50%) scale(1.05);
+        opacity: 1;
+    }
+
+    /* Badge de tipo */
+    .related-card-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 2;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 50px;
+        backdrop-filter: blur(6px);
+    }
+
+    .related-card-badge--video {
+        background: rgba(40, 167, 69, 0.85);
+        color: #fff;
+    }
+
+    .related-card-badge--article {
+        background: rgba(13, 110, 253, 0.85);
+        color: #fff;
+    }
+
+    /* Corpo do card (título + meta) */
+    .related-card-body {
+        padding: 12px 14px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .related-card-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: var(--text-primary, #212529);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.35;
+    }
+
+    .related-card-meta {
+        font-size: 0.78rem;
+        color: var(--text-secondary, #6c757d);
+    }
+
+    /* Link "Ver todos" */
+    .related-content-viewall {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #28a745;
+        text-decoration: none;
+        padding: 6px 14px;
+        border-radius: 50px;
+        border: 1px solid rgba(40, 167, 69, 0.3);
+        background: rgba(40, 167, 69, 0.06);
+        transition: all 0.25s ease;
+    }
+
+    .related-content-viewall:hover {
+        background: rgba(40, 167, 69, 0.14);
+        border-color: #28a745;
+        color: #1e7e34;
+        transform: translateX(3px);
+    }
+
+    /* Dark Mode */
+    [data-theme="dark"] .related-card {
+        background: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .related-card:hover {
+        box-shadow: 0 12px 28px rgba(0,0,0,0.4);
+    }
+
+    [data-theme="dark"] .related-card-placeholder {
+        background: linear-gradient(135deg, #0d2818 0%, #1a4731 50%, #2d6a4f 100%);
+    }
+
+    [data-theme="dark"] .related-content-viewall {
+        color: #5dc3d1;
+        border-color: rgba(93, 195, 209, 0.3);
+        background: rgba(93, 195, 209, 0.06);
+    }
+
+    [data-theme="dark"] .related-content-viewall:hover {
+        background: rgba(93, 195, 209, 0.14);
+        border-color: #5dc3d1;
+        color: #7dd3e0;
+    }
+
+    [data-theme="dark"] .related-content-title i {
+        color: #5dc3d1;
+    }
+
+    /* Responsivo */
+    @media (max-width: 575.98px) {
+        .related-card-play {
+            width: 42px;
+            height: 42px;
+            font-size: 0.95rem;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -551,6 +777,107 @@
                         </span>
                         {% endif %}
                     </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# ===== SEÇÃO: CONTEÚDO RELACIONADO (Vídeos + Artigos) ===== #}
+            {% if book_videos or book_articles %}
+            <div class="related-content-section mb-4 mt-4">
+                <h5 class="related-content-title mb-3">
+                    <i class="fas fa-film me-2"></i>Conteúdo Relacionado
+                </h5>
+                <div class="row g-3">
+
+                    {# --- Cards de Vídeos --- #}
+                    {% for video in book_videos|slice:":3" %}
+                    <div class="col-lg-4 col-md-6 col-12">
+                        <a href="{% url 'core:video_list' %}?q={{ book.title|urlencode }}"
+                           class="related-card-link text-decoration-none"
+                           title="{{ video.title }}">
+                            <div class="related-card">
+                                <div class="related-card-image">
+                                    {% if video.get_thumbnail %}
+                                    <img src="{{ video.get_thumbnail }}"
+                                         alt="{{ video.title }}"
+                                         loading="lazy">
+                                    {% else %}
+                                    <div class="related-card-placeholder">
+                                        <i class="fas fa-video fa-3x"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div class="related-card-overlay"></div>
+                                    <div class="related-card-play">
+                                        <i class="fas fa-play"></i>
+                                    </div>
+                                    <span class="related-card-badge related-card-badge--video">
+                                        <i class="fas fa-play-circle me-1"></i>{{ video.get_video_type_display }}
+                                    </span>
+                                </div>
+                                <div class="related-card-body">
+                                    <h6 class="related-card-title">{{ video.title }}</h6>
+                                    {% if video.duration %}
+                                    <span class="related-card-meta">
+                                        <i class="fas fa-clock me-1"></i>{{ video.duration }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+
+                    {# --- Cards de Artigos/Notícias --- #}
+                    {% for article in book_articles %}
+                    <div class="col-lg-4 col-md-6 col-12">
+                        <a href="{{ article.get_absolute_url }}"
+                           class="related-card-link text-decoration-none"
+                           title="{{ article.title }}">
+                            <div class="related-card">
+                                <div class="related-card-image">
+                                    {% if article.featured_image %}
+                                    <img src="{{ article.featured_image.url }}"
+                                         alt="{{ article.title }}"
+                                         loading="lazy">
+                                    {% else %}
+                                    <div class="related-card-placeholder">
+                                        <i class="fas fa-newspaper fa-3x"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div class="related-card-overlay"></div>
+                                    <span class="related-card-badge related-card-badge--article">
+                                        <i class="fas fa-newspaper me-1"></i>{{ article.get_content_type_display }}
+                                    </span>
+                                </div>
+                                <div class="related-card-body">
+                                    <h6 class="related-card-title">{{ article.title }}</h6>
+                                    {% if article.published_at %}
+                                    <span class="related-card-meta">
+                                        <i class="fas fa-calendar-alt me-1"></i>{{ article.published_at|date:"d/m/Y" }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+
+                </div>
+
+                {# Links "Ver todos" #}
+                <div class="d-flex flex-wrap gap-3 mt-3">
+                    {% if book_videos %}
+                    <a href="{% url 'core:video_list' %}" class="related-content-viewall">
+                        <i class="fas fa-video me-1"></i>Ver todos os vídeos
+                        <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                    {% endif %}
+                    {% if book_articles %}
+                    <a href="{% url 'news:home' %}" class="related-content-viewall">
+                        <i class="fas fa-newspaper me-1"></i>Ver todas as notícias
+                        <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                    {% endif %}
                 </div>
             </div>
             {% endif %}

@@ -34,6 +34,13 @@ class BookDetailView(DetailView):
             active=True
         ).order_by('-featured', '-created_at')
 
+        # Artigos/notícias relacionados ao livro (adaptações, resenhas, eventos)
+        from news.models import Article
+        context['book_articles'] = Article.objects.filter(
+            related_book=book,
+            is_published=True
+        ).select_related('category').order_by('-published_at')[:3]
+
         # === ESTATÍSTICAS DE AVALIAÇÃO (Visíveis para todos) ===
         from accounts.models import BookReview
         from django.db.models import Count, Avg
