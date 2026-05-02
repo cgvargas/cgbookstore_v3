@@ -2,7 +2,38 @@
 Admin para Book
 """
 from django.contrib import admin
-from core.models import Book
+from core.models import Book, Video
+from news.models import Article
+
+
+class VideoInline(admin.TabularInline):
+    """Inline para vincular vídeos ao livro."""
+    model = Video
+    fk_name = 'related_book'
+    extra = 0
+    min_num = 0
+    fields = ['title', 'platform', 'video_url', 'video_type', 'thumbnail_image', 'active']
+    verbose_name = '🎬 Vídeo Vinculado'
+    verbose_name_plural = '🎬 Vídeos Vinculados (Adaptações, Trailers, Entrevistas)'
+    classes = ['collapse']
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('related_book')
+
+
+class ArticleInline(admin.TabularInline):
+    """Inline para vincular artigos/notícias ao livro."""
+    model = Article
+    fk_name = 'related_book'
+    extra = 0
+    min_num = 0
+    fields = ['title', 'content_type', 'excerpt', 'featured_image', 'is_published']
+    verbose_name = '📰 Artigo/Notícia Vinculado'
+    verbose_name_plural = '📰 Artigos/Notícias Vinculados (Adaptações, Resenhas, Eventos)'
+    classes = ['collapse']
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('related_book')
 
 
 @admin.register(Book)
@@ -11,6 +42,9 @@ class BookAdmin(admin.ModelAdmin):
 
     # Otimização: Evitar N+1 queries ao listar livros
     list_select_related = ['author', 'category']
+
+    # Inlines para vincular vídeos e artigos
+    inlines = [VideoInline, ArticleInline]
 
     list_display = [
         'title',
@@ -67,15 +101,14 @@ class BookAdmin(admin.ModelAdmin):
                 'language'
             )
         }),
-        ('Compra e Imagens', {  # ← TÍTULO ATUALIZADO
+        ('Compra e Imagens', {
             'fields': (
                 'price',
-                'purchase_partner_name',  # ← NOVO CAMPO
-                'purchase_partner_url',  # ← NOVO CAMPO
+                'purchase_partner_name',
+                'purchase_partner_url',
                 'cover_image'
             ),
             'description': 'Configure o preço médio de mercado e o parceiro comercial onde o livro pode ser adquirido'
-            # ← NOVA DESCRIÇÃO
         }),
         ('Formatos de Leitura Disponíveis', {
             'fields': (
@@ -123,4 +156,4 @@ class BookAdmin(admin.ModelAdmin):
         """Indica se o livro tem dados do Google Books."""
         return '✓' if obj.has_google_books_data else '✗'
 
-    has_google_books_data.short_description = 'Google Books'
+    has_google_books_data.short_description = 'Google Books'
