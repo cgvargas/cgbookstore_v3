@@ -1221,7 +1221,8 @@
                                     <img src="{{ video.thumbnail_url }}"
                                          alt="{{ video.title }}"
                                          class="w-100 book-video-thumb"
-                                         loading="lazy">
+                                         loading="lazy"
+                                         {% if video.embed_code %}onerror="this.onerror=null; this.src='https://img.youtube.com/vi/{{ video.embed_code }}/hqdefault.jpg';"{% endif %}>
                                 {% else %}
                                     <div class="book-video-thumb-placeholder d-flex align-items-center justify-content-center bg-dark">
                                         <i class="fas fa-film fa-3x text-secondary opacity-50"></i>

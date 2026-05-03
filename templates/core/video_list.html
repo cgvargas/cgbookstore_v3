@@ -157,7 +157,8 @@
                         <img src="{% if video.thumbnail_image %}{{ video.thumbnail_image.url }}{% elif video.thumbnail_url %}{{ video.thumbnail_url }}{% else %}{% static 'images/video_placeholder.jpg' %}{% endif %}"
                              class="card-img-top video-thumbnail"
                              alt="{{ video.title }}"
-                             loading="lazy">
+                             loading="lazy"
+                             {% if video.embed_code %}onerror="this.onerror=null; this.src='https://img.youtube.com/vi/{{ video.embed_code }}/hqdefault.jpg';"{% endif %}>
                         <div class="play-button-overlay">
                             {% if video.platform == 'youtube' %}
                                 <i class="fab fa-youtube"></i>
