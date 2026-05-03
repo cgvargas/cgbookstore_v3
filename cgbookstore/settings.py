@@ -87,6 +87,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',  # Requerido pelo allauth
     'core.middleware.RateLimitMiddleware',  # Rate limiting
+    'core.middleware.PerformanceMonitoringMiddleware',  # Monitoramento de performance do Backend
 ]
 
 ROOT_URLCONF = 'cgbookstore.urls'
