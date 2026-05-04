@@ -1,9 +1,50 @@
 """
 Admin para Book
 """
+from django import forms
 from django.contrib import admin
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from core.models import Book, Video
 from news.models import Article
+
+
+class BookAdminForm(forms.ModelForm):
+    existing_articles = forms.ModelMultipleChoiceField(
+        queryset=Article.objects.all(),
+        required=False,
+        widget=FilteredSelectMultiple("Artigos/Notícias", is_stacked=False),
+        label="Artigos e Notícias Vinculados",
+        help_text="Selecione os artigos/notícias já criados para vinculá-los a este livro."
+    )
+
+    class Meta:
+        model = Book
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['existing_articles'].initial = self.instance.articles.all()
+
+    def save(self, commit=True):
+        book = super().save(commit=False)
+        
+        def save_m2m_articles():
+            if book.pk:
+                book.articles.set(self.cleaned_data['existing_articles'])
+
+        if commit:
+            book.save()
+            self.save_m2m()
+            save_m2m_articles()
+        else:
+            old_save_m2m = self.save_m2m
+            def new_save_m2m():
+                old_save_m2m()
+                save_m2m_articles()
+            self.save_m2m = new_save_m2m
+            
+        return book
 
 
 class VideoInline(admin.TabularInline):
@@ -21,30 +62,20 @@ class VideoInline(admin.TabularInline):
         return super().get_queryset(request).select_related('related_book')
 
 
-class ArticleInline(admin.TabularInline):
-    """Inline para vincular artigos/notícias ao livro."""
-    model = Article
-    fk_name = 'related_book'
-    extra = 0
-    min_num = 0
-    fields = ['title', 'content_type', 'excerpt', 'featured_image', 'is_published']
-    verbose_name = '📰 Artigo/Notícia Vinculado'
-    verbose_name_plural = '📰 Artigos/Notícias Vinculados (Adaptações, Resenhas, Eventos)'
-    classes = ['collapse']
 
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('related_book')
 
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
     """Administração de Livros com autocomplete de autor."""
 
+    form = BookAdminForm
+
     # Otimização: Evitar N+1 queries ao listar livros
     list_select_related = ['author', 'category']
 
-    # Inlines para vincular vídeos e artigos
-    inlines = [VideoInline, ArticleInline]
+    # Inlines para vincular vídeos
+    inlines = [VideoInline]
 
     list_display = [
         'title',
@@ -142,6 +173,12 @@ class BookAdmin(admin.ModelAdmin):
                 'highlight_message',
             ),
             'description': '💡 Use para exibir anúncios ou informações importantes em destaque (cor verde).',
+        }),
+        ('Artigos e Notícias', {
+            'fields': (
+                'existing_articles',
+            ),
+            'description': 'Selecione as notícias ou artigos deste livro.'
         }),
         ('Metadados', {
             'classes': ('collapse',),
