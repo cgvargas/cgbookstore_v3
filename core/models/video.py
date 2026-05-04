@@ -173,7 +173,13 @@ class Video(models.Model):
     def save(self, *args, **kwargs):
         """Gera slug automaticamente e extrai embed_code do YouTube"""
         if not self.slug:
-            self.slug = slugify(self.title)
+            base_slug = slugify(self.title)
+            slug = base_slug
+            counter = 1
+            while type(self).objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
 
         # Extrair código de embed do YouTube
         if self.platform == 'youtube' and self.video_url:
