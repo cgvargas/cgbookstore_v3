@@ -281,6 +281,17 @@ class Section(models.Model):
         help_text="Ex: /livros/?categoria=lancamentos"
     )
 
+    max_items = models.PositiveIntegerField(
+        default=6,
+        verbose_name="Máximo de Itens (Notícias)",
+        help_text=(
+            "Número máximo de itens exibidos na seção. "
+            "Usado pela rotação automática de notícias: quando uma nova notícia é publicada, "
+            "ela entra no início e o card mais antigo é removido se este limite for atingido."
+        )
+    )
+
+
     # Timestamps
     created_at = models.DateTimeField(
         auto_now_add=True,

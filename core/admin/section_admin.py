@@ -232,9 +232,14 @@ class SectionAdmin(admin.ModelAdmin):
                 'order',
                 'items_per_row',
                 'show_see_more',
-                'see_more_url'
+                'see_more_url',
+                'max_items',
             ),
-            'description': 'URLs sugeridas: /livros/ (livros), /autores/ (autores), /videos/ (vídeos), /eventos/ (eventos)'
+            'description': (
+                'URLs sugeridas: /livros/ (livros), /autores/ (autores), /videos/ (vídeos), /eventos/ (eventos)<br>'
+                '<strong>Máximo de Itens:</strong> Para seções de notícias, controla quantos cards ficam visíveis. '
+                'Ao publicar uma nova notícia, ela entra no início e o card mais antigo é removido automaticamente.'
+            )
         }),
         ('Personalização de Cards', {
             'fields': (

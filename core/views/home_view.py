@@ -295,6 +295,8 @@ class HomeView(TemplateView):
                 'see_more_url': section.see_more_url if section.see_more_url else (
                     f'/livros/?shelf={section.id}' if section.show_see_more and section.content_type == 'books' else ''
                 ),
+                # Limite de itens para rotação automática de notícias
+                'max_items': section.max_items,
                 # Items
                 'items': items_data,
             }
