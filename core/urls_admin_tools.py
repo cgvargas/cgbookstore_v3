@@ -10,6 +10,9 @@ from core.views.admin_tools import (
     redis_test_view,
     book_search_view,
     associate_book_view,
+    author_works_csv_template,
+    import_author_works_view,
+    delete_author_works_view,
 )
 from core.views.section_autocomplete import section_item_autocomplete
 from core.views.reports_dashboard import (
@@ -35,6 +38,11 @@ urlpatterns = [
     # Busca e associação de livros para admin de autores
     path('book-search/', book_search_view, name='book_search'),
     path('associate-book/', associate_book_view, name='associate_book'),
+
+    # Importação CSV e exclusão de Obras Lançadas
+    path('author-works-template/', author_works_csv_template, name='author_works_csv_template'),
+    path('import-author-works/<int:author_id>/', import_author_works_view, name='import_author_works'),
+    path('delete-author-works/<int:author_id>/', delete_author_works_view, name='delete_author_works'),
     
     # Dashboard de Relatórios
     path('reports/', reports_dashboard, name='reports_dashboard'),

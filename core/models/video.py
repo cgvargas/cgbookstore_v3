@@ -22,8 +22,10 @@ class Video(models.Model):
 
     VIDEO_TYPE_CHOICES = [
         ('trailer', 'Book Trailer'),
-        ('interview', 'Entrevista'),
+        ('adaptation', 'Adaptação (Filme/Série/Anime)'),
+        ('game', 'Game'),
         ('review', 'Resenha'),
+        ('interview', 'Entrevista'),
         ('tutorial', 'Tutorial'),
         ('discussion', 'Discussão'),
         ('other', 'Outro'),

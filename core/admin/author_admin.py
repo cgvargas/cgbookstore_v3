@@ -94,7 +94,7 @@ class AuthorAdmin(admin.ModelAdmin):
     list_display = ['name', 'photo_preview', 'books_count', 'social_media_display', 'created_at']
     search_fields = ['name', 'bio']
     prepopulated_fields = {'slug': ('name',)}
-    readonly_fields = ['created_at', 'photo_preview', 'associate_books_widget']
+    readonly_fields = ['created_at', 'photo_preview', 'associate_books_widget', 'import_works_widget', 'delete_works_widget']
     date_hierarchy = 'created_at'
     inlines = [BookInline, AuthorWorkInline]
 
@@ -112,6 +112,10 @@ class AuthorAdmin(admin.ModelAdmin):
         ('📚 Buscar e Associar Livros Existentes', {
             'fields': ('associate_books_widget',),
             'description': 'Use a busca abaixo para encontrar e associar livros existentes a este autor.'
+        }),
+        ('📥 Gerenciar Obras Lançadas em Lote', {
+            'fields': ('import_works_widget', 'delete_works_widget'),
+            'description': 'Importe várias obras via CSV ou exclua todas de uma vez.'
         }),
         ('Metadados', {
             'classes': ('collapse',),
@@ -263,6 +267,298 @@ class AuthorAdmin(admin.ModelAdmin):
         ''', author_id=obj.pk)
     
     associate_books_widget.short_description = "Buscar Livros"
+
+    def import_works_widget(self, obj):
+        """Widget para importar obras lançadas em lote via CSV."""
+        if not obj or not obj.pk:
+            return "Salve o autor primeiro para poder importar obras."
+
+        author_id = int(obj.pk)
+
+        html = f"""
+<div>
+  <button type="button"
+    onclick="document.getElementById('csv-panel').style.display='block';"
+    style="background:var(--primary,#417690);color:#fff;border:none;padding:10px 20px;
+           border-radius:4px;cursor:pointer;font-size:14px;font-weight:bold;">
+    &#128229; Importar Obras via CSV
+  </button>
+
+  <div id="csv-panel" style="display:none;margin-top:16px;
+       border:2px solid var(--primary,#417690);border-radius:8px;padding:20px;
+       background:var(--body-bg,#fff);color:var(--body-fg,#333);max-width:680px;">
+
+    <h3 style="margin:0 0 14px;font-size:16px;color:var(--body-fg,#333);">
+      &#128197; Importar Obras em Lote via CSV
+    </h3>
+
+    <!-- Passo 1 -->
+    <div style="margin-bottom:12px;padding:10px;background:var(--darkened-bg,#f5f5f5);
+                border-left:3px solid var(--primary,#417690);border-radius:4px;">
+      <strong style="display:block;margin-bottom:6px;color:var(--body-fg,#333);">
+        1&#186; Baixe o modelo e preencha:
+      </strong>
+      <a href="/admin-tools/author-works-template/" download
+         style="color:var(--primary,#417690);font-weight:bold;">
+        &#11015;&#65039; Baixar Template CSV
+      </a>
+    </div>
+
+    <!-- Passo 2 -->
+    <div style="margin-bottom:12px;padding:10px;background:var(--darkened-bg,#f5f5f5);
+                border-left:3px solid var(--primary,#417690);border-radius:4px;">
+      <strong style="display:block;margin-bottom:6px;color:var(--body-fg,#333);">
+        2&#186; Selecione o arquivo CSV preenchido:
+      </strong>
+      <input type="file" id="csv-file-input" accept=".csv"
+             onchange="csvOnFileChange(this)"
+             style="padding:4px;border:1px dashed var(--primary,#417690);border-radius:4px;
+                    width:100%;cursor:pointer;background:var(--body-bg,#fff);color:var(--body-fg,#333);">
+    </div>
+
+    <!-- Preview -->
+    <div id="csv-preview-area" style="display:none;margin-bottom:12px;">
+      <strong style="color:var(--body-fg,#333);">Preview:</strong>
+      <div id="csv-preview-table" style="overflow-x:auto;margin-top:6px;"></div>
+      <div id="csv-info-box"
+           style="margin-top:6px;padding:8px;background:var(--darkened-bg,#e8f4fd);
+                  border-radius:4px;font-size:13px;color:var(--body-fg,#333);"></div>
+    </div>
+
+    <!-- Status -->
+    <div id="csv-status-msg"
+         style="display:none;margin-bottom:10px;padding:10px;border-radius:4px;font-size:13px;">
+    </div>
+
+    <!-- Botões -->
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+      <button type="button"
+        onclick="document.getElementById('csv-panel').style.display='none';"
+        style="background:transparent;border:1px solid var(--border-color,#ccc);
+               color:var(--body-quiet-color,#555);padding:7px 16px;border-radius:4px;cursor:pointer;">
+        Fechar
+      </button>
+      <button type="button" id="csv-confirm-btn"
+        onclick="csvDoImport({author_id})"
+        disabled
+        style="background:var(--primary,#417690);color:#fff;border:none;
+               padding:7px 18px;border-radius:4px;font-weight:bold;
+               opacity:0.4;cursor:not-allowed;">
+        Importar
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var _csvData = [];
+
+function csvOnFileChange(input) {{
+  var btn = document.getElementById('csv-confirm-btn');
+  var f = input.files[0];
+  if (!f) {{
+    btn.disabled = true;
+    btn.style.opacity = '0.4';
+    btn.style.cursor = 'not-allowed';
+    btn.textContent = 'Importar';
+    return;
+  }}
+  btn.textContent = 'Lendo...';
+  var reader = new FileReader();
+  reader.onload = function(evt) {{
+    var txt = evt.target.result;
+    // Remove BOM se presente
+    if (txt.charCodeAt(0) === 0xFEFF) txt = txt.slice(1);
+    // Divide em linhas
+    var lines = txt.split(/[\\r\\n]+/).filter(function(l) {{ return l.trim() !== ''; }});
+    if (lines.length < 2) {{
+      _csvMsg('Arquivo sem linhas de dados.', false);
+      btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed';
+      btn.textContent = 'Importar';
+      return;
+    }}
+    var hdr = _csvParseLine(lines[0]);
+    _csvData = [];
+    for (var i = 1; i < lines.length; i++) {{
+      var cols = _csvParseLine(lines[i]);
+      if (cols.every(function(v) {{ return v.trim() === ''; }})) continue;
+      var row = {{}};
+      hdr.forEach(function(h, j) {{
+        row[h.trim().toLowerCase()] = (cols[j] || '').trim();
+      }});
+      if (row.title) _csvData.push(row);
+    }}
+    if (!_csvData.length) {{
+      _csvMsg('Nenhuma linha com t\u00edtulo encontrada.', false);
+      btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed';
+      btn.textContent = 'Importar';
+      return;
+    }}
+    // Renderizar preview
+    var cols = ['order','year','title','format','publisher','notes'];
+    var ths = cols.map(function(c) {{
+      return '<th style="background:var(--primary,#417690);color:#fff;padding:4px 8px;text-align:left;">' + c + '</th>';
+    }}).join('');
+    var trs = _csvData.slice(0, 10).map(function(row) {{
+      return '<tr>' + cols.map(function(c) {{
+        var v = row[c] || '';
+        return '<td style="padding:3px 8px;border-bottom:1px solid var(--hairline-color,#ddd);'
+             + 'max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'
+             + 'color:var(--body-fg,#333);" title="' + v + '">' + v + '</td>';
+      }}).join('') + '</tr>';
+    }}).join('');
+    document.getElementById('csv-preview-table').innerHTML =
+      '<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+      + '<thead><tr>' + ths + '</tr></thead>'
+      + '<tbody>' + trs + '</tbody></table>';
+    var extra = _csvData.length > 10 ? ' (exibindo as 10 primeiras)' : '';
+    document.getElementById('csv-info-box').innerHTML =
+      '<strong>' + _csvData.length + ' obra(s)</strong> ser\u00e3o importadas' + extra
+      + '. As j\u00e1 existentes n\u00e3o ser\u00e3o apagadas.';
+    document.getElementById('csv-preview-area').style.display = 'block';
+    document.getElementById('csv-status-msg').style.display = 'none';
+    // Habilitar botão
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    btn.textContent = 'Importar ' + _csvData.length + ' obra(s)';
+  }};
+  reader.readAsText(f, 'UTF-8');
+}}
+
+function csvDoImport(aid) {{
+  var fi = document.getElementById('csv-file-input');
+  if (!fi.files[0]) return;
+  var btn = document.getElementById('csv-confirm-btn');
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+  btn.style.cursor = 'not-allowed';
+  btn.textContent = 'Importando...';
+  var fd = new FormData();
+  fd.append('csv_file', fi.files[0]);
+  fd.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+  fetch('/admin-tools/import-author-works/' + aid + '/', {{method:'POST', body:fd}})
+    .then(function(r) {{ return r.json(); }})
+    .then(function(d) {{
+      if (d.success) {{
+        _csvMsg('\u2705 ' + d.message, true);
+        btn.style.display = 'none';
+        setTimeout(function() {{ location.reload(); }}, 1500);
+      }} else {{
+        _csvMsg('\u274c ' + d.error, false);
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+        btn.textContent = 'Tentar novamente';
+      }}
+    }})
+    .catch(function(e) {{
+      _csvMsg('\u274c Erro: ' + e, false);
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+      btn.textContent = 'Tentar novamente';
+    }});
+}}
+
+function _csvMsg(msg, ok) {{
+  var el = document.getElementById('csv-status-msg');
+  el.innerHTML = msg;
+  el.style.background = ok ? '#d4edda' : '#f8d7da';
+  el.style.color      = ok ? '#155724' : '#721c24';
+  el.style.border     = ok ? '1px solid #c3e6cb' : '1px solid #f5c6cb';
+  el.style.display    = 'block';
+}}
+
+function _csvParseLine(line) {{
+  var result = [], inQuote = false, cur = '';
+  for (var i = 0; i < line.length; i++) {{
+    var ch = line[i];
+    if (ch === '"') {{ inQuote = !inQuote; }}
+    else if (ch === ',' && !inQuote) {{ result.push(cur); cur = ''; }}
+    else {{ cur += ch; }}
+  }}
+  result.push(cur);
+  return result;
+}}
+</script>
+"""
+        return mark_safe(html)
+
+    import_works_widget.short_description = "Importar via CSV"
+
+    def delete_works_widget(self, obj):
+        """Widget para exclusão em lote de todas as obras do autor."""
+        if not obj or not obj.pk:
+            return ""
+
+        author_id = int(obj.pk)
+        works_count = obj.works.count()
+        if works_count == 0:
+            return mark_safe('<span style="color:var(--body-quiet-color,#666);">Nenhuma obra para excluir.</span>')
+
+        html = f"""
+<div>
+  <button type="button" id="delete-works-btn"
+    onclick="deleteAllWorks({author_id})"
+    style="background:#dc3545;color:#fff;border:none;padding:10px 20px;
+           border-radius:4px;cursor:pointer;font-size:14px;font-weight:bold;">
+    🗑️ Excluir Todas as Obras ({works_count})
+  </button>
+  <div id="delete-status-msg" style="display:none;margin-top:10px;padding:10px;border-radius:4px;font-size:13px;"></div>
+</div>
+<script>
+function deleteAllWorks(aid) {{
+  if (!confirm('Tem certeza que deseja excluir TODAS as ' + {works_count} + ' obras lançadas deste autor?\\n\\nEsta ação não pode ser desfeita!')) return;
+  var btn = document.getElementById('delete-works-btn');
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+  btn.style.cursor = 'not-allowed';
+  btn.textContent = '⏳ Excluindo...';
+  
+  fetch('/admin-tools/delete-author-works/' + aid + '/', {{
+      method: 'POST',
+      headers: {{
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      }}
+  }})
+  .then(function(r) {{ return r.json(); }})
+  .then(function(d) {{
+      var msg = document.getElementById('delete-status-msg');
+      msg.style.display = 'block';
+      if (d.success) {{
+          msg.innerHTML = '✅ ' + d.message;
+          msg.style.background = '#d4edda';
+          msg.style.color = '#155724';
+          msg.style.border = '1px solid #c3e6cb';
+          btn.style.display = 'none';
+          setTimeout(function() {{ location.reload(); }}, 1500);
+      }} else {{
+          msg.innerHTML = '❌ Erro: ' + d.error;
+          msg.style.background = '#f8d7da';
+          msg.style.color = '#721c24';
+          msg.style.border = '1px solid #f5c6cb';
+          btn.disabled = false;
+          btn.style.opacity = '1';
+          btn.style.cursor = 'pointer';
+          btn.textContent = 'Tentar Novamente';
+      }}
+  }})
+  .catch(function(e) {{ 
+      alert('Erro: ' + e); 
+      btn.disabled=false; 
+      btn.style.opacity='1'; 
+      btn.style.cursor='pointer';
+      btn.textContent='Tentar Novamente'; 
+  }});
+}}
+</script>
+"""
+        return mark_safe(html)
+
+    delete_works_widget.short_description = "Excluir em Lote"
+
 
 
     def photo_preview(self, obj):

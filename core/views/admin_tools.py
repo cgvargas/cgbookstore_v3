@@ -6,15 +6,18 @@ Views administrativas para executar comandos sem acesso ao Shell.
 from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponse, JsonResponse
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.core.management import call_command
 from django.db import connection
 from django.contrib.sites.models import Site
 from django.conf import settings
 from core.models import Category, Book, Author
+from core.models.author_work import AuthorWork
 from allauth.socialaccount.models import SocialApp
 import io
 import sys
+import csv
 
 
 def redis_test_view(request):
@@ -408,3 +411,162 @@ def associate_book_view(request):
         return JsonResponse({'success': False, 'error': 'JSON inválido'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+
+# ===== IMPORTAÇÃO CSV DE OBRAS LANÇADAS =====
+
+@staff_member_required
+def author_works_csv_template(request):
+    """
+    Retorna um arquivo CSV modelo para o usuário preencher
+    e importar obras lançadas em lote.
+    """
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="obras_lancadas_modelo.csv"'
+    # BOM para Excel reconhecer UTF-8 corretamente
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow(['order', 'year', 'title', 'format', 'publisher', 'notes'])
+    # Linhas de exemplo
+    writer.writerow([1, '2022', 'Meu Primeiro Livro', 'Capa comum', 'CG.BookStore', ''])
+    writer.writerow([2, '2023', 'Segundo Livro', 'E-book', 'Amazon BR', 'Edição revisada'])
+    writer.writerow([3, '2024', 'Terceiro Livro', 'HQ', '', ''])
+
+    return response
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def import_author_works_view(request, author_id):
+    """
+    Processa o upload de um CSV com obras lançadas e as salva em lote
+    para o autor indicado por author_id.
+
+    Colunas esperadas: order, year, title, format, publisher, notes
+    Colunas obrigatórias: year, title
+    """
+    try:
+        author = Author.objects.get(pk=author_id)
+    except Author.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Autor não encontrado.'})
+
+    csv_file = request.FILES.get('csv_file')
+    if not csv_file:
+        return JsonResponse({'success': False, 'error': 'Nenhum arquivo enviado.'})
+
+    # Validar extensão
+    if not csv_file.name.lower().endswith('.csv'):
+        return JsonResponse({'success': False, 'error': 'O arquivo deve ter extensão .csv'})
+
+    # Ler e decodificar
+    try:
+        raw = csv_file.read()
+        # Suporte a UTF-8 com ou sem BOM
+        try:
+            content = raw.decode('utf-8-sig')
+        except UnicodeDecodeError:
+            content = raw.decode('latin-1')
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Erro ao ler o arquivo: {str(e)}'})
+
+    reader = csv.DictReader(io.StringIO(content))
+
+    # Validar cabeçalho
+    required_columns = {'year', 'title'}
+    if not reader.fieldnames:
+        return JsonResponse({'success': False, 'error': 'Arquivo CSV vazio ou sem cabeçalho.'})
+
+    fieldnames_lower = {f.strip().lower() for f in reader.fieldnames}
+    missing = required_columns - fieldnames_lower
+    if missing:
+        return JsonResponse({
+            'success': False,
+            'error': f'Colunas obrigatórias ausentes: {", ".join(missing)}. '
+                     f'O CSV deve conter pelo menos: year, title'
+        })
+
+    works_to_create = []
+    errors = []
+    LIMIT = 500
+
+    for i, row in enumerate(reader, start=2):  # linha 2 = primeira linha de dados
+        if len(works_to_create) >= LIMIT:
+            errors.append(f'Limite de {LIMIT} obras por importação atingido. Linhas restantes ignoradas.')
+            break
+
+        # Normalizar chaves (remover espaços e converter para minúsculo)
+        row = {k.strip().lower(): v.strip() for k, v in row.items() if k}
+
+        title = row.get('title', '').strip()
+        year = row.get('year', '').strip()
+
+        # Ignorar linhas sem título
+        if not title:
+            continue
+
+        if not year:
+            errors.append(f'Linha {i}: campo "year" vazio — obra "{title}" ignorada.')
+            continue
+
+        # order: padrão 0 se inválido
+        try:
+            order = int(row.get('order', 0) or 0)
+        except (ValueError, TypeError):
+            order = 0
+
+        work_format = row.get('format', 'Capa comum').strip() or 'Capa comum'
+        publisher = row.get('publisher', '').strip()
+        notes = row.get('notes', '').strip()
+
+        works_to_create.append(AuthorWork(
+            author=author,
+            order=order,
+            year=year,
+            title=title,
+            format=work_format,
+            publisher=publisher,
+            notes=notes,
+        ))
+
+    if not works_to_create and not errors:
+        return JsonResponse({'success': False, 'error': 'Nenhuma obra válida encontrada no arquivo.'})
+
+    if works_to_create:
+        AuthorWork.objects.bulk_create(works_to_create)
+
+    return JsonResponse({
+        'success': True,
+        'imported': len(works_to_create),
+        'errors': errors,
+        'message': (
+            f'{len(works_to_create)} obra(s) importada(s) com sucesso!'
+            + (f' {len(errors)} aviso(s).' if errors else '')
+        ),
+    })
+
+@csrf_exempt
+@require_POST
+def delete_author_works_view(request, author_id):
+    """
+    Deleta todas as obras cadastradas de um autor específico.
+    Apenas para uso de administradores autenticados.
+    """
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return JsonResponse({'success': False, 'error': 'Acesso negado.'}, status=403)
+
+    try:
+        author = Author.objects.get(pk=author_id)
+        works_count = author.works.count()
+        if works_count == 0:
+            return JsonResponse({'success': False, 'error': 'Nenhuma obra para excluir.'})
+        
+        author.works.all().delete()
+        return JsonResponse({
+            'success': True,
+            'message': f'{works_count} obra(s) excluída(s) com sucesso!'
+        })
+    except Author.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Autor não encontrado.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
