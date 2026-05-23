@@ -406,31 +406,27 @@ MERCADOPAGO_ACCESS_TOKEN = env('MERCADOPAGO_ACCESS_TOKEN', default='')
 MERCADOPAGO_PUBLIC_KEY = env('MERCADOPAGO_PUBLIC_KEY', default='')
 SITE_URL = env('SITE_URL', default='http://localhost:8000')
 
-# Email Configuration
+# ==============================================================================
+# EMAIL CONFIGURATION
+# Controlado inteiramente pelas variáveis de ambiente.
+# Funciona com qualquer backend SMTP (Brevo, SendGrid, Gmail, etc.)
+# ==============================================================================
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@cgbookstore.com')
+CONTACT_EMAIL = env('CONTACT_EMAIL', default=DEFAULT_FROM_EMAIL)
 
-# Em DEBUG mode, SEMPRE usar console para evitar delays de SMTP
-if DEBUG:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# Determinar backend de email baseado no ambiente para produção
-elif env.bool('USE_BREVO_API', default=False):
-    # Usar Brevo API (recomendado para produção)
-    EMAIL_BACKEND = 'cgbookstore.backends.brevo.BrevoBackend'
-    BREVO_API_KEY = env('EMAIL_HOST_PASSWORD', default='')  # Reutilizar mesma env var
-elif env.bool('USE_SENDGRID_API', default=False):
-    # Usar SendGrid Web API (alternativa)
-    EMAIL_BACKEND = 'cgbookstore.backends.sendgrid.SendGridBackend'
-    SENDGRID_API_KEY = env('EMAIL_HOST_PASSWORD', default='')
-else:
-    # Usar backend padrão (console ou SMTP)
-    EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+# Backend: controlado pela env var EMAIL_BACKEND
+# Em desenvolvimento sem config: usa console (não tenta conectar SMTP)
+EMAIL_BACKEND = env(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend'
+)
 
-    # SMTP Configuration (usado em produção se não usar APIs)
-    EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
-    EMAIL_PORT = env.int('EMAIL_PORT', default=587)
-    EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
-    EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
-    EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+# Configurações SMTP (usadas quando EMAIL_BACKEND=smtp.EmailBackend)
+EMAIL_HOST = env('EMAIL_HOST', default='smtp-relay.brevo.com')
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 
 # Configurações de Recomendações
 RECOMMENDATIONS_CONFIG = {

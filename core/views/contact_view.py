@@ -1,15 +1,19 @@
 # C:\Users\claud\OneDrive\ProjectsDjango\CGBookStore_v3\core\views\contact_view.py
 
+import logging
 from django.views.generic import FormView
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django import forms
+from django.core.mail import send_mail
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 class ContactForm(forms.Form):
     """
-    Formulário de contato.
-    Preparado para futura integração com envio de email.
+    Formulário de contato com envio de email via Brevo.
     """
     name = forms.CharField(
         max_length=100,
@@ -38,8 +42,7 @@ class ContactForm(forms.Form):
 class ContactView(FormView):
     """
     View para página de contato.
-    Exibe formulário de contato (apenas visual por enquanto).
-    Preparada para futura implementação de envio de email.
+    Envia email via Brevo ao submeter o formulário.
     """
     template_name = 'core/contact.html'
     form_class = ContactForm
@@ -47,27 +50,52 @@ class ContactView(FormView):
 
     def form_valid(self, form):
         """
-        Processa o formulário quando válido.
-
-        TODO: Implementar envio de email (Opção C)
-        - Configurar SMTP no settings.py
-        - Usar send_mail do Django
-        - Adicionar template de email
+        Processa o formulário e envia email via Brevo.
         """
-        # Por enquanto, apenas exibe mensagem de sucesso
-        messages.success(
-            self.request,
-            'Mensagem recebida! Em breve entraremos em contato.'
+        name = form.cleaned_data['name']
+        sender_email = form.cleaned_data['email']
+        subject = form.cleaned_data['subject']
+        message = form.cleaned_data['message']
+
+        # Email de destino (quem recebe as mensagens de contato)
+        contact_email = getattr(settings, 'CONTACT_EMAIL', settings.DEFAULT_FROM_EMAIL)
+
+        # Corpo do email com todas as informações do remetente
+        email_body = (
+            f"Nova mensagem recebida pelo formulário de contato da CG.BookStore\n"
+            f"{'=' * 60}\n\n"
+            f"Nome:    {name}\n"
+            f"E-mail:  {sender_email}\n"
+            f"Assunto: {subject}\n\n"
+            f"{'=' * 60}\n"
+            f"Mensagem:\n\n"
+            f"{message}\n\n"
+            f"{'=' * 60}\n"
+            f"Para responder, use o e-mail acima: {sender_email}\n"
         )
 
-        # FUTURO: Descomentar para enviar email
-        # from django.core.mail import send_mail
-        # send_mail(
-        #     subject=f"[CG.BookStore] {form.cleaned_data['subject']}",
-        #     message=form.cleaned_data['message'],
-        #     from_email=form.cleaned_data['email'],
-        #     recipient_list=['contato@cgbookstore.com.br'],
-        #     fail_silently=False,
-        # )
+        try:
+            send_mail(
+                subject=f"[CG.BookStore] {subject}",
+                message=email_body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[contact_email],
+                fail_silently=False,
+                headers={'Reply-To': f"{name} <{sender_email}>"},
+            )
+            logger.info(
+                f"✅ Email de contato enviado com sucesso: '{subject}' de {sender_email}"
+            )
+            messages.success(
+                self.request,
+                'Mensagem enviada com sucesso! Entraremos em contato em breve. 📬'
+            )
+        except Exception as e:
+            logger.error(f"❌ Erro ao enviar email de contato: {e}", exc_info=True)
+            messages.error(
+                self.request,
+                'Ocorreu um erro ao enviar sua mensagem. Tente novamente ou entre em contato '
+                'diretamente pelo email: cg.bookstore.online@gmail.com'
+            )
 
         return super().form_valid(form)

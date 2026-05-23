@@ -91,23 +91,94 @@
         padding-bottom: 4rem;
     }
 
-    .form-control {
-        background: rgba(255, 255, 255, 0.5);
-        border: 1px solid rgba(var(--primary-rgb, 0, 113, 133), 0.2);
-        padding: 0.8rem 1.2rem;
-        border-radius: 0.8rem;
+    /* ---- Títulos das info-cards adaptáveis ao tema ---- */
+    .contact-card-title {
+        color: var(--text-color, #212529);
+        font-weight: 700;
     }
 
-    .form-control:focus {
-        background: var(--card-bg);
+    /* ---- Título do formulário adaptável ao tema ---- */
+    .form-section-title {
+        color: var(--text-color, #212529);
+        font-weight: 700;
+    }
+
+    /* ---- Labels dos campos adaptáveis ao tema ---- */
+    .contact-form .form-label {
+        color: var(--text-color, #212529);
+        font-weight: 500;
+        margin-bottom: 0.4rem;
+    }
+
+    /* ---- Inputs / Textarea ---- */
+    .contact-form .form-control {
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(var(--primary-rgb, 0, 113, 133), 0.2);
+        color: #212529;
+        padding: 0.8rem 1.2rem;
+        border-radius: 0.8rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .contact-form .form-control::placeholder {
+        color: rgba(33, 37, 41, 0.45);
+    }
+
+    .contact-form .form-control:focus {
+        background: #ffffff;
         border-color: var(--primary-color);
+        color: #212529;
         box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb, 0, 113, 133), 0.25);
     }
 
-    [data-theme='dark'] .form-control {
-        background: rgba(0, 0, 0, 0.2);
+    /* ---- Dark mode overrides para o formulário ---- */
+    [data-theme='dark'] .contact-form .form-control {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.12);
+        color: #e8e8e8;
     }
 
+    [data-theme='dark'] .contact-form .form-control::placeholder {
+        color: rgba(232, 232, 232, 0.35);
+    }
+
+    [data-theme='dark'] .contact-form .form-control:focus {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--primary-color);
+        color: #ffffff;
+        box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb, 0, 113, 133), 0.3);
+    }
+
+    [data-theme='dark'] .contact-form .form-label {
+        color: #d0d0d0;
+    }
+
+    [data-theme='dark'] .contact-card-title {
+        color: #e8e8e8;
+    }
+
+    [data-theme='dark'] .form-section-title {
+        color: #e8e8e8;
+    }
+
+    /* ---- Texto do aviso de tempo de resposta ---- */
+    .response-time-text {
+        color: var(--text-secondary-color, #6c757d);
+    }
+
+    .response-time-strong {
+        color: var(--text-color, #212529);
+    }
+
+    [data-theme='dark'] .response-time-strong {
+        color: #e0e0e0;
+    }
+
+    [data-theme='dark'] .response-time-text {
+        color: #a0a0a0;
+    }
+
+    /* ---- Botão de envio ---- */
     .btn-gradient {
         background: linear-gradient(135deg, var(--primary-color), #8a2be2);
         color: white;
@@ -147,21 +218,21 @@
                 <div class="col-md-4 mb-3">
                     <div class="glass-effect contact-info-card text-center p-4">
                         <i class="fas fa-envelope fa-3x text-primary mb-3 icon-gradient"></i>
-                        <h5 class="fw-bold text-dark">Email</h5>
-                        <p class="text-secondary mb-0">contato@cgbookstore.com.br</p>
+                        <h5 class="contact-card-title">Email</h5>
+                        <p class="text-secondary mb-0">cg.bookstore.online@gmail.com</p>
                     </div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <div class="glass-effect contact-info-card text-center p-4">
                         <i class="fas fa-phone fa-3x text-primary mb-3 icon-gradient"></i>
-                        <h5 class="fw-bold text-dark">Telefone</h5>
+                        <h5 class="contact-card-title">Telefone</h5>
                         <p class="text-secondary mb-0">(21) 9999-9999</p>
                     </div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <div class="glass-effect contact-info-card text-center p-4">
                         <i class="fas fa-map-marker-alt fa-3x text-primary mb-3 icon-gradient"></i>
-                        <h5 class="fw-bold text-dark">Localização</h5>
+                        <h5 class="contact-card-title">Localização</h5>
                         <p class="text-secondary mb-0">Nilópolis, RJ</p>
                     </div>
                 </div>
@@ -171,9 +242,9 @@
                 <div class="col-lg-8">
                     <div class="glass-effect">
                         <div class="card-body p-5">
-                            <h3 class="mb-4 fw-bold text-dark">Envie sua Mensagem</h3>
-                    
-                    <form method="POST">
+                            <h3 class="mb-4 form-section-title">Envie sua Mensagem</h3>
+
+                    <form method="POST" class="contact-form">
                         {% csrf_token %}
                         
                         <div class="mb-3">
@@ -235,9 +306,11 @@
 
             <div class="alert glass-effect mt-5 text-center border-0" style="background: rgba(var(--primary-rgb, 0, 113, 133), 0.1);">
                 <i class="fas fa-info-circle me-2 text-primary"></i>
-                <strong class="text-dark">Tempo de resposta:</strong> <span class="text-secondary">Respondemos todas as mensagens em até 24 horas úteis.</span>
+                <strong class="response-time-strong">Tempo de resposta:</strong>
+                <span class="response-time-text">Respondemos todas as mensagens em até 24 horas úteis.</span>
             </div>
         </div>
+    </div>
     </div>
     </div>
 </div>
