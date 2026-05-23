@@ -95,7 +95,7 @@ class ContactView(FormView):
             messages.error(
                 self.request,
                 'Ocorreu um erro ao enviar sua mensagem. Tente novamente ou entre em contato '
-                'diretamente pelo email: cg.bookstore.online@gmail.com'
+                'diretamente pelo email: cg.bookstore.online@outlook.com'
             )
 
         return super().form_valid(form)
