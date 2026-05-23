@@ -5,7 +5,7 @@ from django.views.generic import FormView
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django import forms
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage as DjangoEmailMessage
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -75,14 +75,14 @@ class ContactView(FormView):
         )
 
         try:
-            send_mail(
+            email = DjangoEmailMessage(
                 subject=f"[CG.BookStore] {subject}",
-                message=email_body,
+                body=email_body,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[contact_email],
-                fail_silently=False,
-                headers={'Reply-To': f"{name} <{sender_email}>"},
+                to=[contact_email],
+                reply_to=[f"{name} <{sender_email}>"],
             )
+            email.send(fail_silently=False)
             logger.info(
                 f"✅ Email de contato enviado com sucesso: '{subject}' de {sender_email}"
             )
