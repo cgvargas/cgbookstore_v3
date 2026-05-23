@@ -315,3 +315,40 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+{% if messages %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+        Swal.fire({
+            icon: 'success',
+            title: 'Mensagem Enviada! 📬',
+            html: '<p style="font-size:1rem;">{{ message|escapejs }}</p>',
+            confirmButtonText: 'Ótimo!',
+            confirmButtonColor: '#007185',
+            timer: 7000,
+            timerProgressBar: true,
+            customClass: {
+                popup: 'swal-contact-popup',
+            }
+        });
+        {% elif message.tags == 'error' %}
+        Swal.fire({
+            icon: 'error',
+            title: 'Erro no Envio',
+            html: '<p style="font-size:1rem;">{{ message|escapejs }}</p>',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#dc3545',
+            customClass: {
+                popup: 'swal-contact-popup',
+            }
+        });
+        {% endif %}
+    {% endfor %}
+});
+</script>
+{% endif %}
+{% endblock %}
