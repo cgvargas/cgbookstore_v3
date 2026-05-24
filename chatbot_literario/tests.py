@@ -209,3 +209,28 @@ class ConversationContextModelTest(TestCase):
         """Testa definição de preferência."""
         self.context.set_preference("reading_speed", "fast")
         self.assertEqual(self.context.reading_preferences.get("reading_speed"), "fast")
+
+
+class FAQServiceTest(TestCase):
+    """Testes para o serviço FAQService."""
+
+    def test_faq_debates_questions(self):
+        """Testa se as perguntas de debates foram incluídas no FAQService."""
+        from chatbot_literario.faq_service import get_faq_service
+        faq = get_faq_service()
+        
+        # Verificar se debates está nas perguntas
+        questions = faq._all_questions
+        debates_questions = [q for q in questions if q.get("id", "").startswith("debates_")]
+        self.assertEqual(len(debates_questions), 7)
+        
+        # Testar detecção de intenção de FAQ para debates
+        is_faq, category = faq.detect_faq_intent("como funciona o sistema de debates?")
+        self.assertTrue(is_faq)
+        self.assertEqual(category, "debates")
+        
+        # Testar busca no FAQ para perguntas de debates
+        results = faq.search_faq("como votar em um comentário de debate?")
+        self.assertTrue(len(results) > 0)
+        self.assertEqual(results[0]["category"], "Debates Literários")
+        self.assertIn("voto", results[0]["question"].lower())

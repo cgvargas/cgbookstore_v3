@@ -197,6 +197,54 @@ FAQ_DATA = {
                     "answer": "Email: contato@cgbookstore.com, chat de suporte no site, ou redes sociais (@cgbookstore). Respondemos em até 24h úteis!"
                 }
             ]
+        },
+        {
+            "id": "debates",
+            "name": "Debates Literários",
+            "questions": [
+                {
+                    "id": "debates_1",
+                    "question": "O que são os Debates Literários?",
+                    "keywords": ["debates literários", "o que são debates", "como funciona debates", "comunidade de leitores", "discussão de livros"],
+                    "answer": "O módulo Debates Literários é um espaço comunitário onde leitores criam e participam de discussões sobre qualquer livro do catálogo. Permite criar tópicos, enviar posts/respostas aninhadas, votar positiva ou negativamente nos posts e ver contadores de posts e visualizações. Pode ser acessado via menu /debates/ ou na seção de debates da página de cada livro."
+                },
+                {
+                    "id": "debates_2",
+                    "question": "Como criar um tópico de debate?",
+                    "keywords": ["criar debate", "criar tópico", "iniciar discussão", "novo debate", "criar debates"],
+                    "answer": "Para criar um tópico de debate: 1. Acesse a página do livro desejado (/catalogo/<slug>/). 2. Clique em 'Novo Debate' na seção de debates. 3. Preencha o Título (max 200 caracteres) e a Descrição (obrigatório). 4. Submeta. Usuários Free podem criar 1 tópico por livro; usuários Premium podem criar tópicos ilimitados. Há um limite de 10 tópicos criados por hora (em produção)."
+                },
+                {
+                    "id": "debates_3",
+                    "question": "Como participar de um debate (responder)?",
+                    "keywords": ["participar de debate", "responder debate", "comentar debate", "resposta aninhada", "responder comentário", "postar debate"],
+                    "answer": "Qualquer usuário logado pode responder nos tópicos. Para responder ao tópico, use o formulário no final da página. Para responder a um comentário específico (resposta aninhada), clique em 'Responder' abaixo do post desejado para abrir o formulário inline. As respostas são ilimitadas para Free e Premium. Há limite de 60 posts por hora (em produção)."
+                },
+                {
+                    "id": "debates_4",
+                    "question": "Como funciona o sistema de votos?",
+                    "keywords": ["votos", "votar", "upvote", "downvote", "positivo", "negativo", "score", "pontuação"],
+                    "answer": "Cada post pode receber votos positivos (👍 upvote) ou negativos (👎 downvote) de usuários logados. O score do post é a diferença entre votos positivos e negativos. É permitido apenas 1 voto por post. Você pode alterar ou remover seu voto clicando novamente no botão, mas não pode votar no seu próprio post. Há um limite de 100 votos por hora (em produção)."
+                },
+                {
+                    "id": "debates_5",
+                    "question": "Como editar ou deletar meu post/tópico?",
+                    "keywords": ["editar post", "deletar post", "editar tópico", "deletar tópico", "excluir post", "remover post", "alterar post"],
+                    "answer": "Você pode editar/deletar suas próprias publicações. Para posts: clique em 'Editar' para alterar ou 'Deletar' para remover (soft-delete). Para tópicos: na página do seu tópico clique em 'Editar Tópico' ou 'Deletar Tópico' (deleta o tópico e todos os posts vinculados). Moderadores/staff também podem deletar tópicos/posts de outros usuários."
+                },
+                {
+                    "id": "debates_6",
+                    "question": "Quais são as limitações por plano (Free vs Premium)?",
+                    "keywords": ["limitações plano", "free vs premium debates", "limite debates", "criar tópico free", "tópicos ilimitados"],
+                    "answer": "Leitura, respostas, votos e edições são ilimitados para ambos os planos. A diferença é na criação de tópicos: usuários Free podem criar apenas 1 tópico por livro, enquanto usuários Premium podem criar tópicos ilimitados. Para ter acesso ilimitado, assine o plano Premium via MercadoPago na página /finance/planos/."
+                },
+                {
+                    "id": "debates_7",
+                    "question": "Como administrar debates pelo painel Admin?",
+                    "keywords": ["administrar debates", "painel admin debates", "moderação debates", "django admin debates", "gerenciar tópicos"],
+                    "answer": "Administradores/staff podem gerenciar tudo em /admin/debates/. No painel, é possível: 1. Fixar/Bloquear tópicos (DebateTopic). 2. Deletar/restaurar posts (DebatePost - soft delete com is_deleted). 3. Ver/filtrar votos (DebateVote). Útil para moderação de conteúdos ofensivos ou encerramento de discussões."
+                }
+            ]
         }
     ]
 }
@@ -212,6 +260,7 @@ class FAQService:
     - Premium e pagamentos
     - Minha biblioteca
     - Suporte técnico
+    - Debates literários
     """
     
     _instance = None
@@ -257,13 +306,14 @@ class FAQService:
         platform_patterns = [
             r"como\s+(faço|posso|funciona|usar|criar|excluir|cancelar|atualizar)",
             r"onde\s+(fica|está|encontro|acho)",
-            r"o\s+que\s+é\s+(o\s+)?(premium|chatbot|biblioteca)",
+            r"o\s+que\s+é\s+(o\s+)?(premium|chatbot|biblioteca|debate)",
             r"(quanto\s+custa|preço|valor)",
-            r"(posso|consigo|dá\s+para)\s+(ler|baixar|cancelar|criar|compartilhar)",
+            r"(posso|consigo|dá\s+para)\s+(ler|baixar|cancelar|criar|compartilhar|votar|editar|deletar)",
             r"(minha\s+conta|meu\s+perfil|minha\s+senha|minha\s+biblioteca)",
             r"(como\s+)?entr(ar|o)\s+(em\s+contato|no\s+site)",
             r"(suporte|ajuda|problema|erro|não\s+funciona)",
             r"(cadastr|registr|login|senha|assinatura|pagamento)",
+            r"(debate(s)?|tópico(s)?|voto(s)?|votar|discuss(ão|ões)|post(s)?)",
         ]
         
         for pattern in platform_patterns:
@@ -280,6 +330,7 @@ class FAQService:
             "premium": ["premium", "assinatura", "preço", "pagamento", "cancelar", "reembolso"],
             "biblioteca": ["biblioteca", "lista", "favoritos", "lendo", "lidos"],
             "tecnico": ["erro", "problema", "app", "celular", "contato", "suporte"],
+            "debates": ["debate", "tópico", "voto", "votar", "discussão", "post", "comentário", "responder"],
         }
         
         for category, keywords in category_keywords.items():

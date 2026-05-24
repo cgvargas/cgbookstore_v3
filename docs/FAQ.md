@@ -1,6 +1,6 @@
 # ❓ FAQ - CGBookStore - Perguntas Frequentes
 
-**Última atualização:** 03 de Dezembro de 2025
+**Última atualização:** 24 de Maio de 2026
 **Versão do Sistema:** 3.0
 
 ---
@@ -63,6 +63,15 @@
 ### 📧 [Email e Notificações](#email-e-notificações)
 36. [Como configurar envio de emails?](#36-como-configurar-envio-de-emails)
 37. [Como usar SendGrid?](#37-como-usar-sendgrid)
+
+### 💬 [Debates Literários](#debates-literários)
+40. [O que são os Debates Literários?](#40-o-que-são-os-debates-literários)
+41. [Como criar um tópico de debate?](#41-como-criar-um-tópico-de-debate)
+42. [Como participar de um debate (responder)?](#42-como-participar-de-um-debate-responder)
+43. [Como funciona o sistema de votos?](#43-como-funciona-o-sistema-de-votos)
+44. [Como editar ou deletar meu post/tópico?](#44-como-editar-ou-deletar-meu-posttópico)
+45. [Quais são as limitações por plano (Free vs Premium)?](#45-quais-são-as-limitações-por-plano-free-vs-premium)
+46. [Como administrar debates pelo painel Admin?](#46-como-administrar-debates-pelo-painel-admin)
 
 ### 📖 [Documentação](#documentação)
 38. [Onde encontro a documentação completa?](#38-onde-encontro-a-documentação-completa)
@@ -1834,6 +1843,349 @@ send_mail('Test', 'Message', 'from@domain.com', ['to@domain.com'])
 
 ---
 
+## 💬 Debates Literários
+
+### 40. O que são os Debates Literários?
+
+**R:** O módulo **Debates Literários** é um espaço comunitário integrado à plataforma onde leitores podem criar e participar de discussões aprofundadas sobre qualquer livro do catálogo.
+
+**Funcionalidades principais:**
+- 📌 **Tópicos de debate** vinculados a livros específicos
+- 💬 **Posts e respostas** em thread (comentários aninhados)
+- 👍👎 **Sistema de votos** (upvote/downvote) em cada post
+- 📌 **Tópicos fixados** pelo administrador para discussões importantes
+- 🔒 **Tópicos bloqueados** para encerrar discussões encerradas
+- 🔍 **Busca** por título, descrição ou nome do livro
+- 📊 **Contadores** de posts e visualizações por tópico
+
+**Onde acessar:**
+```
+Lista geral de debates:  /debates/
+Debate de um livro:      /debates/criar/<book_id>/  (via página do livro)
+Detalhe de um tópico:   /debates/topico/<slug>/
+```
+
+**Como navegar:**
+1. Acesse a página de detalhes de qualquer livro
+2. Role até a seção "Debates Literários"
+3. Clique em um tópico existente para participar
+4. Ou clique em "Novo Debate" para criar um tópico
+
+**Modelos do sistema:**
+
+| Modelo | Descrição |
+|---|---|
+| `DebateTopic` | Tópico de debate vinculado a um livro |
+| `DebatePost` | Mensagem/resposta dentro de um tópico |
+| `DebateVote` | Voto (positivo ou negativo) em um post |
+
+---
+
+### 41. Como criar um tópico de debate?
+
+**R:** Para criar um tópico você deve estar logado.
+
+**Passo a Passo:**
+
+1. **Acesse a página do livro** que deseja debater
+   - URL: `/catalogo/<slug-do-livro>/`
+
+2. **Clique em "Novo Debate"** (ou "Criar Debate")
+   - O botão aparece na seção de Debates na página do livro
+   - Redireciona para: `/debates/criar/<book_id>/`
+
+3. **Preencha o formulário:**
+   ```
+   Título:      Título do tópico (obrigatório, max 200 caracteres)
+   Descrição:   Contexto inicial do debate (obrigatório)
+   ```
+
+4. **Submeta** e você será redirecionado ao tópico criado
+
+**Regras ao criar tópico:**
+- ✅ Título e descrição são **obrigatórios**
+- ✅ O sistema gera um **slug automático** a partir do título
+- ✅ Você se torna o **criador/dono** do tópico
+- ⚠️ Usuários **Free** podem criar apenas **1 tópico por livro**
+- ✅ Usuários **Premium** podem criar **tópicos ilimitados** por livro
+
+**Exemplo:**
+```
+Título:     "A magia do sistema de Sanderson em Mistborn"
+Descrição:  "Quero discutir como o sistema de Allomancy foi desenvolvido..."
+```
+
+**Rate limiting (Produção):**
+- Máximo de **10 tópicos criados por hora** por usuário
+
+---
+
+### 42. Como participar de um debate (responder)?
+
+**R:** Qualquer usuário logado pode responder em qualquer tópico não bloqueado.
+
+**Para responder em um tópico:**
+
+1. **Acesse o tópico** clicando nele na lista de debates
+2. **Leia as mensagens existentes** (exibidas em ordem cronológica)
+3. **Use o formulário de resposta** ao final da página
+4. **Escreva seu conteúdo** e clique em "Publicar"
+
+**Para responder a um post específico (resposta aninhada):**
+
+1. Clique no botão **"Responder"** abaixo do post desejado
+2. Um formulário inline aparece abaixo do post
+3. Escreva sua resposta e publique
+4. A resposta ficará **indentada** sob o post original
+
+**Visualização de um tópico:**
+```
+┌─────────────────────────────────────────────────────┐
+│ 📖 TÍTULO DO TÓPICO                                  │
+│ Descrição inicial do debate...                       │
+├─────────────────────────────────────────────────────┤
+│ 👤 usuario_a  •  01/01/2025 10:00                    │
+│ Primeiro comentário do debate...                     │
+│ 👍 +5  👎  [Responder] [Editar] [Deletar]            │
+│   └─ 👤 usuario_b  •  01/01/2025 10:30              │
+│      Resposta ao primeiro comentário...              │
+│      👍 +2  👎  [Responder]                          │
+├─────────────────────────────────────────────────────┤
+│ 📝 Adicione sua resposta:                            │
+│ [________________________]                           │
+│                           [Publicar]                 │
+└─────────────────────────────────────────────────────┘
+```
+
+**Rate limiting (Produção):**
+- Máximo de **60 posts por hora** por usuário
+
+**Restrições:**
+- ❌ Tópicos **bloqueados** não aceitam novos posts
+- ❌ Usuários **não autenticados** não podem postar
+- ✅ Respostas são **ilimitadas** para todos os usuários (Free e Premium)
+
+---
+
+### 43. Como funciona o sistema de votos?
+
+**R:** Cada post pode receber votos positivos (👍 upvote) ou negativos (👎 downvote) de outros usuários logados.
+
+**Como votar:**
+
+1. Acesse o tópico com o post que deseja avaliar
+2. Clique em 👍 para votar **positivamente** ou 👎 para votar **negativamente**
+3. O **score** do post é atualizado instantaneamente via AJAX
+
+**Comportamento dos votos:**
+
+| Ação | Resultado |
+|---|---|
+| Clicar 👍 (sem voto anterior) | Adiciona voto positivo, score +1 |
+| Clicar 👎 (sem voto anterior) | Adiciona voto negativo, score -1 |
+| Clicar 👍 novamente (já votou 👍) | **Remove** o voto, score volta ao anterior |
+| Clicar 👎 após ter votado 👍 | **Troca** o voto, score -2 |
+| Clicar 👍 após ter votado 👎 | **Troca** o voto, score +2 |
+
+**Cálculo do score:**
+```python
+score = upvotes - downvotes
+```
+
+**Regras:**
+- ✅ Cada usuário pode dar **apenas 1 voto** por post
+- ✅ Votos podem ser **removidos ou trocados**
+- ❌ Não é possível votar no **próprio post**
+- ❌ Usuários **não autenticados** não podem votar
+
+**Rate limiting (Produção):**
+- Máximo de **100 votos por hora** por usuário
+
+---
+
+### 44. Como editar ou deletar meu post/tópico?
+
+**R:** Você pode editar e deletar seus próprios posts e tópicos.
+
+**Editar um Post:**
+
+1. Localize seu post no tópico
+2. Clique no botão **"Editar"** (aparece apenas para o autor do post)
+3. O conteúdo vira um campo de texto editável
+4. Faça as alterações e clique em **"Salvar"**
+5. O post exibe a data/hora da edição: `(editado em dd/mm/YYYY HH:MM)`
+
+**Deletar um Post:**
+
+1. Localize seu post
+2. Clique em **"Deletar"** (aparece para autor do post e staff)
+3. Confirme a ação
+4. O post é **removido da visualização** (soft delete — fica no banco)
+5. O contador de posts do tópico é atualizado automaticamente
+
+**Editar um Tópico:**
+
+1. Acesse o tópico que você criou
+2. Clique em **"Editar Tópico"** (aparece apenas para o criador)
+3. Altere o título e/ou a descrição
+4. Clique em **"Salvar"**
+
+**Deletar um Tópico:**
+
+1. Acesse seu tópico
+2. Clique em **"Deletar Tópico"**
+3. Confirme a ação
+4. **Todos os posts** do tópico são deletados junto
+5. Você é redirecionado para a página do livro
+
+**Permissões:**
+
+| Ação | Quem pode fazer |
+|---|---|
+| Editar post | Somente o **autor** do post |
+| Deletar post | Autor do post **ou staff** |
+| Editar tópico | Somente o **criador** do tópico |
+| Deletar tópico | Criador do tópico **ou staff** |
+
+> ⚠️ **Atenção:** Tópicos e posts deletados não podem ser recuperados pela interface. Posts usam soft-delete (marcados como `is_deleted=True`), mas tópicos são deletados permanentemente.
+
+---
+
+### 45. Quais são as limitações por plano (Free vs Premium)?
+
+**R:** O sistema de debates tem diferenciação de recursos por plano de assinatura:
+
+**Comparativo de Planos:**
+
+| Recurso | Free | Premium |
+|---|---|---|
+| Visualizar debates | ✅ Ilimitado | ✅ Ilimitado |
+| Criar tópicos por livro | ⚠️ **1 tópico** | ✅ **Ilimitado** |
+| Responder em tópicos | ✅ Ilimitado | ✅ Ilimitado |
+| Votar em posts | ✅ Ilimitado | ✅ Ilimitado |
+| Editar próprios posts | ✅ Sim | ✅ Sim |
+| Deletar próprios posts | ✅ Sim | ✅ Sim |
+
+**Mensagem ao atingir o limite (usuário Free):**
+```
+⚠️ "Usuários gratuitos podem criar apenas 1 tópico por livro.
+    Para criar mais tópicos, assine o plano Premium!
+    (Você ainda pode responder ilimitadamente a outros tópicos)"
+```
+
+**Como fazer upgrade para Premium:**
+1. Acesse `/finance/planos/` ou o botão "Seja Premium"
+2. Escolha o plano (mensal, trimestral ou anual)
+3. Efetue o pagamento via MercadoPago
+4. O acesso ilimitado aos debates é liberado imediatamente
+
+**Rate Limiting em Produção (todos os planos):**
+
+| Operação | Limite |
+|---|---|
+| Visualizar lista de debates | 200 requisições/hora por IP |
+| Criar tópicos | 10 tópicos/hora por usuário |
+| Criar posts/respostas | 60 posts/hora por usuário |
+| Votar | 100 votos/hora por usuário |
+
+> 💡 **Nota:** Os limites de rate são aplicados apenas em **produção** (DEBUG=False). Em ambiente de desenvolvimento local, são desativados automaticamente.
+
+---
+
+### 46. Como administrar debates pelo painel Admin?
+
+**R:** O Django Admin oferece controle total sobre todos os debates.
+
+**Acesso:**
+```
+URL: /admin/debates/
+```
+
+**Gerenciar Tópicos (`DebateTopic`):**
+```
+/admin/debates/debatetopic/
+
+Colunas exibidas:
+- Título
+- Livro vinculado
+- Criador
+- Nº de posts
+- Nº de visualizações
+- Fixado (is_pinned)
+- Bloqueado (is_locked)
+- Data de criação
+
+Filtros disponíveis:
+- Por status (fixado / bloqueado)
+- Por data de criação
+
+Ações administrativas:
+- Editar título e descrição
+- Fixar/Desfixar tópico (is_pinned)
+- Bloquear/Desbloquear tópico (is_locked)
+- Deletar tópico
+```
+
+**Gerenciar Posts (`DebatePost`):**
+```
+/admin/debates/debatepost/
+
+Colunas exibidas:
+- Autor
+- Tópico
+- Score de votos
+- Deletado (is_deleted)
+- Data de criação
+
+Filtros disponíveis:
+- Por status de deleção
+- Por data
+
+Ações:
+- Ver e editar conteúdo de qualquer post
+- Marcar como deletado (soft delete)
+- Restaurar posts deletados
+```
+
+**Gerenciar Votos (`DebateVote`):**
+```
+/admin/debates/debatevote/
+
+Colunas exibidas:
+- Usuário
+- Post
+- Tipo de voto (positivo / negativo)
+- Data
+
+Filtros:
+- Por tipo de voto
+- Por data
+```
+
+**Operações comuns de moderação:**
+
+```
+1. Fixar um tópico importante:
+   Admin → Debates → Tópicos → Editar tópico → ☑ Fixado → Salvar
+
+2. Bloquear debate encerrado:
+   Admin → Debates → Tópicos → Editar tópico → ☑ Bloqueado → Salvar
+
+3. Remover post inapropriado:
+   Admin → Debates → Posts → Editar post → ☑ Deletado → Salvar
+
+4. Ver todos os debates de um livro:
+   Admin → Debates → Tópicos → Filtrar por livro
+```
+
+**Campos somente leitura (admin):**
+- `created_at`, `updated_at` — datas automáticas
+- `views_count` — contador incrementado automaticamente
+- `posts_count` — calculado a partir dos posts ativos
+- `votes_score` — calculado a partir dos votos
+
+---
+
 ## 📖 Documentação
 
 ### 38. Onde encontro a documentação completa?
@@ -1955,10 +2307,10 @@ cgbookstore_v3/
 
 ## 📊 Estatísticas do FAQ
 
-- **Total de Perguntas:** 39
-- **Categorias:** 11
-- **Última Atualização:** 03/12/2025
-- **Versão:** 1.0
+- **Total de Perguntas:** 46
+- **Categorias:** 12
+- **Última Atualização:** 24/05/2026
+- **Versão:** 1.1
 
 ---
 
