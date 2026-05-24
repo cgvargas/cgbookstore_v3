@@ -533,6 +533,14 @@
                 <h3 class="faq-category-title">Suporte Técnico</h3>
                 <p class="faq-category-count">5 perguntas</p>
             </a>
+
+            <a href="#debates" class="faq-category-card">
+                <div class="faq-category-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h3 class="faq-category-title">Debates Literários</h3>
+                <p class="faq-category-count">7 perguntas</p>
+            </a>
         </div>
 
         <!-- FAQ Sections -->
@@ -1193,6 +1201,145 @@
                                 <li>🌐 <strong>Redes sociais:</strong> @cg.bookstore</li>
                             </ul>
                             <p>⏱️ Tempo médio de resposta: 24-48 horas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debates Literários -->
+        <div class="faq-section" id="debates">
+            <div class="faq-section-header">
+                <div class="faq-section-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h2 class="faq-section-title">Debates Literários</h2>
+            </div>
+
+            <div class="faq-accordion">
+                <div class="faq-item" data-category="debates">
+                    <button class="faq-question">
+                        <span>O que são os Debates Literários?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>O módulo <strong>Debates Literários</strong> é um espaço comunitário integrado à plataforma onde leitores podem criar e participar de discussões aprofundadas sobre qualquer livro do catálogo.</p>
+                            <p><strong>Funcionalidades principais:</strong></p>
+                            <ul>
+                                <li>📌 Tópicos de debate vinculados a livros específicos</li>
+                                <li>💬 Posts e respostas em thread (comentários aninhados)</li>
+                                <li>👍👎 Sistema de votos (upvote/downvote) em cada post</li>
+                                <li>📌 Tópicos fixados ou bloqueados pelo administrador</li>
+                                <li>🔍 Busca por título, descrição ou nome do livro</li>
+                            </ul>
+                            <p>Acesse a lista geral de debates pela barra de navegação em <strong>Livros → Debates</strong> ou na seção de debates da página de cada livro.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="debates">
+                    <button class="faq-question">
+                        <span>Como criar um tópico de debate?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Para criar um tópico você deve estar logado e seguir os passos:</p>
+                            <ol>
+                                <li>Acesse a página do livro que deseja debater</li>
+                                <li>Role até a seção "Debates Literários" e clique em "Novo Debate"</li>
+                                <li>Preencha o formulário com o Título (max 200 caracteres) e a Descrição</li>
+                                <li>Clique em "Criar Debate"</li>
+                            </ol>
+                            <p>💡 <strong>Regra de plano:</strong> Usuários Free podem criar 1 tópico por livro, enquanto usuários Premium podem criar tópicos ilimitados. Há um limite de 10 tópicos por hora (em produção).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="debates">
+                    <button class="faq-question">
+                        <span>Como participar de um debate (responder)?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Qualquer usuário logado pode participar ativamente das discussões:</p>
+                            <ul>
+                                <li><strong>Responder ao tópico geral:</strong> Use o formulário de resposta rápida no final da página do debate.</li>
+                                <li><strong>Responder a um comentário (aninhamento):</strong> Clique no botão "Responder" abaixo do post desejado. Um formulário inline se abrirá e seu comentário ficará indentado sob o post original.</li>
+                            </ul>
+                            <p>As respostas são ilimitadas para todos os usuários (Free e Premium), respeitando o limite de 60 posts por hora (em produção).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="debates">
+                    <button class="faq-question">
+                        <span>Como funciona o sistema de votos?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Cada post pode receber votos positivos (👍 upvote) ou negativos (👎 downvote) de outros usuários logados para destacar as contribuições mais relevantes:</p>
+                            <ul>
+                                <li>Clicar 👍 ou 👎 adiciona ou altera seu voto (score +1/-1).</li>
+                                <li>Clicar no mesmo botão novamente remove seu voto.</li>
+                                <li>Não é possível votar no seu próprio post.</li>
+                                <li>Cada usuário pode dar apenas 1 voto por post.</li>
+                            </ul>
+                            <p>O score final do post é calculado como <code>score = upvotes - downvotes</code>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="debates">
+                    <button class="faq-question">
+                        <span>Como editar ou deletar meu post/tópico?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Você tem controle sobre suas contribuições na plataforma:</p>
+                            <ul>
+                                <li><strong>Posts:</strong> Clique em "Editar" para alterar o texto (exibe marcação de editado) ou "Deletar" para remover da visualização (soft-delete).</li>
+                                <li><strong>Tópicos:</strong> Na página do debate que você criou, clique em "Editar Tópico" para mudar título/descrição ou "Deletar Tópico" para excluí-lo permanentemente (junto com todos os posts vinculados).</li>
+                            </ul>
+                            <p>⚠️ <strong>Atenção:</strong> Moderadores e membros da staff também podem editar ou deletar posts e tópicos inapropriados.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="debates">
+                    <button class="faq-question">
+                        <span>Quais são as limitações por plano (Free vs Premium)?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>O sistema possui diferenciações para incentivar a assinatura Premium:</p>
+                            <ul>
+                                <li><strong>Free:</strong> Visualização ilimitada, respostas e votos ilimitados, edição/deleção própria. Limite de <strong>1 tópico de debate criado por livro</strong>.</li>
+                                <li><strong>Premium:</strong> Todos os recursos liberados e <strong>tópicos de debate ilimitados</strong>.</li>
+                            </ul>
+                            <p>Para fazer o upgrade para o Premium, acesse a página de planos e assine via MercadoPago.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="debates">
+                    <button class="faq-question">
+                        <span>Como administrar debates pelo painel Admin?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Administradores e membros da equipe (staff) possuem ferramentas avançadas de moderação em <code>/admin/debates/</code>:</p>
+                            <ul>
+                                <li><strong>Tópicos (DebateTopic):</strong> Permite fixar tópicos importantes (destaque no topo), bloquear discussões encerradas e excluir tópicos.</li>
+                                <li><strong>Posts (DebatePost):</strong> Permite editar ou restaurar comentários deletados (is_deleted).</li>
+                                <li><strong>Votos (DebateVote):</strong> Visualização e filtragem do histórico de votações da comunidade.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
