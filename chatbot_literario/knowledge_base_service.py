@@ -6,11 +6,21 @@ através de correções de admins.
 """
 
 import logging
+import unicodedata
 from typing import Optional, Dict, List
 from django.db.models import Q
 from .models import ChatbotKnowledge
 
 logger = logging.getLogger(__name__)
+
+
+def strip_accents(text: str) -> str:
+    """Remove acentos de uma string em português."""
+    return "".join(
+        c for c in unicodedata.normalize("NFD", text)
+        if unicodedata.category(c) != "Mn"
+    )
+
 
 
 class KnowledgeBaseService:
@@ -75,10 +85,10 @@ class KnowledgeBaseService:
             keywords = self._extract_keywords(question_normalized)
 
             if keywords:
-                # Buscar por overlap de keywords
+                # Buscar por correspondência de chaves no JSONField (has_any_keys)
                 fuzzy_matches = ChatbotKnowledge.objects.filter(
                     base_filter,
-                    keywords__overlap=keywords
+                    keywords__has_any_keys=keywords
                 ).order_by('-confidence_score', '-times_used')[:5]  # Aumenta pool para análise
 
                 # Se encontrou matches, testar similaridades
@@ -200,8 +210,8 @@ class KnowledgeBaseService:
             'também', 'ainda', 'já', 'então', 'assim',
         }
 
-        # Limpar e dividir
-        text = text.lower()
+        # Limpar, remover acentos e dividir
+        text = strip_accents(text.lower())
         words = text.split()
 
         # Filtrar stop words, pontuação e palavras muito curtas

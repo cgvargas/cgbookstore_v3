@@ -88,8 +88,9 @@ class SendMessageAPIView(APIView):
                 content=user_message_text
             )
 
-            # 3. Obter histórico da conversa (últimas 10 mensagens)
-            previous_messages = session.messages.exclude(id=user_message.id).order_by('created_at')[:10]
+            # 3. Obter histórico da conversa (últimas 10 mensagens mais recentes)
+            previous_messages = list(session.messages.exclude(id=user_message.id).order_by('-created_at')[:10])
+            previous_messages.reverse()  # Ordenar cronologicamente
             conversation_history = []
 
             # Obter nome do usuário (first_name ou username)
@@ -104,17 +105,20 @@ class SendMessageAPIView(APIView):
 
             # Adicionar histórico de mensagens anteriores no formato correto
             for msg in previous_messages:
+                # Usar conteúdo corrigido se a mensagem foi corrigida pelo administrador
+                content_to_send = msg.corrected_content if msg.has_correction and msg.corrected_content else msg.content
+
                 if ai_provider == 'groq':
                     # Formato OpenAI/Groq
                     conversation_history.append({
                         "role": msg.role if msg.role == "user" else "assistant",
-                        "content": msg.content
+                        "content": content_to_send
                     })
                 else:
                     # Formato Gemini
                     conversation_history.append({
                         "role": msg.role if msg.role == "user" else "model",
-                        "parts": [msg.content]
+                        "parts": [content_to_send]
                     })
 
             # Adicionar contexto do usuário APENAS na primeira mensagem (quando não há histórico)
