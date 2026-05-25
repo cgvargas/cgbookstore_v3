@@ -563,9 +563,32 @@ Se o FAQ responder completamente, NÃO adicione informações extras."""
                 
                 # Se não encontrou termo específico, usar palavras-chave da mensagem
                 if not search_terms:
-                    stopwords = ['o', 'a', 'os', 'as', 'sobre', 'que', 'você', 'tem', 'de', 'da', 'do', 'informação', 'informações', 'franquia', 'adaptação', 'fora', 'universo', 'mundo', 'outra', 'outro', 'alguma', 'algum', 'obra', 'obras']
-                    words = [w for w in message_lower.split() if w not in stopwords and len(w) > 3]
-                    search_terms = words[:2]
+                    # Lista expandida de stopwords para filtrar termos genéricos
+                    stopwords = [
+                        'o', 'a', 'os', 'as', 'sobre', 'que', 'você', 'tem', 'de', 'da', 'do', 
+                        'informação', 'informações', 'franquia', 'adaptação', 'fora', 'universo', 
+                        'mundo', 'outra', 'outro', 'alguma', 'algum', 'obra', 'obras',
+                        'existe', 'existir', 'alguma', 'algum', 'artigo', 'aqui', 'saber', 
+                        'sobre', 'livro', 'livros', 'autor', 'autores', 'sistema', 'site', 
+                        'plataforma', 'como', 'onde', 'quem', 'qual', 'quais', 'esse', 'este', 
+                        'aquilo', 'aquela', 'para', 'com', 'mais', 'menos', 'seus', 'suas', 
+                        'meus', 'minhas', 'nosso', 'nossa', 'nossos', 'nossas', 'esta', 'essa', 
+                        'aquela', 'pelo', 'pela', 'pelos', 'pelas', 'num', 'numa', 'neste', 
+                        'nesta', 'nesse', 'nessa', 'naquele', 'naquela', 'pode', 'podem',
+                        'fale', 'conte', 'diga', 'sobre', 'notícia', 'notícias', 'matéria',
+                        'matérias', 'reportagem', 'reportagens', 'blog', 'fandom', 'news',
+                        'têm', 'tinha', 'tinham', 'esteve', 'estava', 'estavam', 'será', 'serão',
+                        'uma', 'um', 'uns', 'umas', 'mas', 'eu', 'vi', 'para', 'series', 'serie'
+                    ]
+
+                    # Remover pontuação e filtrar termos
+                    words = []
+                    for w in message_lower.split():
+                        cleaned_w = w.strip('?,!.;:"\'()[]{}')
+                        if cleaned_w and cleaned_w not in stopwords and len(cleaned_w) > 3:
+                            words.append(cleaned_w)
+
+                    search_terms = words[:2]  # Pegar até 2 termos
                 
                 # Buscar notícias primeiro
                 for term in search_terms:
