@@ -1,15 +1,18 @@
 """
-Views para o Chatbot Literário.
+Views para o Chatbot Literário e Chat de Suporte.
 Inclui views para interface web e API REST.
 """
 import time
 import logging
+from django.conf import settings
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import View
+from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import ChatSession, ChatMessage, ConversationContext
 from .serializers import (
     ChatSessionSerializer,
@@ -352,3 +355,215 @@ class ConversationContextAPIView(APIView):
                 {'error': f'Erro ao obter contexto: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+# ====================================================================================
+# CHAT DE SUPORTE
+# ====================================================================================
+
+
+class SupportChatView(TemplateView):
+    """
+    View para a página de chat de suporte.
+    Disponível para todos (logados e anônimos).
+    Renderiza o template 'chatbot_literario/support_chat.html'.
+    """
+    template_name = 'chatbot_literario/support_chat.html'
+
+
+class SupportSendMessageAPIView(APIView):
+    """
+    API para enviar mensagem ao chat de suporte e receber resposta.
+    Suporta usuários autenticados e visitantes anônimos.
+
+    POST /chatbot/api/suporte/send/
+    Body: {
+        "message": "sua dúvida aqui",
+        "session_id": 123  // opcional
+    }
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        """Processa mensagem do usuário e retorna resposta do assistente de suporte."""
+        serializer = SendMessageSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                {'error': serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user_message_text = serializer.validated_data['message']
+        session_id = serializer.validated_data.get('session_id')
+
+        # Garantir que a sessão Django existe (necessário para usuários anônimos)
+        if not request.session.session_key:
+            request.session.create()
+        session_key = request.session.session_key
+
+        try:
+            # 1. Obter ou criar sessão de suporte
+            if session_id:
+                # Verificar propriedade da sessão (por usuário ou por session_key)
+                if request.user.is_authenticated:
+                    qs = ChatSession.objects.filter(
+                        id=session_id, user=request.user, chat_type='suporte'
+                    )
+                else:
+                    qs = ChatSession.objects.filter(
+                        id=session_id, session_key=session_key, chat_type='suporte'
+                    )
+                try:
+                    session = qs.get()
+                except ChatSession.DoesNotExist:
+                    return Response(
+                        {'error': 'Sessão não encontrada'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+            else:
+                # Criar nova sessão de suporte
+                session = ChatSession.objects.create(
+                    user=request.user if request.user.is_authenticated else None,
+                    session_key=None if request.user.is_authenticated else session_key,
+                    chat_type='suporte'
+                )
+
+            # 2. Salvar mensagem do usuário
+            user_message = ChatMessage.objects.create(
+                session=session,
+                role='user',
+                content=user_message_text
+            )
+
+            # 3. Obter histórico da conversa (últimas 10 mensagens)
+            previous_messages = list(
+                session.messages.exclude(id=user_message.id).order_by('-created_at')[:10]
+            )
+            previous_messages.reverse()
+
+            # 4. Preparar nome do usuário para personalização
+            if request.user.is_authenticated:
+                user_name = request.user.first_name or request.user.username
+            else:
+                user_name = 'Visitante'
+
+            # 5. Montar histórico para a AI
+            ai_provider = getattr(settings, 'AI_PROVIDER', 'gemini').lower()
+            conversation_history = []
+            for msg in previous_messages:
+                content = msg.corrected_content if msg.has_correction and msg.corrected_content else msg.content
+                if ai_provider == 'groq':
+                    conversation_history.append({
+                        'role': msg.role if msg.role == 'user' else 'assistant',
+                        'content': content
+                    })
+                else:
+                    conversation_history.append({
+                        'role': msg.role if msg.role == 'user' else 'model',
+                        'parts': [content]
+                    })
+
+            # Adicionar contexto de nome apenas na primeira mensagem
+            if not conversation_history:
+                message_with_context = f"[Usuário: {user_name}] {user_message_text}"
+            else:
+                message_with_context = user_message_text
+
+            # 6. Obter resposta do assistente de suporte
+            from .support_service import get_support_chatbot_service
+
+            start_time = time.time()
+            support_service = get_support_chatbot_service()
+            bot_response_text = support_service.get_response(
+                message=message_with_context,
+                conversation_history=conversation_history
+            )
+            response_time = time.time() - start_time
+
+            # 7. Salvar resposta
+            bot_message = ChatMessage.objects.create(
+                session=session,
+                role='assistant',
+                content=bot_response_text,
+                response_time=response_time
+            )
+
+            # 8. Gerar título da sessão
+            if not session.title:
+                session.generate_title()
+
+            return Response({
+                'session_id': session.id,
+                'user_message': {
+                    'id': user_message.id,
+                    'role': user_message.role,
+                    'content': user_message.content,
+                    'created_at': user_message.created_at,
+                },
+                'bot_message': {
+                    'id': bot_message.id,
+                    'role': bot_message.role,
+                    'content': bot_message.content,
+                    'created_at': bot_message.created_at,
+                    'response_time': bot_message.response_time,
+                },
+                'session_title': session.title
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"Erro ao processar mensagem de suporte: {e}", exc_info=True)
+            return Response(
+                {'error': f'Erro ao processar mensagem: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class SupportSessionListAPIView(APIView):
+    """
+    API para listar sessões de suporte do usuário.
+    Suporta usuários logados e anônimos.
+
+    GET /chatbot/api/suporte/sessions/
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        """Retorna sessões de suporte do usuário ou da sessão anônima."""
+        if request.user.is_authenticated:
+            sessions = ChatSession.objects.filter(
+                user=request.user, chat_type='suporte'
+            ).order_by('-updated_at')
+        else:
+            session_key = request.session.session_key
+            if not session_key:
+                return Response([], status=status.HTTP_200_OK)
+            sessions = ChatSession.objects.filter(
+                session_key=session_key, chat_type='suporte'
+            ).order_by('-updated_at')
+
+        serializer = ChatSessionListSerializer(sessions, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class SupportSessionDetailAPIView(APIView):
+    """
+    API para obter detalhes de uma sessão de suporte específica.
+
+    GET /chatbot/api/suporte/sessions/<id>/
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, session_id):
+        """Retorna detalhes de uma sessão de suporte."""
+        if request.user.is_authenticated:
+            qs = ChatSession.objects.filter(id=session_id, user=request.user, chat_type='suporte')
+        else:
+            session_key = request.session.session_key
+            qs = ChatSession.objects.filter(id=session_id, session_key=session_key, chat_type='suporte')
+
+        try:
+            session = qs.get()
+            serializer = ChatSessionSerializer(session)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ChatSession.DoesNotExist:
+            return Response({'error': 'Sessão não encontrada'}, status=status.HTTP_404_NOT_FOUND)

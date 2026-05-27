@@ -1,52 +1,83 @@
 {% load static %}
 
-<!-- DEBUG: Chatbot Widget Loaded Successfully -->
-<!-- Botão Flutuante do Chatbot -->
+<!-- Widget Hub de Assistentes CG.BookStore -->
 <div id="chatbot-widget-container">
-    <!-- Botão para abrir o chat -->
-    <button id="chatbot-toggle-btn" class="chatbot-fab" title="Assistente Literário Dbit" aria-label="Abrir chatbot">
-        <img src="{% static 'images/Dbit.JPG' %}" alt="Dbit" class="dbit-avatar">
+
+    <!-- Botão FAB principal -->
+    <button id="chatbot-toggle-btn" class="chatbot-fab" title="Assistentes CG.BookStore" aria-label="Abrir assistentes">
+        <img src="{% static 'images/Dbit.JPG' %}" alt="Assistentes" class="dbit-avatar" id="fab-avatar-img">
         <span class="chatbot-pulse"></span>
     </button>
 
-    <!-- Janela do Chat (inicialmente oculta) -->
-    <div id="chatbot-window" class="chatbot-window" style="display: none;">
-        <!-- Cabeçalho -->
-        <div class="chatbot-window-header">
-            <div class="chatbot-header-info">
-                <img src="{% static 'images/Dbit.JPG' %}" alt="Dbit" class="dbit-header-avatar me-2">
+    <!-- Painel do Hub (seleção de assistentes) -->
+    <div id="chatbot-hub-panel" class="chatbot-hub-panel" style="display: none;">
+
+        <!-- Cabeçalho do Hub -->
+        <div class="hub-header">
+            <div class="hub-header-info">
+                <div class="hub-icon-wrap">
+                    <i class="fas fa-comments"></i>
+                </div>
                 <div>
-                    <strong>Dbit - Assistente Literário</strong>
-                    <small class="d-block text-white-50">CG.BookStore</small>
+                    <strong>Assistentes CG.BookStore</strong>
+                    <small class="d-block">Escolha com quem quer conversar</small>
                 </div>
             </div>
-            <button id="chatbot-close-btn" class="chatbot-close-btn" title="Fechar" aria-label="Fechar chatbot">
+            <button id="chatbot-hub-close-btn" class="chatbot-close-btn" title="Fechar" aria-label="Fechar">
                 <i class="fas fa-times"></i>
             </button>
         </div>
 
-        <!-- Corpo -->
-        <div class="chatbot-window-body">
-            <div class="chatbot-welcome-message">
-                <img src="{% static 'images/Dbit.JPG' %}" alt="Dbit" class="dbit-welcome-avatar mb-2">
-                <h5>Olá! Sou o Dbit 👋</h5>
-                <p>Sou seu Assistente Literário! Posso ajudar com:</p>
-                <ul class="text-start">
-                    <li>📚 Recomendações de livros</li>
-                    <li>✍️ Análise de estilos e temas</li>
-                    <li>🎭 Discussões literárias</li>
-                    <li>❓ Dúvidas sobre a plataforma</li>
-                </ul>
-                <a href="{% url 'chatbot_literario:chat' %}" class="btn btn-primary w-100">
-                    <i class="fas fa-comments me-2"></i>Iniciar Conversa
-                </a>
-            </div>
+        <!-- Cards de seleção -->
+        <div class="hub-body">
+
+            <!-- Card: Dbit Literário -->
+            <a href="{% url 'chatbot_literario:chat' %}" class="assistant-card" id="card-dbit">
+                <div class="assistant-card-icon dbit-gradient">
+                    <img src="{% static 'images/Dbit.JPG' %}" alt="Dbit" class="assistant-avatar-img">
+                </div>
+                <div class="assistant-card-info">
+                    <span class="assistant-name">📚 Dbit Literário</span>
+                    <span class="assistant-desc">Recomendações de livros, análises e debates literários</span>
+                    <span class="assistant-badge badge-literary">Assistente Literário</span>
+                </div>
+                <div class="assistant-card-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </a>
+
+            <!-- Divisor -->
+            <div class="hub-divider"></div>
+
+            <!-- Card: Suporte -->
+            <a href="{% url 'chatbot_literario:support_chat' %}" class="assistant-card" id="card-support">
+                <div class="assistant-card-icon support-gradient">
+                    <span class="support-emoji-icon">🎧</span>
+                </div>
+                <div class="assistant-card-info">
+                    <span class="assistant-name">🎧 Suporte CG.BookStore</span>
+                    <span class="assistant-desc">Conta, Premium, problemas técnicos e dúvidas da plataforma</span>
+                    <span class="assistant-badge badge-support">Suporte Oficial</span>
+                </div>
+                <div class="assistant-card-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </a>
+        </div>
+
+        <!-- Rodapé -->
+        <div class="hub-footer">
+            <i class="fas fa-shield-alt me-1"></i>
+            Assistentes inteligentes da CG.BookStore
         </div>
     </div>
 </div>
 
 <style>
-/* Contêiner do Widget */
+/* ──────────────────────────────────────────────
+   WIDGET HUB UNIFICADO — CG.BookStore Assistants
+   ────────────────────────────────────────────── */
+
 #chatbot-widget-container {
     position: fixed;
     bottom: 24px;
@@ -57,18 +88,17 @@
     visibility: visible !important;
 }
 
-/* Botão Flutuante (FAB) - MAIOR */
+/* ── FAB (Botão Flutuante) ── */
 .chatbot-fab {
     position: relative;
-    width: 85px;
-    height: 85px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
-    color: white;
     cursor: pointer;
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.45);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     display: flex !important;
     align-items: center;
     justify-content: center;
@@ -79,7 +109,16 @@
     opacity: 1 !important;
 }
 
-/* Avatar do Dbit no botão */
+.chatbot-fab:hover {
+    transform: scale(1.08) rotate(-5deg);
+    box-shadow: 0 8px 28px rgba(102, 126, 234, 0.6);
+}
+
+.chatbot-fab.hub-open {
+    background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+    box-shadow: 0 4px 20px rgba(244, 63, 94, 0.45);
+}
+
 .dbit-avatar {
     width: 100%;
     height: 100%;
@@ -87,179 +126,269 @@
     object-fit: cover;
     position: relative;
     z-index: 1;
+    transition: transform 0.3s ease;
 }
 
-.chatbot-fab:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
-}
-
-.chatbot-fab:active {
-    transform: scale(0.95);
-}
-
-/* Animação de Pulso */
+/* Pulso */
 .chatbot-pulse {
     position: absolute;
     width: 100%;
     height: 100%;
     border-radius: 50%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    opacity: 0.6;
-    animation: pulse-animation 2s infinite;
+    opacity: 0.5;
+    animation: pulse-animation 2.5s infinite;
+    pointer-events: none;
 }
 
 @keyframes pulse-animation {
-    0% {
-        transform: scale(1);
-        opacity: 0.6;
-    }
-    50% {
-        transform: scale(1.3);
-        opacity: 0;
-    }
-    100% {
-        transform: scale(1);
-        opacity: 0;
-    }
+    0%   { transform: scale(1); opacity: 0.5; }
+    50%  { transform: scale(1.35); opacity: 0; }
+    100% { transform: scale(1); opacity: 0; }
 }
 
-/* Janela do Chat */
-.chatbot-window {
+/* ── Painel Hub ── */
+.chatbot-hub-panel {
     position: absolute;
-    bottom: 80px;
+    bottom: 76px;
     right: 0;
-    width: 380px;
+    width: 340px;
     max-width: calc(100vw - 48px);
-    height: 500px;
-    max-height: calc(100vh - 150px);
-    background: var(--card-bg);
-    border-radius: 16px;
-    border: 2px solid var(--border-color);
-    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+    background: var(--card-bg, #1a1d1f);
+    border-radius: 18px;
+    border: 1px solid var(--border-color, rgba(255,255,255,0.1));
+    box-shadow: 0 16px 56px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0,0,0,0.2);
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    animation: slideUp 0.3s ease;
-    backdrop-filter: blur(10px);
+    animation: hubSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    backdrop-filter: blur(12px);
 }
 
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+@keyframes hubSlideUp {
+    from { opacity: 0; transform: translateY(16px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Cabeçalho do Chat */
-.chatbot-window-header {
+/* ── Cabeçalho ── */
+.hub-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
     padding: 16px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.chatbot-header-info {
+.hub-header-info {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
-.chatbot-header-info strong {
+.hub-icon-wrap {
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
     font-size: 16px;
+}
+
+.hub-header-info strong {
+    color: #fff;
+    font-size: 0.95rem;
     display: block;
 }
 
-.chatbot-header-info small {
-    font-size: 12px;
+.hub-header-info small {
+    color: rgba(255,255,255,0.70);
+    font-size: 0.72rem;
 }
 
 .chatbot-close-btn {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255,255,255,0.15);
     border: none;
     color: white;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s ease;
+    transition: background 0.2s;
+    font-size: 12px;
 }
 
 .chatbot-close-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255,255,255,0.30);
 }
 
-/* Corpo do Chat */
-.chatbot-window-body {
-    flex: 1;
-    padding: 24px;
-    overflow-y: auto;
-    background: var(--body-bg);
+/* ── Corpo do Hub ── */
+.hub-body {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    background: var(--body-bg, #0f1111);
 }
 
-.chatbot-welcome-message {
-    text-align: center;
-    background: var(--card-bg);
-    padding: 24px;
+.hub-divider {
+    height: 1px;
+    background: var(--border-color, rgba(255,255,255,0.08));
+    margin: 4px 0;
+}
+
+/* ── Cards de Assistentes ── */
+.assistant-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 12px;
     border-radius: 12px;
-    box-shadow: var(--shadow-sm);
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
 }
 
-.chatbot-welcome-message h5 {
-    margin: 12px 0;
-    color: var(--text-primary);
+.assistant-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: 12px;
 }
 
-.chatbot-welcome-message p {
-    color: var(--text-secondary);
-    margin-bottom: 16px;
+#card-dbit::before  { background: linear-gradient(135deg, rgba(102,126,234,0.08), rgba(118,75,162,0.08)); }
+#card-support::before { background: linear-gradient(135deg, rgba(13,115,119,0.10), rgba(20,160,133,0.10)); }
+
+.assistant-card:hover::before { opacity: 1; }
+
+.assistant-card:hover {
+    border-color: var(--border-color, rgba(255,255,255,0.12));
+    transform: translateX(2px);
 }
 
-.chatbot-welcome-message ul {
-    list-style: none;
-    padding: 0;
-    margin: 16px 0;
-    color: var(--text-primary);
+#card-dbit:hover    { border-color: rgba(102,126,234,0.3); }
+#card-support:hover { border-color: rgba(13,115,119,0.35); }
+
+/* Ícone do assistente */
+.assistant-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
 }
 
-.chatbot-welcome-message ul li {
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-color);
-}
+.dbit-gradient   { background: linear-gradient(135deg, #667eea, #764ba2); }
+.support-gradient { background: linear-gradient(135deg, #0d7377, #14a085); }
 
-.chatbot-welcome-message ul li:last-child {
-    border-bottom: none;
-}
-
-/* Avatar do Dbit no cabeçalho */
-.dbit-header-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+.assistant-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
     object-fit: cover;
-    border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
-/* Avatar do Dbit na mensagem de boas-vindas */
-.dbit-welcome-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #667eea;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+.support-emoji-icon {
+    font-size: 24px;
+    line-height: 1;
 }
 
-/* Responsividade */
+/* Texto do assistente */
+.assistant-card-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    position: relative;
+    z-index: 1;
+}
+
+.assistant-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary, #fff);
+}
+
+.assistant-desc {
+    font-size: 0.75rem;
+    color: var(--text-secondary, rgba(255,255,255,0.55));
+    line-height: 1.4;
+}
+
+.assistant-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    width: fit-content;
+    margin-top: 2px;
+}
+
+.badge-literary { background: rgba(102,126,234,0.2); color: #a5b4fc; }
+.badge-support  { background: rgba(13,115,119,0.25); color: #5eead4; }
+
+/* Seta */
+.assistant-card-arrow {
+    color: var(--text-secondary, rgba(255,255,255,0.3));
+    font-size: 12px;
+    transition: transform 0.2s, color 0.2s;
+    position: relative;
+    z-index: 1;
+}
+
+.assistant-card:hover .assistant-card-arrow {
+    transform: translateX(3px);
+    color: var(--text-primary, #fff);
+}
+
+/* ── Rodapé ── */
+.hub-footer {
+    padding: 10px 16px;
+    background: var(--card-bg, #1a1d1f);
+    border-top: 1px solid var(--border-color, rgba(255,255,255,0.08));
+    font-size: 0.70rem;
+    color: var(--text-secondary, rgba(255,255,255,0.40));
+    text-align: center;
+}
+
+/* ── Temas ── */
+[data-theme="light"] .chatbot-hub-panel { background: #ffffff; }
+[data-theme="light"] .hub-body          { background: #f8f9fa; }
+[data-theme="light"] .hub-footer        { background: #ffffff; }
+[data-theme="light"] .assistant-name    { color: #111; }
+[data-theme="light"] .assistant-desc    { color: #666; }
+[data-theme="light"] .assistant-card-arrow { color: #999; }
+
+[data-theme="dark"] .chatbot-hub-panel  { background: #1a1d1f; }
+[data-theme="dark"] .hub-body           { background: #0f1111; }
+
+:root:not([data-theme="dark"]) .chatbot-hub-panel { background: #ffffff; }
+:root:not([data-theme="dark"]) .hub-body          { background: #f8f9fa; }
+:root:not([data-theme="dark"]) .hub-footer        { background: #ffffff; }
+:root:not([data-theme="dark"]) .assistant-name    { color: #111; }
+:root:not([data-theme="dark"]) .assistant-desc    { color: #555; }
+:root:not([data-theme="dark"]) .assistant-card-arrow { color: #bbb; }
+:root:not([data-theme="dark"]) .badge-literary    { background: rgba(102,126,234,0.12); color: #5b6fe6; }
+:root:not([data-theme="dark"]) .badge-support     { background: rgba(13,115,119,0.12); color: #0d7377; }
+
+/* ── Responsivo ── */
 @media (max-width: 768px) {
     #chatbot-widget-container {
         bottom: 16px;
@@ -267,88 +396,67 @@
     }
 
     .chatbot-fab {
-        width: 70px;
-        height: 70px;
+        width: 56px;
+        height: 56px;
     }
 
-    .chatbot-window {
+    .chatbot-hub-panel {
         width: calc(100vw - 32px);
-        height: calc(100vh - 150px);
-        bottom: 72px;
+        bottom: 68px;
     }
-}
-
-/* Garantir opacidade total do widget em ambos os temas */
-/* Tema Claro */
-[data-theme="light"] .chatbot-window {
-    background: #ffffff !important;
-}
-
-[data-theme="light"] .chatbot-window-body {
-    background: #f8f9fa !important;
-}
-
-[data-theme="light"] .chatbot-welcome-message {
-    background: #ffffff !important;
-}
-
-/* Tema Escuro */
-[data-theme="dark"] .chatbot-window {
-    background: #1a1d1f !important;
-}
-
-[data-theme="dark"] .chatbot-window-body {
-    background: #0f1111 !important;
-}
-
-[data-theme="dark"] .chatbot-welcome-message {
-    background: #1a1d1f !important;
-}
-
-/* Tema Auto (sistema) - usar padrão claro */
-:root:not([data-theme="dark"]) .chatbot-window {
-    background: #ffffff !important;
-}
-
-:root:not([data-theme="dark"]) .chatbot-window-body {
-    background: #f8f9fa !important;
-}
-
-:root:not([data-theme="dark"]) .chatbot-welcome-message {
-    background: #ffffff !important;
 }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const toggleBtn = document.getElementById('chatbot-toggle-btn');
-    const closeBtn = document.getElementById('chatbot-close-btn');
-    const chatWindow = document.getElementById('chatbot-window');
+    const toggleBtn  = document.getElementById('chatbot-toggle-btn');
+    const closeBtn   = document.getElementById('chatbot-hub-close-btn');
+    const hubPanel   = document.getElementById('chatbot-hub-panel');
+    const container  = document.getElementById('chatbot-widget-container');
 
-    // Abrir janela do chat
-    toggleBtn.addEventListener('click', function() {
-        if (chatWindow.style.display === 'none') {
-            chatWindow.style.display = 'flex';
-            toggleBtn.style.transform = 'scale(0.9)';
+    function openHub() {
+        hubPanel.style.display = 'flex';
+        hubPanel.style.flexDirection = 'column';
+        toggleBtn.classList.add('hub-open');
+        toggleBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeHub() {
+        hubPanel.style.display = 'none';
+        toggleBtn.classList.remove('hub-open');
+        toggleBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    function toggleHub() {
+        if (hubPanel.style.display === 'none' || !hubPanel.style.display) {
+            openHub();
         } else {
-            chatWindow.style.display = 'none';
-            toggleBtn.style.transform = 'scale(1)';
+            closeHub();
+        }
+    }
+
+    // Toggle ao clicar no FAB
+    toggleBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleHub();
+    });
+
+    // Fechar ao clicar no X
+    closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeHub();
+    });
+
+    // Fechar ao clicar fora do container
+    document.addEventListener('click', function(e) {
+        if (!container.contains(e.target)) {
+            closeHub();
         }
     });
 
-    // Fechar janela do chat
-    closeBtn.addEventListener('click', function() {
-        chatWindow.style.display = 'none';
-        toggleBtn.style.transform = 'scale(1)';
-    });
-
-    // Fechar ao clicar fora (opcional)
-    document.addEventListener('click', function(event) {
-        const container = document.getElementById('chatbot-widget-container');
-        if (!container.contains(event.target)) {
-            chatWindow.style.display = 'none';
-            toggleBtn.style.transform = 'scale(1)';
-        }
+    // Tecla Escape fecha o hub
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeHub();
     });
 });
 </script>

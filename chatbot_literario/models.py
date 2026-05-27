@@ -16,12 +16,36 @@ class ChatSession(models.Model):
 
     Uma sessão agrupa múltiplas mensagens de uma conversa contínua.
     Cada usuário pode ter múltiplas sessões ao longo do tempo.
+    Suporta sessões anônimas (user=None) identificadas por session_key.
     """
+
+    CHAT_TYPE_CHOICES = [
+        ('literario', 'Literário (Dbit)'),
+        ('suporte', 'Suporte CG.BookStore'),
+    ]
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name='chat_sessions',
-        verbose_name='Usuário'
+        verbose_name='Usuário',
+        help_text='Nulo para sessões anônimas (chat de suporte)'
+    )
+    session_key = models.CharField(
+        max_length=40,
+        blank=True,
+        null=True,
+        verbose_name='Chave de Sessão Anônima',
+        help_text='Chave da sessão Django para identificar visitantes não autenticados'
+    )
+    chat_type = models.CharField(
+        max_length=20,
+        choices=CHAT_TYPE_CHOICES,
+        default='literario',
+        verbose_name='Tipo de Chat',
+        help_text='Literário (Dbit) ou Suporte ao cliente'
     )
     title = models.CharField(
         max_length=200,
@@ -50,6 +74,8 @@ class ChatSession(models.Model):
         indexes = [
             models.Index(fields=['user', '-updated_at']),
             models.Index(fields=['user', 'is_active']),
+            models.Index(fields=['chat_type', '-updated_at']),
+            models.Index(fields=['session_key']),
         ]
 
     def __str__(self):
@@ -315,6 +341,7 @@ class ChatbotKnowledge(models.Model):
         ('recommendation', 'Recomendação'),
         ('series_info', 'Informação sobre Série'),
         ('category_search', 'Busca por Categoria'),
+        ('support_query', 'Suporte ao Cliente'),
         ('general', 'Conhecimento Geral'),
     ]
 

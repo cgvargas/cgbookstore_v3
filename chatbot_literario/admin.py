@@ -13,11 +13,11 @@ logger = logging.getLogger(__name__)
 
 @admin.register(ChatSession)
 class ChatSessionAdmin(admin.ModelAdmin):
-    """Admin para ChatSession."""
-    list_display = ['id', 'user', 'title_short', 'messages_count', 'is_active', 'created_at', 'updated_at']
-    list_filter = ['is_active', 'created_at', 'updated_at']
-    search_fields = ['user__username', 'title']
-    readonly_fields = ['created_at', 'updated_at']
+    """Admin para ChatSession (Literário e Suporte)."""
+    list_display = ['id', 'user', 'chat_type_badge', 'title_short', 'messages_count', 'is_active', 'created_at', 'updated_at']
+    list_filter = ['chat_type', 'is_active', 'created_at', 'updated_at']
+    search_fields = ['user__username', 'title', 'session_key']
+    readonly_fields = ['created_at', 'updated_at', 'session_key']
     date_hierarchy = 'created_at'
 
     def title_short(self, obj):
@@ -31,12 +31,24 @@ class ChatSessionAdmin(admin.ModelAdmin):
         return format_html('<strong>{}</strong>', count)
     messages_count.short_description = 'Mensagens'
 
+    def chat_type_badge(self, obj):
+        """Badge colorido para tipo de chat."""
+        if obj.chat_type == 'suporte':
+            return format_html(
+                '<span style="background-color: #17a2b8; color: white; padding: 3px 8px; border-radius: 3px;">&#127925; Suporte</span>'
+            )
+        return format_html(
+            '<span style="background-color: #6f42c1; color: white; padding: 3px 8px; border-radius: 3px;">&#128218; Literário</span>'
+        )
+    chat_type_badge.short_description = 'Tipo'
+
 
 @admin.register(ChatMessage)
 class ChatMessageAdmin(admin.ModelAdmin):
-    """Admin para ChatMessage com suporte a correções."""
+    """Admin para ChatMessage com suporte a correções (literário e suporte)."""
     list_display = [
         'id',
+        'session_type_badge',
         'session',
         'role_badge',
         'content_preview',
@@ -44,8 +56,8 @@ class ChatMessageAdmin(admin.ModelAdmin):
         'knowledge_used_badge',
         'created_at'
     ]
-    list_filter = ['role', 'has_correction', 'created_at', 'rag_intent_detected']
-    search_fields = ['content', 'session__user__username', 'corrected_content']
+    list_filter = ['role', 'has_correction', 'session__chat_type', 'created_at', 'rag_intent_detected']
+    search_fields = ['content', 'session__user__username', 'corrected_content', 'session__session_key']
     readonly_fields = ['created_at', 'tokens_used', 'response_time']
     date_hierarchy = 'created_at'
 
@@ -86,6 +98,9 @@ class ChatMessageAdmin(admin.ModelAdmin):
         'category_search': 'category_search',
         'franchise_info': 'general',
         'adaptation_info': 'general',
+        # Chat de Suporte
+        'support_query': 'support_query',
+        'support': 'support_query',
     }
 
     def save_model(self, request, obj, form, change):
@@ -125,9 +140,13 @@ class ChatMessageAdmin(admin.ModelAdmin):
             if not user_message:
                 return
 
-            # Mapear intent type para knowledge_type válido
-            raw_type = message.rag_intent_detected or 'general'
-            knowledge_type = self.INTENT_TO_KNOWLEDGE_TYPE.get(raw_type, 'general')
+            # Para sessões de suporte, usar sempre 'support_query'
+            # Para sessões literárias, mapear pelo intent detectado
+            if message.session.chat_type == 'suporte':
+                knowledge_type = 'support_query'
+            else:
+                raw_type = message.rag_intent_detected or 'general'
+                knowledge_type = self.INTENT_TO_KNOWLEDGE_TYPE.get(raw_type, 'general')
 
             # Verificar se já existe entrada para esta pergunta
             from .models import ChatbotKnowledge
@@ -165,6 +184,17 @@ class ChatMessageAdmin(admin.ModelAdmin):
             preview += '...'
         return preview
     content_preview.short_description = 'Conteúdo'
+
+    def session_type_badge(self, obj):
+        """Badge do tipo de chat da sessão."""
+        if obj.session.chat_type == 'suporte':
+            return format_html(
+                '<span style="background-color: #0d7377; color: white; padding: 2px 7px; border-radius: 3px; font-size: 11px;">&#127925; Suporte</span>'
+            )
+        return format_html(
+            '<span style="background-color: #6f42c1; color: white; padding: 2px 7px; border-radius: 3px; font-size: 11px;">&#128218; Dbit</span>'
+        )
+    session_type_badge.short_description = 'Chat'
 
     def role_badge(self, obj):
         """Exibe badge colorido para o papel."""
@@ -355,6 +385,7 @@ class ChatbotKnowledgeAdmin(admin.ModelAdmin):
             'recommendation': '#ffc107',
             'series_info': '#17a2b8',
             'category_search': '#6f42c1',
+            'support_query': '#0d7377',
             'general': '#6c757d',
         }
         color = colors.get(obj.knowledge_type, '#6c757d')
