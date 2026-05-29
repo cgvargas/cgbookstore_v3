@@ -65,14 +65,21 @@ class WhatsAppNotifier:
             url = f"{self.CALLMEBOT_URL}?phone={self.phone}&text={encoded_text}&apikey={self.api_key}"
 
             response = requests.get(url, timeout=self.REQUEST_TIMEOUT)
+            response_text = response.text
 
-            if response.status_code == 200:
-                logger.info(f"✅ WhatsApp enviado com sucesso para {self.phone}")
+            # CallMeBot costuma retornar HTTP 200 mesmo em caso de erro, com a mensagem de erro no corpo.
+            # Sucesso contém "queued" ou "success" ou "enviado"
+            is_success = response.status_code == 200 and any(
+                word in response_text.lower() for word in ["queued", "success", "enviado", "created"]
+            )
+
+            if is_success:
+                logger.info(f"✅ WhatsApp enviado com sucesso para {self.phone}. Resposta da API: {response_text.strip()}")
                 return True
             else:
                 logger.error(
-                    f"❌ Falha ao enviar WhatsApp. Status: {response.status_code} | "
-                    f"Resposta: {response.text[:200]}"
+                    f"❌ Falha ao enviar WhatsApp. Status HTTP: {response.status_code} | "
+                    f"Resposta da API: {response_text.strip()}"
                 )
                 return False
 
