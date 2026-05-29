@@ -6,22 +6,45 @@
 {% block extra_css %}
 <style>
     .ranking-page { padding: 2rem 0; }
-    .ranking-table { background: var(--card-bg); border-radius: 12px; overflow: hidden; }
+    .ranking-table {
+        background: var(--card-bg);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--border-color);
+    }
     .ranking-row {
         display: flex;
         align-items: center;
-        padding: 1rem;
+        padding: 1.25rem 1.5rem;
         border-bottom: 1px solid var(--border-color);
-        transition: background 0.3s;
+        transition: all 0.3s ease;
     }
-    .ranking-row:hover { background: rgba(var(--primary-rgb), 0.05); }
-    .ranking-row.user-row { background: rgba(var(--success-rgb), 0.1); border-left: 4px solid var(--success-color); }
+    .ranking-row:hover {
+        background: rgba(102, 126, 234, 0.05);
+        transform: scale(1.002);
+    }
+    .ranking-row.user-row {
+        background: linear-gradient(90deg, rgba(46, 204, 113, 0.1) 0%, transparent 100%);
+        border-left: 4px solid var(--success-color);
+        box-shadow: inset 0 0 10px rgba(46, 204, 113, 0.05);
+    }
     .rank-position { font-size: 1.5rem; font-weight: 700; min-width: 60px; text-align: center; }
-    .rank-position.top1 { color: #ffd700; }
-    .rank-position.top2 { color: #c0c0c0; }
-    .rank-position.top3 { color: #cd7f32; }
+    .rank-position.top1 { color: #ffd700; font-size: 1.8rem; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
+    .rank-position.top2 { color: #c0c0c0; font-size: 1.6rem; text-shadow: 0 0 8px rgba(192, 192, 192, 0.4); }
+    .rank-position.top3 { color: #cd7f32; font-size: 1.5rem; text-shadow: 0 0 6px rgba(205, 127, 50, 0.4); }
     .user-info { flex: 1; }
     .stats-badge { background: var(--primary-color); color: white; padding: 0.25rem 0.75rem; border-radius: 12px; margin: 0 0.25rem; font-size: 0.85rem; }
+    
+    .btn-back-dashboard {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 600;
+        border-width: 2px !important;
+    }
+    .btn-back-dashboard:hover {
+        transform: translateX(-4px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
 </style>
 {% endblock %}
 
@@ -29,8 +52,15 @@
 <div class="container ranking-page">
     <div class="row mb-4">
         <div class="col-12">
-            <h2>🏆 Ranking Mensal - {{ current_month_name }} {{ current_year }}</h2>
-            <p class="text-muted">{{ total_participants }} participantes</p>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pb-3 border-bottom">
+                <div>
+                    <h2 class="mb-1 text-primary fw-bold"><i class="fas fa-crown me-2 text-warning"></i>Ranking Mensal</h2>
+                    <p class="text-muted mb-0">{{ current_month_name }} {{ current_year }} • {{ total_participants }} participantes</p>
+                </div>
+                <a href="{% url 'core:gamification_dashboard' %}" class="btn btn-outline-primary rounded-pill px-4 py-2 shadow-sm btn-back-dashboard">
+                    <i class="fas fa-arrow-left me-2"></i>Voltar ao Painel
+                </a>
+            </div>
         </div>
     </div>
 

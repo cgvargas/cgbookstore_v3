@@ -222,6 +222,16 @@
             margin-top: 0.5rem;
         }
     }
+    
+    .btn-back-dashboard {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 600;
+        border-width: 2px !important;
+    }
+    .btn-back-dashboard:hover {
+        transform: translateX(-4px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
 </style>
 {% endblock %}
 
@@ -230,8 +240,15 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <h2 class="mb-1">🏆 Conquistas</h2>
-            <p class="text-muted">Desbloqueie conquistas lendo livros e atingindo objetivos</p>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pb-3 border-bottom">
+                <div>
+                    <h2 class="mb-1 text-primary fw-bold"><i class="fas fa-trophy me-2 text-warning"></i>Conquistas</h2>
+                    <p class="text-muted mb-0">Desbloqueie conquistas lendo livros e atingindo objetivos</p>
+                </div>
+                <a href="{% url 'core:gamification_dashboard' %}" class="btn btn-outline-primary rounded-pill px-4 py-2 shadow-sm btn-back-dashboard">
+                    <i class="fas fa-arrow-left me-2"></i>Voltar ao Painel
+                </a>
+            </div>
         </div>
     </div>
 

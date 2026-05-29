@@ -38,18 +38,18 @@ class UserProfileModelTest(TestCase):
 
     def test_profile_calculate_level(self):
         """Testa cálculo de nível baseado em XP."""
-        # Nível 1 = 100 XP, Nível 2 = 400 XP, etc. (sqrt(XP/100))
+        # Nível 1 = 100 XP, Nível 2 = 400 XP, etc. (sqrt(XP/100) + 1)
         self.profile.total_xp = 0
-        self.profile.save()
-        self.assertEqual(self.profile.calculate_level(), 0)
-
-        self.profile.total_xp = 100
         self.profile.save()
         self.assertEqual(self.profile.calculate_level(), 1)
 
-        self.profile.total_xp = 400
+        self.profile.total_xp = 100
         self.profile.save()
         self.assertEqual(self.profile.calculate_level(), 2)
+
+        self.profile.total_xp = 400
+        self.profile.save()
+        self.assertEqual(self.profile.calculate_level(), 3)
 
     def test_profile_add_xp(self):
         """Testa adição de XP."""
@@ -73,34 +73,34 @@ class UserProfileModelTest(TestCase):
     def test_profile_streak_update(self):
         """Testa atualização de streak."""
         self.profile.update_streak()
-        self.assertEqual(self.profile.current_streak, 1)
+        self.assertEqual(self.profile.streak_days, 1)
 
     def test_profile_streak_reset(self):
         """Testa reset de streak."""
-        self.profile.current_streak = 5
+        self.profile.streak_days = 5
         self.profile.save()
         self.profile.reset_streak()
-        self.assertEqual(self.profile.current_streak, 0)
+        self.assertEqual(self.profile.streak_days, 0)
 
     def test_profile_is_premium_active_false(self):
         """Testa verificação de premium (não ativo)."""
         self.profile.is_premium = False
         self.profile.save()
-        self.assertFalse(self.profile.is_premium_active)
+        self.assertFalse(self.profile.is_premium_active())
 
     def test_profile_is_premium_active_true(self):
         """Testa verificação de premium (ativo)."""
         self.profile.is_premium = True
         self.profile.premium_expires_at = timezone.now() + timedelta(days=30)
         self.profile.save()
-        self.assertTrue(self.profile.is_premium_active)
+        self.assertTrue(self.profile.is_premium_active())
 
     def test_profile_is_premium_expired(self):
         """Testa verificação de premium (expirado)."""
         self.profile.is_premium = True
         self.profile.premium_expires_at = timezone.now() - timedelta(days=1)
         self.profile.save()
-        self.assertFalse(self.profile.is_premium_active)
+        self.assertFalse(self.profile.is_premium_active())
 
 
 class BookShelfModelTest(TestCase):
@@ -159,14 +159,16 @@ class BookShelfModelTest(TestCase):
         BookShelf.objects.create(
             user=self.user,
             book=self.book,
-            shelf_type='quer-ler'
+            shelf_type='quer-ler',
+            custom_shelf_name=''
         )
         # Tentar criar novamente deve falhar ou atualizar
         with self.assertRaises(Exception):
             BookShelf.objects.create(
                 user=self.user,
                 book=self.book,
-                shelf_type='quer-ler'
+                shelf_type='quer-ler',
+                custom_shelf_name=''
             )
 
 
@@ -184,18 +186,18 @@ class BadgeModelTest(TestCase):
             name="Primeiro Livro",
             description="Concedido ao adicionar o primeiro livro",
             icon="📚",
-            xp_reward=50,
-            badge_type="reading"
+            rarity="bronze",
+            category="reading"
         )
 
     def test_badge_creation(self):
         """Testa criação de badge."""
         self.assertEqual(self.badge.name, "Primeiro Livro")
-        self.assertEqual(self.badge.xp_reward, 50)
+        self.assertEqual(self.badge.rarity, "bronze")
 
     def test_badge_str(self):
         """Testa representação string do badge."""
-        self.assertEqual(str(self.badge), "Primeiro Livro")
+        self.assertEqual(str(self.badge), "📚 Primeiro Livro (🥉 Bronze)")
 
     def test_user_badge_award(self):
         """Testa concessão de badge ao usuário."""

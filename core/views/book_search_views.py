@@ -119,6 +119,36 @@ def google_books_search_user(request):
         }, status=500)
 
 
+def validate_google_book_quality(book_data):
+    """
+    Valida a qualidade dos dados do livro do Google Books.
+    Retorna (is_valid, error_message).
+    """
+    # 1. Capa Obrigatória
+    if not book_data.get('thumbnail'):
+        return False, "o livro não possui uma imagem de capa disponível na plataforma externa do Google Books."
+
+    # 2. Autor Definido
+    if not book_data.get('authors'):
+        return False, "o livro não possui informações de autor(es) cadastradas."
+
+    # 3. ISBN Válido
+    if not book_data.get('isbn_13') and not book_data.get('isbn_10'):
+        return False, "o livro não possui um código ISBN (10 ou 13) identificado."
+
+    # 4. Descrição Detalhada
+    description = book_data.get('description', '')
+    if not description or len(description.strip()) < 80:
+        return False, "a descrição do livro é inexistente ou muito curta (mínimo de 80 caracteres)."
+
+    # 5. Contagem de Páginas
+    page_count = book_data.get('page_count')
+    if not page_count or page_count <= 0:
+        return False, "a contagem de páginas do livro é inválida ou não informada."
+
+    return True, ""
+
+
 @login_required
 @require_http_methods(["POST"])
 def import_google_book_user(request, google_book_id):
@@ -135,6 +165,7 @@ def import_google_book_user(request, google_book_id):
     - book_id (int): ID do livro no catálogo local
     - book_title (str): Título do livro
     - already_existed (bool): Se o livro já existia no catálogo
+    - xp_earned (int, opcional): Pontos de XP ganhos (caso cadastrado)
     """
     try:
         # Buscar dados do livro no Google Books
@@ -145,6 +176,19 @@ def import_google_book_user(request, google_book_id):
                 'success': False,
                 'message': 'Não foi possível obter os dados do livro no Google Books.'
             }, status=404)
+
+        # Validação de qualidade para usuários comuns (não superusuários)
+        if not request.user.is_superuser:
+            is_valid, error_msg = validate_google_book_quality(book_data)
+            if not is_valid:
+                return JsonResponse({
+                    'success': False,
+                    'message': (
+                        f"Olá! Agradecemos o seu interesse em expandir nosso catálogo. No entanto, {error_msg} "
+                        "Para manter nossa biblioteca alinhada às políticas de qualidade e detalhamento de informações verídicas, "
+                        "a importação não pôde ser concluída. Sugerimos buscar outra edição ou exemplar com dados mais completos."
+                    )
+                }, status=400)
 
         # Verificar se já existe pelo ISBN
         isbn = book_data.get('isbn_13') or book_data.get('isbn_10')
@@ -225,12 +269,19 @@ def import_google_book_user(request, google_book_id):
                 book.cover_image = cover_path
                 book.save()
 
+        # Ganho de XP por cadastrar livro novo que não estava na base de dados
+        xp_earned = 0
+        if hasattr(request.user, 'profile'):
+            request.user.profile.add_xp(15)
+            xp_earned = 15
+
         return JsonResponse({
             'success': True,
             'message': f'"{book.title}" foi importado com sucesso!',
             'book_id': book.id,
             'book_title': book.title,
-            'already_existed': False
+            'already_existed': False,
+            'xp_earned': xp_earned
         })
 
     except Exception as e:

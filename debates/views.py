@@ -161,6 +161,10 @@ def create_topic(request, book_id):
             description=description
         )
 
+        # Conceder XP por criar tópico
+        if hasattr(request.user, 'profile'):
+            request.user.profile.add_xp(30)
+
         # Invalidar cache da lista de debates
         cache.delete('debates:list:v1')
 
@@ -204,6 +208,10 @@ def create_post(request, topic_slug):
     # Atualizar contador
     topic.update_posts_count()
 
+    # Conceder XP por postar resposta
+    if hasattr(request.user, 'profile'):
+        request.user.profile.add_xp(5)
+
     # Invalidar cache da lista de debates
     cache.delete('debates:list:v1')
 
@@ -232,21 +240,34 @@ def vote_post(request, post_id):
         defaults={'vote_type': vote_type}
     )
 
+    xp_change = 0
     if not created:
         if vote.vote_type == vote_type:
             # Remover voto
+            if vote.vote_type == 'up':
+                xp_change = -2
             vote.delete()
             action = 'removed'
         else:
             # Trocar voto
+            if vote.vote_type == 'up' and vote_type == 'down':
+                xp_change = -2
+            elif vote.vote_type == 'down' and vote_type == 'up':
+                xp_change = 2
             vote.vote_type = vote_type
             vote.save()
             action = 'changed'
     else:
+        if vote_type == 'up':
+            xp_change = 2
         action = 'created'
 
     # Atualizar score
     post.update_votes_score()
+
+    # Conceder/Remover XP do autor do post
+    if xp_change != 0 and hasattr(post.author, 'profile'):
+        post.author.profile.add_xp(xp_change)
 
     return JsonResponse({
         'success': True,
