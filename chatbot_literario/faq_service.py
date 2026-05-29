@@ -245,6 +245,60 @@ FAQ_DATA = {
                     "answer": "Administradores/staff podem gerenciar tudo em /admin/debates/. No painel, é possível: 1. Fixar/Bloquear tópicos (DebateTopic). 2. Deletar/restaurar posts (DebatePost - soft delete com is_deleted). 3. Ver/filtrar votos (DebateVote). Útil para moderação de conteúdos ofensivos ou encerramento de discussões."
                 }
             ]
+        },
+        {
+            "id": "gamificacao",
+            "name": "Gamificação & Ranking",
+            "questions": [
+                {
+                    "id": "gamificacao_1",
+                    "question": "O que é o sistema de gamificação e para que serve?",
+                    "keywords": ["gamificação", "sistema de gamificação", "o que é gamificação", "para que serve", "como funciona gamificação", "gamificar"],
+                    "answer": "A gamificação transforma sua jornada de leitura em uma experiência mais motivante! Conforme você usa a plataforma, acumula XP (Pontos de Experiência), sobe de nível, conquista badges e compete no ranking mensal. Acesse seu painel em Gamificação → Dashboard no menu superior."
+                },
+                {
+                    "id": "gamificacao_2",
+                    "question": "Como ganho XP na plataforma?",
+                    "keywords": ["xp", "ganhar xp", "pontos de experiência", "como ganhar pontos", "acumular xp", "ganhar pontos", "como ganho"],
+                    "answer": "Você ganha XP automaticamente: 📚 Completar um livro: +50 XP | ⭐ Escrever uma review: XP variável | ✅ Desbloquear uma conquista: 50 a 5.000 XP | 🧠 Completar um quiz literário: XP proporcional ao desempenho | 📚 Adicionar livro como lido na estante: +10 XP. Durante eventos especiais, multiplicadores de XP podem dobrar ou triplicar os pontos!"
+                },
+                {
+                    "id": "gamificacao_3",
+                    "question": "Como funciona o sistema de níveis?",
+                    "keywords": ["nível", "níveis", "subir de nível", "level up", "como funciona nível", "nível máximo", "quanto xp", "próximo nível"],
+                    "answer": "Seu nível é calculado pelo seu XP Total acumulado. A fórmula é: Nível = √(XP ÷ 100) + 1, com nível máximo 30. Exemplos: 100 XP = Nível 2, 400 XP = Nível 3, 900 XP = Nível 4, 2.500 XP = Nível 6. Sua barra de progresso na dashboard mostra exatamente quantos XP faltam para o próximo nível."
+                },
+                {
+                    "id": "gamificacao_4",
+                    "question": "O que são conquistas e como desbloqueio?",
+                    "keywords": ["conquista", "conquistas", "desbloquear conquista", "como ganhar conquista", "achievement", "troféu", "recompensa"],
+                    "answer": "Conquistas são objetivos específicos que recompensam você com XP ao serem cumpridos automaticamente. Categorias: 📖 Leitura (completar livros), 📊 Progresso (avançar de nível), 💬 Social (reviews e debates), 🌈 Diversidade (gêneros e autores variados), ⭐ Especial (eventos). Veja todas em Gamificação → Conquistas."
+                },
+                {
+                    "id": "gamificacao_5",
+                    "question": "O que são badges e qual a diferença para conquistas?",
+                    "keywords": ["badge", "badges", "medalha", "insígnia", "badge lendário", "raridade badge", "coleção badges", "diferença conquista badge"],
+                    "answer": "Badges são troféus de coleção que identificam seu perfil, com raridades: 🟤 Common, 🟫 Uncommon, 🔵 Rare, 🟣 Epic, 🟡 Legendary e 🎉 Event (exclusivos de eventos). Enquanto conquistas dão XP, badges são visuais e de coleção. Você pode exibir até 3 badges em destaque no seu perfil. Gerencie em Gamificação → Minha Coleção de Badges."
+                },
+                {
+                    "id": "gamificacao_6",
+                    "question": "Como funciona o ranking mensal?",
+                    "keywords": ["ranking", "ranking mensal", "classificação", "posição ranking", "leaderboard", "top leitores", "competição", "minha posição"],
+                    "answer": "Todo mês há uma competição entre todos os leitores! O ranking é reiniciado no início de cada mês, sua posição é definida pelo XP acumulado no mês. O Top 5 aparece na sua dashboard em tempo real e o ranking completo mostra até os 100 primeiros. Você também pode navegar por meses anteriores. Acesse em Gamificação → Ranking Mensal."
+                },
+                {
+                    "id": "gamificacao_7",
+                    "question": "O que são multiplicadores de XP?",
+                    "keywords": ["multiplicador", "multiplicador xp", "bônus xp", "dobrar xp", "evento xp", "xp em dobro", "x2 xp"],
+                    "answer": "Multiplicadores de XP são bônus temporários ativados pela equipe durante eventos especiais (semanas de leitura, maratonas literárias, aniversários). Quando ativo, todo XP ganho é multiplicado (ex: 2x, 3x). Eles aparecem como um banner de destaque no topo da sua dashboard com as datas de início e fim."
+                },
+                {
+                    "id": "gamificacao_8",
+                    "question": "Onde vejo meu histórico completo de desempenho?",
+                    "keywords": ["histórico", "estatísticas gamificação", "perfil de stats", "meu desempenho", "progresso geral", "meu perfil gamificação", "streak"],
+                    "answer": "Acesse Gamificação → Meu Perfil de Estatísticas para ver: total de livros lidos, páginas lidas, reviews escritas, XP por mês (últimos 12 meses), conquistas por categoria, badges por raridade, streak de leitura diária e sua melhor posição histórica no ranking."
+                }
+            ]
         }
     ]
 }
@@ -261,6 +315,7 @@ class FAQService:
     - Minha biblioteca
     - Suporte técnico
     - Debates literários
+    - Gamificação & Ranking
     """
     
     _instance = None
@@ -306,7 +361,7 @@ class FAQService:
         platform_patterns = [
             r"como\s+(faço|posso|funciona|usar|criar|excluir|cancelar|atualizar)",
             r"onde\s+(fica|está|encontro|acho)",
-            r"o\s+que\s+é\s+(o\s+)?(premium|chatbot|biblioteca|debate)",
+            r"o\s+que\s+é\s+(o\s+)?(premium|chatbot|biblioteca|debate|gamificação|xp|badge|conquista|ranking)",
             r"(quanto\s+custa|preço|valor)",
             r"(posso|consigo|dá\s+para)\s+(ler|baixar|cancelar|criar|compartilhar|votar|editar|deletar)",
             r"(minha\s+conta|meu\s+perfil|minha\s+senha|minha\s+biblioteca)",
@@ -314,6 +369,7 @@ class FAQService:
             r"(suporte|ajuda|problema|erro|não\s+funciona)",
             r"(cadastr|registr|login|senha|assinatura|pagamento)",
             r"(debate(s)?|tópico(s)?|voto(s)?|votar|discuss(ão|ões)|post(s)?)",
+            r"(xp|nível|level|conquista(s)?|badge(s)?|ranking|gamificaç|streak|multiplicador)",
         ]
         
         for pattern in platform_patterns:
@@ -331,6 +387,7 @@ class FAQService:
             "biblioteca": ["biblioteca", "lista", "favoritos", "lendo", "lidos"],
             "tecnico": ["erro", "problema", "app", "celular", "contato", "suporte"],
             "debates": ["debate", "tópico", "voto", "votar", "discussão", "post", "comentário", "responder"],
+            "gamificacao": ["xp", "nível", "level", "conquista", "badge", "ranking", "gamificação", "streak", "multiplicador", "pontos"],
         }
         
         for category, keywords in category_keywords.items():

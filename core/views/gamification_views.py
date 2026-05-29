@@ -5,7 +5,7 @@ Responsável por renderizar dashboards, conquistas, badges e rankings.
 
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Sum, Q, Avg, F
+from django.db.models import Count, Sum, Q, Avg, F, Min
 from django.utils import timezone
 from datetime import datetime, timedelta
 from calendar import monthrange
@@ -529,7 +529,9 @@ def user_profile_stats(request):
         })
 
     # Estatísticas de leitura
-    total_books_read = ReadingProgress.objects.filter(
+    # Fonte primária: UserProfile.books_read_count (incrementado via BookShelf ao marcar "Lido")
+    # Fallback: ReadingProgress se o campo for 0 (usuário registrou progresso sem usar estante)
+    total_books_read = profile.books_read_count or ReadingProgress.objects.filter(
         user=user,
         finished_at__isnull=False,
         is_abandoned=False
@@ -545,7 +547,8 @@ def user_profile_stats(request):
         shelf_type='want_to_read'
     ).count()
 
-    total_pages = ReadingProgress.objects.filter(
+    # Páginas: usa UserProfile.total_pages_read se disponível
+    total_pages = profile.total_pages_read or ReadingProgress.objects.filter(
         user=user,
         finished_at__isnull=False,
         is_abandoned=False
@@ -557,14 +560,14 @@ def user_profile_stats(request):
     total_reviews = BookReview.objects.filter(user=user).count()
     avg_rating = BookReview.objects.filter(user=user).aggregate(avg=Avg('rating'))['avg'] or 0
 
-    # Streaks (sequências de leitura)
-    # TODO: Implementar cálculo de streak quando houver sistema de daily check-in
-    current_streak = 0
-    longest_streak = 0
+    # Streaks (sequências de leitura diária)
+    current_streak = profile.streak_days  # Atualizado pelo método update_streak() no check-in
+    # longest_streak não está armazenado no modelo — exibimos o streak atual
+    longest_streak = profile.streak_days
 
-    # Ranking histórico
+    # Ranking histórico — Min encontra a MENOR posição (= melhor colocação)
     best_position = MonthlyRanking.objects.filter(user=user).aggregate(
-        best=Count('rank_position')
+        best=Min('rank_position')
     )['best'] or None
 
     # Conquistas raras: Difícil (3), Muito Difícil (4) e Legendário (5)
