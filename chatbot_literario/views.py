@@ -94,7 +94,7 @@ class SendMessageAPIView(APIView):
             # 2b. [MONITORAMENTO] Analisar conduta da mensagem de forma assíncrona
             try:
                 from monitoring.detector import SuspiciousActivityDetector
-                from monitoring.tasks import send_whatsapp_alert_task
+                from monitoring.tasks import dispatch_whatsapp_alert
                 detector = SuspiciousActivityDetector()
                 ip_address = (
                     request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
@@ -107,7 +107,7 @@ class SendMessageAPIView(APIView):
                     ip_address=ip_address,
                 )
                 if suspicious and suspicious.severity in ('medium', 'high', 'critical'):
-                    send_whatsapp_alert_task.delay(activity_id=suspicious.pk)
+                    dispatch_whatsapp_alert(activity_id=suspicious.pk)
             except Exception as monitor_err:
                 logger.warning(f"⚠️ Erro no monitoramento de conduta (não crítico): {monitor_err}")
 
@@ -187,7 +187,7 @@ class SendMessageAPIView(APIView):
                         # [MONITORAMENTO] Registrar falha total da IA
                         try:
                             from monitoring.models import AIResponseAlert
-                            from monitoring.tasks import send_whatsapp_alert_task
+                            from monitoring.tasks import dispatch_whatsapp_alert
                             alert = AIResponseAlert.objects.create(
                                 session=session,
                                 user=request.user,
@@ -197,7 +197,7 @@ class SendMessageAPIView(APIView):
                                 error_message=f"Gemini quota + Groq fallback falhou: {fallback_error}",
                                 ai_response_preview='',
                             )
-                            send_whatsapp_alert_task.delay(ai_alert_id=alert.pk)
+                            dispatch_whatsapp_alert(ai_alert_id=alert.pk)
                         except Exception as m_err:
                             logger.warning(f"Erro ao registrar alerta de IA: {m_err}")
                         raise fallback_error
@@ -205,7 +205,7 @@ class SendMessageAPIView(APIView):
                     # [MONITORAMENTO] Registrar erro genérico da IA
                     try:
                         from monitoring.models import AIResponseAlert
-                        from monitoring.tasks import send_whatsapp_alert_task
+                        from monitoring.tasks import dispatch_whatsapp_alert
                         alert_type = 'quota_exceeded' if ('quota' in error_str or '429' in error_str) else 'api_error'
                         alert = AIResponseAlert.objects.create(
                             session=session,
@@ -216,7 +216,7 @@ class SendMessageAPIView(APIView):
                             error_message=str(primary_error)[:500],
                             ai_response_preview='',
                         )
-                        send_whatsapp_alert_task.delay(ai_alert_id=alert.pk)
+                        dispatch_whatsapp_alert(ai_alert_id=alert.pk)
                     except Exception as m_err:
                         logger.warning(f"Erro ao registrar alerta de IA: {m_err}")
                     # Não é erro de quota ou não é Gemini, propagar erro
@@ -298,9 +298,8 @@ class ReportAIResponseAPIView(APIView):
         except ChatMessage.DoesNotExist:
             return Response({'error': 'Mensagem não encontrada'}, status=status.HTTP_404_NOT_FOUND)
 
-        try:
             from monitoring.models import AIResponseAlert
-            from monitoring.tasks import send_whatsapp_alert_task
+            from monitoring.tasks import dispatch_whatsapp_alert
             from django.conf import settings as django_settings
 
             ai_provider = getattr(django_settings, 'AI_PROVIDER', 'unknown')
@@ -321,7 +320,7 @@ class ReportAIResponseAPIView(APIView):
             bot_message.save(update_fields=['user_feedback'])
 
             # Disparar alerta WhatsApp assíncrono
-            send_whatsapp_alert_task.delay(ai_alert_id=alert.pk)
+            dispatch_whatsapp_alert(ai_alert_id=alert.pk)
 
             logger.info(f"✅ Reclamação registrada: AIResponseAlert #{alert.pk} | Usuário: {request.user.username}")
 
@@ -561,10 +560,9 @@ class SupportSendMessageAPIView(APIView):
                 content=user_message_text
             )
 
-            # 2b. [MONITORAMENTO] Analisar conduta da mensagem
             try:
                 from monitoring.detector import SuspiciousActivityDetector
-                from monitoring.tasks import send_whatsapp_alert_task
+                from monitoring.tasks import dispatch_whatsapp_alert
                 detector = SuspiciousActivityDetector()
                 ip_address = (
                     request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
@@ -577,7 +575,7 @@ class SupportSendMessageAPIView(APIView):
                     ip_address=ip_address,
                 )
                 if suspicious and suspicious.severity in ('medium', 'high', 'critical'):
-                    send_whatsapp_alert_task.delay(activity_id=suspicious.pk)
+                    dispatch_whatsapp_alert(activity_id=suspicious.pk)
             except Exception as monitor_err:
                 logger.warning(f"⚠️ Erro no monitoramento de suporte (não crítico): {monitor_err}")
 

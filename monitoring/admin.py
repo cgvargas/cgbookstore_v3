@@ -51,14 +51,14 @@ action_mark_reviewed.short_description = "✅ Marcar como Revisado"
 
 def action_send_whatsapp(modeladmin, request, queryset):
     """Envia alerta WhatsApp manualmente para os registros selecionados."""
-    from .tasks import send_whatsapp_alert_task
+    from .tasks import dispatch_whatsapp_alert
 
     count = 0
     for obj in queryset:
         if isinstance(obj, SuspiciousActivity):
-            send_whatsapp_alert_task.delay(activity_id=obj.pk)
+            dispatch_whatsapp_alert(activity_id=obj.pk)
         elif isinstance(obj, AIResponseAlert):
-            send_whatsapp_alert_task.delay(ai_alert_id=obj.pk)
+            dispatch_whatsapp_alert(ai_alert_id=obj.pk)
         count += 1
 
     messages.info(request, f"📱 {count} alerta(s) WhatsApp enfileirado(s) para envio.")

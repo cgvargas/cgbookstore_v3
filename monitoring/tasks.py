@@ -1,11 +1,5 @@
-"""
-Tarefas Celery para o Sistema de Monitoramento.
-
-Gerencia o envio assíncrono de alertas WhatsApp e o resumo diário,
-garantindo que a experiência do usuário não seja afetada por chamadas
-de rede ao enviar notificações.
-"""
 import logging
+import threading
 from celery import shared_task
 from django.utils import timezone
 from django.conf import settings
@@ -13,23 +7,10 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
-@shared_task(
-    name='monitoring.send_whatsapp_alert',
-    bind=True,
-    max_retries=3,
-    default_retry_delay=60,  # 60 segundos entre tentativas
-    ignore_result=True,
-)
-def send_whatsapp_alert_task(self, activity_id: int = None, ai_alert_id: int = None):
+def send_whatsapp_alert_now(activity_id: int = None, ai_alert_id: int = None) -> bool:
     """
-    Envia alerta WhatsApp de forma assíncrona.
-
-    Tenta até 3 vezes com intervalo de 60 segundos entre tentativas,
-    garantindo entrega mesmo em caso de falhas temporárias de rede.
-
-    Args:
-        activity_id: ID de SuspiciousActivity (conduta suspeita)
-        ai_alert_id: ID de AIResponseAlert (problema na IA)
+    Executa o envio do alerta do WhatsApp imediatamente de forma síncrona.
+    Retorna True em caso de sucesso ou se o alerta já tiver sido enviado, False caso contrário.
     """
     from .models import SuspiciousActivity, AIResponseAlert
     from .whatsapp_service import get_whatsapp_notifier
@@ -42,41 +23,93 @@ def send_whatsapp_alert_task(self, activity_id: int = None, ai_alert_id: int = N
                 activity = SuspiciousActivity.objects.get(pk=activity_id)
             except SuspiciousActivity.DoesNotExist:
                 logger.error(f"SuspiciousActivity #{activity_id} não encontrada")
-                return
+                return False
 
             if activity.alert_sent:
                 logger.info(f"Alerta para SuspiciousActivity #{activity_id} já enviado. Ignorando.")
-                return
+                return True
 
             success = notifier.send_suspicious_activity_alert(activity)
             if not success:
-                raise Exception(f"Falha ao enviar alerta de atividade suspeita #{activity_id}")
+                logger.error(f"Falha ao enviar alerta de atividade suspeita #{activity_id}")
+                return False
 
             logger.info(f"✅ Alerta de conduta suspeita #{activity_id} enviado via WhatsApp")
+            return True
 
         elif ai_alert_id:
             try:
                 alert = AIResponseAlert.objects.get(pk=ai_alert_id)
             except AIResponseAlert.DoesNotExist:
                 logger.error(f"AIResponseAlert #{ai_alert_id} não encontrado")
-                return
+                return False
 
             if alert.alert_sent:
                 logger.info(f"Alerta para AIResponseAlert #{ai_alert_id} já enviado. Ignorando.")
-                return
+                return True
 
             success = notifier.send_ai_error_alert(alert)
             if not success:
-                raise Exception(f"Falha ao enviar alerta de IA #{ai_alert_id}")
+                logger.error(f"Falha ao enviar alerta de IA #{ai_alert_id}")
+                return False
 
             logger.info(f"✅ Alerta de problema na IA #{ai_alert_id} enviado via WhatsApp")
+            return True
 
         else:
-            logger.warning("send_whatsapp_alert_task chamado sem activity_id ou ai_alert_id")
+            logger.warning("send_whatsapp_alert_now chamado sem activity_id ou ai_alert_id")
+            return False
 
+    except Exception as e:
+        logger.error(f"Erro ao enviar alerta via WhatsApp (síncrono): {e}", exc_info=True)
+        return False
+
+
+def dispatch_whatsapp_alert(activity_id: int = None, ai_alert_id: int = None):
+    """
+    Despacha o alerta do WhatsApp de forma assíncrona.
+    Se o Celery estiver configurado e FORCE_CELERY_ALERTS estiver ativado, usa Celery (.delay).
+    Caso contrário, executa em uma Thread em background nativa do Python para não bloquear
+    a requisição HTTP e evitar depender de um Celery worker em segundo plano no Render.
+    """
+    force_celery = getattr(settings, 'FORCE_CELERY_ALERTS', False)
+
+    if force_celery:
+        logger.info(f"Enfileirando alerta via Celery (activity_id={activity_id}, ai_alert_id={ai_alert_id})")
+        send_whatsapp_alert_task.delay(activity_id=activity_id, ai_alert_id=ai_alert_id)
+    else:
+        logger.info(f"Disparando alerta em background thread nativa (activity_id={activity_id}, ai_alert_id={ai_alert_id})")
+        def run_in_thread():
+            from django.db import connection
+            try:
+                send_whatsapp_alert_now(activity_id=activity_id, ai_alert_id=ai_alert_id)
+            except Exception as thread_err:
+                logger.error(f"Erro na thread de envio de alerta WhatsApp: {thread_err}")
+            finally:
+                connection.close()  # Libera a conexão do banco de dados
+
+        thread = threading.Thread(target=run_in_thread)
+        thread.daemon = True
+        thread.start()
+
+
+@shared_task(
+    name='monitoring.send_whatsapp_alert',
+    bind=True,
+    max_retries=3,
+    default_retry_delay=60,  # 60 segundos entre tentativas
+    ignore_result=True,
+)
+def send_whatsapp_alert_task(self, activity_id: int = None, ai_alert_id: int = None):
+    """
+    Envia alerta WhatsApp de forma assíncrona usando Celery.
+    """
+    try:
+        success = send_whatsapp_alert_now(activity_id=activity_id, ai_alert_id=ai_alert_id)
+        if not success:
+            raise Exception("Falha no envio do alerta")
     except Exception as exc:
-        logger.error(f"❌ Erro ao enviar alerta WhatsApp: {exc}")
-        # Re-tentar automaticamente (até max_retries)
+        logger.error(f"❌ Erro ao enviar alerta WhatsApp (Celery): {exc}")
         try:
             raise self.retry(exc=exc)
         except self.MaxRetriesExceededError:
@@ -170,7 +203,7 @@ def check_pending_alerts():
 
     for activity in pending_activities:
         logger.info(f"🔄 Re-tentando alerta para SuspiciousActivity #{activity.pk}")
-        send_whatsapp_alert_task.delay(activity_id=activity.pk)
+        dispatch_whatsapp_alert(activity_id=activity.pk)
 
     # Alertas de IA pendentes (alta e crítica)
     pending_ai_alerts = AIResponseAlert.objects.filter(
@@ -181,7 +214,7 @@ def check_pending_alerts():
 
     for alert in pending_ai_alerts:
         logger.info(f"🔄 Re-tentando alerta para AIResponseAlert #{alert.pk}")
-        send_whatsapp_alert_task.delay(ai_alert_id=alert.pk)
+        dispatch_whatsapp_alert(ai_alert_id=alert.pk)
 
     total_pending = pending_activities.count() + pending_ai_alerts.count()
     if total_pending > 0:
