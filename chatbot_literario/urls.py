@@ -43,4 +43,8 @@ urlpatterns = [
 
     # Detalhes de uma sessão de suporte específica
     path('api/suporte/sessions/<int:session_id>/', views.SupportSessionDetailAPIView.as_view(), name='api_support_session_detail'),
+
+    # ==================== MONITORAMENTO ====================
+    # Endpoint para usuário reportar resposta inadequada da IA
+    path('api/report-response/', views.ReportAIResponseAPIView.as_view(), name='api_report_response'),
 ]

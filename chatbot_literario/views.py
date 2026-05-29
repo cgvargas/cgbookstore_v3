@@ -91,6 +91,26 @@ class SendMessageAPIView(APIView):
                 content=user_message_text
             )
 
+            # 2b. [MONITORAMENTO] Analisar conduta da mensagem de forma assíncrona
+            try:
+                from monitoring.detector import SuspiciousActivityDetector
+                from monitoring.tasks import send_whatsapp_alert_task
+                detector = SuspiciousActivityDetector()
+                ip_address = (
+                    request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+                    or request.META.get('REMOTE_ADDR')
+                )
+                suspicious = detector.analyze_message(
+                    user_message=user_message,
+                    session=session,
+                    user=request.user,
+                    ip_address=ip_address,
+                )
+                if suspicious and suspicious.severity in ('medium', 'high', 'critical'):
+                    send_whatsapp_alert_task.delay(activity_id=suspicious.pk)
+            except Exception as monitor_err:
+                logger.warning(f"⚠️ Erro no monitoramento de conduta (não crítico): {monitor_err}")
+
             # 3. Obter histórico da conversa (últimas 10 mensagens mais recentes)
             previous_messages = list(session.messages.exclude(id=user_message.id).order_by('-created_at')[:10])
             previous_messages.reverse()  # Ordenar cronologicamente
@@ -148,7 +168,7 @@ class SendMessageAPIView(APIView):
                     try:
                         from .groq_service import get_groq_chatbot_service
                         groq_service = get_groq_chatbot_service()
-                        
+
                         # Converter histórico para formato Groq (OpenAI)
                         groq_history = []
                         for msg in previous_messages:
@@ -156,7 +176,7 @@ class SendMessageAPIView(APIView):
                                 "role": msg.role if msg.role == "user" else "assistant",
                                 "content": msg.content
                             })
-                        
+
                         bot_response_text = groq_service.get_response(
                             message=message_with_context,
                             conversation_history=groq_history
@@ -164,8 +184,41 @@ class SendMessageAPIView(APIView):
                         logger.info("✅ Fallback para Groq bem-sucedido!")
                     except Exception as fallback_error:
                         logger.error(f"❌ Fallback para Groq também falhou: {fallback_error}")
+                        # [MONITORAMENTO] Registrar falha total da IA
+                        try:
+                            from monitoring.models import AIResponseAlert
+                            from monitoring.tasks import send_whatsapp_alert_task
+                            alert = AIResponseAlert.objects.create(
+                                session=session,
+                                user=request.user,
+                                alert_type='api_error',
+                                severity='critical',
+                                provider='gemini',
+                                error_message=f"Gemini quota + Groq fallback falhou: {fallback_error}",
+                                ai_response_preview='',
+                            )
+                            send_whatsapp_alert_task.delay(ai_alert_id=alert.pk)
+                        except Exception as m_err:
+                            logger.warning(f"Erro ao registrar alerta de IA: {m_err}")
                         raise fallback_error
                 else:
+                    # [MONITORAMENTO] Registrar erro genérico da IA
+                    try:
+                        from monitoring.models import AIResponseAlert
+                        from monitoring.tasks import send_whatsapp_alert_task
+                        alert_type = 'quota_exceeded' if ('quota' in error_str or '429' in error_str) else 'api_error'
+                        alert = AIResponseAlert.objects.create(
+                            session=session,
+                            user=request.user,
+                            alert_type=alert_type,
+                            severity='high',
+                            provider=ai_provider,
+                            error_message=str(primary_error)[:500],
+                            ai_response_preview='',
+                        )
+                        send_whatsapp_alert_task.delay(ai_alert_id=alert.pk)
+                    except Exception as m_err:
+                        logger.warning(f"Erro ao registrar alerta de IA: {m_err}")
                     # Não é erro de quota ou não é Gemini, propagar erro
                     raise primary_error
             
@@ -208,6 +261,79 @@ class SendMessageAPIView(APIView):
             logger.error(f"Erro ao processar mensagem: {e}", exc_info=True)
             return Response(
                 {'error': f'Erro ao processar mensagem: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class ReportAIResponseAPIView(APIView):
+    """
+    Endpoint para o usuário reportar uma resposta inadequada da IA.
+
+    POST /chatbot/api/report-response/
+    Body: {
+        "message_id": 123,
+        "complaint": "A IA informou dados errados sobre..."
+    }
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """Registra a reclamação e dispara alerta WhatsApp."""
+        message_id = request.data.get('message_id')
+        complaint_text = request.data.get('complaint', '').strip()
+
+        if not message_id:
+            return Response({'error': 'message_id é obrigatório'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not complaint_text:
+            return Response({'error': 'complaint não pode ser vazio'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Buscar a mensagem — deve pertencer ao usuário autenticado
+            bot_message = ChatMessage.objects.get(
+                pk=message_id,
+                role='assistant',
+                session__user=request.user,
+            )
+        except ChatMessage.DoesNotExist:
+            return Response({'error': 'Mensagem não encontrada'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            from monitoring.models import AIResponseAlert
+            from monitoring.tasks import send_whatsapp_alert_task
+            from django.conf import settings as django_settings
+
+            ai_provider = getattr(django_settings, 'AI_PROVIDER', 'unknown')
+
+            alert = AIResponseAlert.objects.create(
+                session=bot_message.session,
+                message=bot_message,
+                user=request.user,
+                alert_type='user_complaint',
+                severity='medium',
+                provider=ai_provider,
+                user_complaint_text=complaint_text[:1000],
+                ai_response_preview=bot_message.content[:500],
+            )
+
+            # Marcar feedback na mensagem
+            bot_message.user_feedback = 'incorrect'
+            bot_message.save(update_fields=['user_feedback'])
+
+            # Disparar alerta WhatsApp assíncrono
+            send_whatsapp_alert_task.delay(ai_alert_id=alert.pk)
+
+            logger.info(f"✅ Reclamação registrada: AIResponseAlert #{alert.pk} | Usuário: {request.user.username}")
+
+            return Response(
+                {'message': 'Reclamação registrada com sucesso. Obrigado pelo feedback!'},
+                status=status.HTTP_201_CREATED
+            )
+
+        except Exception as e:
+            logger.error(f"Erro ao registrar reclamação: {e}", exc_info=True)
+            return Response(
+                {'error': 'Erro ao registrar reclamação'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -434,6 +560,26 @@ class SupportSendMessageAPIView(APIView):
                 role='user',
                 content=user_message_text
             )
+
+            # 2b. [MONITORAMENTO] Analisar conduta da mensagem
+            try:
+                from monitoring.detector import SuspiciousActivityDetector
+                from monitoring.tasks import send_whatsapp_alert_task
+                detector = SuspiciousActivityDetector()
+                ip_address = (
+                    request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+                    or request.META.get('REMOTE_ADDR')
+                )
+                suspicious = detector.analyze_message(
+                    user_message=user_message,
+                    session=session,
+                    user=request.user if request.user.is_authenticated else None,
+                    ip_address=ip_address,
+                )
+                if suspicious and suspicious.severity in ('medium', 'high', 'critical'):
+                    send_whatsapp_alert_task.delay(activity_id=suspicious.pk)
+            except Exception as monitor_err:
+                logger.warning(f"⚠️ Erro no monitoramento de suporte (não crítico): {monitor_err}")
 
             # 3. Obter histórico da conversa (últimas 10 mensagens)
             previous_messages = list(

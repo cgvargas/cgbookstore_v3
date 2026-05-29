@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'new_authors.apps.NewAuthorsConfig',
     'news',
     'ereader.apps.EreaderConfig',  # RetroReader - Leitor de E-Books
+    'monitoring.apps.MonitoringConfig',  # Sistema de Monitoramento + Alertas WhatsApp
 
     # Third-party Apps
     'rest_framework',
@@ -303,12 +304,54 @@ CELERY_BEAT_SCHEDULE = {
         'kwargs': {'limit': 5, 'hours_back': 24},
         'options': {'expires': 60 * 60 * 2},  # Expira após 2h
     },
+    # Monitoramento - Resumo diário de atividades suspeitas + erros de IA
+    'send-monitoring-daily-summary': {
+        'task': 'monitoring.send_daily_summary',
+        'schedule': crontab(hour=8, minute=30),  # Todo dia às 8h30
+        'options': {'expires': 60 * 60},
+    },
+    # Monitoramento - Re-tentativa de alertas não enviados
+    'retry-pending-alerts': {
+        'task': 'monitoring.retry_pending_alerts',
+        'schedule': crontab(minute='*/15'),  # A cada 15 minutos
+        'options': {'expires': 60 * 14},  # Expira antes da próxima execução
+    },
 }
 
 
 # Token secreto para endpoints de cron externos (cron-job.org)
 # Configure no Render: CRON_SECRET_TOKEN=seu_token_aleatorio_aqui
 CRON_SECRET_TOKEN = env('CRON_SECRET_TOKEN', default=None)
+
+
+# ==============================================================================
+# WHATSAPP NOTIFICATIONS (CallMeBot)
+# ==============================================================================
+# Envio de alertas em tempo real via WhatsApp para o administrador.
+#
+# SETUP CALLMEBOT (gratuito, 5 minutos):
+# 1. Salve o número +34644001121 nos contatos do WhatsApp
+# 2. Envie para ele: "I allow callmebot to send me messages"
+# 3. Aguarde receber sua API KEY no WhatsApp
+# 4. Configure as variáveis abaixo no .env
+#
+# Número do admin no formato internacional sem + (ex: 5511999998888)
+WHATSAPP_ADMIN_NUMBER = env('WHATSAPP_ADMIN_NUMBER', default='')
+
+# API Key recebida do CallMeBot
+CALLMEBOT_API_KEY = env('CALLMEBOT_API_KEY', default='')
+
+# ==============================================================================
+# MONITORING CONFIGURATION
+# ==============================================================================
+# Quantidade de mensagens em SPAM_WINDOW_SECONDS para considerar spam
+MONITORING_SPAM_THRESHOLD = env.int('MONITORING_SPAM_THRESHOLD', default=5)
+
+# Janela de tempo em segundos para detectar spam
+MONITORING_SPAM_WINDOW_SECONDS = env.int('MONITORING_SPAM_WINDOW_SECONDS', default=60)
+
+# Severidade mínima para enviar alerta WhatsApp: 'low', 'medium', 'high', 'critical'
+MONITORING_ALERT_MIN_SEVERITY = env('MONITORING_ALERT_MIN_SEVERITY', default='medium')
 
 
 # Static files (CSS, JavaScript, Images)
