@@ -280,6 +280,13 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"Perfil de {self.user.username}"
 
+    def save(self, *args, **kwargs):
+        # Limpa a URL do avatar do cache para forçar a geração de uma nova URL na próxima requisição
+        from django.core.cache import cache
+        cache_key = f"user_avatar_url_{self.user.id}"
+        cache.delete(cache_key)
+        super().save(*args, **kwargs)
+
     # ========== MÉTODOS DE GAMIFICAÇÃO ==========
 
     def calculate_level(self):
