@@ -1,0 +1,29 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static %}
+
+{% block object-tools-items %}
+    {{ block.super }}
+    {% if user.is_superuser %}
+        <li>
+            <a href="{% url 'core:generate_contribution_form' 'article' %}?format=xlsx" 
+               class="viewsitelink" 
+               style="background-color: #217346 !important; color: white !important; font-weight: bold; padding: 6px 12px; border-radius: 4px; display: inline-flex; align-items: center; gap: 5px;">
+                📊 Gerar Form. XLSX
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'core:generate_contribution_form' 'article' %}?format=pdf" 
+               class="viewsitelink" 
+               style="background-color: #c0392b !important; color: white !important; font-weight: bold; padding: 6px 12px; border-radius: 4px; display: inline-flex; align-items: center; gap: 5px;">
+                📄 Gerar Form. PDF
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'core:generate_contribution_form' 'article' %}?format=txt" 
+               class="viewsitelink" 
+               style="background-color: #495057 !important; color: white !important; font-weight: bold; padding: 6px 12px; border-radius: 4px; display: inline-flex; align-items: center; gap: 5px;">
+                📝 Gerar Form. TXT
+            </a>
+        </li>
+    {% endif %}
+{% endblock %}
