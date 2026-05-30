@@ -644,6 +644,58 @@
                         <i class="fas fa-eye me-1"></i>Ver Debates
                     </a>
                 </div>
+
+                {% if user.is_superuser %}
+                <!-- ===== CARD: GERAÇÃO DE FORMULÁRIO (somente superusuários) ===== -->
+                <hr class="my-3">
+                <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-left: 4px solid #8E44AD !important;">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span style="width:32px; height:32px; background:rgba(142,68,173,0.2); border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                                <i class="fas fa-file-alt" style="color:#a855f7; font-size:0.85rem;"></i>
+                            </span>
+                            <div>
+                                <h6 class="mb-0 text-white" style="font-size:0.85rem; font-weight:700; letter-spacing:0.02em;">
+                                    📚 Formulário de Cadastro
+                                </h6>
+                                <small style="color:rgba(255,255,255,0.55); font-size:0.73rem;">Somente superusuários</small>
+                            </div>
+                        </div>
+                        <p class="mb-2" style="color:rgba(255,255,255,0.7); font-size:0.78rem; line-height:1.4;">
+                            Baixe o formulário oficial para solicitar a inclusão de um novo livro no catálogo.
+                        </p>
+                        <div class="d-flex flex-column gap-1">
+                            <a href="{% url 'core:generate_contribution_form' 'book' %}?format=xlsx"
+                               id="btn-form-book-xlsx"
+                               class="btn btn-sm w-100 d-flex align-items-center justify-content-center gap-2"
+                               style="background: rgba(142,68,173,0.85); border:none; color:#fff; font-size:0.78rem; border-radius:8px; padding:6px 10px; font-weight:600; transition: all 0.2s ease;"
+                               onmouseover="this.style.background='rgba(142,68,173,1)'; this.style.transform='translateY(-1px)';"
+                               onmouseout="this.style.background='rgba(142,68,173,0.85)'; this.style.transform='translateY(0)';">
+                                <i class="fas fa-file-excel"></i> Baixar XLSX
+                            </a>
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'core:generate_contribution_form' 'book' %}?format=pdf"
+                                   id="btn-form-book-pdf"
+                                   class="btn btn-sm flex-fill d-flex align-items-center justify-content-center gap-1"
+                                   style="background: rgba(220,53,69,0.7); border:none; color:#fff; font-size:0.75rem; border-radius:8px; padding:5px 8px; font-weight:600; transition: all 0.2s ease;"
+                                   onmouseover="this.style.background='rgba(220,53,69,0.9)'; this.style.transform='translateY(-1px)';"
+                                   onmouseout="this.style.background='rgba(220,53,69,0.7)'; this.style.transform='translateY(0)';">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </a>
+                                <a href="{% url 'core:generate_contribution_form' 'book' %}?format=txt"
+                                   id="btn-form-book-txt"
+                                   class="btn btn-sm flex-fill d-flex align-items-center justify-content-center gap-1"
+                                   style="background: rgba(108,117,125,0.7); border:none; color:#fff; font-size:0.75rem; border-radius:8px; padding:5px 8px; font-weight:600; transition: all 0.2s ease;"
+                                   onmouseover="this.style.background='rgba(108,117,125,0.9)'; this.style.transform='translateY(-1px)';"
+                                   onmouseout="this.style.background='rgba(108,117,125,0.7)'; this.style.transform='translateY(0)';">
+                                    <i class="fas fa-file-alt"></i> TXT
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
             </div>
         </div>
 

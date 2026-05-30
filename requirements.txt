@@ -151,3 +151,7 @@ cachetools==6.2.1
 # ========== NEWS AGENT SYSTEM ==========
 feedparser==6.0.11
 APScheduler==3.11.1
+
+# ========== GERAÇÃO DE FORMULÁRIOS (XLSX / PDF) ==========
+openpyxl>=3.1.5       # Geração de planilhas XLSX para formulários de contribuição
+reportlab>=4.0.0      # Geração de PDFs para formulários de contribuição

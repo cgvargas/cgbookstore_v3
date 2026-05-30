@@ -35,6 +35,9 @@ from .library_ajax_views import (
 # Views de Busca de Livros
 from . import book_search_views
 
+# Views de Geração de Formulários de Contribuição
+from .form_generator_view import generate_contribution_form, form_generator_info
+
 # Views de Dashboard Admin
 from .dashboard_view import admin_dashboard
 
@@ -105,6 +108,10 @@ __all__ = [
 
     # Busca de livros
     'book_search_views',
+
+    # Geração de Formulários
+    'generate_contribution_form',
+    'form_generator_info',
 
     # Dashboard admin
     'admin_dashboard',
