@@ -378,14 +378,34 @@ function csvOnFileChange(input) {{
       btn.textContent = 'Importar';
       return;
     }}
-    var hdr = _csvParseLine(lines[0]);
+    
+    // Detectar o delimitador
+    var firstLine = lines[0];
+    var sep = ',';
+    var candidates = [',', ';', '\\t'];
+    var maxNonEmpty = 0;
+    for (var idx = 0; idx < candidates.length; idx++) {{
+      var cand = candidates[idx];
+      var parts = firstLine.split(cand);
+      var nonEmpty = 0;
+      for (var j = 0; j < parts.length; j++) {{
+        if (parts[j].trim() !== '') nonEmpty++;
+      }}
+      if (nonEmpty > maxNonEmpty) {{
+        maxNonEmpty = nonEmpty;
+        sep = cand;
+      }}
+    }}
+    
+    var hdr = _csvParseLine(lines[0], sep);
     _csvData = [];
     for (var i = 1; i < lines.length; i++) {{
-      var cols = _csvParseLine(lines[i]);
+      var cols = _csvParseLine(lines[i], sep);
       if (cols.every(function(v) {{ return v.trim() === ''; }})) continue;
       var row = {{}};
       hdr.forEach(function(h, j) {{
-        row[h.trim().toLowerCase()] = (cols[j] || '').trim();
+        var key = _csvNormHeader(h);
+        row[key] = (cols[j] || '').trim();
       }});
       if (row.title) _csvData.push(row);
     }}
@@ -471,16 +491,32 @@ function _csvMsg(msg, ok) {{
   el.style.display    = 'block';
 }}
 
-function _csvParseLine(line) {{
+function _csvParseLine(line, sep) {{
+  sep = sep || ',';
+  if (sep === '\\t') return line.split('\\t');
   var result = [], inQuote = false, cur = '';
   for (var i = 0; i < line.length; i++) {{
     var ch = line[i];
     if (ch === '"') {{ inQuote = !inQuote; }}
-    else if (ch === ',' && !inQuote) {{ result.push(cur); cur = ''; }}
+    else if (ch === sep && !inQuote) {{ result.push(cur); cur = ''; }}
     else {{ cur += ch; }}
   }}
   result.push(cur);
   return result;
+}}
+
+function _csvNormHeader(h) {{
+  if (!h) return '';
+  var s = h.trim();
+  s = s.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+  s = s.toLowerCase();
+  if (s === 'titulo' || s === 'title')         return 'title';
+  if (s === 'ordem' || s === 'order')          return 'order';
+  if (s.match(/^ano/))                          return 'year';
+  if (s === 'formato' || s === 'format')        return 'format';
+  if (s.match(/^editora|^publisher|^loja/))    return 'publisher';
+  if (s.match(/^obs|^notes?|^nota/))           return 'notes';
+  return s;
 }}
 </script>
 """

@@ -470,20 +470,62 @@ def import_author_works_view(request, author_id):
     except Exception as e:
         return JsonResponse({'success': False, 'error': f'Erro ao ler o arquivo: {str(e)}'})
 
-    reader = csv.DictReader(io.StringIO(content))
+    # Detectar o delimitador automaticamente
+    lines = content.splitlines()
+    first_line = lines[0] if lines else ''
+    
+    delimiter = ','
+    if first_line:
+        candidates = [',', ';', '\t']
+        best_cand = ','
+        max_non_empty = 0
+        for cand in candidates:
+            parts = first_line.split(cand)
+            non_empty_count = sum(1 for p in parts if p.strip())
+            if non_empty_count > max_non_empty:
+                max_non_empty = non_empty_count
+                best_cand = cand
+        delimiter = best_cand
+
+    reader = csv.DictReader(io.StringIO(content), delimiter=delimiter)
 
     # Validar cabeçalho
-    required_columns = {'year', 'title'}
     if not reader.fieldnames:
         return JsonResponse({'success': False, 'error': 'Arquivo CSV vazio ou sem cabeçalho.'})
 
-    fieldnames_lower = {f.strip().lower() for f in reader.fieldnames}
-    missing = required_columns - fieldnames_lower
+    import unicodedata
+    def normalize_header(h):
+        if not h:
+            return ''
+        s = h.strip()
+        # Remover acentos
+        s = ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+        s = s.lower()
+        if s in ('titulo', 'title'):
+            return 'title'
+        if s in ('ordem', 'order'):
+            return 'order'
+        if s.startswith('ano'):
+            return 'year'
+        if s in ('formato', 'format'):
+            return 'format'
+        if any(s.startswith(x) for x in ('editora', 'publisher', 'loja')):
+            return 'publisher'
+        if any(s.startswith(x) for x in ('obs', 'notes', 'nota')):
+            return 'notes'
+        return s
+
+    # Mapear chaves originais do CSV para chaves normalizadas
+    normalized_fieldnames = {f: normalize_header(f) for f in reader.fieldnames if f}
+    fieldnames_normalized = set(normalized_fieldnames.values())
+
+    required_columns = {'year', 'title'}
+    missing = required_columns - fieldnames_normalized
     if missing:
         return JsonResponse({
             'success': False,
             'error': f'Colunas obrigatórias ausentes: {", ".join(missing)}. '
-                     f'O CSV deve conter pelo menos: year, title'
+                     f'O CSV deve conter pelo menos: Ano, Título (ou year, title)'
         })
 
     works_to_create = []
@@ -495,11 +537,14 @@ def import_author_works_view(request, author_id):
             errors.append(f'Limite de {LIMIT} obras por importação atingido. Linhas restantes ignoradas.')
             break
 
-        # Normalizar chaves (remover espaços e converter para minúsculo)
-        row = {k.strip().lower(): v.strip() for k, v in row.items() if k}
+        # Normalizar chaves do row para as chaves normalizadas mapeadas
+        row_norm = {}
+        for k, v in row.items():
+            if k and k in normalized_fieldnames:
+                row_norm[normalized_fieldnames[k]] = (v or '').strip()
 
-        title = row.get('title', '').strip()
-        year = row.get('year', '').strip()
+        title = row_norm.get('title', '').strip()
+        year = row_norm.get('year', '').strip()
 
         # Ignorar linhas sem título
         if not title:
