@@ -65,7 +65,7 @@ REGRAS DE RETORNO:
                 logger.warning("⚠️ Validador Groq indisponível, ignorando validação")
                 return draft_response, False
 
-            validation_response = groq_service.get_response(message=prompt, conversation_history=[])
+            validation_response = groq_service.get_response(message=prompt, conversation_history=[], bypass_rag=True)
         else:
             # Validador é o Gemini
             gemini_service = get_gemini_service()
@@ -73,7 +73,7 @@ REGRAS DE RETORNO:
                 logger.warning("⚠️ Validador Gemini indisponível, ignorando validação")
                 return draft_response, False
 
-            validation_response = gemini_service.get_response(message=prompt, conversation_history=[])
+            validation_response = gemini_service.get_response(message=prompt, conversation_history=[], bypass_rag=True)
 
         validation_response = validation_response.strip()
 
