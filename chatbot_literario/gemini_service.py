@@ -631,12 +631,15 @@ NÃO invente títulos de livros. Se você não tem certeza, diga honestamente qu
                     logger.info("ℹ️ RAG não ativado: Mensagem sem enriquecimento")
                     enriched_message = message  # manter mensagem original (com prefixo) para a IA
 
-            # Criar sessão de chat com histórico
-            # Nota: Google Search Grounding não é suportado pelo gemini-pro com este SDK
-            chat = self.model.start_chat(history=conversation_history or [])
-
-            # Enviar mensagem enriquecida (com RAG se aplicável)
-            response = chat.send_message(enriched_message)
+            # Se houver histórico, usar chat session. Caso contrário, gerar conteúdo direto.
+            if conversation_history:
+                chat = self.model.start_chat(history=conversation_history)
+                response = chat.send_message(enriched_message)
+            else:
+                response = self.model.generate_content(
+                    enriched_message,
+                    generation_config=self.generation_config
+                )
 
             # Verificar finish_reason
             finish_reason = response.candidates[0].finish_reason
