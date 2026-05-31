@@ -438,6 +438,9 @@ GEMINI_API_KEY = env('GEMINI_API_KEY', default='')
 # Crie sua chave em: https://console.groq.com/keys
 GROQ_API_KEY = env('GROQ_API_KEY', default='')
 
+# Validação cruzada de IA em tempo real para evitar alucinações
+AI_CROSS_VALIDATION_ENABLED = env.bool('AI_CROSS_VALIDATION_ENABLED', default=True)
+
 # Unsplash API (para imagens em posts gerados por IA)
 # Criar conta gratuita em: https://unsplash.com/developers
 UNSPLASH_ACCESS_KEY = env('UNSPLASH_ACCESS_KEY', default='')

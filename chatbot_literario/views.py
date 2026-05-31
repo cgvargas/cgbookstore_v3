@@ -222,6 +222,18 @@ class SendMessageAPIView(APIView):
                     # Não é erro de quota ou não é Gemini, propagar erro
                     raise primary_error
             
+            # Validação Cruzada (Anti-Alucinação)
+            was_corrected = False
+            original_draft = bot_response_text
+            try:
+                from .validation_service import validate_and_correct_response
+                bot_response_text, was_corrected = validate_and_correct_response(
+                    user_message=user_message_text,
+                    draft_response=bot_response_text
+                )
+            except Exception as val_err:
+                logger.error(f"Erro ao executar validação cruzada: {val_err}", exc_info=True)
+
             response_time = time.time() - start_time
 
             # 5. Salvar resposta do chatbot
@@ -231,6 +243,23 @@ class SendMessageAPIView(APIView):
                 content=bot_response_text,
                 response_time=response_time
             )
+
+            # Criar alerta de monitoramento se foi corrigido
+            if was_corrected:
+                try:
+                    from monitoring.models import AIResponseAlert
+                    AIResponseAlert.objects.create(
+                        session=session,
+                        message=bot_message,
+                        user=request.user,
+                        alert_type='hallucination_suspected',
+                        severity='low',
+                        provider=ai_provider,
+                        ai_response_preview=original_draft[:500],
+                        error_message=f"Resposta original corrigida por validação cruzada.\nOriginal:\n{original_draft}\n\nCorrigida:\n{bot_response_text}"
+                    )
+                except Exception as alert_err:
+                    logger.warning(f"⚠️ Erro ao registrar alerta de auto-correção: {alert_err}")
 
             # 6. Gerar título da sessão se for a primeira mensagem do usuário
             if not session.title:
