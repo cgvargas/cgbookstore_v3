@@ -341,7 +341,9 @@ class CloudflareR2MediaStorage(S3Boto3Storage):
     
     def get_available_name(self, name, max_length=None):
         """
-        Garante que o nome seja normalizado antes de salvar no R2
+        Garante que o nome seja normalizado antes de salvar no R2, preservando as pastas
         """
-        name = normalize_filename(name)
-        return super().get_available_name(name, max_length)
+        dir_name, file_name = os.path.split(name)
+        normalized_file_name = normalize_filename(file_name)
+        new_name = os.path.join(dir_name, normalized_file_name).replace('\\', '/')
+        return super().get_available_name(new_name, max_length)
