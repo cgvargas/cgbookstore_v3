@@ -15,6 +15,11 @@ from io import BytesIO
 import unicodedata
 import re
 
+try:
+    from storages.backends.s3boto3 import S3Boto3Storage
+except ImportError:
+    S3Boto3Storage = object
+
 logger = logging.getLogger(__name__)
 
 
@@ -321,4 +326,22 @@ class SupabaseMediaStorage(Storage):
             return name
 
         # Se existe, usar o método padrão do Django
+        return super().get_available_name(name, max_length)
+
+
+@deconstructible
+class CloudflareR2MediaStorage(S3Boto3Storage):
+    """
+    Storage backend customizado para Cloudflare R2
+    """
+    # Se quiser que os arquivos fiquem em uma subpasta 'media' dentro do bucket
+    # Mude para location = '' se quiser na raiz do bucket
+    location = ''
+    file_overwrite = False
+    
+    def get_available_name(self, name, max_length=None):
+        """
+        Garante que o nome seja normalizado antes de salvar no R2
+        """
+        name = normalize_filename(name)
         return super().get_available_name(name, max_length)

@@ -154,4 +154,5 @@ APScheduler==3.11.1
 
 # ========== GERAÇÃO DE FORMULÁRIOS (XLSX / PDF) ==========
 openpyxl>=3.1.5       # Geração de planilhas XLSX para formulários de contribuição
-reportlab>=4.0.0      # Geração de PDFs para formulários de contribuição
+reportlab>=4.0.0      # Geração de PDFs para formulários de contribuiçãoboto3==1.43.19
+django-storages==1.14.6

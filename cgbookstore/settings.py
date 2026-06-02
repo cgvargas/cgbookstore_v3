@@ -367,11 +367,32 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Controle de uso do Supabase Storage
+# Controle de uso de Storage
+USE_R2_STORAGE = env.bool('USE_R2_STORAGE', default=False)
 USE_SUPABASE_STORAGE = env.bool('USE_SUPABASE_STORAGE', default=True)
 
 # Configuração de Storage Backends (Django 4.2+)
-if USE_SUPABASE_STORAGE and SUPABASE_URL and SUPABASE_ANON_KEY:
+if USE_R2_STORAGE:
+    AWS_ACCESS_KEY_ID = env('R2_ACCESS_KEY_ID', default='')
+    AWS_SECRET_ACCESS_KEY = env('R2_SECRET_ACCESS_KEY', default='')
+    AWS_STORAGE_BUCKET_NAME = env('R2_BUCKET_NAME', default='')
+    R2_ACCOUNT_ID = env('R2_ACCOUNT_ID', default='')
+    AWS_S3_ENDPOINT_URL = f"https://{R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+    
+    AWS_S3_CUSTOM_DOMAIN = env('R2_CUSTOM_DOMAIN', default=None)
+    if not AWS_S3_CUSTOM_DOMAIN:
+        AWS_S3_CUSTOM_DOMAIN = None
+        
+    STORAGES = {
+        "default": {
+            "BACKEND": "core.storage_backends.CloudflareR2MediaStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+    logger.info("✅ Usando Cloudflare R2 Storage para arquivos de mídia")
+elif USE_SUPABASE_STORAGE and SUPABASE_URL and SUPABASE_ANON_KEY:
     # Usar Supabase Storage para uploads
     STORAGES = {
         "default": {
