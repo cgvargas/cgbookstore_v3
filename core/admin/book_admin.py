@@ -4,7 +4,7 @@ Admin para Book
 from django import forms
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from django.db.models import ExtractYear
+from django.db.models.functions import ExtractYear
 from core.models import Book, Video
 from news.models import Article
 
