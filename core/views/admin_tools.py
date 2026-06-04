@@ -556,13 +556,13 @@ def import_author_works_view(request, author_id):
 
         # order: padrão 0 se inválido
         try:
-            order = int(row.get('order', 0) or 0)
+            order = int(row_norm.get('order', 0) or 0)
         except (ValueError, TypeError):
             order = 0
 
-        work_format = row.get('format', 'Capa comum').strip() or 'Capa comum'
-        publisher = row.get('publisher', '').strip()
-        notes = row.get('notes', '').strip()
+        work_format = row_norm.get('format', 'Capa comum').strip() or 'Capa comum'
+        publisher = row_norm.get('publisher', '').strip()
+        notes = row_norm.get('notes', '').strip()
 
         works_to_create.append(AuthorWork(
             author=author,
