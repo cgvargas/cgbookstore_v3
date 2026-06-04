@@ -4,6 +4,7 @@ Admin para Book
 from django import forms
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.db.models import ExtractYear
 from core.models import Book, Video
 from news.models import Article
 
@@ -193,4 +194,26 @@ class BookAdmin(admin.ModelAdmin):
         """Indica se o livro tem dados do Google Books."""
         return '✓' if obj.has_google_books_data else '✗'
 
-    has_google_books_data.short_description = 'Google Books'
+    has_google_books_data.short_description = 'Google Books'
+
+    def changelist_view(self, request, extra_context=None):
+        """
+        Injeta no contexto a lista de anos disponíveis e o ano
+        atualmente selecionado para o dropdown de filtro rápido por ano.
+        """
+        extra_context = extra_context or {}
+
+        # Anos distintos de publication_date presentes no banco
+        anos = (
+            Book.objects
+            .annotate(ano=ExtractYear('publication_date'))
+            .values_list('ano', flat=True)
+            .distinct()
+            .order_by('-ano')
+        )
+        extra_context['anos_disponiveis'] = [a for a in anos if a]
+
+        # Ano atualmente filtrado (via GET ?publication_date__year=XXXX)
+        extra_context['ano_selecionado'] = request.GET.get('publication_date__year', '')
+
+        return super().changelist_view(request, extra_context=extra_context)
