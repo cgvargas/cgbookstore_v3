@@ -15,7 +15,7 @@
 {# O bloco 'actions' nem sempre é renderizado quando não há acoes   #}
 {# ════════════════════════════════════════════════════════════════ #}
 {% block date_hierarchy %}
-{{ block.super }}
+{# block.super removido intencionalmente para suprimir os links nativos de ano/mês #}
 
 {% if anos_disponiveis %}
 <style>
