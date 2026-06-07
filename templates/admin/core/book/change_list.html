@@ -282,9 +282,10 @@
     opacity: .85;
     margin-top: 1px;
   }
-  .fc-btn--xlsx { background: linear-gradient(135deg, #217346, #16a34a); }
-  .fc-btn--pdf  { background: linear-gradient(135deg, #c0392b, #e74c3c); }
-  .fc-btn--txt  { background: linear-gradient(135deg, #495057, #6c757d); }
+  .fc-btn--xlsx   { background: linear-gradient(135deg, #217346, #16a34a); }
+  .fc-btn--pdf    { background: linear-gradient(135deg, #c0392b, #e74c3c); }
+  .fc-btn--txt    { background: linear-gradient(135deg, #495057, #6c757d); }
+  .fc-btn--google { background: linear-gradient(135deg, #1a73e8, #0d47a1); }
 
   /* ── Rodapé ── */
   #form-card-footer {
@@ -306,14 +307,23 @@
     {# Cabeçalho #}
     <div id="form-card-header">
       <div id="form-card-header-text">
-        <h3 id="form-card-title">📋 Gerar Formulário de Livro</h3>
-        <p>Escolha o formato para exportar o formulário de contribuição.</p>
+        <h3 id="form-card-title">📋 Google Books</h3>
+        <p>Buscar ou gerar formulário de contribuição.</p>
       </div>
       <button id="form-card-close" aria-label="Fechar" title="Fechar">✕</button>
     </div>
 
     {# Botões #}
     <div id="form-card-body">
+      <a href="/admin/google-books/search/"
+         class="fc-btn fc-btn--google">
+        <span class="fc-btn-icon">🔍</span>
+        <span class="fc-btn-text">
+          <strong>Google Books</strong>
+          <span>Buscar e importar livros</span>
+        </span>
+      </a>
+
       <a href="{% url 'core:generate_contribution_form' 'book' %}?format=xlsx"
          class="fc-btn fc-btn--xlsx">
         <span class="fc-btn-icon">📊</span>
