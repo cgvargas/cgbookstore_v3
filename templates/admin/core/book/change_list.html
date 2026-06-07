@@ -10,20 +10,23 @@
     {{ block.super }}
 {% endblock %}
 
-{% block actions %}
+{# ════════════════════════════════════════════════════════════════ #}
+{# DROPDOWN DE FILTRO POR ANO — posicionado após o date_hierarchy   #}
+{# O bloco 'actions' nem sempre é renderizado quando não há acoes   #}
+{# ════════════════════════════════════════════════════════════════ #}
+{% block date_hierarchy %}
 {{ block.super }}
 
-{# ════════════════════════════════════════════════════════════════ #}
-{# DROPDOWN DE FILTRO POR ANO                                       #}
-{# ════════════════════════════════════════════════════════════════ #}
 {% if anos_disponiveis %}
 <style>
+  #year-filter-bar {
+    margin: 8px 0 4px;
+    padding: 6px 0 2px;
+  }
   #year-filter-wrapper {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin-left: 12px;
-    vertical-align: middle;
   }
   #year-filter-label {
     font-size: 13px;
@@ -88,20 +91,22 @@
   }
 </style>
 
-<div id="year-filter-wrapper">
-  <label id="year-filter-label" for="year-filter-select">📅 Ano:</label>
-  <select id="year-filter-select">
-    <option value="">-- Todos os anos --</option>
-    {% for ano in anos_disponiveis %}
-      <option value="{{ ano }}" {% if ano_selecionado == ano|stringformat:"s" %}selected{% endif %}>
-        {{ ano }}
-      </option>
-    {% endfor %}
-  </select>
-  <button id="year-filter-btn" type="button">Filtrar</button>
-  {% if ano_selecionado %}
-    <a id="year-filter-clear" href="?">✕ Limpar</a>
-  {% endif %}
+<div id="year-filter-bar">
+  <div id="year-filter-wrapper">
+    <label id="year-filter-label" for="year-filter-select">📅 Filtrar por ano:</label>
+    <select id="year-filter-select">
+      <option value="">-- Todos os anos --</option>
+      {% for ano in anos_disponiveis %}
+        <option value="{{ ano }}" {% if ano_selecionado == ano|stringformat:"s" %}selected{% endif %}>
+          {{ ano }}
+        </option>
+      {% endfor %}
+    </select>
+    <button id="year-filter-btn" type="button">Filtrar</button>
+    {% if ano_selecionado %}
+      <a id="year-filter-clear" href="?">✕ Limpar</a>
+    {% endif %}
+  </div>
 </div>
 
 <script>
@@ -113,6 +118,7 @@
   btn.addEventListener('click', function () {
     var year = sel.value;
     var params = new URLSearchParams(window.location.search);
+    // Remove navegação do date_hierarchy para evitar conflito
     params.delete('publication_date__day');
     params.delete('publication_date__month');
     params.delete('publication_date__year');
@@ -121,6 +127,7 @@
     window.location.search = params.toString();
   });
 
+  // Ao selecionar "Todos os anos", limpa o filtro imediatamente
   sel.addEventListener('change', function () {
     if (this.value === '') {
       var params = new URLSearchParams(window.location.search);
@@ -134,7 +141,6 @@
 })();
 </script>
 {% endif %}
-{# ════════════════════════════════════════════════════════════════ #}
 {% endblock %}
 
 
