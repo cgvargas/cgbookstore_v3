@@ -78,6 +78,11 @@ class SupabaseMediaStorage(Storage):
             location: Não usado, mantido para compatibilidade
             base_url: URL base do Supabase (opcional)
         """
+        self._use_r2 = getattr(settings, 'USE_R2_STORAGE', False)
+        if self._use_r2:
+            self.location = location or ''
+            return
+
         self.location = location or ''
         self.base_url = base_url or settings.SUPABASE_URL
         self._supabase = supabase_storage_admin
@@ -98,6 +103,13 @@ class SupabaseMediaStorage(Storage):
                 'events/': 'book-covers',
                 'users/': 'user-avatars',
             }
+
+    @property
+    def r2_storage(self):
+        if not hasattr(self, '_r2_storage_inst'):
+            from core.storage_backends import CloudflareR2MediaStorage
+            self._r2_storage_inst = CloudflareR2MediaStorage()
+        return self._r2_storage_inst
 
     def _get_bucket_and_path(self, name):
         """
@@ -124,6 +136,8 @@ class SupabaseMediaStorage(Storage):
         return self._supabase.BOOK_COVERS_BUCKET, name
 
     def _open(self, name, mode='rb'):
+        if self._use_r2:
+            return self.r2_storage._open(name, mode)
         """
         Abre um arquivo do Supabase Storage
 
@@ -151,6 +165,8 @@ class SupabaseMediaStorage(Storage):
             raise
 
     def _save(self, name, content):
+        if self._use_r2:
+            return self.r2_storage._save(name, content)
         """
         Salva um arquivo no Supabase Storage
 
@@ -205,6 +221,8 @@ class SupabaseMediaStorage(Storage):
             raise
 
     def exists(self, name):
+        if self._use_r2:
+            return self.r2_storage.exists(name)
         """
         Verifica se um arquivo existe no Supabase Storage
 
@@ -226,6 +244,8 @@ class SupabaseMediaStorage(Storage):
             return False
 
     def url(self, name):
+        if self._use_r2:
+            return self.r2_storage.url(name)
         """
         Retorna a URL pública do arquivo
 
@@ -243,6 +263,8 @@ class SupabaseMediaStorage(Storage):
             return ''
 
     def delete(self, name):
+        if self._use_r2:
+            return self.r2_storage.delete(name)
         """
         Deleta um arquivo do Supabase Storage
 
@@ -257,6 +279,8 @@ class SupabaseMediaStorage(Storage):
             logger.error(f"Erro ao deletar arquivo '{name}': {str(e)}")
 
     def size(self, name):
+        if self._use_r2:
+            return self.r2_storage.size(name)
         """
         Retorna o tamanho do arquivo
 
@@ -281,6 +305,8 @@ class SupabaseMediaStorage(Storage):
             return 0
 
     def listdir(self, path):
+        if self._use_r2:
+            return self.r2_storage.listdir(path)
         """
         Lista arquivos e diretórios
 
@@ -311,6 +337,8 @@ class SupabaseMediaStorage(Storage):
             return [], []
 
     def get_available_name(self, name, max_length=None):
+        if self._use_r2:
+            return self.r2_storage.get_available_name(name, max_length)
         """
         Retorna nome disponível para o arquivo
         Se já existe, adiciona sufixo
