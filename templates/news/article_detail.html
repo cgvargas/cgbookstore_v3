@@ -9,7 +9,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="container my-5">
+<div class="news-journal">
+    {% include 'news/header.html' %}
+
+    <div class="container my-5">
     <article class="article-detail">
         <!-- Breadcrumb -->
         <nav aria-label="breadcrumb">
@@ -198,5 +201,6 @@
         {% endif %}
 
     </article>
+    </div>
 </div>
 {% endblock %}

@@ -8,7 +8,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="container my-5">
+<div class="news-journal">
+    {% include 'news/header.html' %}
+
+    <div class="container my-5">
     <div class="mb-4">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
@@ -80,5 +83,6 @@
         <a href="{% url 'news:home' %}" class="btn btn-primary">Voltar para CG.Fandom News</a>
     </div>
     {% endif %}
+    </div>
 </div>
 {% endblock %}

@@ -6,6 +6,7 @@ app_name = 'news'
 urlpatterns = [
     # Página principal do jornal
     path('', views.news_home, name='home'),
+    path('todas/', views.all_articles, name='all_articles'),
 
     # Artigos
     path('artigo/<slug:slug>/', views.article_detail, name='article_detail'),

@@ -121,12 +121,37 @@ def article_detail(request, slug):
         is_published=True
     ).exclude(id=article.id).distinct().order_by('-published_at')[:4]
 
+    categories = Category.objects.filter(is_active=True).order_by('order', 'name')
+
     context = {
         'article': article,
         'related_articles': related_articles,
+        'categories': categories,
     }
 
     return render(request, 'news/article_detail.html', context)
+
+
+def all_articles(request):
+    """Lista todos os artigos publicados com paginação"""
+    articles_list = Article.objects.defer('content').filter(
+        is_published=True
+    ).order_by('-published_at')
+
+    # Paginação
+    paginator = Paginator(articles_list, 12)
+    page_number = request.GET.get('page')
+    articles = paginator.get_page(page_number)
+
+    # Categorias ativas
+    categories = Category.objects.filter(is_active=True).order_by('order', 'name')
+
+    context = {
+        'articles': articles,
+        'categories': categories,
+    }
+
+    return render(request, 'news/all_articles.html', context)
 
 
 def category_articles(request, slug):
@@ -143,9 +168,12 @@ def category_articles(request, slug):
     page_number = request.GET.get('page')
     articles = paginator.get_page(page_number)
 
+    categories = Category.objects.filter(is_active=True).order_by('order', 'name')
+
     context = {
         'category': category,
         'articles': articles,
+        'categories': categories,
     }
 
     return render(request, 'news/category_articles.html', context)
@@ -165,9 +193,12 @@ def tag_articles(request, slug):
     page_number = request.GET.get('page')
     articles = paginator.get_page(page_number)
 
+    categories = Category.objects.filter(is_active=True).order_by('order', 'name')
+
     context = {
         'tag': tag,
         'articles': articles,
+        'categories': categories,
     }
 
     return render(request, 'news/tag_articles.html', context)
@@ -191,10 +222,13 @@ def content_type_articles(request, content_type):
     page_number = request.GET.get('page')
     articles = paginator.get_page(page_number)
 
+    categories = Category.objects.filter(is_active=True).order_by('order', 'name')
+
     context = {
         'content_type': content_type,
         'content_type_display': valid_types[content_type],
         'articles': articles,
+        'categories': categories,
     }
 
     return render(request, 'news/content_type_articles.html', context)
@@ -220,9 +254,12 @@ def search_articles(request):
     page_number = request.GET.get('page')
     articles = paginator.get_page(page_number)
 
+    categories = Category.objects.filter(is_active=True).order_by('order', 'name')
+
     context = {
         'query': query,
         'articles': articles,
+        'categories': categories,
     }
 
     return render(request, 'news/search.html', context)

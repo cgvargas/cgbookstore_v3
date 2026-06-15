@@ -1,0 +1,22 @@
+{% load static %}
+<!-- HEADER DO JORNAL -->
+<div class="journal-header">
+    <div class="container">
+        <h1 class="journal-title">
+            <a href="{% url 'news:home' %}" style="color: white; text-decoration: none;">📰 CG.Fandom News</a>
+        </h1>
+        <p class="journal-subtitle">Seu portal de cultura, livros e eventos</p>
+
+        <!-- Navegação de Categorias -->
+        <nav class="categories-nav">
+            <a href="{% url 'news:home' %}" class="category-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Capa</a>
+            <a href="{% url 'news:all_articles' %}" class="category-link {% if request.resolver_match.url_name == 'all_articles' %}active{% endif %}">Todos os Artigos</a>
+            {% for cat in categories %}
+            <a href="{% url 'news:category_articles' cat.slug %}" class="category-link {% if category.slug == cat.slug %}active{% endif %}">
+                {% if cat.icon %}<i class="{{ cat.icon }}"></i>{% endif %}
+                {{ cat.name }}
+            </a>
+            {% endfor %}
+        </nav>
+    </div>
+</div>
