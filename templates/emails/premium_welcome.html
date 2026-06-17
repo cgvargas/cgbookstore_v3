@@ -25,35 +25,133 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-            color: #333;
-            padding: 30px 20px;
+            background: linear-gradient(135deg, #0a1628 0%, #1a2d4e 60%, #0f2040 100%);
+            color: #FFD700;
+            padding: 35px 20px 25px;
             text-align: center;
+            border-bottom: 3px solid #FFD700;
         }
 
         .header h1 {
-            margin: 0;
-            font-size: 28px;
+            margin: 0 0 6px;
+            font-size: 26px;
+            color: #FFD700;
+            letter-spacing: 1px;
         }
 
-        .premium-badge {
+        .header p {
+            margin: 0;
+            color: #c8d8f0;
+            font-size: 14px;
+        }
+
+        .premium-badge-label {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-            padding: 8px 20px;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #0a1628;
+            padding: 6px 20px;
             border-radius: 20px;
             font-weight: bold;
-            margin-top: 10px;
+            font-size: 13px;
+            margin-top: 12px;
+            letter-spacing: 1px;
         }
 
         .content {
-            padding: 30px 20px;
+            padding: 30px 25px;
         }
 
         .content h2 {
-            color: #667eea;
+            color: #1a2d4e;
             margin-top: 0;
+            font-size: 20px;
         }
+
+        /* ===== SEÇÃO DO BADGE BRINDE ===== */
+        .badge-gift-section {
+            background: linear-gradient(135deg, #0a1628 0%, #1a2d4e 100%);
+            border-radius: 12px;
+            padding: 28px 20px;
+            margin: 25px 0;
+            text-align: center;
+            border: 2px solid #FFD700;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge-gift-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #0a1628;
+            font-weight: bold;
+            font-size: 11px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .badge-gift-title {
+            color: #FFD700;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 6px;
+        }
+
+        .badge-gift-subtitle {
+            color: #c8d8f0;
+            font-size: 13px;
+            margin: 0 0 20px;
+        }
+
+        .badge-image-wrapper {
+            display: inline-block;
+            margin: 10px 0 16px;
+            filter: drop-shadow(0 0 18px rgba(255, 215, 0, 0.5));
+        }
+
+        .badge-image-wrapper img {
+            width: 160px;
+            height: 160px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .badge-name {
+            color: #FFD700;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0 0 4px;
+        }
+
+        .badge-rarity {
+            color: #c8d8f0;
+            font-size: 13px;
+            margin: 0 0 8px;
+        }
+
+        .badge-description {
+            color: #a0b8d0;
+            font-size: 12px;
+            max-width: 380px;
+            margin: 0 auto 14px;
+            line-height: 1.5;
+        }
+
+        .badge-profile-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #FFD700 0%, #e6a000 100%);
+            color: #0a1628 !important;
+            text-decoration: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        /* ===== FIM DO BADGE ===== */
 
         .benefit-list {
             background-color: #f8f9fa;
@@ -76,44 +174,62 @@
         .benefit-icon {
             font-size: 20px;
             margin-right: 12px;
+            min-width: 26px;
         }
 
         .button {
             display: inline-block;
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #ffffff !important;
+            padding: 14px 30px;
+            background: linear-gradient(135deg, #1a2d4e 0%, #0a1628 100%);
+            color: #FFD700 !important;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 6px;
             font-weight: bold;
             margin: 20px 0;
             text-align: center;
+            border: 2px solid #FFD700;
         }
 
         .details-box {
             background-color: #e8f4fd;
-            border-left: 4px solid #2196F3;
+            border-left: 4px solid #1a6fb8;
             padding: 15px;
             margin: 20px 0;
             border-radius: 4px;
         }
 
+        .campaign-notice {
+            background-color: #fff8e1;
+            border-left: 4px solid #FFD700;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #6d4c00;
+        }
+
         .footer {
-            background-color: #f8f9fa;
+            background-color: #0a1628;
             padding: 20px;
             text-align: center;
             font-size: 12px;
-            color: #6c757d;
-            border-top: 1px solid #dee2e6;
+            color: #8aa0c0;
+            border-top: 2px solid #FFD700;
+        }
+
+        .footer strong {
+            color: #FFD700;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
+        <!-- CABEÇALHO -->
         <div class="header">
             <h1>🎉 Parabéns, {{ username }}!</h1>
-            <div class="premium-badge">⭐ PREMIUM ATIVADO</div>
+            <p>Sua jornada Premium começa agora</p>
+            <div class="premium-badge-label">⭐ PREMIUM ATIVADO</div>
         </div>
 
         <div class="content">
@@ -122,6 +238,32 @@
             <p>Sua assinatura Premium da <strong>CGBookStore</strong> foi ativada com sucesso! Você agora tem acesso a
                 recursos exclusivos que vão transformar sua experiência de leitura.</p>
 
+            <!-- BADGE BRINDE -->
+            <div class="badge-gift-section">
+                <div class="badge-gift-tag">🎁 Brinde Exclusivo</div>
+                <p class="badge-gift-title">Você ganhou um badge!</p>
+                <p class="badge-gift-subtitle">Como membro Premium, este badge já está disponível no seu perfil.</p>
+
+                <div class="badge-image-wrapper">
+                <img src="{{ badge_image_src }}" alt="Badge {{ badge_name }}" width="160" height="160">
+                </div>
+
+                <p class="badge-name">{{ badge_icon }} {{ badge_name }}</p>
+                <p class="badge-rarity">{{ badge_rarity_emoji }} Raridade: {{ badge_rarity }}</p>
+                <p class="badge-description">{{ badge_description }}</p>
+
+                <a href="{{ site_url }}/accounts/perfil/" class="badge-profile-link">
+                    👑 Ver meu badge no perfil
+                </a>
+            </div>
+            <!-- FIM DO BADGE BRINDE -->
+
+            {% if is_free_campaign %}
+            <div class="campaign-notice">
+                🎁 <strong>Brinde da CGBookStore:</strong> Você recebeu este período Premium como cortesia especial.
+                Aproveite todos os benefícios durante o período ativo!
+            </div>
+            {% else %}
             <div class="details-box">
                 <strong>📋 Detalhes da sua assinatura:</strong>
                 <ul style="margin: 10px 0; padding-left: 20px;">
@@ -130,36 +272,37 @@
                     <li><strong>Válido até:</strong> {{ expires_at }}</li>
                 </ul>
             </div>
+            {% endif %}
 
             <div class="benefit-list">
-                <h3 style="margin-top: 0; color: #333;">✨ Seus benefícios Premium:</h3>
+                <h3 style="margin-top: 0; color: #1a2d4e;">✨ Seus benefícios Premium:</h3>
 
                 <div class="benefit-item">
                     <span class="benefit-icon">🤖</span>
-                    <span><strong>Chatbot Literário Ilimitado</strong> - Converse sem limites com nossa IA especialista
+                    <span><strong>Chatbot Literário Ilimitado</strong> – Converse sem limites com nossa IA especialista
                         em livros</span>
                 </div>
 
                 <div class="benefit-item">
                     <span class="benefit-icon">🎨</span>
-                    <span><strong>Personalização Avançada</strong> - Backgrounds, temas e customizações
+                    <span><strong>Personalização Avançada</strong> – Backgrounds, temas e customizações
                         exclusivas</span>
                 </div>
 
                 <div class="benefit-item">
                     <span class="benefit-icon">📊</span>
-                    <span><strong>Estatísticas Detalhadas</strong> - Acompanhe seu progresso de leitura em
+                    <span><strong>Estatísticas Detalhadas</strong> – Acompanhe seu progresso de leitura em
                         detalhes</span>
                 </div>
 
                 <div class="benefit-item">
-                    <span class="benefit-icon">⭐</span>
-                    <span><strong>Badge Premium</strong> - Destaque-se na comunidade com seu badge exclusivo</span>
+                    <span class="benefit-icon">👑</span>
+                    <span><strong>Badge Membro Premium</strong> – Seu badge exclusivo já está no seu perfil!</span>
                 </div>
 
                 <div class="benefit-item">
                     <span class="benefit-icon">🚀</span>
-                    <span><strong>Recursos Prioritários</strong> - Acesso antecipado a novas funcionalidades</span>
+                    <span><strong>Recursos Prioritários</strong> – Acesso antecipado a novas funcionalidades</span>
                 </div>
             </div>
 

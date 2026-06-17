@@ -165,6 +165,13 @@ def create_topic(request, book_id):
         if hasattr(request.user, 'profile'):
             request.user.profile.add_xp(30)
 
+        # Conceder badge 'Voz do Debate' pela primeira participação
+        try:
+            from finance.badge_service import grant_debate_badge
+            grant_debate_badge(request.user)
+        except Exception:
+            pass
+
         # Invalidar cache da lista de debates
         cache.delete('debates:list:v1')
 
@@ -211,6 +218,13 @@ def create_post(request, topic_slug):
     # Conceder XP por postar resposta
     if hasattr(request.user, 'profile'):
         request.user.profile.add_xp(5)
+
+    # Conceder badge 'Voz do Debate' pela primeira participação
+    try:
+        from finance.badge_service import grant_debate_badge
+        grant_debate_badge(request.user)
+    except Exception:
+        pass
 
     # Invalidar cache da lista de debates
     cache.delete('debates:list:v1')

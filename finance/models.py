@@ -125,15 +125,29 @@ class Subscription(models.Model):
 
         self.save()
 
-        # Enviar e-mail de boas-vindas Premium (apenas para pagamentos, não campanhas)
-        if send_email and not is_free_campaign:
+        # Conceder badge Premium a TODOS os assinantes (pagos e campanhas)
+        badge_context = {}
+        try:
+            from finance.badge_service import grant_premium_badge, get_premium_badge_context
+            grant_premium_badge(self.user)
+            badge_context = get_premium_badge_context()
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(
+                f"Erro ao conceder badge Premium para {self.user.email}: {e}"
+            )
+
+        # Enviar e-mail de boas-vindas Premium (pagamentos e campanhas)
+        if send_email:
             try:
                 from finance.email_service import PremiumEmailService
                 price = f"{float(self.price):.2f}".replace('.', ',')
                 PremiumEmailService.send_welcome_email(
                     user=self.user,
                     expires_at=self.expiration_date,
-                    price=price
+                    price=price,
+                    badge_context=badge_context,
+                    is_free_campaign=is_free_campaign,
                 )
             except Exception as e:
                 # Não falhar se o e-mail não for enviado

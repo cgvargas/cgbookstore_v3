@@ -6,11 +6,26 @@ Sua assinatura Premium da CGBookStore foi ativada com sucesso!
                     PREMIUM ATIVADO ⭐
 ═══════════════════════════════════════════════════════
 
+🎁 BRINDE EXCLUSIVO — BADGE CONQUISTADO!
+─────────────────────────────────────────
+{{ badge_icon }} {{ badge_name }}
+{{ badge_rarity_emoji }} Raridade: {{ badge_rarity }}
+
+{{ badge_description }}
+
+Seu badge já está disponível no seu perfil:
+{{ site_url }}/accounts/perfil/
+
+═══════════════════════════════════════════════════════
+{% if is_free_campaign %}
+🎁 Você recebeu este período Premium como cortesia especial
+   da CGBookStore. Aproveite todos os benefícios!
+{% else %}
 DETALHES DA SUA ASSINATURA:
 • Plano: Premium Mensal
 • Valor: R$ {{ price }}
 • Válido até: {{ expires_at }}
-
+{% endif %}
 SEUS BENEFÍCIOS PREMIUM:
 
 🤖 Chatbot Literário Ilimitado
@@ -22,8 +37,8 @@ SEUS BENEFÍCIOS PREMIUM:
 📊 Estatísticas Detalhadas
    Acompanhe seu progresso de leitura em detalhes
 
-⭐ Badge Premium
-   Destaque-se na comunidade com seu badge exclusivo
+👑 Badge Membro Premium
+   Seu badge exclusivo já está no seu perfil!
 
 🚀 Recursos Prioritários
    Acesso antecipado a novas funcionalidades

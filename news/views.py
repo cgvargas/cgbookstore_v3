@@ -371,6 +371,13 @@ def submit_quiz(request, slug):
             level_after=new_level
         )
 
+        # Conceder badge 'Mestre do Quiz' pela primeira participação
+        try:
+            from finance.badge_service import grant_quiz_badge
+            grant_quiz_badge(request.user)
+        except Exception:
+            pass
+
         # Mensagem de sucesso
         if leveled_up:
             messages.success(
@@ -382,6 +389,7 @@ def submit_quiz(request, slug):
                 request,
                 f'✅ Quiz concluído! Você ganhou {xp_earned} XP.'
             )
+
 
     context = {
         'quiz': quiz,
