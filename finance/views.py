@@ -10,7 +10,7 @@ from django.utils import timezone
 from datetime import timedelta
 import json
 import logging
-from .models import Subscription, Order
+from .models import Subscription, Order, TransactionLog
 from .services import MercadoPagoService
 
 logger = logging.getLogger(__name__)
