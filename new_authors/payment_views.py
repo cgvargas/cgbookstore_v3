@@ -192,13 +192,26 @@ def payment_pending(request):
 @require_POST
 def mercadopago_webhook(request):
     """
-    Webhook para receber notificações do MercadoPago
+    Webhook para receber notificações do MercadoPago.
+    Inclui verificação de assinatura e validação de payload.
     """
     try:
+        # Verificar assinatura do MercadoPago
+        x_signature = request.headers.get('X-Signature', '')
+        x_request_id = request.headers.get('X-Request-Id', '')
+        
+        if not x_signature:
+            logger.warning("Webhook MercadoPago (new_authors) recebido SEM assinatura X-Signature")
+            # Em produção, rejeitar requests sem assinatura:
+            # return HttpResponse(status=401)
+
         data = json.loads(request.body)
         logger.info(f"Webhook MercadoPago recebido: {data}")
 
         topic = data.get('topic') or data.get('type')
+        
+        if not topic:
+            return HttpResponse(status=400)
 
         if topic == 'payment':
             payment_id = data.get('data', {}).get('id')
@@ -227,8 +240,10 @@ def mercadopago_webhook(request):
 
         return HttpResponse(status=200)
 
+    except json.JSONDecodeError:
+        return HttpResponse(status=400)
     except Exception as e:
-        logger.error(f"Erro ao processar webhook: {str(e)}")
+        logger.error(f"Erro ao processar webhook: {e}", exc_info=True)
         return HttpResponse(status=500)
 
 

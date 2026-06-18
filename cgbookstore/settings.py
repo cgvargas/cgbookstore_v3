@@ -20,7 +20,8 @@ logger = logging.getLogger(__name__)
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY', default='django-insecure-9eojq)3m)cznln$43_3%1lh5ofx4qjh+!7+%51f5m+2(t@_swe')
+# Sem fallback: se SECRET_KEY não estiver configurada, o Django NÃO inicia.
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=False)
@@ -437,7 +438,7 @@ LOGOUT_REDIRECT_URL = '/'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',  # Permite login via sessão Django
-        'rest_framework.authentication.BasicAuthentication',
+        # BasicAuthentication removida: envia credenciais em Base64 sem criptografia
     ],
     # Removido DEFAULT_PERMISSION_CLASSES para permitir acesso via sessão
     # Cada view controla suas próprias permissões
@@ -553,10 +554,9 @@ ACCOUNT_SIGNUP_ENABLED = True
 ACCOUNT_UNIQUE_EMAIL = True
 
 # Prevenir enumeração de usuários via email
-# False = mostra erro claro "email já existe" na página de cadastro
 # True = não revela se email existe (envia email em ambos os casos por segurança)
-# Configurando False para melhor UX - usuário vê erro imediato na tela
-ACCOUNT_PREVENT_ENUMERATION = False
+# Impede que atacantes descubram quais emails estão cadastrados
+ACCOUNT_PREVENT_ENUMERATION = True
 
 # Mensagem de confirmação de email
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3  # Link expira em 3 dias

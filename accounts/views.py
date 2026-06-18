@@ -118,10 +118,12 @@ def upload_avatar(request):
                 'message': 'Avatar atualizado com sucesso!'
             })
         except Exception as e:
-            return JsonResponse({'success': False, 'error': f'Erro ao processar imagem: {str(e)}'}, status=500)
+            logger.error(f"Erro ao processar avatar: {e}", exc_info=True)
+            return JsonResponse({'success': False, 'error': 'Erro ao processar imagem. Tente novamente.'}, status=500)
 
     except Exception as e:
-        return JsonResponse({'success': False, 'error': f'Erro no upload: {str(e)}'}, status=500)
+        logger.error(f"Erro no upload de avatar: {e}", exc_info=True)
+        return JsonResponse({'success': False, 'error': 'Erro no upload. Tente novamente.'}, status=500)
 
 
 @login_required
@@ -185,10 +187,12 @@ def upload_banner(request):
                 'message': 'Banner atualizado com sucesso!'
             })
         except Exception as e:
-            return JsonResponse({'success': False, 'error': f'Erro ao processar imagem: {str(e)}'}, status=500)
+            logger.error(f"Erro ao processar banner: {e}", exc_info=True)
+            return JsonResponse({'success': False, 'error': 'Erro ao processar imagem. Tente novamente.'}, status=500)
 
     except Exception as e:
-        return JsonResponse({'success': False, 'error': f'Erro no upload: {str(e)}'}, status=500)
+        logger.error(f"Erro no upload de banner: {e}", exc_info=True)
+        return JsonResponse({'success': False, 'error': 'Erro no upload. Tente novamente.'}, status=500)
 
 
 @login_required
@@ -232,7 +236,8 @@ def update_theme(request):
         })
 
     except Exception as e:
-        return JsonResponse({'success': False, 'error': f'Erro ao atualizar tema: {str(e)}'}, status=500)
+        logger.error(f"Erro ao atualizar tema: {e}", exc_info=True)
+        return JsonResponse({'success': False, 'error': 'Erro ao atualizar tema. Tente novamente.'}, status=500)
 
 
 @login_required
@@ -265,7 +270,8 @@ def update_banner_position(request):
         })
         
     except Exception as e:
-        return JsonResponse({'success': False, 'error': f'Erro ao salvar posição: {str(e)}'}, status=500)
+        logger.error(f"Erro ao salvar posição do banner: {e}", exc_info=True)
+        return JsonResponse({'success': False, 'error': 'Erro ao salvar posição. Tente novamente.'}, status=500)
 
 
 @login_required
@@ -333,10 +339,12 @@ def upload_background(request):
             })
 
         except Exception as e:
-            return JsonResponse({'success': False, 'error': f'Erro ao processar imagem: {str(e)}'}, status=500)
+            logger.error(f"Erro ao processar background: {e}", exc_info=True)
+            return JsonResponse({'success': False, 'error': 'Erro ao processar imagem. Tente novamente.'}, status=500)
 
     except Exception as e:
-        return JsonResponse({'success': False, 'error': f'Erro no upload: {str(e)}'}, status=500)
+        logger.error(f"Erro no upload de background: {e}", exc_info=True)
+        return JsonResponse({'success': False, 'error': 'Erro no upload. Tente novamente.'}, status=500)
 
 
 @login_required
@@ -385,7 +393,8 @@ def update_background_settings(request):
         })
 
     except Exception as e:
-        return JsonResponse({'success': False, 'error': f'Erro ao atualizar configurações: {str(e)}'}, status=500)
+        logger.error(f"Erro ao atualizar configurações de background: {e}", exc_info=True)
+        return JsonResponse({'success': False, 'error': 'Erro ao atualizar configurações. Tente novamente.'}, status=500)
 
 
 @login_required
@@ -422,7 +431,8 @@ def remove_background(request):
             }, status=400)
 
     except Exception as e:
-        return JsonResponse({'success': False, 'error': f'Erro ao remover background: {str(e)}'}, status=500)
+        logger.error(f"Erro ao remover background: {e}", exc_info=True)
+        return JsonResponse({'success': False, 'error': 'Erro ao remover background. Tente novamente.'}, status=500)
 
 
 @login_required
@@ -615,8 +625,8 @@ def delete_account(request):
         })
 
     except Exception as e:
-        logger.error(f"Erro ao excluir conta: {e}")
+        logger.error(f"Erro ao excluir conta: {e}", exc_info=True)
         return JsonResponse({
             'success': False,
-            'error': f'Erro ao excluir conta: {str(e)}'
+            'error': 'Erro ao excluir conta. Tente novamente ou contate o suporte.'
         }, status=500)

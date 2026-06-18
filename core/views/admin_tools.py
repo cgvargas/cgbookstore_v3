@@ -7,7 +7,6 @@ from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods, require_POST
-from django.views.decorators.csrf import csrf_exempt
 from django.core.management import call_command
 from django.db import connection
 from django.contrib.sites.models import Site
@@ -20,10 +19,11 @@ import sys
 import csv
 
 
+@staff_member_required
 def redis_test_view(request):
     """
-    Endpoint PÚBLICO para testar conexão com Redis.
-    Não requer login - para diagnóstico rápido em produção.
+    Endpoint para testar conexão com Redis.
+    Requer autenticação de staff para evitar reconhecimento de infraestrutura.
     Acesse: /api/redis-test/
     """
     import time
@@ -410,7 +410,8 @@ def associate_book_view(request):
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'JSON inválido'})
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
+        logger.error(f"Erro ao associar livro: {e}", exc_info=True)
+        return JsonResponse({'success': False, 'error': 'Erro interno ao associar livro.'})
 
 
 # ===== IMPORTAÇÃO CSV DE OBRAS LANÇADAS =====
@@ -590,15 +591,13 @@ def import_author_works_view(request, author_id):
         ),
     })
 
-@csrf_exempt
+@staff_member_required
 @require_POST
 def delete_author_works_view(request, author_id):
     """
     Deleta todas as obras cadastradas de um autor específico.
-    Apenas para uso de administradores autenticados.
+    Protegido por @staff_member_required (CSRF ativo).
     """
-    if not request.user.is_authenticated or not request.user.is_staff:
-        return JsonResponse({'success': False, 'error': 'Acesso negado.'}, status=403)
 
     try:
         author = Author.objects.get(pk=author_id)
@@ -614,4 +613,5 @@ def delete_author_works_view(request, author_id):
     except Author.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Autor não encontrado.'}, status=404)
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        logger.error(f"Erro ao excluir obras do autor {author_id}: {e}", exc_info=True)
+        return JsonResponse({'success': False, 'error': 'Erro interno ao excluir obras.'}, status=500)

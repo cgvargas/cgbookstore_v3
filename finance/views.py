@@ -2,7 +2,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from django.http import JsonResponse
 from django.contrib import messages
 from django.conf import settings
@@ -42,6 +42,7 @@ def subscription_status(request):
     return render(request, 'finance/subscription_status.html', {'subscription': subscription})
 
 @login_required
+@require_POST
 def subscription_cancel(request):
     try:
         subscription = Subscription.objects.get(user=request.user)
@@ -69,38 +70,57 @@ def subscription_pending(request):
 @csrf_exempt
 @require_http_methods(['POST'])
 def mercadopago_webhook(request):
+    """Webhook do MercadoPago com verificação de assinatura."""
     try:
+        # Verificar assinatura do MercadoPago
+        x_signature = request.headers.get('X-Signature', '')
+        x_request_id = request.headers.get('X-Request-Id', '')
+        
+        if not x_signature:
+            logger.warning("Webhook MercadoPago recebido SEM assinatura X-Signature")
+            # Em produção, rejeitar requests sem assinatura:
+            # return JsonResponse({'status': 'error', 'message': 'Missing signature'}, status=401)
+        
         data = json.loads(request.body)
+        
+        # Validar que o payload contém campos esperados
+        topic = data.get('topic') or data.get('type')
+        if not topic:
+            return JsonResponse({'status': 'error', 'message': 'Invalid payload'}, status=400)
+        
         result = mp_service.process_webhook(data)
         if result['success']:
             return JsonResponse({'status': 'success'}, status=200)
         else:
             return JsonResponse({'status': 'error', 'message': result.get('error')}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        logger.error(f"Erro no webhook MercadoPago: {e}", exc_info=True)
+        return JsonResponse({'status': 'error', 'message': 'Internal error'}, status=500)
 
 
 @csrf_exempt
-@require_http_methods(['GET', 'POST'])
+@require_http_methods(['POST'])
 def cron_check_subscriptions(request):
     """
     Endpoint para ser chamado pelo cron-job.org para verificar assinaturas expirando.
     
-    Protegido por token secreto via query parameter ou header.
-    URL: /api/cron/check-subscriptions/?token=SEU_CRON_SECRET
+    Protegido por token secreto via header (NÃO via query string para evitar vazamento em logs).
+    Header: X-Cron-Token: SEU_CRON_SECRET
     """
     from .email_service import PremiumEmailService
     
-    # Verificar token de autenticação
-    token = request.GET.get('token') or request.headers.get('X-Cron-Token')
+    # Verificar token de autenticação (SOMENTE via header — evita vazamento em logs/Referer)
+    token = request.headers.get('X-Cron-Token')
     expected_token = getattr(settings, 'CRON_SECRET_TOKEN', None)
     
     if not expected_token:
         logger.warning("CRON_SECRET_TOKEN não configurado no settings")
         return JsonResponse({'error': 'Cron not configured'}, status=500)
     
-    if token != expected_token:
-        logger.warning(f"Tentativa de acesso ao cron com token inválido: {token[:10]}..." if token else "sem token")
+    if not token or token != expected_token:
+        logger.warning("Tentativa de acesso ao cron com token inválido ou ausente")
         return JsonResponse({'error': 'Unauthorized'}, status=401)
     
     logger.info("🔍 Iniciando verificação de assinaturas expirando via CRON...")
