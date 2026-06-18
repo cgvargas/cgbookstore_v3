@@ -54,7 +54,49 @@ def subscription_cancel(request):
 
 @login_required
 def subscription_success(request):
-    messages.success(request, 'Pagamento aprovado! Sua assinatura premium esta ativa.')
+    payment_id = request.GET.get('payment_id')
+    status = request.GET.get('status')
+    preference_id = request.GET.get('preference_id')
+    
+    if status == 'approved':
+        try:
+            subscription = Subscription.objects.get(user=request.user)
+            if subscription.status != 'ativa':
+                subscription.mp_payment_id = payment_id
+                
+                # Mapear método de pagamento do GET (se houver)
+                payment_type = request.GET.get('payment_type', '')
+                if payment_type == 'credit_card':
+                    subscription.payment_method = 'credit_card'
+                elif payment_type == 'ticket':
+                    subscription.payment_method = 'boleto'
+                elif payment_type == 'bank_transfer':
+                    subscription.payment_method = 'pix'
+                    
+                subscription.activate()
+                
+                # Criar log de transação
+                TransactionLog.objects.create(
+                    transaction_type='subscription',
+                    user=request.user,
+                    subscription=subscription,
+                    mp_payment_id=payment_id,
+                    mp_status=status,
+                    amount=subscription.price,
+                    payment_method=subscription.payment_method,
+                    raw_data={'source': 'redirect_success', 'get_params': dict(request.GET)}
+                )
+                messages.success(request, 'Pagamento aprovado! Sua assinatura premium esta ativa.')
+            else:
+                messages.info(request, 'Sua assinatura premium ja esta ativa.')
+        except Subscription.DoesNotExist:
+            messages.error(request, 'Nao encontramos nenhuma assinatura pendente.')
+        except Exception as e:
+            logger.error(f"Erro ao ativar assinatura no redirect de sucesso: {e}", exc_info=True)
+            messages.error(request, 'Houve um erro ao processar sua assinatura. Contate o suporte.')
+    else:
+        messages.warning(request, 'O pagamento nao foi aprovado ou esta pendente.')
+        
     return redirect('finance:subscription_status')
 
 @login_required

@@ -89,9 +89,59 @@ class MercadoPagoService:
     def process_webhook(self, data):
         try:
             topic = data.get("topic") or data.get("type")
-            return {"success": True, "message": f"Topico {topic} recebido"}
+            
+            if topic == 'payment':
+                payment_id = data.get('data', {}).get('id')
+                if payment_id:
+                    # Buscar informações do pagamento
+                    payment_info = self.sdk.payment().get(payment_id)
+                    if payment_info.get('status') == 200:
+                        payment_data = payment_info['response']
+                        status = payment_data.get('status')
+                        external_reference = payment_data.get('external_reference', '')
+                        
+                        # Processar se for assinatura regular
+                        if external_reference.startswith('subscription_'):
+                            subscription_id = int(external_reference.split('_')[1])
+                            subscription = Subscription.objects.get(id=subscription_id)
+                            
+                            # Atualizar ID do pagamento
+                            subscription.mp_payment_id = str(payment_id)
+                            
+                            # Mapear método de pagamento
+                            mp_method = payment_data.get('payment_method_id', '')
+                            if mp_method in ['pix']:
+                                subscription.payment_method = 'pix'
+                            elif mp_method in ['bolbradesco', 'pec']:
+                                subscription.payment_method = 'boleto'
+                            else:
+                                subscription.payment_method = 'credit_card'
+                                
+                            if status == 'approved':
+                                subscription.activate()
+                                logger.info(f"Assinatura {subscription_id} ativada com sucesso via webhook")
+                            elif status in ['rejected', 'cancelled']:
+                                subscription.cancel()
+                                logger.info(f"Assinatura {subscription_id} cancelada/rejeitada via webhook")
+                            else:
+                                subscription.status = 'pendente'
+                                subscription.save()
+                                logger.info(f"Assinatura {subscription_id} atualizada para pendente via webhook")
+                                
+                            # Criar log de transação
+                            TransactionLog.objects.create(
+                                transaction_type='subscription',
+                                user=subscription.user,
+                                subscription=subscription,
+                                mp_payment_id=str(payment_id),
+                                mp_status=status,
+                                amount=subscription.price,
+                                payment_method=subscription.payment_method,
+                                raw_data=payment_data
+                            )
+            return {"success": True, "message": f"Topico {topic} processado com sucesso"}
         except Exception as e:
-            logger.error(f"Erro ao processar webhook: {str(e)}")
+            logger.error(f"Erro ao processar webhook MercadoPago: {str(e)}", exc_info=True)
             return {"success": False, "error": str(e)}
 
 
