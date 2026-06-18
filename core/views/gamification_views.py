@@ -636,11 +636,14 @@ def calculate_achievement_progress(user, achievement):
 
     # Conquistas de leitura
     if requirement_type == 'books_read':
-        current_value = ReadingProgress.objects.filter(
-            user=user,
-            finished_at__isnull=False,
-            is_abandoned=False
-        ).count()
+        current_value = max(
+            user.profile.books_read_count if hasattr(user, 'profile') else 0,
+            ReadingProgress.objects.filter(
+                user=user,
+                finished_at__isnull=False,
+                is_abandoned=False
+            ).count()
+        )
 
     elif requirement_type == 'books_finished_before_deadline':
         current_value = ReadingProgress.objects.filter(
@@ -656,7 +659,7 @@ def calculate_achievement_progress(user, achievement):
         today = timezone.now().date()
         current_value = ReadingProgress.objects.filter(
             user=user,
-            updated_at__date=today
+            last_updated__date=today
         ).aggregate(total=Sum('current_page'))['total'] or 0
 
     # Conquistas de reviews
@@ -669,18 +672,22 @@ def calculate_achievement_progress(user, achievement):
 
     # Conquistas de diversidade
     elif requirement_type == 'different_categories':
-        current_value = ReadingProgress.objects.filter(
+        shelf_categories = BookShelf.objects.filter(user=user, shelf_type='read').values('book__category').distinct().count()
+        progress_categories = ReadingProgress.objects.filter(
             user=user,
             finished_at__isnull=False,
             is_abandoned=False
         ).values('book__category').distinct().count()
+        current_value = max(shelf_categories, progress_categories)
 
     elif requirement_type == 'different_authors':
-        current_value = ReadingProgress.objects.filter(
+        shelf_authors = BookShelf.objects.filter(user=user, shelf_type='read').values('book__author').distinct().count()
+        progress_authors = ReadingProgress.objects.filter(
             user=user,
             finished_at__isnull=False,
             is_abandoned=False
         ).values('book__author').distinct().count()
+        current_value = max(shelf_authors, progress_authors)
 
     # Calcular percentual
     if target_value > 0:

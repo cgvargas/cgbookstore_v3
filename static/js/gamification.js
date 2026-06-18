@@ -480,7 +480,7 @@ class AchievementManager {
     }
 
     /**
-     * Verifica novas conquistas disponíveis
+     * Verifica novas conquistas e badges disponíveis
      */
     static async checkNew() {
         try {
@@ -498,8 +498,27 @@ class AchievementManager {
                 // Atualizar badge de notificação (se existir)
                 this.updateNotificationBadge(result.new_achievements.length);
             }
+
+            if (result.new_badges && result.new_badges.length > 0) {
+                // Mostrar notificação para cada novo distintivo (badge)
+                result.new_badges.forEach(badge => {
+                    const rarityEmoji = {
+                        bronze: '🥉',
+                        silver: '🥈',
+                        gold: '🥇',
+                        platinum: '💎',
+                        diamond: '💍',
+                        special: '🌟'
+                    }[badge.rarity] || '🏅';
+
+                    toastManager.success(
+                        `${rarityEmoji} Novo distintivo conquistado: ${badge.name}!`,
+                        8000
+                    );
+                });
+            }
         } catch (error) {
-            console.error('Erro ao verificar novas conquistas:', error);
+            console.error('Erro ao verificar novas conquistas e badges:', error);
         }
     }
 

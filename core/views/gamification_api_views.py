@@ -22,6 +22,7 @@ from accounts.models import (
     XPMultiplier,
     ReadingProgress,
     BookReview,
+    BookShelf,
 )
 
 
@@ -722,11 +723,11 @@ def get_user_stats(request):
     }
 
     # Leitura
-    books_read = ReadingProgress.objects.filter(user=user, status='read').count()
-    books_reading = ReadingProgress.objects.filter(user=user, status='reading').count()
-    books_want = ReadingProgress.objects.filter(user=user, status='want_to_read').count()
-    total_pages = ReadingProgress.objects.filter(user=user, status='read').aggregate(
-        total=Sum('book__pages')
+    books_read = ReadingProgress.objects.filter(user=user, finished_at__isnull=False, is_abandoned=False).count()
+    books_reading = ReadingProgress.objects.filter(user=user, finished_at__isnull=True, is_abandoned=False).count()
+    books_want = BookShelf.objects.filter(user=user, shelf_type='want_to_read').count()
+    total_pages = ReadingProgress.objects.filter(user=user, finished_at__isnull=False, is_abandoned=False).aggregate(
+        total=Sum('current_page')
     )['total'] or 0
     avg_pages_per_book = round(total_pages / books_read, 0) if books_read > 0 else 0
 
@@ -887,70 +888,47 @@ def claim_achievement(request):
 @require_POST
 def check_new_achievements(request):
     """
-    API: Verifica se há novas conquistas desbloqueadas.
+    API: Verifica se há novas conquistas e badges desbloqueados.
     Deve ser chamada após ações importantes (finalizar livro, criar review, etc).
-
-    POST /api/gamification/check-new-achievements/
-    Body: {} (vazio)
-
-    Response:
-    {
-        "success": true,
-        "new_achievements": [
-            {
-                "id": 5,
-                "name": "Leitor Assíduo",
-                "description": "Leia 10 livros",
-                "xp_reward": 200,
-                "icon": "🎓"
-            }
-        ],
-        "total_xp_earned": 200,
-        "new_level": 9
-    }
     """
     user = request.user
 
     try:
-        # Buscar todas as conquistas não desbloqueadas
-        unlocked_ids = UserAchievement.objects.filter(user=user).values_list('achievement_id', flat=True)
-        pending_achievements = Achievement.objects.filter(is_active=True).exclude(id__in=unlocked_ids)
+        # Verificar e conceder novas conquistas e badges usando lógica do modelo
+        newly_awarded_achievements = UserAchievement.check_and_award_achievements(user)
+        newly_awarded_badges = UserBadge.check_and_award_badges(user)
 
         new_achievements = []
         total_xp_earned = 0
+        for ua in newly_awarded_achievements:
+            new_achievements.append({
+                'id': ua.achievement.id,
+                'name': ua.achievement.name,
+                'description': ua.achievement.description,
+                'xp_reward': ua.achievement.xp_reward,
+                'icon': ua.achievement.icon,
+                'category': ua.achievement.category,
+            })
+            total_xp_earned += ua.achievement.xp_reward
 
-        # Verificar cada conquista pendente
-        for achievement in pending_achievements:
-            progress = calculate_achievement_progress_api(user, achievement)
+        new_badges = []
+        for ub in newly_awarded_badges:
+            new_badges.append({
+                'id': ub.badge.id,
+                'name': ub.badge.name,
+                'description': ub.badge.description,
+                'icon': ub.badge.icon,
+                'rarity': ub.badge.rarity,
+                'category': ub.badge.category,
+            })
 
-            if progress >= 100:
-                # Desbloquear automaticamente
-                UserAchievement.objects.create(
-                    user=user,
-                    achievement=achievement,
-                    earned_at=timezone.now()
-                )
-
-                # Adicionar XP
-                user.profile.add_xp(achievement.xp_reward)
-
-                new_achievements.append({
-                    'id': achievement.id,
-                    'name': achievement.name,
-                    'description': achievement.description,
-                    'xp_reward': achievement.xp_reward,
-                    'icon': achievement.icon,
-                    'category': achievement.category,
-                })
-
-                total_xp_earned += achievement.xp_reward
-
-        # Recarregar perfil para pegar novo nível
+        # Recarregar perfil para pegar novo nível/XP
         user.profile.refresh_from_db()
 
         return JsonResponse({
             'success': True,
             'new_achievements': new_achievements,
+            'new_badges': new_badges,
             'total_xp_earned': total_xp_earned,
             'new_level': user.profile.level,
             'new_xp': user.profile.total_xp,
@@ -958,7 +936,7 @@ def check_new_achievements(request):
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'error': f'Erro ao verificar conquistas: {str(e)}'
+            'error': f'Erro ao verificar conquistas e badges: {str(e)}'
         }, status=500)
 
 
@@ -1077,21 +1055,25 @@ def get_current_value_for_requirement(user, requirement_type):
     Retorna o valor atual do usuário para um tipo de requisito.
     """
     if requirement_type == 'books_read':
-        return ReadingProgress.objects.filter(user=user, status='read').count()
+        return max(
+            user.profile.books_read_count if hasattr(user, 'profile') else 0,
+            ReadingProgress.objects.filter(user=user, finished_at__isnull=False, is_abandoned=False).count()
+        )
 
     elif requirement_type == 'books_finished_before_deadline':
         return ReadingProgress.objects.filter(
             user=user,
-            status='read',
+            finished_at__isnull=False,
+            is_abandoned=False,
             deadline__isnull=False,
-            finished_at__lt=F('deadline')
+            finished_at__date__lt=F('deadline')
         ).count()
 
     elif requirement_type == 'pages_read_in_day':
         today = timezone.now().date()
         return ReadingProgress.objects.filter(
             user=user,
-            updated_at__date=today
+            last_updated__date=today
         ).aggregate(total=Sum('current_page'))['total'] or 0
 
     elif requirement_type == 'reviews_written':
@@ -1102,19 +1084,26 @@ def get_current_value_for_requirement(user, requirement_type):
         return 0
 
     elif requirement_type == 'different_categories':
-        return ReadingProgress.objects.filter(
+        shelf_categories = BookShelf.objects.filter(user=user, shelf_type='read').values('book__category').distinct().count()
+        progress_categories = ReadingProgress.objects.filter(
             user=user,
-            status='read'
+            finished_at__isnull=False,
+            is_abandoned=False
         ).values('book__category').distinct().count()
+        return max(shelf_categories, progress_categories)
 
     elif requirement_type == 'different_authors':
-        return ReadingProgress.objects.filter(
+        shelf_authors = BookShelf.objects.filter(user=user, shelf_type='read').values('book__author').distinct().count()
+        progress_authors = ReadingProgress.objects.filter(
             user=user,
-            status='read'
+            finished_at__isnull=False,
+            is_abandoned=False
         ).values('book__author').distinct().count()
+        return max(shelf_authors, progress_authors)
 
     elif requirement_type == 'reading_streak_days':
-        # TODO: Implementar cálculo de streak
+        if hasattr(user, 'profile'):
+            return user.profile.streak_days
         return 0
 
     else:

@@ -243,6 +243,32 @@ class Badge(models.Model):
 
         # Verificar diferentes tipos de requisitos
 
+        # Requisito: Assinante Premium
+        if 'premium_subscriber' in self.requirements_json:
+            if not profile.is_premium_active():
+                return False
+
+        # Requisito: Participante de debate
+        if 'debate_participant' in self.requirements_json:
+            try:
+                from debates.models import DebateTopic, DebatePost
+                has_topic = DebateTopic.objects.filter(creator=user).exists()
+                has_post = DebatePost.objects.filter(author=user, is_deleted=False).exists()
+                if not (has_topic or has_post):
+                    return False
+            except Exception:
+                return False
+
+        # Requisito: Participante de quiz
+        if 'quiz_participant' in self.requirements_json:
+            try:
+                from news.models import QuizAttempt
+                has_quiz = QuizAttempt.objects.filter(user=user).exists()
+                if not has_quiz:
+                    return False
+            except Exception:
+                return False
+
         # Requisito: Número de conquistas
         if 'achievements_count' in self.requirements_json:
             from .user_achievement import UserAchievement
@@ -265,11 +291,14 @@ class Badge(models.Model):
             genre = self.requirements_json['books_read_genre']
             required_count = self.requirements_json.get('count', 1)
 
-            count = BookShelf.objects.filter(
-                user=user,
-                shelf_type='read',
-                book__category__slug=genre
-            ).count()
+            filters = {
+                'user': user,
+                'shelf_type': 'read'
+            }
+            if genre and genre != 'any':
+                filters['book__category__slug'] = genre
+
+            count = BookShelf.objects.filter(**filters).count()
 
             if count < required_count:
                 return False
