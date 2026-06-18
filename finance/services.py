@@ -20,6 +20,12 @@ class MercadoPagoService:
                 user=user,
                 defaults={'payment_method': payment_method, 'price': Decimal('9.90'), 'status': 'pendente'}
             )
+            # Dividir nome em nome e sobrenome
+            full_name = user.get_full_name() or user.username
+            name_parts = full_name.strip().split(' ', 1)
+            first_name = name_parts[0]
+            surname = name_parts[1] if len(name_parts) > 1 else 'Silva'
+
             preference_data = {
                 "items": [{
                     "title": "CGBookStore Premium - Assinatura Mensal",
@@ -29,7 +35,8 @@ class MercadoPagoService:
                     "currency_id": "BRL"
                 }],
                 "payer": {
-                    "name": user.get_full_name() or user.username,
+                    "name": first_name,
+                    "surname": surname,
                     "email": user.email
                 },
                 "external_reference": f"subscription_{subscription.id}",

@@ -64,6 +64,12 @@ class TalentPlatformPaymentService(MercadoPagoService):
                 subscription.status = 'pendente'
                 subscription.save()
 
+            # Dividir nome em nome e sobrenome
+            full_name = author.user.get_full_name() or author.user.username
+            name_parts = full_name.strip().split(' ', 1)
+            first_name = name_parts[0]
+            surname = name_parts[1] if len(name_parts) > 1 else 'Silva'
+
             # Criar preferência no MercadoPago
             preference_data = {
                 "items": [{
@@ -74,7 +80,8 @@ class TalentPlatformPaymentService(MercadoPagoService):
                     "currency_id": "BRL"
                 }],
                 "payer": {
-                    "name": author.user.get_full_name() or author.user.username,
+                    "name": first_name,
+                    "surname": surname,
                     "email": author.user.email
                 },
                 "external_reference": f"author_sub_{subscription.id}_plan_{plan.id}",
@@ -175,6 +182,12 @@ class TalentPlatformPaymentService(MercadoPagoService):
                 subscription.status = 'pendente'
                 subscription.save()
 
+            # Dividir nome da empresa ou usar nome do usuário
+            full_name = publisher.company_name or publisher.user.get_full_name() or publisher.user.username
+            name_parts = full_name.strip().split(' ', 1)
+            first_name = name_parts[0]
+            surname = name_parts[1] if len(name_parts) > 1 else 'Silva'
+
             # Criar preferência no MercadoPago
             preference_data = {
                 "items": [{
@@ -185,7 +198,8 @@ class TalentPlatformPaymentService(MercadoPagoService):
                     "currency_id": "BRL"
                 }],
                 "payer": {
-                    "name": publisher.company_name,
+                    "name": first_name,
+                    "surname": surname,
                     "email": publisher.user.email
                 },
                 "external_reference": f"publisher_sub_{subscription.id}_plan_{plan.id}_trial_{is_trial}",
