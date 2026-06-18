@@ -67,8 +67,12 @@ class MercadoPagoService:
                 logger.error(f"Resposta invalida do Mercado Pago: {preference_response}")
                 return {"success": False, "error": "Credenciais do Mercado Pago invalidas ou nao configuradas. Verifique o arquivo .env"}
 
-            # Usa sandbox_init_point se disponivel (para credenciais de teste), senao usa init_point
-            init_point = preference.get("sandbox_init_point") or preference.get("init_point")
+            # Usa init_point de producao se o token for produtivo (comeca com APP_USR-), senao usa sandbox
+            token = getattr(settings, 'MERCADOPAGO_ACCESS_TOKEN', '')
+            if token and token.startswith('APP_USR-'):
+                init_point = preference.get("init_point")
+            else:
+                init_point = preference.get("sandbox_init_point") or preference.get("init_point")
 
             if not init_point:
                 logger.error(f"Nenhum init_point encontrado na resposta: {preference_response}")

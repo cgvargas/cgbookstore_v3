@@ -114,8 +114,12 @@ class TalentPlatformPaymentService(MercadoPagoService):
                 logger.error(f"Resposta inválida do MercadoPago: {preference_response}")
                 return {"success": False, "error": "Credenciais do MercadoPago inválidas"}
 
-            # Obter init_point (sandbox ou produção)
-            init_point = preference.get("sandbox_init_point") or preference.get("init_point")
+            # Obter init_point (produção se token for APP_USR-, senão sandbox)
+            token = getattr(settings, 'MERCADOPAGO_ACCESS_TOKEN', '')
+            if token and token.startswith('APP_USR-'):
+                init_point = preference.get("init_point")
+            else:
+                init_point = preference.get("sandbox_init_point") or preference.get("init_point")
 
             if not init_point:
                 return {"success": False, "error": "Erro ao obter URL de checkout"}
@@ -232,8 +236,12 @@ class TalentPlatformPaymentService(MercadoPagoService):
                 logger.error(f"Resposta inválida do MercadoPago: {preference_response}")
                 return {"success": False, "error": "Credenciais do MercadoPago inválidas"}
 
-            # Obter init_point (sandbox ou produção)
-            init_point = preference.get("sandbox_init_point") or preference.get("init_point")
+            # Obter init_point (produção se token for APP_USR-, senão sandbox)
+            token = getattr(settings, 'MERCADOPAGO_ACCESS_TOKEN', '')
+            if token and token.startswith('APP_USR-'):
+                init_point = preference.get("init_point")
+            else:
+                init_point = preference.get("sandbox_init_point") or preference.get("init_point")
 
             if not init_point:
                 return {"success": False, "error": "Erro ao obter URL de checkout"}
