@@ -12,6 +12,7 @@ if sys.platform == 'win32':
     sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'ignore')
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cgbookstore.settings')
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 django.setup()
 
 from django.core.mail import send_mail

@@ -42,7 +42,7 @@ def dashboard_view(request):
 
     # Conquistas do usuário
     total_achievements = Achievement.objects.filter(is_active=True).count()
-    user_achievements = UserAchievement.objects.filter(user=user).select_related('achievement')
+    user_achievements = UserAchievement.objects.filter(user=user, is_completed=True).select_related('achievement')
     unlocked_achievements_count = user_achievements.count()
     achievements_percentage = round((unlocked_achievements_count / total_achievements * 100),
                                     1) if total_achievements > 0 else 0
@@ -58,23 +58,22 @@ def dashboard_view(request):
 
     # Badges em destaque (showcaseados)
     showcased_badges = user_badges.filter(is_showcased=True).order_by('-earned_at')[:3]
+    if not showcased_badges.exists():
+        # Se não há nenhum badge destacado, mostra o último badge conquistado por padrão
+        latest_badge = user_badges.order_by('-earned_at').first()
+        showcased_badges = [latest_badge] if latest_badge else []
 
     # Ranking mensal
     now = timezone.now()
     current_month = now.month
     current_year = now.year
 
-    try:
-        user_ranking = MonthlyRanking.objects.get(
-            user=user,
-            month=current_month,
-            year=current_year
-        )
-        ranking_position = user_ranking.rank_position
-        monthly_xp = user_ranking.total_xp
-    except MonthlyRanking.DoesNotExist:
-        ranking_position = None
-        monthly_xp = 0
+    # Atualiza estatísticas do usuário no ranking mensal e recalcula posições
+    user_ranking = MonthlyRanking.get_or_create_current(user)
+    MonthlyRanking.recalculate_positions(current_month, current_year)
+    user_ranking.refresh_from_db()
+    ranking_position = user_ranking.rank_position
+    monthly_xp = user_ranking.total_xp
 
     # Top 5 do ranking mensal
     top_5_ranking = MonthlyRanking.objects.filter(
@@ -228,7 +227,7 @@ def achievements_list_view(request):
         achievements = achievements.filter(difficulty_level=difficulty_filter)
 
     # Conquistas do usuário
-    user_achievements_ids = UserAchievement.objects.filter(user=user).values_list('achievement_id', flat=True)
+    user_achievements_ids = UserAchievement.objects.filter(user=user, is_completed=True).values_list('achievement_id', flat=True)
 
     # Aplicar filtro de status
     if status_filter == 'unlocked':
@@ -245,7 +244,7 @@ def achievements_list_view(request):
         is_unlocked = achievement.id in user_achievements_ids
 
         if is_unlocked:
-            user_achievement = UserAchievement.objects.get(user=user, achievement=achievement)
+            user_achievement = UserAchievement.objects.get(user=user, achievement=achievement, is_completed=True)
             earned_at = user_achievement.earned_at
             progress = 100
         else:
@@ -263,7 +262,7 @@ def achievements_list_view(request):
     total_achievements = Achievement.objects.filter(is_active=True).count()
     unlocked_count = len(user_achievements_ids)
     locked_count = total_achievements - unlocked_count
-    total_xp_earned = UserAchievement.objects.filter(user=user).aggregate(
+    total_xp_earned = UserAchievement.objects.filter(user=user, is_completed=True).aggregate(
         total=Sum('achievement__xp_reward')
     )['total'] or 0
 
@@ -408,6 +407,11 @@ def monthly_ranking_view(request):
     if month < 1 or month > 12:
         month = now.month
 
+    # Se for o mês atual, garantir e recalcular estatísticas/posições
+    if year == now.year and month == now.month:
+        MonthlyRanking.get_or_create_current(user)
+        MonthlyRanking.recalculate_positions(month, year)
+
     # Query do ranking
     rankings = MonthlyRanking.objects.filter(
         year=year,
@@ -493,7 +497,8 @@ def user_profile_stats(request):
     # Conquistas por categoria
     achievements_by_category = Achievement.objects.filter(
         is_active=True,
-        user_achievements__user=user
+        user_achievements__user=user,
+        user_achievements__is_completed=True
     ).values('category').annotate(count=Count('id')).order_by('-count')
 
     # Badges por raridade
@@ -573,6 +578,7 @@ def user_profile_stats(request):
     # Conquistas raras: Difícil (3), Muito Difícil (4) e Legendário (5)
     rare_achievements = UserAchievement.objects.filter(
         user=user,
+        is_completed=True,
         achievement__difficulty_level__in=[3, 4, 5]
     ).select_related('achievement').order_by('-achievement__xp_reward')[:5]
 

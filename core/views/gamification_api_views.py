@@ -81,9 +81,9 @@ def get_user_achievements(request):
 
     # Conquistas do usuário
     user_achievements_dict = {}
-    for ua in UserAchievement.objects.filter(user=user).select_related('achievement'):
+    for ua in UserAchievement.objects.filter(user=user, is_completed=True).select_related('achievement'):
         user_achievements_dict[ua.achievement_id] = {
-            'earned_at': ua.earned_at.isoformat(),
+            'earned_at': ua.earned_at.isoformat() if ua.earned_at else None,
             'progress': 100
         }
 
@@ -548,9 +548,10 @@ def get_monthly_ranking(request):
     month = int(request.GET.get('month', now.month))
     limit = min(int(request.GET.get('limit', 100)), 500)
 
-    # Validar mês
-    if month < 1 or month > 12:
-        month = now.month
+    # Se for o mês atual, garantir e recalcular estatísticas/posições
+    if year == now.year and month == now.month:
+        MonthlyRanking.get_or_create_current(user)
+        MonthlyRanking.recalculate_positions(month, year)
 
     # Query do ranking
     rankings = MonthlyRanking.objects.filter(
@@ -691,11 +692,11 @@ def get_user_stats(request):
 
     # Conquistas
     total_achievements = Achievement.objects.filter(is_active=True).count()
-    unlocked_achievements = UserAchievement.objects.filter(user=user).count()
+    unlocked_achievements = UserAchievement.objects.filter(user=user, is_completed=True).count()
     locked_achievements = total_achievements - unlocked_achievements
     achievements_percentage = round((unlocked_achievements / total_achievements * 100),
                                     1) if total_achievements > 0 else 0
-    total_xp_earned = UserAchievement.objects.filter(user=user).aggregate(
+    total_xp_earned = UserAchievement.objects.filter(user=user, is_completed=True).aggregate(
         total=Sum('achievement__xp_reward')
     )['total'] or 0
 
@@ -750,19 +751,14 @@ def get_user_stats(request):
 
     # Ranking
     now = timezone.now()
-    try:
-        user_ranking = MonthlyRanking.objects.get(
-            user=user,
-            month=now.month,
-            year=now.year
-        )
-        current_position = user_ranking.rank_position
-        monthly_xp = user_ranking.total_xp
-    except MonthlyRanking.DoesNotExist:
-        current_position = None
-        monthly_xp = 0
+    user_ranking = MonthlyRanking.get_or_create_current(user)
+    MonthlyRanking.recalculate_positions(now.month, now.year)
+    user_ranking.refresh_from_db()
+    
+    current_position = user_ranking.rank_position
+    monthly_xp = user_ranking.total_xp
 
-    best_position = MonthlyRanking.objects.filter(user=user).order_by('rank_position').first()
+    best_position = MonthlyRanking.objects.filter(user=user, rank_position__gt=0).order_by('rank_position').first()
     best_position_value = best_position.rank_position if best_position else None
 
     ranking_data = {

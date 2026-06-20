@@ -249,6 +249,18 @@ class MonthlyRanking(models.Model):
         return ranking
 
     @classmethod
+    def recalculate_positions(cls, month, year):
+        """
+        Recalcula as posições de ranking de todos os usuários para um mês/ano
+        baseado na pontuação total atual (sem atualizar estatísticas de outros usuários).
+        """
+        rankings = cls.objects.filter(month=month, year=year).order_by('-total_score', 'user__username')
+        for position, ranking in enumerate(rankings, start=1):
+            if ranking.rank_position != position:
+                ranking.rank_position = position
+                ranking.save(update_fields=['rank_position'])
+
+    @classmethod
     def update_all_rankings(cls, month=None, year=None):
         """
         Atualiza todos os rankings de um mês e recalcula posições.
