@@ -482,12 +482,19 @@ SITE_URL = env('SITE_URL', default='http://localhost:8000')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@cgbookstore.com')
 CONTACT_EMAIL = env('CONTACT_EMAIL', default=DEFAULT_FROM_EMAIL)
 
-# Backend: controlado pela env var EMAIL_BACKEND
-# Em desenvolvimento sem config: usa console (não tenta conectar SMTP)
-EMAIL_BACKEND = env(
-    'EMAIL_BACKEND',
-    default='django.core.mail.backends.console.EmailBackend'
-)
+# Suporte ao Brevo Web API (mais confiável em ambientes de nuvem como Render Free Tier)
+USE_BREVO_API = env.bool('USE_BREVO_API', default=False)
+
+if USE_BREVO_API:
+    EMAIL_BACKEND = 'cgbookstore.backends.brevo.BrevoBackend'
+    BREVO_API_KEY = env('BREVO_API_KEY', default=env('EMAIL_HOST_PASSWORD', default=''))
+else:
+    # Backend: controlado pela env var EMAIL_BACKEND
+    # Em desenvolvimento sem config: usa console (não tenta conectar SMTP)
+    EMAIL_BACKEND = env(
+        'EMAIL_BACKEND',
+        default='django.core.mail.backends.console.EmailBackend'
+    )
 
 # Configurações SMTP (usadas quando EMAIL_BACKEND=smtp.EmailBackend)
 EMAIL_HOST = env('EMAIL_HOST', default='smtp-relay.brevo.com')
