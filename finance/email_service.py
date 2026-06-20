@@ -81,7 +81,6 @@ class PremiumEmailService:
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 to=[user.email]
             )
-            msg.mixed_subtype = 'related'
             msg.attach_alternative(html_body, "text/html")
 
             # Embutir imagem do badge como anexo inline (CID)
@@ -90,11 +89,20 @@ class PremiumEmailService:
             )
             if os.path.exists(badge_image_path):
                 with open(badge_image_path, 'rb') as img_file:
-                    img = MIMEImage(img_file.read())
-                    img.add_header('Content-ID', '<premium_badge>')
-                    img.add_header('Content-Disposition', 'inline', filename='premium_badge.png')
-                    msg.attach(img)
-                    logger.debug("Imagem do badge embutida no e-mail via CID.")
+                    img_data = img_file.read()
+                
+                from email.message import MIMEPart
+                inline_image = MIMEPart()
+                inline_image.set_content(
+                    img_data,
+                    maintype="image",
+                    subtype="png",
+                    disposition="inline",
+                    filename="premium_badge.png",
+                    cid="<premium_badge>"
+                )
+                msg.attach(inline_image)
+                logger.debug("Imagem do badge embutida no e-mail via CID usando MIMEPart.")
             else:
                 logger.warning(f"Imagem do badge não encontrada em: {badge_image_path}")
 
