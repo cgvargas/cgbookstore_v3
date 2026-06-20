@@ -159,13 +159,15 @@ class MonthlyRanking(models.Model):
         from datetime import datetime
         from accounts.models import BookShelf, BookReview, UserAchievement
 
+        from django.utils import timezone
+
         # Construir datas de início e fim do mês
-        start_date = datetime(self.year, self.month, 1)
+        start_date = timezone.make_aware(datetime(self.year, self.month, 1))
 
         if self.month == 12:
-            end_date = datetime(self.year + 1, 1, 1)
+            end_date = timezone.make_aware(datetime(self.year + 1, 1, 1))
         else:
-            end_date = datetime(self.year, self.month + 1, 1)
+            end_date = timezone.make_aware(datetime(self.year, self.month + 1, 1))
 
         # Livros lidos no mês
         self.books_read = BookShelf.objects.filter(
