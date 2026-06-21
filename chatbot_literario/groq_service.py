@@ -152,7 +152,7 @@ ESCOPO:
         # Configurações de geração - temperatura muito baixa para mínima alucinação
         self.generation_config = {
             "temperature": 0.1,  # Reduzido de 0.3 para 0.1 - máxima consistência
-            "max_tokens": 1024,  # Limite de tokens na resposta
+            "max_tokens": 4096,  # Limite de tokens na resposta (aumentado para evitar cortes de listas)
             "top_p": 0.7,  # Reduzido de 0.8 para maior foco
         }
 

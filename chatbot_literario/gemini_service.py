@@ -168,7 +168,7 @@ ESCOPO:
             "temperature": 0.2,  # Reduzido de 0.3 para 0.2 - mais determinístico
             "top_p": 0.7,  # Reduzido de 0.8 para 0.7 - respostas mais focadas
             "top_k": 15,  # Reduzido de 20 para 15 - maior consistência
-            "max_output_tokens": 1024,  # Limite para forçar concisão
+            "max_output_tokens": 4096,  # Limite para forçar concisão (aumentado para evitar cortes de listas)
         }
 
         # RAG - Knowledge Retrieval Service
