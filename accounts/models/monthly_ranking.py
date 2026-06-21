@@ -169,13 +169,17 @@ class MonthlyRanking(models.Model):
         else:
             end_date = timezone.make_aware(datetime(self.year, self.month + 1, 1))
 
-        # Livros lidos no mês
-        self.books_read = BookShelf.objects.filter(
+        # Livros lidos no mês (apenas verificados e finalizados no mês)
+        from accounts.models import ReadingProgress
+
+        verified_progresses = ReadingProgress.objects.filter(
             user=self.user,
-            shelf_type='read',
-            finished_reading__gte=start_date,
-            finished_reading__lt=end_date
-        ).count()
+            is_verified=True,
+            finished_at__gte=start_date,
+            finished_at__lt=end_date
+        ).select_related('book')
+
+        self.books_read = verified_progresses.count()
 
         # Reviews escritas no mês
         self.reviews_written = BookReview.objects.filter(
@@ -192,22 +196,13 @@ class MonthlyRanking(models.Model):
             earned_at__lt=end_date
         ).count()
 
-        # Páginas lidas (aproximação baseada em livros finalizados)
-        finished_books = BookShelf.objects.filter(
-            user=self.user,
-            shelf_type='read',
-            finished_reading__gte=start_date,
-            finished_reading__lt=end_date
-        ).select_related('book')
-
+        # Páginas lidas (baseado nos progressos de leitura verificados)
         self.pages_read = sum(
-            book_shelf.book.num_pages or 0
-            for book_shelf in finished_books
+            progress.total_pages or (progress.book.num_pages or 0)
+            for progress in verified_progresses
         )
 
-        # XP do mês (calculado a partir do perfil)
-        # Nota: Isto é uma aproximação. Idealmente, haveria um log de XP ganho.
-        # Por simplicidade, usaremos as conquistas desbloqueadas no mês
+        # XP do mês (soma do XP das conquistas desbloqueadas + 50 XP por cada livro verificado concluído)
         earned_achievements = UserAchievement.objects.filter(
             user=self.user,
             is_completed=True,
@@ -215,7 +210,7 @@ class MonthlyRanking(models.Model):
             earned_at__lt=end_date
         ).select_related('achievement')
 
-        self.total_xp = sum(
+        self.total_xp = (self.books_read * 50) + sum(
             ua.achievement.xp_reward
             for ua in earned_achievements
         )

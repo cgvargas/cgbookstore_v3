@@ -57,20 +57,19 @@ def add_to_shelf(request):
             notes=notes
         )
 
-        # =========================================================================
-        #  PONTO CRÍTICO DA CORREÇÃO (add_to_shelf)
-        #  Se o livro for adicionado à prateleira "Lendo", crie o progresso.
-        # =========================================================================
         if shelf_type == 'reading':
-            ReadingProgress.objects.get_or_create(
+            progress, created = ReadingProgress.objects.get_or_create(
                 user=request.user,
                 book=book,
                 defaults={
-                    'total_pages': book.page_count or 1,  # Usa 1 como fallback se não houver contagem
-                    'current_page': 0
+                    'total_pages': book.page_count or 1,
+                    'current_page': 0,
+                    'isbn_scanned': data.get('isbn_scanned', False)
                 }
             )
-        # =========================================================================
+            if not created and data.get('isbn_scanned', False):
+                progress.isbn_scanned = True
+                progress.save()
 
         shelf_counts = {
             'favorites': BookShelf.objects.filter(user=request.user, shelf_type='favorites').count(),
@@ -330,14 +329,18 @@ def move_to_shelf(request):
         bookshelf.save()
 
         if new_shelf_type == 'reading':
-            ReadingProgress.objects.get_or_create(
+            progress, created = ReadingProgress.objects.get_or_create(
                 user=request.user,
                 book=book,
                 defaults={
                     'total_pages': book.page_count or 1,
-                    'current_page': 0
+                    'current_page': 0,
+                    'isbn_scanned': data.get('isbn_scanned', False)
                 }
             )
+            if not created and data.get('isbn_scanned', False):
+                progress.isbn_scanned = True
+                progress.save()
 
         new_shelf_display = bookshelf.get_shelf_display()
 

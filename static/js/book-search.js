@@ -32,6 +32,9 @@
     // ============================================
 
     let elements = {};
+    let isbnScanned = false;
+    let html5QrCode = null;
+    let isScannerRunning = false;
 
     function initElements() {
         elements = {
@@ -178,12 +181,13 @@
     // BUSCA PARALELA
     // ============================================
 
-    async function performSearch(query) {
+    async function performSearch(query, isBarcode = false) {
         if (!query || query.trim().length < 2) {
             showFeedback('Digite pelo menos 2 caracteres para buscar', 'warning');
             return;
         }
 
+        isbnScanned = isBarcode;
         showLoadingState();
 
         try {
@@ -370,7 +374,8 @@
         const requestBody = {
             book_id: bookId,
             shelf_type: shelfType,
-            custom_shelf_name: customShelfName // Envia o nome da prateleira personalizada
+            custom_shelf_name: customShelfName, // Envia o nome da prateleira personalizada
+            isbn_scanned: isbnScanned
         };
 
         try {
@@ -539,28 +544,102 @@
         // Event: Botão de busca
         elements.btnSearch.addEventListener('click', () => {
             const query = elements.searchInput.value.trim();
-            performSearch(query);
+            performSearch(query, false);
         });
 
         // Event: Enter no input
         elements.searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const query = elements.searchInput.value.trim();
-                performSearch(query);
+                performSearch(query, false);
             }
         });
-
-        // Event: Busca automática com debounce (opcional)
-        // const debouncedSearch = debounce((query) => performSearch(query), CONFIG.DEBOUNCE_DELAY);
-        // elements.searchInput.addEventListener('input', (e) => debouncedSearch(e.target.value));
 
         // Event: Reset ao abrir modal
         elements.modal.addEventListener('show.bs.modal', () => {
             elements.searchInput.value = '';
+            isbnScanned = false;
             showInitialState();
         });
 
+        // Inicializar o scanner de código de barras
+        initScanner();
+
         console.log('📚 Book Search System initialized!');
+    }
+
+    // ============================================
+    // LEITOR DE CÓDIGO DE BARRAS (HTML5-QRCODE)
+    // ============================================
+
+    function initScanner() {
+        const btnScan = document.getElementById('btnScanBarcode');
+        const scannerModalEl = document.getElementById('barcodeScannerModal');
+        if (!btnScan || !scannerModalEl) return;
+
+        const scannerModal = new bootstrap.Modal(scannerModalEl);
+        const errorEl = document.getElementById('scannerErrorMessage');
+
+        btnScan.addEventListener('click', function(e) {
+            e.preventDefault();
+            scannerModal.show();
+        });
+
+        scannerModalEl.addEventListener('shown.bs.modal', function () {
+            errorEl.style.display = 'none';
+            errorEl.textContent = '';
+            
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("qr-reader");
+            }
+            
+            const config = { 
+                fps: 10, 
+                qrbox: { width: 280, height: 160 },
+                aspectRatio: 1.777778
+            };
+            
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                config,
+                // Sucesso no scan
+                (decodedText, decodedResult) => {
+                    console.log(`ISBN escaneado com sucesso: ${decodedText}`);
+                    elements.searchInput.value = decodedText;
+                    
+                    stopScanner().then(() => {
+                        scannerModal.hide();
+                        performSearch(decodedText, true);
+                    });
+                },
+                // Erro ou log
+                (errorMessage) => {
+                    // Ignora erros genéricos de leitura em andamento
+                }
+            ).then(() => {
+                isScannerRunning = true;
+            }).catch(err => {
+                console.error("Erro ao iniciar câmera:", err);
+                errorEl.textContent = "Não foi possível acessar a câmera traseira do seu dispositivo. Verifique as permissões de acesso.";
+                errorEl.style.display = 'block';
+            });
+        });
+
+        scannerModalEl.addEventListener('hide.bs.modal', function () {
+            stopScanner();
+        });
+        
+        async function stopScanner() {
+            if (html5QrCode && isScannerRunning) {
+                try {
+                    await html5QrCode.stop();
+                    isScannerRunning = false;
+                    console.log("Scanner de câmera parado.");
+                } catch(err) {
+                    console.error("Erro ao parar scanner:", err);
+                }
+            }
+        }
     }
 
     // Inicializar quando DOM estiver pronto

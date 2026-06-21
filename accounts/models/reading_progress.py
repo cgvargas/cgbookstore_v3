@@ -95,6 +95,61 @@ class ReadingProgress(models.Model):
         help_text='Quando o livro foi abandonado'
     )
 
+    # ========== NOVOS CAMPOS - ANTI-TRAPAÇA E VALIDAÇÃO POR IA ==========
+    is_verified = models.BooleanField(
+        default=False,
+        verbose_name='Leitura Verificada',
+        help_text='Indica se a leitura foi validada por IA/Scanner e conta para o ranking'
+    )
+
+    isbn_scanned = models.BooleanField(
+        default=False,
+        verbose_name='ISBN Escaneado',
+        help_text='Indica se o livro foi inserido através do escaneamento do código de barras físico'
+    )
+
+    verification_page = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Página de Verificação',
+        help_text='Número da página sorteada pelo sistema para comprovação de leitura'
+    )
+
+    verification_image = models.ImageField(
+        upload_to='reading_verifications/',
+        null=True,
+        blank=True,
+        verbose_name='Imagem de Verificação',
+        help_text='Foto da página solicitada enviada pelo usuário'
+    )
+
+    STATUS_CHOICES = [
+        ('pending', 'Pendente de Envio'),
+        ('verifying', 'Verificando com IA'),
+        ('approved', 'Aprovado'),
+        ('rejected', 'Rejeitado'),
+        ('manual_review', 'Revisão Manual Necessária'),
+    ]
+
+    verification_status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        verbose_name='Status da Verificação'
+    )
+
+    verification_notes = models.TextField(
+        blank=True,
+        verbose_name='Notas da Verificação',
+        help_text='Feedback detalhado do resultado da verificação (retornado pelo Gemini ou moderador)'
+    )
+
+    progress_updates_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Quantidade de Atualizações',
+        help_text='Quantidade de atualizações de progresso feitas em dias diferentes'
+    )
+
     # Notas sobre a leitura
     reading_notes = models.TextField(
         blank=True,
@@ -258,24 +313,52 @@ class ReadingProgress(models.Model):
     def update_progress(self, current_page):
         """
         Atualiza o progresso de leitura.
-
-        Se o usuário atingir a última página, o livro é automaticamente
-        movido da prateleira "Lendo" para "Lidos".
         """
-        self.current_page = min(current_page, self.total_pages)
+        # Limita o progresso
+        new_page = min(current_page, self.total_pages)
+        
+        # Registrar atualização de progresso se houver mudança de página
+        if self.current_page != new_page:
+            # Incrementar contador de dias distintos se for um dia novo
+            today = timezone.now().date()
+            if not self.last_updated or self.last_updated.date() != today:
+                self.progress_updates_count += 1
+            
+            self.current_page = new_page
 
-        # Se terminou de ler
+        # Se atingiu a última página
         if self.current_page >= self.total_pages and not self.finished_at:
+            # Se for verificado, conclui a leitura normalmente
+            if self.is_verified:
+                self.finished_at = timezone.now()
+                self.is_abandoned = False
+                self._move_to_read_shelf()
+            else:
+                # Caso contrário, marca como pendente de validação
+                self.verification_status = 'pending'
+
+        self.save()
+
+    def confirm_verification(self, status='approved', notes=''):
+        """
+        Homologa a verificação de leitura do livro.
+        Dá o XP de conclusão e move o livro para a prateleira de "Lidos".
+        """
+        self.verification_status = status
+        self.verification_notes = notes
+        
+        if status == 'approved':
+            self.is_verified = True
             self.finished_at = timezone.now()
-            self.is_abandoned = False  # Remove flag de abandonado se completou
-
-            # Adiciona XP por conclusão
+            self.is_abandoned = False
+            
+            # Adiciona XP por conclusão (50 XP)
             if hasattr(self.user, 'profile'):
-                self.user.profile.add_xp(50)  # 50 XP por completar livro
-
-            # Move automaticamente para prateleira "Lidos"
+                self.user.profile.add_xp(50)
+                
+            # Move automaticamente para a prateleira "Lidos"
             self._move_to_read_shelf()
-
+            
         self.save()
 
     def _move_to_read_shelf(self):
@@ -413,10 +496,20 @@ class ReadingProgress(models.Model):
         if self.total_pages and self.current_page > self.total_pages:
             self.current_page = self.total_pages
 
-        # Se atingiu 100%, marca como finalizado
-        if self.total_pages and self.current_page >= self.total_pages and not self.finished_at:
+        # Sorteia uma página de verificação aleatória quando o progresso é iniciado
+        if not self.verification_page and self.total_pages and self.total_pages > 10:
+            import random
+            start_range = max(1, int(self.total_pages * 0.15))
+            end_range = min(self.total_pages - 1, int(self.total_pages * 0.85))
+            if start_range < end_range:
+                self.verification_page = random.randint(start_range, end_range)
+            else:
+                self.verification_page = self.total_pages // 2
+
+        # Se atingiu 100%, e já está verificado, marca como finalizado
+        if self.total_pages and self.current_page >= self.total_pages and self.is_verified and not self.finished_at:
             self.finished_at = timezone.now()
-            self.is_abandoned = False  # Remove flag de abandonado
+            self.is_abandoned = False
 
         # Se está abandonado, não pode estar finalizado
         if self.is_abandoned and self.finished_at:

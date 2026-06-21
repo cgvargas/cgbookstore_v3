@@ -46,6 +46,8 @@ from core.views.reading_progress_views import (
     mark_notification_read_unified,
     delete_selected_notifications_unified,
     mark_all_notifications_as_read,
+    get_verification_challenge,
+    submit_page_verification,
 )
 
 # Banner Tracking
@@ -130,6 +132,8 @@ urlpatterns = [
     path('api/reading/abandon-book/', abandon_book_manual, name='abandon_book_manual'),
     path('api/reading/restore-book/', restore_book, name='restore_book'),
     path('api/reading/stats/<int:book_id>/', get_reading_stats, name='get_reading_stats'),
+    path('api/reading/verification-challenge/<int:book_id>/', get_verification_challenge, name='get_verification_challenge'),
+    path('api/reading/verify-page/', submit_page_verification, name='submit_page_verification'),
 
     # ==========================================
     # APIs AJAX - BUSCA, IMPORTAÇÃO DE LIVROS E RESENHAS

@@ -81,13 +81,18 @@ def update_reading_progress(request):
         # Verificar se vai completar o livro ANTES de atualizar
         was_finished_before = progress.is_finished
 
+        # Verificar se necessita de verificação por IA
+        requires_verification = False
+        if current_page >= progress.total_pages and not progress.is_verified:
+            requires_verification = True
+
         # Atualizar progresso
         xp_before = request.user.profile.total_xp if hasattr(request.user, 'profile') else 0
         progress.update_progress(current_page)
         xp_after = request.user.profile.total_xp if hasattr(request.user, 'profile') else 0
         xp_gained = xp_after - xp_before
 
-        # Verificar se completou o livro AGORA
+        # Verificar se completou o livro AGORA (só se já era verificado ou se a verificação é automática)
         just_completed = not was_finished_before and progress.is_finished
 
         # Preparar resposta
@@ -100,11 +105,20 @@ def update_reading_progress(request):
                 'percentage': progress.percentage,
                 'is_finished': progress.is_finished,
                 'deadline_status': progress.deadline_status_display if progress.deadline else None,
+                'requires_verification': requires_verification,
+                'verification_page': progress.verification_page,
+                'verification_status': progress.verification_status,
             }
         }
 
-        # Se completou o livro NESTA atualização
-        if just_completed:
+        # Se necessita de verificação
+        if requires_verification:
+            response_data['message'] = (
+                f'📖 Seu progresso chegou a 100%! Para homologar sua leitura no ranking competitivo, '
+                f'envie uma foto da página {progress.verification_page} do seu livro físico.'
+            )
+        # Se completou o livro NESTA atualização (por ex. se já era verificado)
+        elif just_completed:
             response_data['message'] = f'🎉 Parabéns! Você completou "{book.title}"!'
             if xp_gained > 0:
                 response_data['message'] += f' Ganhou {xp_gained} XP e o livro foi movido para "Lidos".'
@@ -1138,4 +1152,120 @@ def mark_all_notifications_as_read(request):
         return JsonResponse({
             'success': False,
             'message': f'Erro ao marcar notificações: {str(e)}'
+        }, status=500)
+
+
+# ==========================================
+# VIEWS PARA VERIFICAÇÃO ANTI-TRAPAÇA POR IA
+# ==========================================
+
+@login_required
+@require_http_methods(["GET"])
+def get_verification_challenge(request, book_id):
+    """
+    Retorna o desafio de verificação de leitura atual do livro.
+    """
+    book = get_object_or_404(Book, id=book_id)
+    progress, created = ReadingProgress.objects.get_or_create(
+        user=request.user,
+        book=book,
+        defaults={'total_pages': book.page_count or 1}
+    )
+    
+    return JsonResponse({
+        'success': True,
+        'book_title': book.title,
+        'verification_page': progress.verification_page,
+        'verification_status': progress.verification_status,
+        'is_verified': progress.is_verified,
+        'isbn_scanned': progress.isbn_scanned,
+        'isbn': book.isbn,
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def submit_page_verification(request):
+    """
+    Recebe a foto enviada pelo usuário, executa a verificação com o Gemini AI e atualiza o progresso.
+    """
+    try:
+        book_id = request.POST.get('book_id')
+        image_file = request.FILES.get('verification_image')
+        isbn_scanned = request.POST.get('isbn_scanned') == 'true'
+
+        if not book_id:
+            return JsonResponse({'success': False, 'message': 'ID do livro não fornecido.'}, status=400)
+        
+        if not image_file:
+            return JsonResponse({'success': False, 'message': 'Imagem de verificação não fornecida.'}, status=400)
+
+        book = get_object_or_404(Book, id=book_id)
+        progress = get_object_or_404(ReadingProgress, user=request.user, book=book)
+
+        # Se veio do leitor de código de barras
+        if isbn_scanned:
+            progress.isbn_scanned = True
+
+        # Salvar a imagem e mudar status
+        progress.verification_image = image_file
+        progress.verification_status = 'verifying'
+        progress.save()
+
+        # Obter o caminho local ou o objeto de arquivo para enviar para o Gemini
+        try:
+            image_input = progress.verification_image.path
+        except (NotImplementedError, ValueError):
+            # Fallback para ambientes de teste ou storages na nuvem que não suportam caminhos locais absolutos
+            image_input = progress.verification_image.file
+
+        # Chamar serviço do Gemini
+        from core.services.verification_service import verify_reading_page_with_gemini
+        
+        result = verify_reading_page_with_gemini(
+            image_file_path=image_input,
+            book_title=book.title,
+            book_author=book.author.name if book.author else 'Desconhecido',
+            isbn=book.isbn,
+            page_number=progress.verification_page
+        )
+
+        is_valid = result.get('is_valid', False)
+        confidence = result.get('confidence', 0.0)
+        reason = result.get('reason', 'Não foi possível analisar a imagem.')
+
+        if is_valid and confidence >= 0.6:
+            progress.confirm_verification(status='approved', notes=reason)
+            
+            # Criar notificação do sistema
+            ReadingNotification.objects.create(
+                user=request.user,
+                reading_progress=progress,
+                notification_type='milestone',
+                message=f'Sua leitura de "{book.title}" foi homologada por IA! Parabéns pelos 50 XP.'
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'verified': True,
+                'message': f'🎉 Leitura confirmada pelo auditor inteligente! {reason}',
+                'xp_gained': 50
+            })
+        else:
+            # Rejeitado ou pouca confiança
+            progress.confirm_verification(status='rejected', notes=reason)
+            progress.is_verified = False
+            progress.save()
+            
+            return JsonResponse({
+                'success': False,
+                'verified': False,
+                'message': f'❌ Falha na verificação automática: {reason}',
+                'reason': reason
+            })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao processar a validação por IA: {str(e)}'
         }, status=500)

@@ -16,7 +16,7 @@
                 <!-- Campo de Busca -->
                 <div class="search-section mb-4">
                     <div class="row g-2">
-                        <div class="col-md-10">
+                        <div class="col-md-8">
                             <input
                                 type="text"
                                 id="bookSearchInput"
@@ -26,6 +26,11 @@
                             >
                         </div>
                         <div class="col-md-2">
+                            <button id="btnScanBarcode" class="btn btn-outline-secondary btn-lg w-100" title="Escanear Código de Barras do Livro">
+                                <i class="fas fa-barcode"></i> Escanear
+                            </button>
+                        </div>
+                        <div class="col-md-2">
                             <button id="btnSearchBooks" class="btn btn-primary btn-lg w-100">
                                 <i class="fas fa-search"></i> Buscar
                             </button>
@@ -33,7 +38,7 @@
                     </div>
                     <small class="text-muted d-block mt-2">
                         <i class="fas fa-info-circle"></i>
-                        Buscaremos no nosso catálogo e no Google Books simultaneamente
+                        Buscaremos no nosso catálogo e no Google Books simultaneamente. Você também pode escanear o código de barras do seu livro físico.
                     </small>
                 </div>
 
@@ -366,3 +371,33 @@
     min-width: 180px;
 }
 </style>
+
+<!-- Script HTML5-QRCode Scanner -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+<!-- Modal: Barcode Scanner -->
+<div class="modal fade" id="barcodeScannerModal" tabindex="-1" aria-labelledby="barcodeScannerModalLabel" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--card-bg); border: 1px solid var(--border-color);">
+            <div class="modal-header">
+                <h5 class="modal-title" id="barcodeScannerModalLabel">
+                    <i class="fas fa-camera text-primary me-2"></i>Escanear Código de Barras (ISBN)
+                </h5>
+                <button type="button" class="btn-close" id="btnCloseScanner" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="text-muted small mb-3">
+                    Aponte a câmera traseira do seu celular para o código de barras (ISBN) na contracapa do livro.
+                </p>
+                <!-- Onde o scanner vai renderizar -->
+                <div id="qr-reader" style="width: 100%; max-width: 400px; margin: 0 auto; border-radius: 12px; overflow: hidden; background: #000; border: 2px solid var(--border-color);"></div>
+                <div id="scannerErrorMessage" class="text-danger small mt-2" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnCancelScanner" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -75,6 +75,15 @@ const ReadingProgressManager = {
         deadlineBtn: document.getElementById('setDeadlineBtn'),
         removeDeadlineBtn: document.getElementById('removeDeadlineBtn'),
         currentPageInput: document.getElementById('currentPage'),
+        // Novos elementos para verificação por IA
+        verificationSection: document.getElementById('verificationSection'),
+        verificationPageChallenge: document.getElementById('verificationPageChallenge'),
+        verificationStatusAlert: document.getElementById('verificationStatusAlert'),
+        verificationStatusIcon: document.getElementById('verificationStatusIcon'),
+        verificationStatusMessage: document.getElementById('verificationStatusMessage'),
+        verificationUploadForm: document.getElementById('verificationUploadForm'),
+        verificationImageInput: document.getElementById('verificationImageInput'),
+        submitVerificationBtn: document.getElementById('submitVerificationBtn'),
     },
 
     /**
@@ -91,6 +100,7 @@ const ReadingProgressManager = {
         this.elements.updateBtn?.addEventListener('click', () => this.handlers.onUpdateProgress());
         this.elements.deadlineBtn?.addEventListener('click', () => this.handlers.onSetDeadline());
         this.elements.removeDeadlineBtn?.addEventListener('click', () => this.handlers.onRemoveDeadline(bookId));
+        this.elements.submitVerificationBtn?.addEventListener('click', () => this.handlers.onSubmitVerification());
         this.elements.currentPageInput?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -134,6 +144,27 @@ const ReadingProgressManager = {
                     document.getElementById('progress-bar-inner').style.width = data.progress.percentage + '%';
                     document.getElementById('progress-percentage').textContent = data.progress.percentage + '%';
 
+                    const { verificationSection, verificationPageChallenge, verificationUploadForm, verificationStatusAlert } = ReadingProgressManager.elements;
+                    if (data.progress.requires_verification) {
+                        if (verificationSection) {
+                            verificationSection.style.display = 'block';
+                        }
+                        if (verificationPageChallenge) {
+                            verificationPageChallenge.textContent = data.progress.verification_page;
+                        }
+                        if (verificationUploadForm) {
+                            verificationUploadForm.style.display = 'block';
+                        }
+                        if (verificationStatusAlert) {
+                            verificationStatusAlert.style.display = 'none';
+                        }
+                    } else {
+                        // Se não requer mais verificação (ex: voltou página), esconde a seção
+                        if (verificationSection) {
+                            verificationSection.style.display = 'none';
+                        }
+                    }
+
                     // Se o livro foi completado e movido para "Lidos"
                     if (data.progress.moved_to_read) {
                         // Atualizar UI sem reload - mostrar badge de completado
@@ -157,6 +188,87 @@ const ReadingProgressManager = {
             } finally {
                 updateBtn.disabled = false;
                 updateBtn.innerHTML = '<i class="fas fa-save me-2"></i>Salvar Progresso';
+            }
+        },
+
+        /**
+         * Lida com o envio da foto para validação por IA.
+         */
+        async onSubmitVerification() {
+            const { widget, verificationImageInput, submitVerificationBtn, verificationStatusAlert, verificationStatusIcon, verificationStatusMessage, verificationUploadForm } = ReadingProgressManager.elements;
+            const bookId = widget.dataset.bookId;
+            const file = verificationImageInput?.files[0];
+
+            if (!file) {
+                return showToast('Por favor, selecione ou tire uma foto da página solicitada.', 'error');
+            }
+
+            submitVerificationBtn.disabled = true;
+            submitVerificationBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando para IA...';
+            
+            // Exibir status de verificação em andamento
+            if (verificationStatusAlert) {
+                verificationStatusAlert.style.display = 'block';
+                verificationStatusAlert.className = 'alert alert-warning py-2 px-3 mb-3 small';
+                if (verificationStatusIcon) verificationStatusIcon.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+                if (verificationStatusMessage) verificationStatusMessage.textContent = 'Enviando imagem e iniciando análise inteligente (pode levar alguns segundos)...';
+            }
+            if (verificationUploadForm) {
+                verificationUploadForm.style.display = 'none';
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('book_id', bookId);
+                formData.append('verification_image', file);
+                
+                // Verifica se foi adicionado via barcode escaneado e repassa a informação
+                const isBarcodeScanned = localStorage.getItem(`isbn_scanned_${bookId}`) === 'true';
+                formData.append('isbn_scanned', isBarcodeScanned ? 'true' : 'false');
+
+                const response = await fetch('/api/reading/verify-page/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    body: formData,
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    if (verificationStatusAlert) {
+                        verificationStatusAlert.className = 'alert alert-success py-2 px-3 mb-3 small';
+                        if (verificationStatusIcon) verificationStatusIcon.innerHTML = '<i class="fas fa-check-circle text-success"></i>';
+                        if (verificationStatusMessage) verificationStatusMessage.textContent = data.message;
+                    }
+                    
+                    // Sucesso! Após 3 segundos recarrega a página para atualizar o status e prateleiras
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
+                } else {
+                    showToast(data.message, 'error');
+                    if (verificationStatusAlert) {
+                        verificationStatusAlert.className = 'alert alert-danger py-2 px-3 mb-3 small';
+                        if (verificationStatusIcon) verificationStatusIcon.innerHTML = '<i class="fas fa-times-circle text-danger"></i>';
+                        if (verificationStatusMessage) verificationStatusMessage.textContent = data.message || 'Verificação rejeitada pela IA.';
+                    }
+                    if (verificationUploadForm) {
+                        verificationUploadForm.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                showToast('Erro de conexão ao enviar verificação.', 'error');
+                if (verificationStatusAlert) {
+                    verificationStatusAlert.className = 'alert alert-danger py-2 px-3 mb-3 small';
+                    if (verificationStatusIcon) verificationStatusIcon.innerHTML = '<i class="fas fa-exclamation-triangle text-danger"></i>';
+                    if (verificationStatusMessage) verificationStatusMessage.textContent = 'Erro ao se comunicar com o servidor. Tente novamente.';
+                }
+                if (verificationUploadForm) {
+                    verificationUploadForm.style.display = 'block';
+                }
+            } finally {
+                submitVerificationBtn.disabled = false;
+                submitVerificationBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Enviar Foto e Validar';
             }
         },
 
