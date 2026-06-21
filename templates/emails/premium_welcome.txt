@@ -47,7 +47,7 @@ SEUS BENEFÍCIOS PREMIUM:
 
 Acesse sua conta: {{ site_url }}/biblioteca/
 
-Se tiver qualquer dúvida sobre sua assinatura, responda este email.
+Este é um e-mail automático. Por favor, não responda a esta mensagem. Caso precise de ajuda, entre em contato em suporte@cgbookstore.com.br.
 
 ---
 Equipe CGBookStore
