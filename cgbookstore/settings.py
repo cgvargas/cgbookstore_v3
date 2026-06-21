@@ -479,7 +479,7 @@ SITE_URL = env('SITE_URL', default='http://localhost:8000')
 # Controlado inteiramente pelas variáveis de ambiente.
 # Funciona com qualquer backend SMTP (Brevo, SendGrid, Gmail, etc.)
 # ==============================================================================
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@cgbookstore.com')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='suporte@cgbookstore.com.br')
 CONTACT_EMAIL = env('CONTACT_EMAIL', default=DEFAULT_FROM_EMAIL)
 
 # Suporte ao Brevo Web API (mais confiável em ambientes de nuvem como Render Free Tier)

@@ -128,7 +128,7 @@ FAQ_DATA = {
                     "id": "premium_5",
                     "question": "Tenho direito a reembolso?",
                     "keywords": ["reembolso", "devolução", "dinheiro de volta", "garantia", "estorno"],
-                    "answer": "Sim! 7 dias de garantia com reembolso total. Email: contato@cgbookstore.com. Devolução em até 10 dias úteis."
+                    "answer": "Sim! 7 dias de garantia com reembolso total. Email: suporte@cgbookstore.com.br. Devolução em até 10 dias úteis."
                 },
                 {
                     "id": "premium_6",
@@ -194,7 +194,7 @@ FAQ_DATA = {
                     "id": "tecnico_4",
                     "question": "Como entrar em contato com o suporte?",
                     "keywords": ["contato", "suporte", "ajuda", "atendimento", "falar com alguém", "email"],
-                    "answer": "Email: contato@cgbookstore.com, chat de suporte no site, ou redes sociais (@cgbookstore). Respondemos em até 24h úteis!"
+                    "answer": "Email: suporte@cgbookstore.com.br, chat de suporte no site, ou redes sociais (@cgbookstore). Respondemos em até 24h úteis!"
                 }
             ]
         },
