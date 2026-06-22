@@ -25,11 +25,40 @@ def clear_expired_cache():
         return f"Error: {e}"
 
 
-@shared_task
-def test_async_task(message):
-    """Task de teste para validar Celery."""
-    logger.info(f"📨 Task executada: {message}")
-    return f"Processed: {message}"
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=30)
+def delete_storage_file(self, file_name: str, storage_backend: str = 'default'):
+    """
+    Deleta um arquivo do storage (Cloudflare R2 ou outro backend) de forma assíncrona.
+
+    Desacopla a deleção de arquivos do ciclo de vida da requisição Django,
+    evitando que chamadas HTTP ao R2 adicionem latência ao response do admin.
+
+    Args:
+        file_name: Path do arquivo no storage (ex: 'books/covers/livro.jpg')
+        storage_backend: Nome do backend de storage (padrão: 'default')
+
+    Retry: até 3 vezes com intervalo de 30s em caso de falha de rede.
+    """
+    if not file_name:
+        logger.debug("[STORAGE] delete_storage_file chamada com file_name vazio, ignorando.")
+        return "skipped: empty file_name"
+
+    try:
+        from django.core.files.storage import storages
+        storage = storages[storage_backend]
+        if storage.exists(file_name):
+            storage.delete(file_name)
+            logger.info(f"[STORAGE] ✅ Arquivo deletado do R2: {file_name}")
+            return f"deleted: {file_name}"
+        else:
+            logger.info(f"[STORAGE] Arquivo não encontrado no R2 (já deletado?): {file_name}")
+            return f"not_found: {file_name}"
+    except Exception as exc:
+        logger.error(f"[STORAGE] ❌ Erro ao deletar '{file_name}': {exc}")
+        raise self.retry(exc=exc)
+
+
 
 
 @shared_task

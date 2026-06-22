@@ -128,7 +128,9 @@ if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
     # Configuração base para PostgreSQL
     db_options = {
         'connect_timeout': 10,
-        'options': '-c statement_timeout=30000',  # 30s timeout para queries
+        # NOTA: statement_timeout removido daqui pois o PgBouncer (Supabase Pooler)
+        # em transaction mode não preserva SET entre transações.
+        # O timeout é aplicado via signal connection_created em core/signals/cache_signals.py
         'client_encoding': 'UTF8',
     }
 
@@ -194,9 +196,6 @@ if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
                     logger.error("⚠️ Ou configure DATABASE_IPV4 com o IP fixo")
                 except Exception as e:
                     logger.error(f"❌ Erro inesperado: {e}")
-
-    # Adicionar timeout de statement para prevenir queries lentas travarem o servidor
-    db_options['options'] = '-c statement_timeout=25000'  # 25 segundos (antes do timeout do gunicorn de 30s)
 
     DATABASES['default']['OPTIONS'] = db_options
     

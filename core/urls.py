@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.decorators.cache import cache_page
 from core.views import (
     HomeView,
     BookListView,
@@ -91,7 +92,10 @@ urlpatterns = [
     # ==========================================
     # ROTAS PRINCIPAIS DO SITE
     # ==========================================
-    path('', HomeView.as_view(), name='home'),
+    # cache_page: cacheia o HTML renderizado completo no Redis por 30 minutos.
+    # Elimina os ~1.8s de render de template no cache miss (especialmente HEAD / do health check).
+    # Vary:Cookie garante que usuários anônimos compartilham o cache; autenticados têm entradas próprias.
+    path('', cache_page(60 * 30)(HomeView.as_view()), name='home'),
     path('livros/', BookListView.as_view(), name='book_list'),
     path('livros/<int:book_id>/', BookRedirectView.as_view(), name='book_detail_by_id'),
     path('livros/<slug:slug>/', BookDetailView.as_view(), name='book_detail'),

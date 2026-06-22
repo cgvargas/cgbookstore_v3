@@ -4,7 +4,8 @@ Signals para invalidar cache da home page quando dados relevantes mudam.
 IMPORTANTE: Não invalidar em updates de contadores (views, clicks) pois
 são operações frequentes que não afetam o conteúdo exibido.
 """
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_delete
+from django.db.backends.signals import connection_created
 from django.dispatch import receiver
 from django.core.cache import cache
 import logging
@@ -20,6 +21,10 @@ def invalidate_home_cache():
     cache.delete('home_full_context')
     logger.info("[CACHE] Home cache invalidado")
 
+
+# ==============================================================================
+# SIGNALS DE CACHE — Invalidação da home page
+# ==============================================================================
 
 @receiver(post_save, sender='core.Section')
 @receiver(post_delete, sender='core.Section')
@@ -70,8 +75,60 @@ def video_changed(sender, **kwargs):
     invalidate_home_cache()
 
 
+# ==============================================================================
+# SIGNALS DE BOOK — R2 Assíncrono + Cache
+# ==============================================================================
+
+@receiver(pre_delete, sender='core.Book', dispatch_uid='book_pre_delete_r2_async')
+def book_pre_delete_capture_files(sender, instance, **kwargs):
+    """
+    Captura o nome do arquivo ANTES da deleção e zera o campo.
+
+    Isso impede que o django_cleanup faça a chamada HTTP síncrona ao R2
+    durante o request do admin (que causava ~1.5s de latência).
+
+    O arquivo capturado será deletado de forma assíncrona via Celery
+    no signal post_delete abaixo.
+    """
+    # Capturar o nome do arquivo antes de ser zerado
+    cover_name = None
+    if instance.cover_image and instance.cover_image.name:
+        cover_name = instance.cover_image.name
+
+    # Guardar no objeto para usar no post_delete
+    # (o objeto instance é passado para os receivers na mesma thread)
+    instance._pending_file_delete = cover_name
+
+    # Zerar o campo para que o django_cleanup não encontre arquivo para deletar
+    # (evita a chamada HTTP síncrona ao R2 durante o request)
+    if cover_name:
+        instance.cover_image = None
+        logger.debug(f"[STORAGE] Arquivo capturado para deleção async: {cover_name}")
+
+
+@receiver(post_delete, sender='core.Book', dispatch_uid='book_post_delete_cache_and_r2')
+def book_post_delete(sender, instance, **kwargs):
+    """
+    Após deleção do Book:
+    1. Agenda deleção do arquivo R2 via Celery (assíncrono, não bloqueia o request)
+    2. Invalida o cache da home page
+    """
+    # Deletar arquivo do R2 de forma assíncrona
+    file_name = getattr(instance, '_pending_file_delete', None)
+    if file_name:
+        try:
+            from core.tasks import delete_storage_file
+            delete_storage_file.delay(file_name)
+            logger.info(f"[STORAGE] Task agendada para deletar: {file_name}")
+        except Exception as e:
+            # Fallback: logar mas não bloquear o response
+            logger.error(f"[STORAGE] ❌ Falha ao agendar task de deleção: {e}")
+
+    # Invalidar cache da home
+    invalidate_home_cache()
+
+
 @receiver(post_save, sender='core.Book')
-@receiver(post_delete, sender='core.Book')
 def book_changed(sender, **kwargs):
     """Invalida cache quando Book muda."""
     invalidate_home_cache()
@@ -82,3 +139,29 @@ def book_changed(sender, **kwargs):
 def author_changed(sender, **kwargs):
     """Invalida cache quando Author muda."""
     invalidate_home_cache()
+
+
+# ==============================================================================
+# SIGNAL DE DB — Statement Timeout por Conexão
+# ==============================================================================
+
+@receiver(connection_created)
+def set_db_statement_timeout(sender, connection, **kwargs):
+    """
+    Define statement_timeout para cada nova conexão PostgreSQL.
+
+    POR QUÊ AQUI e não em settings.py OPTIONS:
+    O Supabase usa PgBouncer em transaction mode, onde comandos SET
+    não persistem entre transações. Este signal roda a cada nova conexão
+    obtida do pool, garantindo que o timeout seja aplicado via SQL real.
+
+    Timeout: 25s (antes do timeout do Gunicorn de 30s)
+    """
+    if connection.vendor == 'postgresql':
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SET statement_timeout = '25000'")  # 25 segundos em ms
+            logger.debug("[DB] statement_timeout=25s aplicado via connection_created")
+        except Exception as e:
+            logger.warning(f"[DB] Falha ao aplicar statement_timeout: {e}")
+
