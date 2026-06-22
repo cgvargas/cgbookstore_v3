@@ -544,8 +544,10 @@ ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 # 'none' = não pede verificação
 #
 # Em DEV: 'none' para facilitar testes locais
-# Em PROD: 'mandatory' para segurança e emails válidos
-ACCOUNT_EMAIL_VERIFICATION = 'none' if DEBUG else 'mandatory'
+# Em PROD: 'optional' para enviar email de verificação mas permitir login
+#           ('mandatory' bloqueava login silenciosamente quando combinado com
+#            ACCOUNT_PREVENT_ENUMERATION=True, que escondia a mensagem real)
+ACCOUNT_EMAIL_VERIFICATION = 'none' if DEBUG else 'optional'
 
 # Impedir que usuários logados acessem páginas de signup/login
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
