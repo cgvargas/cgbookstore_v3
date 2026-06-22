@@ -417,7 +417,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top {% if user.is_superuser %}admin-mode-navbar{% else %}bg-dark{% endif %}">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{% url 'core:home' %}">
-                <img src="{% static 'images/logo_appweb.png' %}" alt="CG.BookStore" style="height: 36px; width: auto;">
+                <img src="{% static 'images/logo_appweb.webp' %}" alt="CG.BookStore" style="height: 36px; width: auto;">
                 <span class="ms-2 fw-bold" style="font-size: 1.2rem;">CG.BookStore</span>
                 {% if user.is_superuser %}
                 <span class="admin-mode-badge">
@@ -965,7 +965,7 @@
                         <div class="footer-brand">
                             <a href="{% url 'core:home' %}" class="d-flex align-items-center text-decoration-none"
                                 style="margin-bottom: 1rem;">
-                                <img src="{% static 'images/logo_appweb.png' %}" alt="CG BookStore"
+                                <img src="{% static 'images/logo_appweb.webp' %}" alt="CG BookStore"
                                     style="height: 40px; width: auto;">
                                 <span class="ms-2 fw-bold" style="font-size: 1.4rem; color: #fff;">CG.BookStore</span>
                             </a>

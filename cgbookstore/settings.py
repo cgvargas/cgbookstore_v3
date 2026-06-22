@@ -675,6 +675,46 @@ if not DEBUG:
 # LOGGING CONFIGURATION
 # ==============================================================================
 
+import re
+import logging
+
+class Bot404Filter(logging.Filter):
+    """
+    Filtro de log para silenciar avisos de 404 (Not Found) gerados por varreduras de bots.
+    """
+    BOT_URL_PATTERNS = [
+        re.compile(r'/wp-', re.IGNORECASE),
+        re.compile(r'xmlrpc\.php', re.IGNORECASE),
+        re.compile(r'\.php', re.IGNORECASE),
+        re.compile(r'/ads\.txt', re.IGNORECASE),
+        re.compile(r'/robots\.txt', re.IGNORECASE),
+        re.compile(r'/\.env', re.IGNORECASE),
+        re.compile(r'/\.git', re.IGNORECASE),
+        re.compile(r'/wp-includes/', re.IGNORECASE),
+        re.compile(r'/wp-admin/', re.IGNORECASE),
+        re.compile(r'/wp-content/', re.IGNORECASE),
+    ]
+
+    def filter(self, record):
+        if record.levelno == logging.WARNING:
+            msg = record.getMessage()
+            if "Not Found:" in msg:
+                for pattern in self.BOT_URL_PATTERNS:
+                    if pattern.search(msg):
+                        return False
+        return True
+
+# Django BrokenLinkEmailsMiddleware settings
+IGNORABLE_404_URLS = [
+    re.compile(r'^/wp-'),
+    re.compile(r'^/xmlrpc\.php'),
+    re.compile(r'\.php$'),
+    re.compile(r'^/ads\.txt$'),
+    re.compile(r'^/robots\.txt$'),
+    re.compile(r'^/\.env'),
+    re.compile(r'^/\.git'),
+]
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -684,10 +724,16 @@ LOGGING = {
             'style': '{',
         },
     },
+    'filters': {
+        'ignore_bot_404s': {
+            '()': 'cgbookstore.settings.Bot404Filter',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
+            'filters': ['ignore_bot_404s'],
         },
     },
     'root': {

@@ -77,7 +77,7 @@ class ArticleAdmin(admin.ModelAdmin):
         'published_at',
         'created_at'
     ]
-    search_fields = ['title', 'subtitle', 'excerpt', 'content']
+    search_fields = ['^title', 'subtitle', 'excerpt']
     prepopulated_fields = {'slug': ('title',)}
     filter_horizontal = ['tags']
     date_hierarchy = 'published_at'
