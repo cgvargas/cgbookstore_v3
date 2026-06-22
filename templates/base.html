@@ -888,7 +888,13 @@
                 link.addEventListener('click', function (e) {
                     // Only for same-origin links
                     if (this.origin === window.location.origin) {
-                        PageLoader.show('Carregando...');
+                        // Delay para permitir que o navegador inicie a navegação
+                        // e para verificar se e.preventDefault() foi chamado por outros scripts
+                        setTimeout(() => {
+                            if (!e.defaultPrevented) {
+                                PageLoader.show('Carregando...');
+                            }
+                        }, 50);
                     }
                 });
             });
