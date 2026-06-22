@@ -223,6 +223,13 @@ class Book(models.Model):
             models.Index(fields=['isbn']),
             models.Index(fields=['google_books_id']),
             models.Index(fields=['created_at']),
+            # Índices adicionados para otimizar o Django Admin:
+            # - 'title': usado em search_fields com prefixo '^' (LIKE 'texto%')
+            # - 'publication_date': usado em date_hierarchy e list_filter
+            # - 'is_presale': usado em list_filter
+            models.Index(fields=['title'], name='core_book_title_idx'),
+            models.Index(fields=['publication_date'], name='core_book_pub_date_idx'),
+            models.Index(fields=['is_presale'], name='core_book_presale_idx'),
         ]
 
     def save(self, *args, **kwargs):

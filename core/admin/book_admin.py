@@ -11,7 +11,9 @@ from news.models import Article
 
 class BookAdminForm(forms.ModelForm):
     existing_articles = forms.ModelMultipleChoiceField(
-        queryset=Article.objects.all(),
+        # Otimização: only() carrega apenas os campos necessários para o widget,
+        # evitando trazer o body/conteúdo completo de cada artigo.
+        queryset=Article.objects.only('id', 'title').order_by('title'),
         required=False,
         widget=FilteredSelectMultiple("Artigos/Notícias", is_stacked=False),
         label="Artigos e Notícias Vinculados",
@@ -99,12 +101,16 @@ class BookAdmin(admin.ModelAdmin):
         'author'
     ]
     search_fields = [
-        'title',
+        # PERFORMANCE: Prefixo '^' usa LIKE 'texto%' (pode usar índice B-tree)
+        # vs busca padrão que usa LIKE '%texto%' (full scan, sem índice)
+        '^title',
         'subtitle',
         'author__name',
         'isbn',
         'google_books_id',
-        'description'
+        # REMOVIDO: 'description' — TextField longo sem índice.
+        # Busca com LIKE '%...%' em TextField causava queries de 60+ segundos.
+        # Para busca full-text em descrições, considere PostgreSQL SearchVector + GIN index.
     ]
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ['created_at', 'updated_at']
