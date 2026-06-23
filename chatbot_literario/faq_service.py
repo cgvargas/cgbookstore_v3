@@ -80,7 +80,7 @@ FAQ_DATA = {
                     "id": "livros_3",
                     "question": "Posso ler os livros online?",
                     "keywords": ["ler online", "leitura digital", "ebook", "ler livro", "download livro"],
-                    "answer": "Sim! Pelo app você pode ler ebooks gratuitos. No menu superior (navbar), acesse Livros → Biblioteca Digital. Nessa página, é possível buscar pelo título ou autor e escolher a fonte entre Project Gutenberg e Open Library, ambas com obras gratuitas e legais para leitura."
+                    "answer": "No momento, o site não oferece a leitura de e-books diretamente na plataforma, funcionando como um catálogo e comunidade para organizar suas leituras. Mas você pode registrar seus livros físicos e e-books em sua estante, avaliar e acompanhar seu progresso de leitura!"
                 },
                 {
                     "id": "livros_4",

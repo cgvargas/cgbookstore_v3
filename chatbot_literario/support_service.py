@@ -56,8 +56,6 @@ ESCOPO DE ATENDIMENTO:
 - CG.Fandom News (notícias literárias)
 - Busca de livros e autores
 - Avaliações e resenhas
-- Biblioteca Digital (e-books gratuitos via Project Gutenberg / Open Library)
-- Leitura online de e-books
 - Assistente Literário Dbit
 
 ✅ SUPORTE TÉCNICO:
