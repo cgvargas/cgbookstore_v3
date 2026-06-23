@@ -24,20 +24,25 @@ import django, os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cgbookstore.settings')
 django.setup()
 from django.contrib.sites.models import Site
+
 domain = os.getenv('SITE_DOMAIN', 'www.cgbookstore.com.br')
 name = os.getenv('SITE_NAME', 'CG Bookstore')
-site, created = Site.objects.get_or_create(id=1, defaults={'domain': domain, 'name': name})
-if not created:
-    if site.domain != domain or site.name != name:
-        old_domain = site.domain
-        site.domain = domain
-        site.name = name
-        site.save()
-        print(f'  Site atualizado: {old_domain} -> {domain}')
-    else:
-        print(f'  Site já configurado: {domain}')
-else:
+
+# Remover Sites duplicados que tenham o mesmo domain mas id diferente de 1
+duplicates = Site.objects.filter(domain=domain).exclude(id=1)
+if duplicates.exists():
+    print(f'  Removendo {duplicates.count()} Site(s) duplicado(s) com domain={domain}')
+    duplicates.delete()
+
+# Agora atualizar ou criar o Site id=1
+site, created = Site.objects.update_or_create(
+    id=1,
+    defaults={'domain': domain, 'name': name}
+)
+if created:
     print(f'  Site criado: {domain}')
+else:
+    print(f'  Site configurado: {domain} (name={name})')
 "
 
 echo "✅ Build concluído com sucesso!"
