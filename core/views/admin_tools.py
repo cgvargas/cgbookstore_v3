@@ -121,6 +121,7 @@ def health_check_view(request):
         'books': check_books(),
         'environment': check_environment(),
         'security': check_security(),
+        'auth': check_auth(),
     }
 
     # Contar erros e avisos
@@ -135,6 +136,125 @@ def health_check_view(request):
     }
 
     return render(request, 'admin_tools/health_check.html', context)
+
+
+def auth_diagnostics_view(request):
+    """
+    Endpoint público de diagnóstico de autenticação (retorna JSON).
+    NÃO requer login (para que possamos diagnosticar problemas de login).
+    Não expõe dados sensíveis, apenas configurações relevantes.
+    """
+    from django.contrib.sites.models import Site
+    from allauth.account.models import EmailAddress
+    from django.contrib.sessions.models import Session
+    from django.utils import timezone
+    import os
+
+    diagnostics = {}
+
+    # 1. Configurações de sessão/cookie
+    diagnostics['session'] = {
+        'engine': settings.SESSION_ENGINE,
+        'cookie_name': settings.SESSION_COOKIE_NAME,
+        'cookie_secure': getattr(settings, 'SESSION_COOKIE_SECURE', False),
+        'cookie_samesite': getattr(settings, 'SESSION_COOKIE_SAMESITE', 'Lax'),
+        'cookie_domain': getattr(settings, 'SESSION_COOKIE_DOMAIN', None),
+        'cookie_age': settings.SESSION_COOKIE_AGE,
+    }
+
+    # 2. CSRF
+    diagnostics['csrf'] = {
+        'cookie_secure': getattr(settings, 'CSRF_COOKIE_SECURE', False),
+        'trusted_origins': settings.CSRF_TRUSTED_ORIGINS,
+    }
+
+    # 3. Site (allauth precisa)
+    try:
+        site = Site.objects.get(id=settings.SITE_ID)
+        diagnostics['site'] = {
+            'id': site.id,
+            'domain': site.domain,
+            'name': site.name,
+            'site_id_setting': settings.SITE_ID,
+        }
+    except Site.DoesNotExist:
+        diagnostics['site'] = {
+            'error': f'Site com ID={settings.SITE_ID} NÃO EXISTE!',
+            'site_id_setting': settings.SITE_ID,
+        }
+
+    # 4. Allauth settings
+    diagnostics['allauth'] = {
+        'email_verification': getattr(settings, 'ACCOUNT_EMAIL_VERIFICATION', 'unknown'),
+        'prevent_enumeration': getattr(settings, 'ACCOUNT_PREVENT_ENUMERATION', False),
+        'login_methods': list(getattr(settings, 'ACCOUNT_LOGIN_METHODS', set())),
+        'signup_enabled': getattr(settings, 'ACCOUNT_SIGNUP_ENABLED', True),
+        'login_url': getattr(settings, 'ACCOUNT_LOGIN_URL', '/accounts/login/'),
+    }
+
+    # 5. ALLOWED_HOSTS e SSL
+    diagnostics['hosts'] = {
+        'allowed_hosts': settings.ALLOWED_HOSTS,
+        'debug': settings.DEBUG,
+        'ssl_redirect': getattr(settings, 'SECURE_SSL_REDIRECT', False),
+        'proxy_ssl_header': getattr(settings, 'SECURE_PROXY_SSL_HEADER', None),
+    }
+
+    # 6. Sessões ativas no banco
+    try:
+        active_sessions = Session.objects.filter(
+            expire_date__gt=timezone.now()
+        ).count()
+        total_sessions = Session.objects.count()
+        diagnostics['sessions_db'] = {
+            'active': active_sessions,
+            'total': total_sessions,
+            'table_exists': True,
+        }
+    except Exception as e:
+        diagnostics['sessions_db'] = {
+            'error': str(e),
+            'table_exists': False,
+        }
+
+    # 7. Tabelas de allauth
+    try:
+        email_count = EmailAddress.objects.count()
+        verified_count = EmailAddress.objects.filter(verified=True).count()
+        diagnostics['allauth_db'] = {
+            'email_addresses_total': email_count,
+            'email_addresses_verified': verified_count,
+            'table_exists': True,
+        }
+    except Exception as e:
+        diagnostics['allauth_db'] = {
+            'error': str(e),
+            'table_exists': False,
+        }
+
+    # 8. Migrações pendentes
+    try:
+        out = io.StringIO()
+        call_command('showmigrations', '--plan', stdout=out)
+        output = out.getvalue()
+        unapplied = [line.strip() for line in output.splitlines() if line.strip().startswith('[ ]')]
+        diagnostics['migrations'] = {
+            'pending_count': len(unapplied),
+            'pending': unapplied[:10],  # mostrar máx. 10
+        }
+    except Exception as e:
+        diagnostics['migrations'] = {'error': str(e)}
+
+    # 9. Request info (para diagnosticar proxy/HTTPS)
+    diagnostics['request'] = {
+        'scheme': request.scheme,
+        'host': request.get_host(),
+        'is_secure': request.is_secure(),
+        'META_HTTP_X_FORWARDED_PROTO': request.META.get('HTTP_X_FORWARDED_PROTO', 'not set'),
+        'META_HTTP_HOST': request.META.get('HTTP_HOST', 'not set'),
+    }
+
+    return JsonResponse(diagnostics, json_dumps_params={'indent': 2})
 
 
 @staff_member_required
@@ -336,6 +456,54 @@ def check_security():
             'details': 'DEBUG=False, ALLOWED_HOSTS restrito'
         }
 
+
+def check_auth():
+    """Verifica configurações críticas de autenticação."""
+    from django.contrib.sessions.models import Session
+    from django.utils import timezone
+    issues = []
+
+    # Verificar se tabela de sessões existe e funciona
+    try:
+        Session.objects.filter(expire_date__gt=timezone.now()).count()
+    except Exception as e:
+        issues.append(f'Tabela django_session com erro: {e}')
+
+    # Verificar Site do allauth
+    try:
+        site = Site.objects.get(id=settings.SITE_ID)
+        if 'example.com' in site.domain:
+            issues.append(f'Site domain é "{site.domain}" (padrão do Django, pode causar problemas)')
+    except Site.DoesNotExist:
+        issues.append(f'Site ID={settings.SITE_ID} não existe no banco! Login social vai falhar.')
+
+    # Verificar email verification
+    email_verif = getattr(settings, 'ACCOUNT_EMAIL_VERIFICATION', 'none')
+    prevent_enum = getattr(settings, 'ACCOUNT_PREVENT_ENUMERATION', False)
+    if email_verif == 'mandatory' and prevent_enum:
+        issues.append('EMAIL_VERIFICATION=mandatory + PREVENT_ENUMERATION=True: login pode falhar silenciosamente')
+
+    # Verificar CSRF trusted origins
+    csrf_origins = settings.CSRF_TRUSTED_ORIGINS
+    if not any('cgbookstore' in origin for origin in csrf_origins):
+        issues.append(f'CSRF_TRUSTED_ORIGINS não contém domínio de produção: {csrf_origins}')
+
+    # Verificar SESSION_COOKIE_SECURE vs HTTPS
+    if getattr(settings, 'SESSION_COOKIE_SECURE', False) and settings.DEBUG:
+        issues.append('SESSION_COOKIE_SECURE=True com DEBUG=True: cookies não serão salvos em HTTP')
+
+    if issues:
+        return {
+            'status': 'error' if any('não existe' in i or 'Tabela' in i for i in issues) else 'warning',
+            'message': f'{len(issues)} problema(s) de autenticação',
+            'details': ' | '.join(issues)
+        }
+    else:
+        return {
+            'status': 'success',
+            'message': 'Configurações de autenticação OK',
+            'details': f'Sessão: DB | Email: {email_verif} | CSRF: OK'
+        }
 
 # ===== BOOK SEARCH AND ASSOCIATION FOR AUTHOR ADMIN =====
 
