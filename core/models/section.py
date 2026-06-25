@@ -32,6 +32,7 @@ class Section(models.Model):
         ('spotlight', 'Destaque com Overlay'),
         ('banner_only', 'Apenas Banner (sem itens)'),
         ('video_cards', 'Cards de Vídeo com Preview (YouTube style)'),
+        ('featured_author', 'Autor em Destaque (Tolkien)'),
     ]
 
     # Campos básicos
