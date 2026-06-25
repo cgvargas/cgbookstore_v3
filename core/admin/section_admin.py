@@ -357,3 +357,26 @@ class SectionAdmin(admin.ModelAdmin):
         )
 
     items_count.short_description = 'Itens (Ativos/Total)'
+
+    def changelist_view(self, request, extra_context=None):
+        from django.contrib import messages
+        from django.urls import reverse
+        from core.models import FeaturedAuthorSettings
+        
+        if request.method == 'GET':
+            active_settings = FeaturedAuthorSettings.get_active()
+            if active_settings:
+                url = reverse('admin:core_featuredauthorsettings_change', args=[active_settings.id])
+            else:
+                url = reverse('admin:core_featuredauthorsettings_changelist')
+                
+            messages.info(
+                request,
+                format_html(
+                    '✨ A seção especial <strong>"Mundo de Tolkien / Senhor dos Anéis"</strong> na página inicial '
+                    'é gerenciada em <strong>Autores em Destaque</strong>. '
+                    '<a href="{}" style="font-weight:bold;text-decoration:underline;">Clique aqui para acessar e editar</a>.',
+                    url
+                )
+            )
+        return super().changelist_view(request, extra_context=extra_context)
