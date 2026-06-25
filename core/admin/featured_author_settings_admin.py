@@ -50,6 +50,7 @@ class FeaturedAuthorSettingsAdmin(admin.ModelAdmin):
             'fields': (
                 'page_title',
                 'page_description',
+                'page_banner_image',
             ),
             'classes': ('wide',),
             'description': 'Configure o conteúdo da página dedicada ao autor.'

@@ -452,9 +452,11 @@
          style="background: rgba(0, 0, 0, {{ universe.hero_banner_overlay_opacity|default:0.5 }});"></div>
     
     <div class="universe-hero-content">
+        {% if universe.hero_icon %}
         <div class="universe-icon">
             <i class="fas {{ universe.hero_icon }}"></i>
         </div>
+        {% endif %}
         <h1>
             <span>{{ universe.page_subtitle }}</span>
             {{ universe.page_title }}

@@ -88,8 +88,9 @@ class LiteraryUniverse(models.Model):
     hero_icon = models.CharField(
         max_length=50,
         default='fa-ring',
+        blank=True,
         verbose_name="Ícone do Hero",
-        help_text="Classe Font Awesome (ex: fa-ring, fa-dragon)"
+        help_text="Classe Font Awesome (ex: fa-ring, fa-dragon). Deixe em branco se não quiser nenhum ícone."
     )
     
     hero_banner_image = models.ImageField(

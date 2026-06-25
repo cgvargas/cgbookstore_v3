@@ -87,6 +87,14 @@ class FeaturedAuthorSettings(models.Model):
         help_text='Descrição longa exibida na página'
     )
     
+    page_banner_image = models.ImageField(
+        upload_to='featured_authors/banners/',
+        blank=True,
+        null=True,
+        verbose_name='Banner da Página Dedicada',
+        help_text='Imagem de fundo da página dedicada (recomendado: 1920x600px). Se não fornecido, usará o banner da home.'
+    )
+    
     page_meta_title = models.CharField(
         max_length=70,
         blank=True,

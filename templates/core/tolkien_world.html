@@ -30,7 +30,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: url("{% static 'images/tolkien_banner.png' %}") center/cover no-repeat;
+        background: url("{% if settings and settings.page_banner_image %}{{ settings.page_banner_image.url }}{% elif settings and settings.home_banner_image %}{{ settings.home_banner_image.url }}{% else %}{% static 'images/tolkien_banner.png' %}{% endif %}") center/cover no-repeat;
         opacity: 0.3;
     }
 
