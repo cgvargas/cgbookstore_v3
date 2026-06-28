@@ -220,6 +220,7 @@ class AIBookAssistantService:
         - available_audiobook: true se houver indicação de audiolivro, caso contrário false.
         - available_pdf: true se houver indicação de formato PDF, caso contrário false.
         - author_name: Nome do autor principal do livro (string).
+        - author_bio: Biografia ou resumo resumido sobre a vida e obra do autor principal em português (string, ou string vazia "" se desconhecido).
         - category_name: Categoria ou gênero principal do livro (ex: Fantasia, Ficção Científica, Romance, Biografia) (string).
         - average_rating: Avaliação média do livro de 0.00 a 5.00 (float ou null). Se não souber por fontes externas, estime com base no sucesso crítico global da obra.
         - ratings_count: Número total estimado de avaliações (inteiro ou null). Se não souber por fontes externas, estime baseado no alcance do livro.

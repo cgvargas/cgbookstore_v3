@@ -99,38 +99,51 @@ def create_author_quick(request):
     Cria um autor rapidamente a partir do assistente de IA.
     """
     name = request.POST.get('name', '').strip()
+    bio = request.POST.get('bio', '').strip()
     if not name:
-        return JsonResponse({'success': False, 'message': 'Nome do autor é obrigatório.'}, status=400)
-
-    # Verificar se já existe (case-insensitive)
-    existing = Author.objects.filter(name__iexact=name).first()
-    if existing:
         return JsonResponse({
-            'success': True,
-            'id': existing.id,
-            'name': existing.name,
-            'message': 'Autor já existente selecionado automaticamente.'
-        })
+            'success': False,
+            'message': 'Nome do autor é obrigatório.'
+        }, status=400)
 
     try:
-        # Gerar slug único
-        base_slug = slugify(name)
-        slug = base_slug
-        counter = 1
-        while Author.objects.filter(slug=slug).exists():
-            slug = f"{base_slug}-{counter}"
-            counter += 1
+        # Verificar se já existe (case-insensitive)
+        author = Author.objects.filter(name__iexact=name).first()
+        created = False
+        
+        if not author:
+            # Gerar slug único
+            base_slug = slugify(name)
+            if not base_slug:
+                base_slug = "autor"
+            slug = base_slug
+            counter = 1
+            while Author.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+                
+            author = Author.objects.create(
+                name=name,
+                slug=slug,
+                bio=bio if bio else 'Biografia gerada automaticamente ou a ser preenchida.'
+            )
+            created = True
+            message = f'Autor "{author.name}" criado com sucesso!'
+        else:
+            message = f'Autor "{author.name}" já cadastrado.'
+            if bio:
+                is_placeholder = not author.bio or 'Biografia gerada' in author.bio or author.bio == 'A ser preenchida.' or 'Autor cadastrado via' in author.bio
+                if is_placeholder:
+                    author.bio = bio
+                    author.save()
+                    message = f'Autor "{author.name}" já existia, biografia atualizada com sucesso!'
 
-        author = Author.objects.create(
-            name=name,
-            slug=slug,
-            bio=f"Autor cadastrado via Assistente Administrativo IA."
-        )
         return JsonResponse({
             'success': True,
             'id': author.id,
             'name': author.name,
-            'message': f'Autor "{author.name}" criado com sucesso!'
+            'created': created,
+            'message': message
         })
     except Exception as e:
         logger.error("Erro ao criar autor rápido: %s", e)

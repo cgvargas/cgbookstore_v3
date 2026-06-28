@@ -601,8 +601,13 @@
             if (data.author_id) {
                 selectAutocompleteValue('author', data.author_id, data.author_name);
             } else if (data.author_name) {
-                // Sugerir criação rápida
-                addQuickCreateShortcut('author', data.author_name, '👤 Criar Autor: ' + data.author_name);
+                // Sugerir criação rápida com biografia
+                addQuickCreateShortcut(
+                    'author', 
+                    data.author_name, 
+                    '👤 Criar Autor: ' + data.author_name,
+                    { bio: data.author_bio }
+                );
             }
 
             // Tratar Categoria (Autocomplete select2)
@@ -683,15 +688,24 @@
         }
 
         // Atalhos de Criação Rápida de Autor/Categoria
-        function addQuickCreateShortcut(type, name, labelText) {
+        function addQuickCreateShortcut(type, name, labelText, extraData) {
             const containerId = 'quick-create-' + type;
             if ($('#' + containerId).length > 0) return; // evitar duplicados
+
+            let dataAttrs = `data-type="${type}" data-name="${name}"`;
+            if (extraData) {
+                for (const [key, val] of Object.entries(extraData)) {
+                    if (val) {
+                        dataAttrs += ` data-${key}="${encodeURIComponent(val)}"`;
+                    }
+                }
+            }
 
             const html = `
                 <div class="ai-entity-status" id="${containerId}">
                     <span class="ai-entity-title">${type === 'author' ? 'Autor' : 'Categoria'} não encontrado(a) no banco</span>
                     <p style="margin: 0; font-size: 12px; color: #ccc;">"${name}"</p>
-                    <button type="button" class="ai-quick-btn" data-type="${type}" data-name="${name}">
+                    <button type="button" class="ai-quick-btn" ${dataAttrs}>
                         <i class="material-icons" style="font-size: 14px; vertical-align: middle;">add</i>
                         <span>${labelText}</span>
                     </button>
@@ -713,13 +727,22 @@
                 ? "{% url 'core:admin_book_create_author_quick' %}" 
                 : "{% url 'core:admin_book_create_category_quick' %}";
 
+            const postData = {
+                name: name,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            };
+
+            if (type === 'author') {
+                const bio = btn.data('bio');
+                if (bio) {
+                    postData.bio = decodeURIComponent(bio);
+                }
+            }
+
             $.ajax({
                 url: url,
                 type: 'POST',
-                data: {
-                    name: name,
-                    csrfmiddlewaretoken: '{{ csrf_token }}'
-                },
+                data: postData,
                 success: function(response) {
                     if (response.success) {
                         // Selecionar no autocomplete do form
