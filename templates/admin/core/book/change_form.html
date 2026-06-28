@@ -1,0 +1,748 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrahead %}
+{{ block.super }}
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+    /* ===== BOTÃO FLUTUANTE DA IA ===== */
+    .ai-toggle-btn {
+        position: fixed;
+        right: 25px;
+        bottom: 85px;
+        z-index: 1000;
+        background: linear-gradient(135deg, #8E44AD 0%, #3498DB 100%);
+        color: white !important;
+        padding: 14px 22px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 6px 20px rgba(142, 68, 173, 0.4);
+        border: 1px solid rgba(255,255,255,0.2);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        text-decoration: none !important;
+        animation: ai-float 3s ease-in-out infinite;
+    }
+    
+    .ai-toggle-btn:hover {
+        transform: translateY(-3px) scale(1.03);
+        box-shadow: 0 8px 25px rgba(142, 68, 173, 0.6);
+        background: linear-gradient(135deg, #9B59B6 0%, #2980B9 100%);
+    }
+
+    @keyframes ai-float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+    }
+
+    /* ===== PAINEL LATERAL (SIDEBAR) ===== */
+    .ai-sidebar {
+        position: fixed;
+        right: -420px;
+        top: 0;
+        width: 400px;
+        height: 100vh;
+        background: #1e1e24;
+        z-index: 1010;
+        box-shadow: -5px 0 30px rgba(0,0,0,0.6);
+        transition: right 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        display: flex;
+        flex-direction: column;
+        border-left: 1px solid #333;
+        color: #e0e0e0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .ai-sidebar.open {
+        right: 0;
+    }
+
+    /* Header */
+    .ai-sidebar-header {
+        background: linear-gradient(135deg, #2c1a3a 0%, #1e1e24 100%);
+        padding: 20px;
+        border-bottom: 1px solid #2d2d3a;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .ai-sidebar-header h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ai-sidebar-close {
+        background: transparent;
+        border: none;
+        color: #888;
+        font-size: 24px;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .ai-sidebar-close:hover {
+        color: #fff;
+    }
+
+    /* Body */
+    .ai-sidebar-body {
+        padding: 20px;
+        overflow-y: auto;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Form Grupos */
+    .ai-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .ai-form-group label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #b0b0b5;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .ai-textarea {
+        background: #2a2a35;
+        border: 1px solid #444;
+        border-radius: 6px;
+        color: #fff;
+        padding: 12px;
+        font-size: 14px;
+        resize: vertical;
+        min-height: 120px;
+        font-family: inherit;
+        transition: border-color 0.2s;
+    }
+
+    .ai-textarea:focus {
+        border-color: #8E44AD;
+        outline: none;
+    }
+
+    /* File Drag & Drop */
+    .ai-dropzone {
+        border: 2px dashed #555;
+        border-radius: 8px;
+        padding: 25px 15px;
+        text-align: center;
+        background: #25252e;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .ai-dropzone.dragover {
+        border-color: #3498DB;
+        background: #2a3545;
+    }
+
+    .ai-dropzone i {
+        font-size: 32px;
+        color: #8E44AD;
+    }
+
+    .ai-dropzone p {
+        margin: 0;
+        font-size: 13px;
+        color: #aaa;
+    }
+
+    .ai-file-preview {
+        display: none;
+        background: #2d2d3a;
+        padding: 10px;
+        border-radius: 6px;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .ai-file-preview.visible {
+        display: flex;
+    }
+
+    .ai-remove-file {
+        color: #e74c3c;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    /* Ações */
+    .ai-action-btn {
+        background: linear-gradient(135deg, #8E44AD 0%, #6C3483 100%);
+        color: white;
+        border: none;
+        padding: 14px;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .ai-action-btn:hover {
+        background: linear-gradient(135deg, #9B59B6 0%, #7D3C98 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(142, 68, 173, 0.3);
+    }
+
+    .ai-action-btn:disabled {
+        background: #444;
+        color: #888;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* ===== ALERTAS E ENTIDADES RÁPIDAS ===== */
+    .ai-entity-status {
+        background: #2d2538;
+        border-left: 4px solid #8E44AD;
+        padding: 12px 15px;
+        border-radius: 0 6px 6px 0;
+        font-size: 13px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .ai-entity-title {
+        font-weight: bold;
+        color: #d2b4de;
+    }
+
+    .ai-quick-btn {
+        background: #8E44AD;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        width: fit-content;
+        transition: background 0.2s;
+    }
+
+    .ai-quick-btn:hover {
+        background: #9B59B6;
+    }
+
+    /* ===== LOADER DE PÁGINA INTEIRA DO ASSISTENTE ===== */
+    .ai-loader-container {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 30px 10px;
+        gap: 15px;
+    }
+
+    .ai-loader-container.visible {
+        display: flex;
+    }
+
+    /* Animação do Livro */
+    .ai-book-animation {
+        perspective: 400px;
+        width: 60px;
+        height: 45px;
+        position: relative;
+    }
+
+    .ai-book-inner {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transform-style: preserve-3d;
+        transform: rotateX(30deg);
+    }
+
+    .ai-book-spine {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: 4px;
+        height: 100%;
+        background: #5d3f8c;
+        transform: translateX(-50%);
+    }
+
+    .ai-book-page-leaf {
+        position: absolute;
+        right: 50%;
+        top: 0;
+        width: 50%;
+        height: 100%;
+        background: #fff;
+        border-radius: 2px 0 0 2px;
+        transform-origin: right center;
+        animation: ai-flip-leaf 1.8s infinite ease-in-out;
+    }
+
+    @keyframes ai-flip-leaf {
+        0%, 100% { transform: rotateY(0deg); }
+        50% { transform: rotateY(-180deg); }
+    }
+
+    .ai-loader-text {
+        font-size: 13px;
+        color: #bbb;
+        text-align: center;
+        animation: ai-pulse-text 1.5s infinite ease-in-out;
+    }
+
+    @keyframes ai-pulse-text {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 1; }
+    }
+
+    /* ===== INTERFACE DE EDIÇÃO DO FORMULÁRIO DO DJANGO ===== */
+    .is-ai-filled {
+        border: 2px solid #8E44AD !important;
+        background-color: #2e1d3c !important;
+        transition: all 0.6s ease;
+    }
+    
+    .ai-filled-badge {
+        display: inline-flex;
+        background: linear-gradient(135deg, #8E44AD 0%, #6C3483 100%);
+        color: white;
+        font-size: 10px;
+        font-weight: bold;
+        padding: 3px 8px;
+        border-radius: 3px;
+        margin-left: 10px;
+        vertical-align: middle;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Botão Flutuante -->
+<a href="#" class="ai-toggle-btn" id="ai-sidebar-toggle">
+    <span>🤖 Auxiliar Administrativo IA</span>
+</a>
+
+<!-- Painel Lateral (Sidebar) -->
+<div class="ai-sidebar" id="ai-sidebar">
+    <div class="ai-sidebar-header">
+        <h3>🤖 Assistente IA</h3>
+        <button class="ai-sidebar-close" id="ai-sidebar-close">&times;</button>
+    </div>
+    
+    <div class="ai-sidebar-body">
+        <!-- Loader -->
+        <div class="ai-loader-container" id="ai-loader">
+            <div class="ai-book-animation">
+                <div class="ai-book-inner">
+                    <div class="ai-book-spine"></div>
+                    <div class="ai-book-page-leaf"></div>
+                </div>
+            </div>
+            <div class="ai-loader-text" id="ai-loader-text">Analisando dados do livro com Gemini...</div>
+        </div>
+
+        <div id="ai-sidebar-content" style="display: flex; flex-direction: column; gap: 20px;">
+            <p style="font-size: 13px; color: #aaa; margin: 0; line-height: 1.4;">
+                Cole textos sobre o livro ou envie arquivos como imagens da capa/contracapa ou documentos em PDF. A IA extrairá os dados estruturados para preenchimento.
+            </p>
+
+            <!-- Entrada de Texto -->
+            <div class="ai-form-group">
+                <label for="ai-text-input">Conteúdo Textual (Sinopse, Catálogo, E-mail)</label>
+                <textarea class="ai-textarea" id="ai-text-input" placeholder="Cole aqui qualquer informação sobre o livro..."></textarea>
+            </div>
+
+            <!-- Upload de Arquivos -->
+            <div class="ai-form-group">
+                <label>Arquivo Anexo (Capa, PDF, Contracapa)</label>
+                <div class="ai-dropzone" id="ai-dropzone">
+                    <i class="material-icons">cloud_upload</i>
+                    <p>Clique ou arraste um arquivo aqui</p>
+                    <span style="font-size: 11px; color: #777;">(Imagens ou PDF)</span>
+                    <input type="file" id="ai-file-input" style="display: none;" accept=".pdf,.png,.jpg,.jpeg,.webp">
+                </div>
+                
+                <div class="ai-file-preview" id="ai-file-preview">
+                    <span id="ai-file-name" style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 250px;"></span>
+                    <span class="ai-remove-file" id="ai-remove-file">&times;</span>
+                </div>
+            </div>
+
+            <!-- Botão de Ação -->
+            <button type="button" class="ai-action-btn" id="ai-submit-btn">
+                <span>🚀 Analisar e Preencher</span>
+            </button>
+
+            <!-- Seção de Ações Rápidas de Entidades (Ex: Criar autor/categoria) -->
+            <div id="ai-entity-shortcuts" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
+    </div>
+</div>
+
+{{ block.super }}
+
+<!-- Scripts do Assistente IA -->
+<script>
+(function($) {
+    $(document).ready(function() {
+        const sidebar = $('#ai-sidebar');
+        const toggleBtn = $('#ai-sidebar-toggle');
+        const closeBtn = $('#ai-sidebar-close');
+        const submitBtn = $('#ai-submit-btn');
+        const textInput = $('#ai-text-input');
+        const fileInput = $('#ai-file-input');
+        const dropzone = $('#ai-dropzone');
+        const filePreview = $('#ai-file-preview');
+        const fileNameSpan = $('#ai-file-name');
+        const removeFileBtn = $('#ai-remove-file');
+        const loader = $('#ai-loader');
+        const loaderText = $('#ai-loader-text');
+        const sidebarContent = $('#ai-sidebar-content');
+        const entityShortcuts = $('#ai-entity-shortcuts');
+
+        let selectedFile = null;
+
+        // Toggle Sidebar
+        toggleBtn.on('click', function(e) {
+            e.preventDefault();
+            sidebar.toggleClass('open');
+        });
+
+        closeBtn.on('click', function() {
+            sidebar.removeClass('open');
+        });
+
+        // Drag & Drop
+        dropzone.on('click', function() {
+            fileInput.click();
+        });
+
+        fileInput.on('change', function(e) {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        dropzone.on('dragover', function(e) {
+            e.preventDefault();
+            dropzone.addClass('dragover');
+        });
+
+        dropzone.on('dragleave', function() {
+            dropzone.removeClass('dragover');
+        });
+
+        dropzone.on('drop', function(e) {
+            e.preventDefault();
+            dropzone.removeClass('dragover');
+            if (e.originalEvent.dataTransfer.files.length > 0) {
+                handleFileSelect(e.originalEvent.dataTransfer.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            selectedFile = file;
+            fileNameSpan.text(file.name);
+            filePreview.addClass('visible');
+            dropzone.hide();
+        }
+
+        removeFileBtn.on('click', function() {
+            selectedFile = null;
+            fileInput.val('');
+            filePreview.removeClass('visible');
+            dropzone.show();
+        });
+
+        // Envio do Assistente para Análise
+        submitBtn.on('click', function() {
+            const textVal = textInput.val().strip ? textInput.val().strip() : textInput.val().trim();
+            if (!textVal && !selectedFile) {
+                alert('Por favor, adicione algum texto ou anexe um arquivo para a IA analisar.');
+                return;
+            }
+
+            // Preparar FormData
+            const formData = new FormData();
+            formData.append('text', textVal);
+            if (selectedFile) {
+                formData.append('file', selectedFile);
+            }
+            
+            // Adicionar CSRF Token
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            // Mostrar Loader
+            sidebarContent.hide();
+            loader.addClass('visible');
+            loaderText.text('Auxiliar IA está analisando as informações...');
+
+            $.ajax({
+                url: "{% url 'core:admin_book_analyze_metadata' %}",
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    loader.removeClass('visible');
+                    sidebarContent.show();
+                    
+                    if (response.success) {
+                        fillFormFields(response.data);
+                    } else {
+                        alert('Erro: ' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    loader.removeClass('visible');
+                    sidebarContent.show();
+                    let errMsg = 'Erro na comunicação com a IA.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errMsg = xhr.responseJSON.message;
+                    }
+                    alert(errMsg);
+                }
+            });
+        });
+
+        // Inicializar prévia da capa se já houver uma capa temporária no formulário (ex: após erro de validação)
+        const initialTempCover = $('#id_temp_cover_image').val();
+        if (initialTempCover) {
+            const coverHtml = `
+                <div id="ai-cover-preview-card" style="margin-top: 15px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+                    <label style="display:block; font-size: 11px; text-transform: uppercase; color: #a5b4fc; margin-bottom: 8px; font-weight: bold; letter-spacing: 0.5px;">Capa Importada por IA</label>
+                    <img src="/media/${initialTempCover}" style="max-height: 160px; max-width: 100%; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: inline-block;">
+                    <span style="display:block; font-size: 10px; color: #818cf8; margin-top: 8px; font-style: italic;">A capa acima foi baixada e será salva automaticamente ao enviar este formulário.</span>
+                </div>
+            `;
+            $('#ai-entity-shortcuts').before(coverHtml);
+        }
+
+        // Função para preencher os campos do admin do Django
+        function fillFormFields(data) {
+            entityShortcuts.empty();
+            $('#ai-cover-preview-card').remove();
+            
+            // Campos de Texto Padrão
+            fillField('title', data.title);
+            fillField('subtitle', data.subtitle);
+            fillField('description', data.description);
+            fillField('isbn', data.isbn);
+            fillField('publisher', data.publisher);
+            fillField('page_count', data.page_count);
+            fillField('language', data.language);
+            fillField('price', data.price);
+            fillField('publication_date', data.publication_date);
+
+            // Novos campos: Parceiro de Compra e Avaliações
+            fillField('purchase_partner_name', data.purchase_partner_name);
+            fillField('purchase_partner_url', data.purchase_partner_url);
+            fillField('average_rating', data.average_rating);
+            fillField('ratings_count', data.ratings_count);
+
+            // Campos Booleans (Formatos)
+            setCheckbox('available_print', data.available_print);
+            setCheckbox('available_kindle', data.available_kindle);
+            setCheckbox('available_audiobook', data.available_audiobook);
+            setCheckbox('available_pdf', data.available_pdf);
+
+            // Tratar Imagem de Capa Temporária
+            if (data.temp_cover_image) {
+                $('#id_temp_cover_image').val(data.temp_cover_image);
+                
+                const coverHtml = `
+                    <div id="ai-cover-preview-card" style="margin-top: 15px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+                        <label style="display:block; font-size: 11px; text-transform: uppercase; color: #a5b4fc; margin-bottom: 8px; font-weight: bold; letter-spacing: 0.5px;">Capa Importada por IA</label>
+                        <img src="/media/${data.temp_cover_image}" style="max-height: 160px; max-width: 100%; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: inline-block;">
+                        <span style="display:block; font-size: 10px; color: #818cf8; margin-top: 8px; font-style: italic;">A capa acima foi baixada e será salva automaticamente ao enviar este formulário.</span>
+                    </div>
+                `;
+                entityShortcuts.before(coverHtml);
+            }
+
+            // Tratar Autor (Autocomplete select2)
+            if (data.author_id) {
+                selectAutocompleteValue('author', data.author_id, data.author_name);
+            } else if (data.author_name) {
+                // Sugerir criação rápida
+                addQuickCreateShortcut('author', data.author_name, '👤 Criar Autor: ' + data.author_name);
+            }
+
+            // Tratar Categoria (Autocomplete select2)
+            if (data.category_id) {
+                selectAutocompleteValue('category', data.category_id, data.category_name);
+            } else if (data.category_name) {
+                // Sugerir criação rápida
+                addQuickCreateShortcut('category', data.category_name, '📚 Criar Categoria: ' + data.category_name);
+            }
+
+            // Fechar sidebar sutilmente ou dar feedback
+            alert('Metadados extraídos pela IA preenchidos no formulário! Por favor, revise os campos destacados.');
+        }
+
+        // Auxiliar para preencher e destacar campos
+        function fillField(fieldName, value) {
+            const field = $('#id_' + fieldName);
+            if (field.length && value !== undefined && value !== null) {
+                field.val(value);
+                field.addClass('is-ai-filled');
+                
+                // Adicionar tag visual sutil "IA" se não existir
+                const label = field.closest('.form-row').find('label');
+                if (label.length && label.find('.ai-filled-badge').length === 0) {
+                    label.append('<span class="ai-filled-badge">IA</span>');
+                }
+
+                // Remover destaque ao interagir
+                field.one('focus click change', function() {
+                    $(this).removeClass('is-ai-filled');
+                });
+            }
+        }
+
+        function setCheckbox(fieldName, value) {
+            const checkbox = $('#id_' + fieldName);
+            if (checkbox.length && value !== undefined) {
+                checkbox.prop('checked', !!value);
+                checkbox.addClass('is-ai-filled');
+                
+                const label = checkbox.closest('label');
+                if (label.length && label.find('.ai-filled-badge').length === 0) {
+                    label.append('<span class="ai-filled-badge">IA</span>');
+                }
+                
+                checkbox.one('change click', function() {
+                    $(this).removeClass('is-ai-filled');
+                });
+            }
+        }
+
+        function selectAutocompleteValue(fieldName, id, text) {
+            const selectEl = $('#id_' + fieldName);
+            if (selectEl.length) {
+                // Para Django admin autocomplete (que usa select2)
+                if (selectEl.hasClass('select2-hidden-accessible')) {
+                    // Se a opção não existir no dropdown, adicioná-la
+                    if (selectEl.find("option[value='" + id + "']").length === 0) {
+                        const newOption = new Option(text, id, true, true);
+                        selectEl.append(newOption).trigger('change');
+                    } else {
+                        selectEl.val(id).trigger('change');
+                    }
+                } else {
+                    // Fallback para select padrão
+                    selectEl.val(id);
+                }
+                
+                // Highlight visual
+                const container = selectEl.closest('.form-row').find('.select2-selection');
+                if (container.length) {
+                    container.addClass('is-ai-filled');
+                    selectEl.one('change', function() {
+                        container.removeClass('is-ai-filled');
+                    });
+                }
+            }
+        }
+
+        // Atalhos de Criação Rápida de Autor/Categoria
+        function addQuickCreateShortcut(type, name, labelText) {
+            const containerId = 'quick-create-' + type;
+            if ($('#' + containerId).length > 0) return; // evitar duplicados
+
+            const html = `
+                <div class="ai-entity-status" id="${containerId}">
+                    <span class="ai-entity-title">${type === 'author' ? 'Autor' : 'Categoria'} não encontrado(a) no banco</span>
+                    <p style="margin: 0; font-size: 12px; color: #ccc;">"${name}"</p>
+                    <button type="button" class="ai-quick-btn" data-type="${type}" data-name="${name}">
+                        <i class="material-icons" style="font-size: 14px; vertical-align: middle;">add</i>
+                        <span>${labelText}</span>
+                    </button>
+                </div>
+            `;
+            entityShortcuts.append(html);
+        }
+
+        // Listener para criação rápida
+        entityShortcuts.on('click', '.ai-quick-btn', function() {
+            const btn = $(this);
+            const type = btn.data('type');
+            const name = btn.data('name');
+            const parentDiv = btn.closest('.ai-entity-status');
+
+            btn.prop('disabled', true).text('Criando...');
+
+            const url = type === 'author' 
+                ? "{% url 'core:admin_book_create_author_quick' %}" 
+                : "{% url 'core:admin_book_create_category_quick' %}";
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: {
+                    name: name,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Selecionar no autocomplete do form
+                        selectAutocompleteValue(type, response.id, response.name);
+                        
+                        // Remover atalho e mostrar sucesso
+                        parentDiv.html(`<span style="color: #2ecc71; font-weight: bold;">✓ ${response.message}</span>`);
+                        setTimeout(() => parentDiv.fadeOut(), 3000);
+                    } else {
+                        btn.prop('disabled', false).html('<i class="material-icons" style="font-size: 14px;">add</i><span>Tentar novamente</span>');
+                        alert('Erro: ' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    btn.prop('disabled', false).html('<i class="material-icons" style="font-size: 14px;">add</i><span>Tentar novamente</span>');
+                    let errMsg = 'Erro ao criar entidade.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errMsg = xhr.responseJSON.message;
+                    }
+                    alert(errMsg);
+                }
+            });
+        });
+    });
+})(django.jQuery);
+</script>
+{% endblock %}

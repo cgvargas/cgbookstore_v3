@@ -1,6 +1,7 @@
 """
 Admin para Book
 """
+import logging
 from django import forms
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
@@ -8,8 +9,11 @@ from django.db.models.functions import ExtractYear
 from core.models import Book, Video
 from news.models import Article
 
+logger = logging.getLogger(__name__)
+
 
 class BookAdminForm(forms.ModelForm):
+    temp_cover_image = forms.CharField(widget=forms.HiddenInput(), required=False)
     existing_articles = forms.ModelMultipleChoiceField(
         # Otimização: only() carrega apenas os campos necessários para o widget,
         # evitando trazer o body/conteúdo completo de cada artigo.
@@ -144,7 +148,8 @@ class BookAdmin(admin.ModelAdmin):
                 'price',
                 'purchase_partner_name',
                 'purchase_partner_url',
-                'cover_image'
+                'cover_image',
+                'temp_cover_image'
             ),
             'description': 'Configure o preço médio de mercado e o parceiro comercial onde o livro pode ser adquirido'
         }),
@@ -223,3 +228,37 @@ class BookAdmin(admin.ModelAdmin):
         extra_context['ano_selecionado'] = request.GET.get('publication_date__year', '')
 
         return super().changelist_view(request, extra_context=extra_context)
+
+    def save_model(self, request, obj, form, change):
+        """Sobrescreve save_model para associar a imagem de capa baixada temporariamente pela IA."""
+        temp_cover_image = form.cleaned_data.get('temp_cover_image') or request.POST.get('temp_cover_image')
+        logger.info("ADMIN SAVE MODEL - temp_cover_image resolved: %s", temp_cover_image)
+        logger.info("ADMIN SAVE MODEL - current obj.cover_image: %s (bool: %s)", obj.cover_image, bool(obj.cover_image))
+        
+        if temp_cover_image:
+            # Se o usuário não enviou um arquivo manualmente e temos capa da IA
+            if not obj.cover_image:
+                import os
+                from django.conf import settings
+                from django.core.files import File
+                
+                full_path = os.path.normpath(os.path.join(settings.MEDIA_ROOT, temp_cover_image))
+                logger.info("ADMIN SAVE MODEL - full_path: %s (exists: %s)", full_path, os.path.exists(full_path))
+                
+                if os.path.exists(full_path):
+                    try:
+                        with open(full_path, 'rb') as f:
+                            base_name = os.path.basename(full_path).replace('temp_', '')
+                            obj.cover_image.save(base_name, File(f), save=False)
+                        logger.info("ADMIN SAVE MODEL - Capa da IA salva com sucesso: %s", obj.cover_image)
+                        # Tentar remover o arquivo temporário
+                        os.remove(full_path)
+                    except Exception as e:
+                        logger.error("ADMIN SAVE MODEL - Erro ao salvar capa da IA: %s", e, exc_info=True)
+                        self.message_user(request, f"Aviso: Não foi possível salvar a imagem da capa do livro via IA: {e}", level='WARNING')
+                else:
+                    logger.warning("ADMIN SAVE MODEL - Arquivo temporário de capa não existe no caminho: %s", full_path)
+            else:
+                logger.info("ADMIN SAVE MODEL - Capa do livro já estava preenchida pelo usuário: %s", obj.cover_image)
+        
+        super().save_model(request, obj, form, change)

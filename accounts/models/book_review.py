@@ -105,13 +105,15 @@ class BookReview(models.Model):
         ]
 
     def __str__(self):
-        stars = '⭐' * self.rating
+        rating_val = int(self.rating) if self.rating is not None else 0
+        stars = '⭐' * rating_val
         return f'{self.user.username} - {self.book.title} ({stars})'
 
     @property
     def rating_stars(self):
         """Retorna representação visual das estrelas."""
-        return '⭐' * self.rating + '☆' * (5 - self.rating)
+        rating_val = int(self.rating) if self.rating is not None else 0
+        return '⭐' * rating_val + '☆' * (5 - rating_val)
 
     @property
     def short_review(self):

@@ -86,6 +86,10 @@ from core.views.gamification_api_views import (
 # Geração de Formulários de Contribuição
 from core.views.form_generator_view import generate_contribution_form, form_generator_info
 
+# Assistente Administrativo IA (Django Admin)
+from core.views import admin_ai_views
+
+
 app_name = 'core'
 
 urlpatterns = [
@@ -218,5 +222,24 @@ urlpatterns = [
         'api/formularios/tipos/',
         form_generator_info,
         name='form_generator_info'
+    ),
+
+    # ==========================================
+    # ASSISTENTE ADMINISTRATIVO IA (DJANGO ADMIN)
+    # ==========================================
+    path(
+        'api/admin/book/analyze-metadata/',
+        admin_ai_views.analyze_metadata,
+        name='admin_book_analyze_metadata'
+    ),
+    path(
+        'api/admin/book/create-author-quick/',
+        admin_ai_views.create_author_quick,
+        name='admin_book_create_author_quick'
+    ),
+    path(
+        'api/admin/book/create-category-quick/',
+        admin_ai_views.create_category_quick,
+        name='admin_book_create_category_quick'
     ),
 ]
