@@ -238,26 +238,25 @@ class BookAdmin(admin.ModelAdmin):
         if temp_cover_image:
             # Se o usuário não enviou um arquivo manualmente e temos capa da IA
             if not obj.cover_image:
+                from django.core.files.storage import default_storage
                 import os
-                from django.conf import settings
-                from django.core.files import File
                 
-                full_path = os.path.normpath(os.path.join(settings.MEDIA_ROOT, temp_cover_image))
-                logger.info("ADMIN SAVE MODEL - full_path: %s (exists: %s)", full_path, os.path.exists(full_path))
+                logger.info("ADMIN SAVE MODEL - temp_cover_image: %s (exists in storage: %s)", 
+                            temp_cover_image, default_storage.exists(temp_cover_image))
                 
-                if os.path.exists(full_path):
+                if default_storage.exists(temp_cover_image):
                     try:
-                        with open(full_path, 'rb') as f:
-                            base_name = os.path.basename(full_path).replace('temp_', '')
-                            obj.cover_image.save(base_name, File(f), save=False)
+                        with default_storage.open(temp_cover_image) as f:
+                            base_name = os.path.basename(temp_cover_image).replace('temp_', '')
+                            obj.cover_image.save(base_name, f, save=False)
                         logger.info("ADMIN SAVE MODEL - Capa da IA salva com sucesso: %s", obj.cover_image)
-                        # Tentar remover o arquivo temporário
-                        os.remove(full_path)
+                        # Tentar remover o arquivo temporário do storage
+                        default_storage.delete(temp_cover_image)
                     except Exception as e:
                         logger.error("ADMIN SAVE MODEL - Erro ao salvar capa da IA: %s", e, exc_info=True)
                         self.message_user(request, f"Aviso: Não foi possível salvar a imagem da capa do livro via IA: {e}", level='WARNING')
                 else:
-                    logger.warning("ADMIN SAVE MODEL - Arquivo temporário de capa não existe no caminho: %s", full_path)
+                    logger.warning("ADMIN SAVE MODEL - Arquivo temporário de capa não existe no storage: %s", temp_cover_image)
             else:
                 logger.info("ADMIN SAVE MODEL - Capa do livro já estava preenchida pelo usuário: %s", obj.cover_image)
         

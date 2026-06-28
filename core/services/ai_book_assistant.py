@@ -58,32 +58,39 @@ class AIBookAssistantService:
             return nine_digits + check_digit
         return None
 
-    def _download_temp_cover(self, cover_url: str, isbn: str) -> str:
-        """Baixa a imagem da capa e salva temporariamente no diretório de media."""
+    def _download_temp_cover(self, cover_url: str, isbn: str) -> dict:
+        """
+        Baixa a imagem da capa e salva temporariamente no media storage (Supabase/R2/Local).
+        Retorna um dicionário com o path relativo e a URL pública.
+        """
         if not cover_url:
-            return None
+            return {}
         import os
         import uuid
-        from django.conf import settings
+        from django.core.files.storage import default_storage
+        from django.core.files.base import ContentFile
         
         try:
             filename = f"temp_{isbn or uuid.uuid4().hex}.jpg"
-            relative_path = os.path.join("books", "covers", filename)
-            # Normalizar para barras normais do Django/Unix
-            relative_path = relative_path.replace('\\', '/')
-            full_path = os.path.join(settings.MEDIA_ROOT, relative_path)
+            relative_path = f"books/covers/{filename}"
             
-            os.makedirs(os.path.dirname(full_path), exist_ok=True)
-            
-            logger.info("Baixando imagem de capa temporária de %s para %s", cover_url, full_path)
+            logger.info("Baixando imagem de capa temporária de %s para o media storage", cover_url)
             r = requests.get(cover_url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
             if r.status_code == 200:
-                with open(full_path, 'wb') as f:
-                    f.write(r.content)
-                return relative_path
+                # Salvar no storage ativo (Supabase, R2 ou FileSystem)
+                saved_path = default_storage.save(
+                    relative_path,
+                    ContentFile(r.content)
+                )
+                public_url = default_storage.url(saved_path)
+                logger.info("Capa temporária salva no storage em: %s (URL: %s)", saved_path, public_url)
+                return {
+                    'path': saved_path,
+                    'url': public_url
+                }
         except Exception as e:
             logger.error("Erro ao baixar imagem de capa temporária: %s", e)
-        return None
+        return {}
 
     def _fetch_isbn_metadata(self, text_content: str) -> dict:
         """Busca metadados do livro pelo ISBN em APIs externas com fallback."""
@@ -116,7 +123,7 @@ class AIBookAssistantService:
                 if key in data:
                     book_info = data[key]
                     cover_url = book_info.get("cover", {}).get("large") or book_info.get("cover", {}).get("medium")
-                    temp_cover = self._download_temp_cover(cover_url, cleaned_isbn)
+                    temp_cover_info = self._download_temp_cover(cover_url, cleaned_isbn)
                     
                     metadata = {
                         "title": book_info.get("title"),
@@ -126,7 +133,8 @@ class AIBookAssistantService:
                         "author_name": book_info.get("authors", [{}])[0].get("name", "") if book_info.get("authors") else "",
                         "publish_date": book_info.get("publish_date"),
                         "isbn": cleaned_isbn,
-                        "temp_cover_image": temp_cover,
+                        "temp_cover_image": temp_cover_info.get('path') if temp_cover_info else None,
+                        "temp_cover_url": temp_cover_info.get('url') if temp_cover_info else None,
                         "source": "Open Library"
                     }
                     logger.info("Dados obtidos com sucesso do Open Library: %s", metadata)
@@ -142,7 +150,7 @@ class AIBookAssistantService:
             if 'books' in res_data and len(res_data['books']) > 0:
                 book_info = res_data['books'][0]
                 cover_url = book_info.get("thumbnail")
-                temp_cover = self._download_temp_cover(cover_url, cleaned_isbn)
+                temp_cover_info = self._download_temp_cover(cover_url, cleaned_isbn)
                 
                 metadata = {
                     "title": book_info.get("title"),
@@ -152,7 +160,8 @@ class AIBookAssistantService:
                     "author_name": book_info.get("authors", [""])[0] if book_info.get("authors") else "",
                     "publish_date": book_info.get("published_date"),
                     "isbn": cleaned_isbn,
-                    "temp_cover_image": temp_cover,
+                    "temp_cover_image": temp_cover_info.get('path') if temp_cover_info else None,
+                    "temp_cover_url": temp_cover_info.get('url') if temp_cover_info else None,
                     "average_rating": book_info.get("average_rating"),
                     "ratings_count": book_info.get("ratings_count"),
                     "source": "Google Books"
@@ -258,6 +267,8 @@ class AIBookAssistantService:
             if isbn_data:
                 if 'temp_cover_image' in isbn_data and isbn_data['temp_cover_image']:
                     extracted_data['temp_cover_image'] = isbn_data['temp_cover_image']
+                if 'temp_cover_url' in isbn_data and isbn_data['temp_cover_url']:
+                    extracted_data['temp_cover_url'] = isbn_data['temp_cover_url']
                 
                 # Integrar avaliações se obtidas da API e não preenchidas
                 if isbn_data.get('average_rating') is not None and extracted_data.get('average_rating') is None:

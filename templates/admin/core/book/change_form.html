@@ -586,10 +586,11 @@
             if (data.temp_cover_image) {
                 $('#id_temp_cover_image').val(data.temp_cover_image);
                 
+                const previewSrc = data.temp_cover_url || `/media/${data.temp_cover_image}`;
                 const coverHtml = `
                     <div id="ai-cover-preview-card" style="margin-top: 15px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
                         <label style="display:block; font-size: 11px; text-transform: uppercase; color: #a5b4fc; margin-bottom: 8px; font-weight: bold; letter-spacing: 0.5px;">Capa Importada por IA</label>
-                        <img src="/media/${data.temp_cover_image}" style="max-height: 160px; max-width: 100%; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: inline-block;">
+                        <img src="${previewSrc}" style="max-height: 160px; max-width: 100%; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: inline-block;">
                         <span style="display:block; font-size: 10px; color: #818cf8; margin-top: 8px; font-style: italic;">A capa acima foi baixada e será salva automaticamente ao enviar este formulário.</span>
                     </div>
                 `;

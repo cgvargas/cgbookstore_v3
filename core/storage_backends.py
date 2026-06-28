@@ -234,11 +234,9 @@ class SupabaseMediaStorage(Storage):
         """
         try:
             bucket, path = self._get_bucket_and_path(name)
-            files = self._supabase.list_files(bucket, os.path.dirname(path))
-
-            filename = os.path.basename(path)
-            return any(f.get('name') == filename for f in files)
-
+            if self._supabase and self._supabase.storage:
+                return self._supabase.storage.from_(bucket).exists(path)
+            return False
         except Exception as e:
             logger.error(f"Erro ao verificar existência de '{name}': {str(e)}")
             return False

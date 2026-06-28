@@ -45,12 +45,12 @@ if books.exists():
     for book in books:
         print(f"\n   📚 {book.title}")
         print(f"      ID: {book.id}")
-        print(f"      Cover Field: {book.cover}")
+        print(f"      Cover Field: {book.cover_image}")
 
         # Tentar obter URL
         try:
-            if book.cover:
-                url = book.cover.url
+            if book.cover_image:
+                url = book.cover_image.url
                 print(f"      Cover URL: {url}")
             else:
                 print(f"      Cover URL: (Sem imagem)")
@@ -78,10 +78,10 @@ except Exception as e:
 
 # 5. Verificar URLs públicas
 print("\n5. TESTE DE URLs PÚBLICAS:")
-if books.exists() and books.first().cover:
+if books.exists() and books.first().cover_image:
     first_book = books.first()
     try:
-        public_url = first_book.cover.url
+        public_url = first_book.cover_image.url
         print(f"   Exemplo de URL gerada:")
         print(f"   {public_url}")
         print(f"   ✓ URL gerada com sucesso")
