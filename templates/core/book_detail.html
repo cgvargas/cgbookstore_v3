@@ -446,9 +446,9 @@
 
     <!-- Detalhes do Livro -->
     <div class="row">
-        <!-- Coluna da Capa -->
+        <!-- Coluna da Capa e Compra -->
         <div class="col-md-3 mb-4">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm mb-3">
                 {% if book.cover_image %}
                     <img src="{{ book.cover_image.url }}" class="card-img-top" alt="{{ book.title }}">
                 {% else %}
@@ -457,25 +457,150 @@
                 {% endif %}
             </div>
 
-            <!-- Botões de Ação -->
-            <div class="d-grid gap-2 mt-3">
+            <!-- Alertas Contextuais baseados no Histórico do Usuário -->
+            {% if user.is_authenticated or has_purchased_before %}
+                <div class="mb-3">
+                    {% if shelf_status == 'reading' %}
+                        <div class="alert alert-info py-2 px-3 mb-2 rounded-3 text-start" style="font-size: 0.8rem;">
+                            <i class="fas fa-book-open me-2 text-info"></i> Você está lendo este livro atualmente!
+                        </div>
+                    {% elif shelf_status == 'read' %}
+                        <div class="alert alert-success py-2 px-3 mb-2 rounded-3 text-start" style="font-size: 0.8rem;">
+                            <i class="fas fa-check-circle me-2 text-success"></i> Você já concluiu esta leitura!
+                        </div>
+                    {% elif shelf_status == 'to_read' %}
+                        <div class="alert alert-primary py-2 px-3 mb-2 rounded-3 text-start" style="font-size: 0.8rem;">
+                            <i class="fas fa-bookmark me-2 text-primary"></i> Está na sua lista "Quero Ler".
+                        </div>
+                    {% elif shelf_status == 'favorites' %}
+                        <div class="alert alert-danger py-2 px-3 mb-2 rounded-3 text-start" style="font-size: 0.8rem;">
+                            <i class="fas fa-heart me-2 text-danger"></i> Está nos seus Favoritos!
+                        </div>
+                    {% endif %}
 
-                <!-- Botão de Compra no Parceiro -->
-                {% if book.purchase_partner_url %}
-                    <a href="{{ book.purchase_partner_url }}"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       class="btn btn-success btn-lg">
-                        <i class="fas fa-shopping-cart me-2"></i>
-                        Comprar na {{ book.purchase_partner_name|default:"loja parceira" }}
-                        <i class="fas fa-external-link-alt ms-2"></i>
-                    </a>
-                {% else %}
-                    <button class="btn btn-outline-secondary btn-lg" disabled>
-                        <i class="fas fa-store-slash me-2"></i>
-                        Lojas parceiras indisponíveis
-                    </button>
-                {% endif %}
+                    {% if has_purchased_before %}
+                        <div class="alert alert-warning py-2 px-3 mb-0 rounded-3 text-start text-dark" style="font-size: 0.8rem;">
+                            <i class="fas fa-shopping-basket me-2 text-warning"></i> Já demonstrou interesse nesta compra antes.
+                        </div>
+                    {% elif visited_before and not in_library %}
+                        <div class="alert alert-secondary py-2 px-3 mb-0 rounded-3 text-start" style="font-size: 0.8rem; background-color: rgba(255,255,255,0.05); color: #ccc;">
+                            <i class="fas fa-history me-2 text-muted"></i> Você já visitou esta página hoje.
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- Card de Compra/Ações -->
+            <div class="card shadow-sm border-0 mb-3 rounded-3 text-light" style="background-color: var(--card-bg); border: 1px solid rgba(255,255,255,0.05) !important;">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge {% if book.is_presale %}bg-warning text-dark{% else %}bg-success{% endif %}" style="font-size: 0.7rem;">
+                            {% if book.is_presale %}Pré-venda{% else %}Disponível{% endif %}
+                        </span>
+                        <small class="text-muted" style="font-size: 0.75rem;">Preço Estimado</small>
+                    </div>
+
+                    <div class="mb-3 text-center">
+                        <h3 class="fw-bold text-success mb-1">
+                            {% if book.price %}
+                                R$ {{ book.price|floatformat:2 }}
+                            {% else %}
+                                Sob consulta
+                            {{ book.price }}
+                            {% endif %}
+                        </h3>
+                        <small class="text-muted small">na {{ book.affiliate_display_name }}</small>
+                    </div>
+
+                    <!-- Botão de Compra no Parceiro -->
+                    <div class="d-grid gap-2 mb-3">
+                        {% if book.affiliate_url %}
+                            <a href="{{ book.affiliate_url }}"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="btn {{ book.affiliate_button_class }} btn-lg"
+                               onclick="return handlePurchaseClick(event, '{{ book.affiliate_url }}')">
+                                <i class="{{ book.affiliate_icon_class }} me-2"></i>
+                                Comprar na {{ book.affiliate_display_name }}
+                                <i class="fas fa-external-link-alt ms-1" style="font-size: 0.75rem;"></i>
+                            </a>
+                        {% else %}
+                            <button class="btn btn-outline-secondary btn-lg" disabled>
+                                <i class="fas fa-store-slash me-2"></i>
+                                Lojas Indisponíveis
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    <!-- Formatos Disponíveis -->
+                    <div class="mb-3 text-start">
+                        <h6 class="small fw-bold text-uppercase text-muted border-bottom border-secondary pb-1 mb-2" style="font-size: 0.75rem;">Formatos da Obra</h6>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% if book.available_print %}
+                            <span class="badge bg-secondary bg-opacity-50 text-light d-flex align-items-center gap-1" style="font-size: 0.65rem;">
+                                <i class="fas fa-book"></i> Físico
+                            </span>
+                            {% endif %}
+                            {% if book.available_kindle %}
+                            <span class="badge bg-secondary bg-opacity-50 text-light d-flex align-items-center gap-1" style="font-size: 0.65rem;">
+                                <i class="fab fa-amazon"></i> Kindle
+                            </span>
+                            {% endif %}
+                            {% if book.available_pdf %}
+                            <span class="badge bg-secondary bg-opacity-50 text-light d-flex align-items-center gap-1" style="font-size: 0.65rem;">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </span>
+                            {% endif %}
+                            {% if book.available_audiobook %}
+                            <span class="badge bg-secondary bg-opacity-50 text-light d-flex align-items-center gap-1" style="font-size: 0.65rem;">
+                                <i class="fas fa-headphones"></i> Áudio
+                            </span>
+                            {% endif %}
+                            {% if not book.available_print and not book.available_kindle and not book.available_pdf and not book.available_audiobook %}
+                            <span class="text-muted small">Sob Consulta</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Indicador de Compra Segura e Aviso -->
+                    <div class="p-2 rounded bg-success bg-opacity-10 text-success small mb-2 text-center border border-success border-opacity-25 d-flex align-items-center justify-content-center gap-2" style="font-size: 0.75rem;">
+                        <i class="fas fa-shield-alt text-success"></i>
+                        <span class="fw-bold">Compra 100% Segura</span>
+                    </div>
+
+                    <p class="text-muted text-center mb-0" style="font-size: 0.7rem; line-height: 1.3;">
+                        <i class="fas fa-info-circle me-1"></i> A conclusão da compra ocorre no site parceiro.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Credibilidade dos Metadados -->
+            <div class="card shadow-sm border-0 mb-3 rounded-3 text-light" style="background-color: var(--card-bg); border: 1px solid rgba(255,255,255,0.05) !important; font-size: 0.8rem;">
+                <div class="card-body p-3 text-start">
+                    <h6 class="small fw-bold text-uppercase text-muted border-bottom border-secondary pb-1 mb-2" style="font-size: 0.75rem;">Ficha Cadastral</h6>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Completude dos Metadados:</span>
+                            <span class="fw-bold text-info">{{ book.metadata_completeness }}%</span>
+                        </div>
+                        <div class="progress" style="height: 6px; background-color: rgba(255,255,255,0.1);">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ book.metadata_completeness }}%" aria-valuenow="{{ book.metadata_completeness }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Origem dos Dados:</span>
+                        <span class="text-info">{{ book.metadata_source_display }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Última Atualização:</span>
+                        <span>{{ book.updated_at|date:"d/m/Y" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões de Ação da Biblioteca -->
+            <div class="d-grid gap-2 mt-2">
+
 
                 {% if user.is_authenticated %}
                     <!-- Container para botão de biblioteca -->
@@ -940,12 +1065,136 @@
             <div class="tab-content" id="bookTabsContent">
                 <!-- Aba Sobre -->
                 <div class="tab-pane fade show active" id="sobre" role="tabpanel" aria-labelledby="sobre-tab">
-                    <div class="card border-0 shadow-sm p-3" style="background-color: var(--card-bg); color: var(--text-primary);">
+                    <div class="card border-0 shadow-sm p-3 mb-4" style="background-color: var(--card-bg); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.05) !important;">
                         <div class="card-body" style="line-height: 1.5;">
-                            <p class="card-text">{{ book.description|linebreaksbr }}</p>
+                            <p class="card-text text-light-emphasis">{{ book.description|linebreaksbr }}</p>
                         </div>
                     </div>
+
+                    <!-- Seção "Vale a pena ler?" (Análise de IA) -->
+                    {% if ai_review %}
+                    <div class="card border-0 shadow-sm mb-4 rounded-3 text-light position-relative overflow-hidden" 
+                         style="background: linear-gradient(145deg, rgba(25, 135, 84, 0.12) 0%, rgba(33, 37, 41, 0.98) 100%); border: 1px solid rgba(25, 135, 84, 0.3) !important;">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                                <h5 class="card-title fw-bold text-success mb-0 d-flex align-items-center gap-2">
+                                    <i class="fas fa-brain"></i> Vale a pena ler?
+                                </h5>
+                                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-2 py-1 rounded-pill" style="font-size: 0.75rem;">
+                                    <i class="fas fa-robot me-1"></i> Análise Inteligente da CG.BookStore
+                                </span>
+                            </div>
+                            
+                            <p class="text-light-emphasis mb-4" style="font-size: 1rem; line-height: 1.6; font-style: italic;">
+                                "{{ ai_review.resumo }}"
+                            </p>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-7 text-start">
+                                    <div class="mb-3">
+                                        <h6 class="small fw-bold text-muted text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">Perfil do Leitor Recomendado</h6>
+                                        <p class="small mb-0 text-light">{{ ai_review.perfil_leitor }}</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <h6 class="small fw-bold text-muted text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">Temas Principais</h6>
+                                        <div class="d-flex flex-wrap gap-1.5">
+                                            {% for tema in ai_review.temas_principais %}
+                                                <span class="badge bg-secondary bg-opacity-50 text-light fw-normal" style="font-size: 0.7rem;">{{ tema }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-5 border-start border-secondary border-opacity-50 ps-md-4 text-start">
+                                    <div class="d-flex flex-column gap-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="small text-muted"><i class="fas fa-child me-1"></i> Faixa Etária:</span>
+                                            <span class="badge bg-info text-dark fw-bold" style="font-size: 0.75rem;">{{ ai_review.faixa_etaria }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="small text-muted"><i class="fas fa-layer-group me-1"></i> Complexidade:</span>
+                                            <span class="badge bg-secondary fw-bold" style="font-size: 0.75rem;">{{ ai_review.complexidade }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="small text-muted"><i class="fas fa-clock me-1"></i> Tempo de Leitura:</span>
+                                            <span class="fw-semibold small">{{ ai_review.tempo_leitura }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary border-opacity-25">
+                                            <span class="small text-muted"><i class="fas fa-star text-warning me-1"></i> Relevância Literária:</span>
+                                            <span class="fs-5 fw-bold text-warning">{{ ai_review.nota_geral }}/10</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Seção "Análise Expandida da IA" (Curiosidades, Contexto Histórico, Personagens) -->
+                    {% if ai_expanded_review %}
+                    <div class="card border-0 shadow-sm mb-4 rounded-3 text-light position-relative overflow-hidden" 
+                         style="background: linear-gradient(145deg, rgba(13, 110, 253, 0.12) 0%, rgba(33, 37, 41, 0.98) 100%); border: 1px solid rgba(13, 110, 253, 0.3) !important;">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                                <h5 class="card-title fw-bold text-primary mb-0 d-flex align-items-center gap-2">
+                                    <i class="fas fa-scroll"></i> Análise Expandida da IA
+                                </h5>
+                                <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-50 px-2 py-1 rounded-pill" style="font-size: 0.75rem;">
+                                    <i class="fas fa-robot me-1"></i> Conteúdo gerado por Inteligência Artificial
+                                </span>
+                            </div>
+                            
+                            <!-- Contexto Histórico -->
+                            <div class="mb-4">
+                                <h6 class="small fw-bold text-primary-light text-uppercase mb-2" style="letter-spacing: 0.5px;"><i class="fas fa-history me-1"></i> Contexto Histórico & Inspiração</h6>
+                                <p class="text-light-emphasis mb-0" style="line-height: 1.6;">
+                                    {{ ai_expanded_review.contexto_historico }}
+                                </p>
+                            </div>
+                            
+                            <div class="row g-4">
+                                <!-- Curiosidades -->
+                                <div class="col-md-6">
+                                    <h6 class="small fw-bold text-primary-light text-uppercase mb-3" style="letter-spacing: 0.5px;"><i class="fas fa-lightbulb me-1"></i> Curiosidades Fascinantes</h6>
+                                    <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
+                                        {% for curiosidade in ai_expanded_review.curiosidades %}
+                                        <li class="d-flex align-items-start gap-2 small text-light">
+                                            <i class="fas fa-check text-success mt-1" style="font-size: 0.75rem;"></i>
+                                            <span>{{ curiosidade }}</span>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                
+                                <!-- Personagens Principais -->
+                                <div class="col-md-6">
+                                    <h6 class="small fw-bold text-primary-light text-uppercase mb-3" style="letter-spacing: 0.5px;"><i class="fas fa-users me-1"></i> Personagens Principais</h6>
+                                    <div class="d-flex flex-column gap-2">
+                                        {% for personagem in ai_expanded_review.personagens_principais %}
+                                        <div class="p-2.5 rounded bg-dark bg-opacity-50 border border-secondary border-opacity-25 mb-2">
+                                            <strong class="d-block text-white" style="font-size: 0.85rem;">{{ personagem.nome }}</strong>
+                                            <span class="text-muted small" style="font-size: 0.8rem; line-height: 1.3;">{{ personagem.papel }}</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Relações com outras obras -->
+                            {% if ai_expanded_review.conexoes_universo %}
+                            <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
+                                <h6 class="small fw-bold text-primary-light text-uppercase mb-2" style="letter-spacing: 0.5px;"><i class="fas fa-network-wired me-1"></i> Conexões & Universo Literário</h6>
+                                <p class="small text-light mb-0" style="line-height: 1.5;">
+                                    {{ ai_expanded_review.conexoes_universo }}
+                                </p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
+
 
                 <!-- Aba Avaliações -->
                 <div class="tab-pane fade" id="avaliacoes" role="tabpanel" aria-labelledby="avaliacoes-tab">
@@ -1199,45 +1448,75 @@
                 </div>
             </div>
 
-            <!-- Livros Relacionados -->
-            {% if related_books %}
+            <!-- Seção de Recomendações Inteligentes -->
+            {% if recommendations.same_author or recommendations.same_category or recommendations.collaborative %}
             <hr class="my-5 border-secondary opacity-25">
             <h4 class="mb-4">
-                <i class="fas fa-layer-group me-2 text-primary"></i>Titulos Semelhantes
+                <i class="fas fa-magic me-2 text-success"></i>Recomendações Personalizadas
             </h4>
-            <div class="row">
-                {% for related_book in related_books %}
-                <div class="col-6 col-md-4 col-lg-3 mb-4">
-                    <div class="card h-100 shadow-sm border-0 rounded-3 text-center" style="background-color: var(--card-bg);">
-                        <div class="p-3 pb-0 text-center">
-                            {% if related_book.cover_image %}
-                                <img src="{{ related_book.cover_image.url }}" class="card-img-top rounded-2 shadow-sm" alt="{{ related_book.title }}" style="object-fit: contain; max-height: 180px;">
-                            {% else %}
-                                <img src="{% static 'images/no-cover-placeholder.svg' %}"
-                                     class="card-img-top opacity-50" style="object-fit: contain; max-height: 180px;" alt="Sem capa">
-                            {% endif %}
-                        </div>
-                        <div class="card-body p-3 d-flex flex-column justify-content-between">
-                            <div>
-                                <h6 class="card-title fw-bold text-truncate" style="font-size: 0.95rem;" title="{{ related_book.title }}">{{ related_book.title }}</h6>
-                                <p class="card-text text-muted small text-truncate" title="{{ related_book.author.name }}">
-                                    {% if related_book.author.slug %}
-                                    <a href="{% url 'core:author_detail' related_book.author.slug %}"
-                                       class="text-muted text-decoration-none author-name-link">{{ related_book.author.name }}</a>
-                                    {% else %}
-                                    {{ related_book.author.name }}
-                                    {% endif %}
-                                </p>
-                            </div>
-                            <a href="{% url 'core:book_detail' related_book.slug %}" class="btn btn-sm btn-outline-primary w-100 mt-2 rounded-pill">
-                                Ver Livro
-                            </a>
-                        </div>
+            
+            <ul class="nav nav-pills mb-4" id="recommendationTabs" role="tablist">
+                {% if recommendations.same_author %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active me-2 rounded-pill fw-bold" id="same-author-tab" data-bs-toggle="pill" data-bs-target="#same-author" type="button" role="tab" aria-controls="same-author" aria-selected="true" style="font-size: 0.85rem;">
+                        <i class="fas fa-feather me-1"></i>Do mesmo Autor
+                    </button>
+                </li>
+                {% endif %}
+                
+                {% if recommendations.same_category %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if not recommendations.same_author %}active{% endif %} me-2 rounded-pill fw-bold" id="same-category-tab" data-bs-toggle="pill" data-bs-target="#same-category" type="button" role="tab" aria-controls="same-category" aria-selected="false" style="font-size: 0.85rem;">
+                        <i class="fas fa-bookmark me-1"></i>Títulos Semelhantes
+                    </button>
+                </li>
+                {% endif %}
+                
+                {% if recommendations.collaborative %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link me-2 rounded-pill fw-bold" id="collaborative-tab" data-bs-toggle="pill" data-bs-target="#collaborative" type="button" role="tab" aria-controls="collaborative" aria-selected="false" style="font-size: 0.85rem;">
+                        <i class="fas fa-users me-1"></i>Leitores Também Gostam
+                    </button>
+                </li>
+                {% endif %}
+            </ul>
+            
+            <div class="tab-content" id="recommendationTabsContent">
+                <!-- Aba Do mesmo Autor -->
+                {% if recommendations.same_author %}
+                <div class="tab-pane fade show active" id="same-author" role="tabpanel" aria-labelledby="same-author-tab">
+                    <div class="row">
+                        {% for rel_book in recommendations.same_author %}
+                            {% include "core/includes/recommendation_card.html" with r_book=rel_book %}
+                        {% endfor %}
                     </div>
                 </div>
-                {% endfor %}
+                {% endif %}
+                
+                <!-- Aba Mesma Categoria -->
+                {% if recommendations.same_category %}
+                <div class="tab-pane fade {% if not recommendations.same_author %}show active{% endif %}" id="same-category" role="tabpanel" aria-labelledby="same-category-tab">
+                    <div class="row">
+                        {% for rel_book in recommendations.same_category %}
+                            {% include "core/includes/recommendation_card.html" with r_book=rel_book %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Aba Colaborativa -->
+                {% if recommendations.collaborative %}
+                <div class="tab-pane fade" id="collaborative" role="tabpanel" aria-labelledby="collaborative-tab">
+                    <div class="row">
+                        {% for rel_book in recommendations.collaborative %}
+                            {% include "core/includes/recommendation_card.html" with r_book=rel_book %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
             {% endif %}
+
 
             <!-- =====================================================
                  SEÇÃO: ADAPTAÇÕES E VÍDEOS DO LIVRO
@@ -1782,4 +2061,119 @@
         });
     });
 </script>
-{% endblock %}
+
+<!-- Modal de Adicionar Rápido à Biblioteca (Antes do Redirecionamento) -->
+{% if user.is_authenticated %}
+<div class="modal fade" id="quickAddLibraryModal" tabindex="-1" aria-labelledby="quickAddLibraryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-light border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold text-success" id="quickAddLibraryModalLabel">
+                    <i class="fas fa-bookmark text-success me-2"></i>Organizar Biblioteca
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <p class="mb-4">Gostaria de adicionar <strong>{{ book.title }}</strong> à sua biblioteca antes de ir para a loja <strong>{{ book.affiliate_display_name }}</strong>?</p>
+                
+                <div class="d-grid gap-2 mb-4">
+                    <button type="button" class="btn btn-outline-primary btn-lg text-start d-flex align-items-center justify-content-between" onclick="quickAddAndRedirect('to_read')">
+                        <span><i class="fas fa-bookmark me-3 text-primary"></i>Quero Ler</span>
+                        <i class="fas fa-chevron-right opacity-50"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-warning btn-lg text-start d-flex align-items-center justify-content-between" onclick="quickAddAndRedirect('reading')">
+                        <span><i class="fas fa-book-open me-3 text-warning"></i>Lendo</span>
+                        <i class="fas fa-chevron-right opacity-50"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-success btn-lg text-start d-flex align-items-center justify-content-between" onclick="quickAddAndRedirect('read')">
+                        <span><i class="fas fa-check-circle me-3 text-success"></i>Lidos</span>
+                        <i class="fas fa-chevron-right opacity-50"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-lg text-start d-flex align-items-center justify-content-between" onclick="quickAddAndRedirect('favorites')">
+                        <span><i class="fas fa-heart me-3 text-danger"></i>Favoritos</span>
+                        <i class="fas fa-chevron-right opacity-50"></i>
+                    </button>
+                </div>
+                
+                <div class="form-check justify-content-center d-flex align-items-center gap-2 mb-2">
+                    <input class="form-check-input" type="checkbox" id="skipQuickAddPreference">
+                    <label class="form-check-label text-muted small" for="skipQuickAddPreference" style="user-select: none; cursor: pointer;">
+                        Não mostrar este aviso novamente e ir direto para a loja
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary justify-content-between">
+                <button type="button" class="btn btn-link text-decoration-none text-muted p-0" onclick="proceedToPurchaseDirectly()">
+                    Apenas ir para a loja
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    let targetRedirectUrl = '';
+    let quickAddModalObj = null;
+
+    function handlePurchaseClick(event, redirectUrl) {
+        const isUserAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
+        const skipModal = localStorage.getItem('skip_quick_add_modal') === 'true';
+
+        if (!isUserAuthenticated || skipModal) {
+            // Continua com o fluxo nativo (redireciona diretamente)
+            return true;
+        }
+
+        event.preventDefault();
+        targetRedirectUrl = redirectUrl;
+
+        // Abre o modal
+        const modalEl = document.getElementById('quickAddLibraryModal');
+        if (modalEl) {
+            quickAddModalObj = new bootstrap.Modal(modalEl);
+            quickAddModalObj.show();
+        }
+        return false;
+    }
+
+    async function quickAddAndRedirect(shelfType) {
+        checkSkipPreference();
+        
+        // Fechar o modal
+        if (quickAddModalObj) {
+            quickAddModalObj.hide();
+        }
+
+        // Tenta adicionar à biblioteca usando o LibraryManager
+        if (typeof addToShelf === 'function') {
+            try {
+                // Chama a função existente e espera
+                await addToShelf({{ book.id }}, shelfType);
+            } catch (error) {
+                console.error("Erro ao adicionar à prateleira rápido:", error);
+            }
+        }
+
+        // Redireciona para o parceiro comercial
+        setTimeout(() => {
+            window.location.href = targetRedirectUrl;
+        }, 800); // Aguarda um pequeno momento para o usuário ver o toast de sucesso
+    }
+
+    function proceedToPurchaseDirectly() {
+        checkSkipPreference();
+        if (quickAddModalObj) {
+            quickAddModalObj.hide();
+        }
+        window.location.href = targetRedirectUrl;
+    }
+
+    function checkSkipPreference() {
+        const checkbox = document.getElementById('skipQuickAddPreference');
+        if (checkbox && checkbox.checked) {
+            localStorage.setItem('skip_quick_add_modal', 'true');
+        }
+    }
+</script>
+{% endblock %}

@@ -214,3 +214,58 @@ class Recommendation(models.Model):
             queryset = queryset.filter(recommendation_type=recommendation_type)
 
         return queryset
+
+
+class AIReaderProfile(models.Model):
+    """
+    Perfil dinâmico de leitura e interesses do usuário gerado por IA.
+    Contém afinidades estimadas para categorias e autores, além de resumos.
+    """
+    
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='ai_reader_profile',
+        verbose_name="Usuário"
+    )
+    
+    categories_interest = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Afinidades por Categoria",
+        help_text="Dicionário com categorias e notas de afinidade de 0.0 a 1.0 (ex: {'Fantasia': 0.85})"
+    )
+    
+    authors_interest = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Afinidades por Autor",
+        help_text="Dicionário com autores e notas de afinidade de 0.0 a 1.0 (ex: {'J.R.R. Tolkien': 0.90})"
+    )
+    
+    reading_style_ai = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Estilo de Leitura IA",
+        help_text="Metadados do estilo de leitura (humor preferido, ritmo de leitura, complexidade preferida)"
+    )
+    
+    profile_summary = models.TextField(
+        blank=True,
+        verbose_name="Biografia de Leitura IA",
+        help_text="Resumo descritivo da jornada e do perfil literário do usuário gerado por IA"
+    )
+    
+    last_calculated = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Último Cálculo"
+    )
+
+    class Meta:
+        db_table = 'recommendations_ai_reader_profile'
+        verbose_name = "Perfil Literário de IA"
+        verbose_name_plural = "Perfis Literários de IA"
+
+    def __str__(self):
+        return f"AI Profile: {self.user.username}"
+

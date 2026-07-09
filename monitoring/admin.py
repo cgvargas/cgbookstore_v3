@@ -9,7 +9,10 @@ from django.contrib import admin
 from django.utils import timezone
 from django.utils.html import format_html
 from django.contrib import messages
-from .models import SuspiciousActivity, AIResponseAlert
+from .models import SuspiciousActivity, AIResponseAlert, AIUsageLog
+from django.db.models import Sum, Avg, Count
+from django.db.models.functions import TruncDay
+from recommendations.models import Recommendation
 
 logger = logging.getLogger(__name__)
 
@@ -468,3 +471,220 @@ class AIResponseAlertAdmin(admin.ModelAdmin):
                 obj.session.pk, obj.session.pk
             )
         return '—'
+
+
+@admin.register(AIUsageLog)
+class AIUsageLogAdmin(admin.ModelAdmin):
+    """
+    Painel admin para telemetria de uso, tokens e custos da Inteligência Artificial.
+    """
+    list_display = (
+        'created_at_display',
+        'feature_name_display',
+        'provider_badge',
+        'model_name',
+        'tokens_summary',
+        'estimated_cost_display',
+        'response_time_seconds_display',
+        'status_badge'
+    )
+    list_filter = (
+        'provider',
+        'feature_name',
+        'status',
+        'created_at'
+    )
+    search_fields = (
+        'feature_name',
+        'provider',
+        'model_name',
+        'user__username',
+        'error_message'
+    )
+    date_hierarchy = 'created_at'
+    ordering = ('-created_at',)
+    
+    readonly_fields = (
+        'created_at', 'user', 'feature_name', 'provider', 'model_name', 
+        'prompt_tokens', 'completion_tokens', 'total_tokens', 
+        'estimated_cost', 'response_time_seconds', 'status', 'error_message'
+    )
+
+    def has_add_permission(self, request):
+        """Impedir inserções manuais."""
+        return False
+
+    @admin.display(description='Data/Hora')
+    def created_at_display(self, obj):
+        return obj.created_at.strftime('%d/%m/%Y %H:%M:%S')
+
+    @admin.display(description='Funcionalidade')
+    def feature_name_display(self, obj):
+        features = {
+            'chatbot': '💬 Chatbot/Assistente',
+            'recommendations': '📚 Recomendações',
+            'book_review': '📝 Resenha de IA',
+            'reader_profile': '👤 Perfil Literário',
+            'news_generation': '📰 Notícias/Artigos',
+            'general': '⚙️ Geral'
+        }
+        return features.get(obj.feature_name, obj.feature_name.upper())
+
+    @admin.display(description='Provedor')
+    def provider_badge(self, obj):
+        colors = {
+            'gemini': '#4285f4',
+            'groq': '#f55f44',
+            'openai': '#10a37f',
+            'claude': '#d97706',
+            'local': '#6b7280',
+            'mock': '#6c757d'
+        }
+        color = colors.get(obj.provider, '#000')
+        return format_html(
+            '<span style="background:{};color:#fff;padding:2px 8px;border-radius:12px;'
+            'font-size:0.85em;font-weight:bold;">{}</span>',
+            color, obj.provider.upper()
+        )
+
+    @admin.display(description='Tokens (P / R / T)')
+    def tokens_summary(self, obj):
+        return f"{obj.prompt_tokens} / {obj.completion_tokens} / {obj.total_tokens}"
+
+    @admin.display(description='Custo')
+    def estimated_cost_display(self, obj):
+        return f"${obj.estimated_cost:.5f}"
+
+    @admin.display(description='Latência')
+    def response_time_seconds_display(self, obj):
+        return f"{obj.response_time_seconds:.2f}s"
+
+    @admin.display(description='Status')
+    def status_badge(self, obj):
+        if obj.status == 'success':
+            return format_html('<span style="color:green;font-weight:bold;">✅ Sucesso</span>')
+        return format_html('<span style="color:red;font-weight:bold;" title="{}">❌ Falha</span>', obj.error_message[:200])
+
+    def changelist_view(self, request, extra_context=None):
+        """Injeta agregados estatísticos dinâmicos para renderizar o Dashboard de IA."""
+        response = super().changelist_view(request, extra_context=extra_context)
+        
+        if hasattr(response, 'context_data'):
+            cl = response.context_data['cl']
+            queryset = cl.get_queryset(request)
+            
+            # 1. Agregados para KPIs
+            aggregates = queryset.aggregate(
+                total_calls=Count('id'),
+                total_prompt=Sum('prompt_tokens'),
+                total_completion=Sum('completion_tokens'),
+                total_toks=Sum('total_tokens'),
+                total_cst=Sum('estimated_cost'),
+                avg_lat=Avg('response_time_seconds')
+            )
+            
+            total_calls = aggregates['total_calls'] or 0
+            total_tokens = aggregates['total_toks'] or 0
+            total_cost = aggregates['total_cst'] or 0.0
+            avg_latency = aggregates['avg_lat'] or 0.0
+            
+            success_count = queryset.filter(status='success').count()
+            success_rate = round((success_count / total_calls * 100), 1) if total_calls > 0 else 0.0
+            
+            stats_summary = {
+                'total_calls': total_calls,
+                'total_tokens': f"{total_tokens:,}",
+                'total_cost': f"${total_cost:,.4f}",
+                'avg_latency': f"{avg_latency:.2f}s",
+                'success_rate': success_rate
+            }
+            
+            # 2. Dados para Gráficos
+            # A. Consumo diário (últimos 30 dias)
+            daily_usage = list(reversed(
+                queryset.annotate(day=TruncDay('created_at'))
+                .values('day')
+                .annotate(tokens=Sum('total_tokens'), cost=Sum('estimated_cost'))
+                .order_by('-day')[:30]
+            ))
+            
+            # B. Tokens por Provedor
+            tokens_by_provider = list(
+                queryset.values('provider')
+                .annotate(tokens=Sum('total_tokens'))
+                .order_by('-tokens')
+            )
+            
+            # C. Custo por Provedor
+            cost_by_provider = list(
+                queryset.values('provider')
+                .annotate(cost=Sum('estimated_cost'))
+                .order_by('-cost')
+            )
+            
+            # D. Chamadas por Feature
+            calls_by_feature = list(
+                queryset.values('feature_name')
+                .annotate(count=Count('id'))
+                .order_by('-count')
+            )
+            
+            # E. Latência Média por Provedor
+            latency_by_provider = list(
+                queryset.values('provider')
+                .annotate(latency=Avg('response_time_seconds'))
+                .order_by('-latency')
+            )
+            
+            # F. CTR de Recomendações de IA
+            ai_recs = Recommendation.objects.filter(recommendation_type='ai')
+            total_ai_recs = ai_recs.count()
+            clicked_ai_recs = ai_recs.filter(is_clicked=True).count()
+            ctr = round((clicked_ai_recs / total_ai_recs * 100), 1) if total_ai_recs > 0 else 0.0
+            
+            # G. Alertas / Feedbacks Negativos
+            total_alerts = AIResponseAlert.objects.filter(alert_type__in=['user_complaint', 'negative_feedback']).count()
+            neg_feedback_rate = round((total_alerts / max(1, success_count) * 100), 2)
+            
+            chart_data = {
+                'daily': {
+                    'labels': [c['day'].strftime('%d/%m') if c['day'] else '' for c in daily_usage],
+                    'tokens': [c['tokens'] or 0 for c in daily_usage],
+                    'cost': [float(c['cost'] or 0.0) for c in daily_usage]
+                },
+                'provider_tokens': {
+                    'labels': [p['provider'].upper() for p in tokens_by_provider],
+                    'values': [p['tokens'] or 0 for p in tokens_by_provider]
+                },
+                'provider_cost': {
+                    'labels': [p['provider'].upper() for p in cost_by_provider],
+                    'values': [float(p['cost'] or 0.0) for p in cost_by_provider]
+                },
+                'feature_calls': {
+                    'labels': [f['feature_name'].upper() for f in calls_by_feature],
+                    'values': [f['count'] for f in calls_by_feature]
+                },
+                'provider_latency': {
+                    'labels': [p['provider'].upper() for p in latency_by_provider],
+                    'values': [round(p['latency'] or 0.0, 2) for p in latency_by_provider]
+                },
+                'recommendation_ctr': {
+                    'labels': ['Clicadas (CTR)', 'Não Clicadas'],
+                    'values': [clicked_ai_recs, max(0, total_ai_recs - clicked_ai_recs)],
+                    'ctr': ctr
+                },
+                'satisfaction': {
+                    'labels': ['Feedbacks Negativos', 'Sucesso (Sem Alertas)'],
+                    'values': [total_alerts, max(0, success_count - total_alerts)],
+                    'rate': neg_feedback_rate
+                }
+            }
+            
+            extra_context = extra_context or {}
+            extra_context['chart_data'] = chart_data
+            extra_context['stats_summary'] = stats_summary
+            
+            response.context_data.update(extra_context)
+            
+        return response
+

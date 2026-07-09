@@ -22,10 +22,87 @@ class BookDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         book = self.get_object()
 
-        # Livros relacionados da mesma categoria (lógica existente mantida)
+        # 1. Histórico de visitas do usuário na sessão
+        visited_books = self.request.session.get('visited_books', [])
+        context['visited_before'] = book.id in visited_books
+        if book.id not in visited_books:
+            visited_books.append(book.id)
+            self.request.session['visited_books'] = visited_books
+            self.request.session.modified = True
+
+        # 2. Contexto de biblioteca e cliques anteriores de compra
+        context['in_library'] = False
+        context['shelf_status'] = None
+        context['has_purchased_before'] = False
+
+        if self.request.user.is_authenticated:
+            from accounts.models import BookShelf
+            shelves = list(BookShelf.objects.filter(user=self.request.user, book=book).values_list('shelf_type', flat=True))
+            context['in_library'] = len(shelves) > 0
+            if 'favorites' in shelves:
+                context['shelf_status'] = 'favorites'
+            elif 'reading' in shelves:
+                context['shelf_status'] = 'reading'
+            elif 'read' in shelves:
+                context['shelf_status'] = 'read'
+            elif 'to_read' in shelves:
+                context['shelf_status'] = 'to_read'
+            elif 'abandoned' in shelves:
+                context['shelf_status'] = 'abandoned'
+            elif 'custom' in shelves:
+                context['shelf_status'] = 'custom'
+
+            from partners.models import AffiliatePartnerClick
+            context['has_purchased_before'] = AffiliatePartnerClick.objects.filter(
+                user=self.request.user, book=book
+            ).exists()
+        else:
+            session_key = self.request.session.session_key
+            if session_key:
+                from partners.models import AffiliatePartnerClick
+                context['has_purchased_before'] = AffiliatePartnerClick.objects.filter(
+                    session_key=session_key, book=book
+                ).exists()
+
+        # 3. Recomendações e IA ("Vale a pena ler?")
+        from recommendations.services import BookRecommendationService
+        from core.services.ai_review_service import AIReviewService
+        from django.core.cache import cache
+
+        context['recommendations'] = BookRecommendationService.get_recommendations_for_book(book, limit=4)
+        
+        # Carrega a resenha de IA com cache de 30 dias
+        ai_cache_key = f"ai_review:{book.id}"
+        ai_review = cache.get(ai_cache_key)
+        if not ai_review:
+            ai_review = AIReviewService.generate_review(book)
+            if ai_review:
+                cache.set(ai_cache_key, ai_review, 86400 * 30)  # 30 dias
+        context['ai_review'] = ai_review
+
+        # Carrega a análise expandida de IA com cache de 30 dias
+        ai_expanded_cache_key = f"ai_expanded_review:{book.id}"
+        ai_expanded_review = cache.get(ai_expanded_cache_key)
+        if not ai_expanded_review:
+            ai_expanded_review = AIReviewService.generate_expanded_analysis(book)
+            if ai_expanded_review:
+                cache.set(ai_expanded_cache_key, ai_expanded_review, 86400 * 30)
+        context['ai_expanded_review'] = ai_expanded_review
+
+
+        # 4. Gamificação: Atribui 5 XP por clicar em recomendação inteligente
+        ref = self.request.GET.get('ref')
+        if ref == 'recommendation' and self.request.user.is_authenticated:
+            xp_cache_key = f"xp_rec:{self.request.user.id}:{book.id}"
+            if not cache.get(xp_cache_key):
+                self.request.user.profile.add_xp(5)
+                cache.set(xp_cache_key, True, 86400)  # 24 horas
+
+        # Livros relacionados da mesma categoria (lógica existente mantida como fallback)
         context['related_books'] = Book.objects.filter(
             category=book.category
         ).exclude(id=book.id)[:4]
+
 
         # Vídeos relacionados ao livro (adaptações, trailers, entrevistas)
         from core.models import Video

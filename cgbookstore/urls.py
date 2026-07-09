@@ -23,6 +23,7 @@ urlpatterns = [
     path('noticias/', include('news.urls', namespace='news')),
     path('ereader/', include('ereader.urls', namespace='ereader')),
     path('api/ereader/', include('ereader.api_urls', namespace='ereader_api')),
+    path('partners/', include('partners.urls', namespace='partners')),
     path('ckeditor5/', include('django_ckeditor_5.urls')),
     path('', include('core.urls', namespace='core')),
 ]

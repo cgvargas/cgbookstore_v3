@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'news',
     'ereader.apps.EreaderConfig',  # RetroReader - Leitor de E-Books
     'monitoring.apps.MonitoringConfig',  # Sistema de Monitoramento + Alertas WhatsApp
+    'partners.apps.PartnersConfig',
 
     # Third-party Apps
     'rest_framework',

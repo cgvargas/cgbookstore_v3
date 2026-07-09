@@ -50,4 +50,13 @@ class AuthorDetailView(DetailView):
         context['books'] = books
         context['books_count'] = books.count()
 
+        # Gamificação: Atribui 5 XP por descobrir um novo autor (limite de 30 dias por autor)
+        if self.request.user.is_authenticated:
+            from django.core.cache import cache
+            xp_cache_key = f"xp_author:{self.request.user.id}:{self.object.id}"
+            if not cache.get(xp_cache_key):
+                self.request.user.profile.add_xp(5)
+                cache.set(xp_cache_key, True, 86400 * 30)  # 30 dias
+
         return context
+

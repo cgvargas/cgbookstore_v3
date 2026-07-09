@@ -1,0 +1,44 @@
+{% load static %}
+<div class="col-6 col-md-4 col-lg-3 mb-4">
+    <div class="card h-100 shadow-sm border-0 rounded-3 text-center" style="background-color: var(--card-bg); border: 1px solid rgba(255,255,255,0.05) !important;">
+        <div class="p-3 pb-0 text-center position-relative">
+            {% if r_book.cover_url_temp %}
+                <img src="{{ r_book.cover_url_temp }}" class="card-img-top rounded-2 shadow-sm" alt="{{ r_book.title }}" style="object-fit: contain; max-height: 180px; min-height: 150px;">
+            {% elif r_book.cover_image %}
+                <img src="{{ r_book.cover_image.url }}" class="card-img-top rounded-2 shadow-sm" alt="{{ r_book.title }}" style="object-fit: contain; max-height: 180px; min-height: 150px;">
+            {% else %}
+                <img src="{% static 'images/no-cover-placeholder.svg' %}"
+                     class="card-img-top opacity-50" style="object-fit: contain; max-height: 180px; min-height: 150px;" alt="Sem capa">
+            {% endif %}
+            
+            {% if r_book.google_books_id and not r_book.id %}
+            <span class="position-absolute top-0 end-0 mt-2 me-2 badge bg-info text-dark rounded-pill" style="font-size: 0.65rem;" title="Origem: Google Books API">
+                <i class="fas fa-globe"></i> API
+            </span>
+            {% endif %}
+        </div>
+        <div class="card-body p-3 d-flex flex-column justify-content-between">
+            <div class="mb-2">
+                <h6 class="card-title fw-bold text-truncate text-light mb-1" style="font-size: 0.9rem;" title="{{ r_book.title }}">{{ r_book.title }}</h6>
+                <p class="card-text text-muted small text-truncate mb-0" title="{{ r_book.author.name }}">
+                    {% if r_book.author.slug %}
+                        <a href="{% url 'core:author_detail' r_book.author.slug %}"
+                           class="text-muted text-decoration-none author-name-link">{{ r_book.author.name }}</a>
+                    {% else %}
+                        {{ r_book.author.name }}
+                    {% endif %}
+                </p>
+            </div>
+            
+            {% if r_book.slug %}
+                <a href="{% url 'core:book_detail' r_book.slug %}?ref=recommendation" class="btn btn-sm btn-outline-success w-100 rounded-pill">
+                    Ver Obra
+                </a>
+            {% else %}
+                <a href="https://books.google.com/books?id={{ r_book.google_books_id }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info w-100 rounded-pill">
+                    Google Books <i class="fas fa-external-link-alt ms-1" style="font-size: 0.65rem;"></i>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>

@@ -416,3 +416,97 @@ class AIResponseAlert(models.Model):
         """URL do painel admin para este alerta."""
         site_url = getattr(settings, 'SITE_URL', 'http://localhost:8000')
         return f"{site_url}/admin/monitoring/airesponsealert/{self.pk}/change/"
+
+
+class AIUsageLog(models.Model):
+    """
+    Registra consumo de recursos de Inteligência Artificial para fins de
+    telemetria, auditoria e controle de custos.
+    """
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='ai_usage_logs',
+        verbose_name="Usuário"
+    )
+    
+    feature_name = models.CharField(
+        max_length=50,
+        verbose_name="Recurso/Funcionalidade",
+        help_text="Ex: chatbot, recommendations, book_review, home_personalization, news_generation"
+    )
+    
+    provider = models.CharField(
+        max_length=30,
+        verbose_name="Provedor",
+        help_text="Ex: gemini, groq, openai, claude, local"
+    )
+    
+    model_name = models.CharField(
+        max_length=50,
+        verbose_name="Modelo",
+        help_text="Ex: gemini-2.5-flash, llama-3.1-70b, gpt-4o, etc."
+    )
+    
+    prompt_tokens = models.IntegerField(
+        default=0,
+        verbose_name="Tokens do Prompt"
+    )
+    
+    completion_tokens = models.IntegerField(
+        default=0,
+        verbose_name="Tokens da Resposta"
+    )
+    
+    total_tokens = models.IntegerField(
+        default=0,
+        verbose_name="Tokens Totais"
+    )
+    
+    estimated_cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=6,
+        default=0.0,
+        verbose_name="Custo Estimado (USD)"
+    )
+    
+    response_time_seconds = models.FloatField(
+        default=0.0,
+        verbose_name="Tempo de Resposta (segundos)"
+    )
+    
+    status = models.CharField(
+        max_length=15,
+        choices=[('success', 'Sucesso'), ('failure', 'Falha')],
+        default='success',
+        verbose_name="Status"
+    )
+    
+    error_message = models.TextField(
+        blank=True,
+        verbose_name="Mensagem de Erro"
+    )
+    
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Registrado em"
+    )
+
+    class Meta:
+        verbose_name = "Log de Uso da IA"
+        verbose_name_plural = "Logs de Uso da IA"
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['provider', '-created_at']),
+            models.Index(fields=['feature_name', '-created_at']),
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['created_at']),
+        ]
+
+    def __str__(self):
+        user_str = self.user.username if self.user else 'Anônimo'
+        return f"{self.feature_name} ({self.provider}) — {user_str} — {self.created_at.strftime('%d/%m/%Y %H:%M')}"
+

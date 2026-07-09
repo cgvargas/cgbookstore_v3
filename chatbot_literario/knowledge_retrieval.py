@@ -314,8 +314,8 @@ Categoria/Gênero: {category_name}
             'ratings_count': book.ratings_count,
             'language': book.language,
             'cover_image_url': book.cover_image.url if book.cover_image else None,
-            'purchase_partner': book.purchase_partner_name,
-            'purchase_url': book.purchase_partner_url,
+            'purchase_partner': book.affiliate_display_name,
+            'purchase_url': book.affiliate_url,
         }
 
     def search_news_articles(self, query: str, limit: int = 3) -> List[Dict[str, Any]]:

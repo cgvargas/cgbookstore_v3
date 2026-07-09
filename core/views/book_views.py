@@ -165,6 +165,17 @@ class BookListView(ListView):
         context['current_shelf'] = self.request.GET.get('shelf', '')
         context['current_author'] = self.request.GET.get('author', '')
 
+        # Gamificação: Atribui 5 XP por exploração de categorias (limite de 1 vez por categoria a cada 24 horas)
+        current_categories = context['current_categories']
+        if current_categories and self.request.user.is_authenticated:
+            from django.core.cache import cache
+            for cat_slug in current_categories:
+                xp_cache_key = f"xp_category:{self.request.user.id}:{cat_slug}"
+                if not cache.get(xp_cache_key):
+                    self.request.user.profile.add_xp(5)
+                    cache.set(xp_cache_key, True, 86400)  # 24 horas
+
+
         # Nome da prateleira ativa (para exibir no cabeçalho)
         shelf_section = getattr(self, '_current_section', None)
         if shelf_section:

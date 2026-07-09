@@ -10,6 +10,7 @@ from typing import Optional, Dict, List
 from django.conf import settings
 import google.generativeai as genai
 from .knowledge_retrieval import get_knowledge_retrieval_service
+from core.services.ai_provider_service import AIProviderFactory
 
 logger = logging.getLogger(__name__)
 
@@ -742,22 +743,77 @@ def get_gemini_service() -> GeminiChatbotService:
     return _chatbot_service
 
 
+class UnifiedChatbotService:
+    """
+    Serviço de chatbot unificado que utiliza o provedor de IA ativo
+    (OpenAI, Claude, Local, Mock) de forma transparente.
+    """
+    def __init__(self, provider_name):
+        self.provider_name = provider_name
+        self.SYSTEM_PROMPT = GeminiChatbotService.SYSTEM_PROMPT
+        self.knowledge_service = get_knowledge_retrieval_service()
+
+    def get_response(self, message: str, conversation_history=None, bypass_rag=False) -> str:
+        try:
+            # 1. Aplicar RAG se não for ignorado
+            enriched_message = message
+            if not bypass_rag:
+                temp_service = GeminiChatbotService()
+                enriched_message = temp_service._apply_rag_knowledge(
+                    message, 
+                    temp_service._detect_rag_intent(message)
+                )
+
+            # 2. Formatar o histórico de conversação
+            prompt_parts = []
+            if conversation_history:
+                for msg in conversation_history:
+                    content = ""
+                    if isinstance(msg, dict):
+                        content = msg.get("content") or "".join(msg.get("parts", []))
+                        role = "Usuário" if msg.get("role") in ("user", "model") else "Assistente"
+                    else:
+                        content = str(msg)
+                        role = "Conversa"
+                    prompt_parts.append(f"{role}: {content}")
+            
+            prompt_parts.append(f"Usuário: {enriched_message}")
+            prompt = "\n".join(prompt_parts)
+
+            # 3. Chamar a fábrica de IA para gerar a resposta
+            provider = AIProviderFactory.get_provider()
+            bot_response = provider.generate_text(
+                prompt=prompt,
+                system_instruction=self.SYSTEM_PROMPT,
+                feature_name="chatbot",
+                temperature=0.7
+            )
+            return bot_response.strip()
+        except Exception as e:
+            logger.error(f"Erro no chatbot unificado ({self.provider_name}): {e}")
+            return "Desculpe, estou com dificuldades técnicas para processar sua resposta agora. 📚"
+
+
+_unified_chatbot_services = {}
+
+def get_unified_chatbot_service(provider_name):
+    global _unified_chatbot_services
+    if provider_name not in _unified_chatbot_services:
+        _unified_chatbot_services[provider_name] = UnifiedChatbotService(provider_name)
+    return _unified_chatbot_services[provider_name]
+
+
 def get_chatbot_service():
     """
-    Retorna o serviço de chatbot configurado (Gemini ou Groq).
-
-    Escolhe automaticamente baseado na variável AI_PROVIDER no .env:
-    - 'gemini': Usa Google Gemini (padrão se não especificado)
-    - 'groq': Usa Groq AI (recomendado - mais rápido e free tier generoso)
-
-    Returns:
-        Instância do serviço de chatbot (GeminiChatbotService ou GroqChatbotService)
+    Retorna o serviço de chatbot configurado (Gemini, Groq, OpenAI, Claude, Local ou Mock).
     """
     ai_provider = getattr(settings, 'AI_PROVIDER', 'gemini').lower()
 
     logger.info(f"Usando provedor de IA: {ai_provider}")
 
-    if ai_provider == 'groq':
+    if ai_provider == 'gemini':
+        return get_gemini_service()
+    elif ai_provider == 'groq':
         try:
             from .groq_service import get_groq_chatbot_service
             service = get_groq_chatbot_service()
@@ -768,5 +824,7 @@ def get_chatbot_service():
             logger.info("⚠️ Fallback para Gemini")
             return get_gemini_service()
     else:
-        # Padrão: Gemini
-        return get_gemini_service()
+        # OpenAI, Claude, Local, Mock
+        logger.info(f"✅ Inicializando chatbot unificado com provedor: {ai_provider}")
+        return get_unified_chatbot_service(ai_provider)
+

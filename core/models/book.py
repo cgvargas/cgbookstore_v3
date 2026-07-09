@@ -293,3 +293,88 @@ class Book(models.Model):
             version = int(self.updated_at.timestamp())
             return f"{self.cover_image.url}?v={version}"
         return None
+
+    @property
+    def affiliate_partner(self):
+        """
+        Retorna a instância do AffiliatePartner ativo correspondente a este livro, ou None.
+        """
+        from partners.services.affiliate_service import AffiliateService
+        return AffiliateService.get_partner_for_book(self)
+
+    @property
+    def affiliate_url(self):
+        """
+        Retorna a URL local de redirecionamento que registra o clique e gera o link de afiliado.
+        """
+        from django.urls import reverse
+        from partners.services.affiliate_service import AffiliateService
+        
+        if not self.purchase_partner_url:
+            return ""
+            
+        partner = AffiliateService.get_partner_for_book(self)
+        if partner:
+            return reverse('partners:redirect_to_partner', kwargs={'book_id': self.id, 'partner_id': partner.id})
+        
+        return reverse('partners:redirect_to_partner_no_id', kwargs={'book_id': self.id})
+
+    @property
+    def affiliate_button_class(self):
+        """
+        Retorna a classe CSS para o botão de compra.
+        Se o parceiro tiver cor_botao configurada, usa-a. Caso contrário, usa btn-success.
+        """
+        partner = self.affiliate_partner
+        if partner and partner.cor_botao:
+            return partner.cor_botao
+        return 'btn-success'
+
+    @property
+    def affiliate_icon_class(self):
+        """
+        Retorna a classe do FontAwesome para o ícone do botão de compra.
+        Se o parceiro tiver icone configurado, usa-o. Caso contrário, usa fas fa-shopping-cart.
+        """
+        partner = self.affiliate_partner
+        if partner and partner.icone:
+            return partner.icone
+        return 'fas fa-shopping-cart'
+
+    @property
+    def affiliate_display_name(self):
+        """
+        Retorna o nome de exibição do parceiro (ex: Amazon).
+        Se houver parceiro ativo correspondente, usa o nome dele.
+        Caso contrário, faz o fallback para purchase_partner_name.
+        """
+        partner = self.affiliate_partner
+        if partner:
+            return partner.nome
+        return self.purchase_partner_name or "loja parceira"
+
+    @property
+    def metadata_completeness(self):
+        """
+        Retorna a porcentagem de preenchimento dos metadados do livro.
+        """
+        fields = [
+            bool(self.cover_image and self.cover_image.name),
+            bool(self.description),
+            bool(self.page_count),
+            bool(self.publication_date),
+            bool(self.category),
+            bool(self.isbn)
+        ]
+        populated = sum(fields)
+        return int((populated / len(fields)) * 100)
+
+    @property
+    def metadata_source_display(self):
+        """
+        Retorna uma representação legível da origem dos metadados.
+        """
+        if self.google_books_id:
+            return "Google Books API"
+        return "Cadastro Interno"
+
