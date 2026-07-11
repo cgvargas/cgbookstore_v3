@@ -234,8 +234,9 @@ FORMATO DE RESPOSTA:
 
         except Exception as e:
             error_str = str(e).lower()
-            if 'quota' in error_str or '429' in error_str or 'exceeded' in error_str:
-                logger.warning("support_service: Quota excedida, tentando fallback...")
+            is_quota = 'quota' in error_str or '429' in error_str or 'exceeded' in error_str or 'rate limit' in error_str
+            if is_quota:
+                logger.warning("support_service: Quota/Rate limit excedida, tentando fallback...")
                 # Tenta Groq como fallback se estava usando Gemini
                 if self._provider != 'groq':
                     try:
@@ -246,6 +247,15 @@ FORMATO DE RESPOSTA:
                         return groq.get_response(message=enriched_message, conversation_history=conversation_history or [])
                     except Exception as fallback_err:
                         logger.error(f"support_service: Fallback Groq também falhou: {fallback_err}")
+                else:
+                    # Tenta Gemini como fallback se estava usando Groq
+                    try:
+                        logger.info("support_service: Fallback Groq -> Gemini iniciado...")
+                        gemini = self._init_gemini()
+                        enriched_message = self._apply_faq_context(message)
+                        return gemini.get_response(message=enriched_message, conversation_history=conversation_history or [])
+                    except Exception as fallback_err:
+                        logger.error(f"support_service: Fallback Gemini também falhou: {fallback_err}")
             logger.error(f"support_service: Erro ao processar mensagem: {e}", exc_info=True)
             raise
 

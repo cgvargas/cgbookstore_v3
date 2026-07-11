@@ -162,8 +162,10 @@ class SendMessageAPIView(APIView):
                 )
             except Exception as primary_error:
                 error_str = str(primary_error).lower()
+                is_quota_error = 'quota' in error_str or '429' in error_str or 'exceeded' in error_str or 'rate limit' in error_str
+                
                 # Se for erro de quota do Gemini, fazer fallback para Groq
-                if ai_provider == 'gemini' and ('quota' in error_str or '429' in error_str or 'exceeded' in error_str):
+                if ai_provider == 'gemini' and is_quota_error:
                     logger.warning(f"⚠️ Quota Gemini excedida, fazendo fallback para Groq...")
                     try:
                         from .groq_service import get_groq_chatbot_service
@@ -201,12 +203,52 @@ class SendMessageAPIView(APIView):
                         except Exception as m_err:
                             logger.warning(f"Erro ao registrar alerta de IA: {m_err}")
                         raise fallback_error
+                # Se for erro de quota do Groq, fazer fallback para Gemini
+                elif ai_provider == 'groq' and is_quota_error:
+                    logger.warning(f"⚠️ Quota Groq excedida, fazendo fallback para Gemini...")
+                    try:
+                        from .gemini_service import get_gemini_service
+                        gemini_service = get_gemini_service()
+
+                        # Converter histórico para formato Gemini
+                        gemini_history = []
+                        for msg in previous_messages:
+                            content_to_send = msg.corrected_content if msg.has_correction and msg.corrected_content else msg.content
+                            gemini_history.append({
+                                "role": msg.role if msg.role == "user" else "model",
+                                "parts": [content_to_send]
+                            })
+
+                        bot_response_text = gemini_service.get_response(
+                            message=message_with_context,
+                            conversation_history=gemini_history
+                        )
+                        logger.info("✅ Fallback para Gemini bem-sucedido!")
+                    except Exception as fallback_error:
+                        logger.error(f"❌ Fallback para Gemini também falhou: {fallback_error}")
+                        # [MONITORAMENTO] Registrar falha total da IA
+                        try:
+                            from monitoring.models import AIResponseAlert
+                            from monitoring.tasks import dispatch_whatsapp_alert
+                            alert = AIResponseAlert.objects.create(
+                                session=session,
+                                user=request.user,
+                                alert_type='api_error',
+                                severity='critical',
+                                provider='groq',
+                                error_message=f"Groq quota + Gemini fallback falhou: {fallback_error}",
+                                ai_response_preview='',
+                            )
+                            dispatch_whatsapp_alert(ai_alert_id=alert.pk)
+                        except Exception as m_err:
+                            logger.warning(f"Erro ao registrar alerta de IA: {m_err}")
+                        raise fallback_error
                 else:
                     # [MONITORAMENTO] Registrar erro genérico da IA
                     try:
                         from monitoring.models import AIResponseAlert
                         from monitoring.tasks import dispatch_whatsapp_alert
-                        alert_type = 'quota_exceeded' if ('quota' in error_str or '429' in error_str) else 'api_error'
+                        alert_type = 'quota_exceeded' if is_quota_error else 'api_error'
                         alert = AIResponseAlert.objects.create(
                             session=session,
                             user=request.user,
@@ -219,7 +261,7 @@ class SendMessageAPIView(APIView):
                         dispatch_whatsapp_alert(ai_alert_id=alert.pk)
                     except Exception as m_err:
                         logger.warning(f"Erro ao registrar alerta de IA: {m_err}")
-                    # Não é erro de quota ou não é Gemini, propagar erro
+                    # Não é erro de quota ou não é Gemini/Groq, propagar erro
                     raise primary_error
             
             # Validação Cruzada (Anti-Alucinação)
