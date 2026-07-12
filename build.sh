@@ -45,4 +45,18 @@ else:
     print(f'  Site configurado: {domain} (name={name})')
 "
 
+# Limpar cache para garantir que as atualizações do deploy sejam refletidas imediatamente
+echo "🧹 Limpando cache do sistema..."
+python -c "
+import django, os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cgbookstore.settings')
+django.setup()
+from django.core.cache import cache
+try:
+    cache.clear()
+    print('  Cache limpo com sucesso!')
+except Exception as e:
+    print(f'  Erro ao limpar cache: {e}')
+"
+
 echo "✅ Build concluído com sucesso!"

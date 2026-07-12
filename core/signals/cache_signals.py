@@ -17,8 +17,18 @@ BANNER_COUNTER_FIELDS = {'views_count', 'clicks_count', 'updated_at'}
 
 
 def invalidate_home_cache():
-    """Invalida o cache da home page."""
+    """Invalida o cache da home page (público e chaves de usuários)."""
     cache.delete('home_full_context')
+    if hasattr(cache, 'delete_pattern'):
+        try:
+            cache.delete_pattern('home_context_user_*')
+            logger.info("[CACHE] Pattern home_context_user_* deletado")
+        except Exception as e:
+            logger.warning(f"[CACHE] Falha ao rodar delete_pattern: {e}")
+            cache.clear()
+    else:
+        cache.clear()
+        logger.info("[CACHE] Todo o cache foi limpo (fallback)")
     logger.info("[CACHE] Home cache invalidado")
 
 
@@ -138,6 +148,20 @@ def book_changed(sender, **kwargs):
 @receiver(post_delete, sender='core.Author')
 def author_changed(sender, **kwargs):
     """Invalida cache quando Author muda."""
+    invalidate_home_cache()
+
+
+@receiver(post_save, sender='news.Article')
+@receiver(post_delete, sender='news.Article')
+def news_article_changed(sender, **kwargs):
+    """Invalida cache quando um artigo de notícias muda ou é deletado."""
+    invalidate_home_cache()
+
+
+@receiver(post_save, sender='news.Category')
+@receiver(post_delete, sender='news.Category')
+def news_category_changed(sender, **kwargs):
+    """Invalida cache quando uma categoria de notícias muda ou é deletada."""
     invalidate_home_cache()
 
 
