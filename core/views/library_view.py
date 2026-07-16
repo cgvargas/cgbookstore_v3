@@ -1,4 +1,4 @@
-﻿"""
+"""
 View para a Biblioteca pessoal do usuário.
 Integrada com os models de BookShelf, ReadingProgress, etc.
 """
@@ -6,6 +6,7 @@ Integrada com os models de BookShelf, ReadingProgress, etc.
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, F, Prefetch
+from django.core.cache import cache
 from accounts.models import BookShelf, ReadingProgress, BookReview
 
 
@@ -17,6 +18,22 @@ class LibraryView(LoginRequiredMixin, TemplateView):
     template_name = 'core/library.html'
     login_url = '/accounts/login/'
     redirect_field_name = 'next'
+
+    @staticmethod
+    def _serialize_recommended_article(article):
+        """Serializa uma notícia recomendada usando o campo real do model Article."""
+        featured_image = article.featured_image
+        return {
+            'id': article.id,
+            'title': article.title,
+            'subtitle': article.subtitle,
+            'image': {'url': featured_image.url} if featured_image else None,
+            'published_at': (
+                article.published_at.strftime('%d/%m/%Y')
+                if hasattr(article.published_at, 'strftime')
+                else str(article.published_at)
+            ),
+        }
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -136,5 +153,61 @@ class LibraryView(LoginRequiredMixin, TemplateView):
         for shelf_item in context['reading']:
             # O progresso já foi carregado via prefetch_related
             shelf_item.progress = shelf_item.book.user_progress[0] if hasattr(shelf_item.book, 'user_progress') and shelf_item.book.user_progress else None
+
+        # Carregar ou gerar recomendações personalizadas por IA com cache individual por usuário (30 minutos)
+        rec_cache_key = f'user_personal_recs_{user.id}'
+        personal_recs = cache.get(rec_cache_key)
+        if not personal_recs:
+            try:
+                from recommendations.services.recommendation_service import BookRecommendationService
+                from recommendations.services.reader_profile_service import ReaderProfileService
+                
+                # Atualizar perfil do usuário antes
+                ReaderProfileService.update_profile_weights(user)
+                profile_obj = ReaderProfileService.generate_profile_summary_ai(user)
+                
+                raw_recs = BookRecommendationService.get_ai_personalized_recommendations(user, limit=6)
+                
+                personal_recs = {
+                    'profile_biography': profile_obj.profile_summary,
+                    'profile_style': profile_obj.reading_style_ai,
+                    'books': [{
+                        'id': b.id,
+                        'title': b.title,
+                        'author': {'name': b.author.name} if b.author else {'name': 'Desconhecido'},
+                        'cover_image': {'url': b.cover_image.url} if b.cover_image else (b.cover_url_temp if hasattr(b, 'cover_url_temp') else None),
+                        'category': {'name': b.category.name} if b.category else None,
+                    } for b in raw_recs['books']],
+                    'authors': [{
+                        'id': a.id,
+                        'name': a.name,
+                        'photo': {'url': a.photo.url} if a.photo else None,
+                    } for a in raw_recs['authors']],
+                    'news': [
+                        self._serialize_recommended_article(article)
+                        for article in raw_recs['news']
+                    ],
+                    'events': [{
+                        'id': e.id,
+                        'title': e.title,
+                        'banner': {'url': e.banner.url} if e.banner else None,
+                        'start_date': e.start_date.strftime('%d/%m/%Y %H:%M') if hasattr(e.start_date, 'strftime') else str(e.start_date),
+                        'location': e.location,
+                    } for e in raw_recs['events']],
+                    'adaptations': [{
+                        'id': v.id,
+                        'title': v.title,
+                        'duration': v.duration,
+                        'thumbnail_url': v.thumbnail_url or (v.thumbnail_image.url if v.thumbnail_image else None),
+                        'video_url': v.video_url,
+                    } for v in raw_recs['adaptations']]
+                }
+                cache.set(rec_cache_key, personal_recs, 1800)
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Erro ao injetar recomendações personalizadas na biblioteca: {e}", exc_info=True)
+                personal_recs = None
+        context['personal_recs'] = personal_recs
 
         return context

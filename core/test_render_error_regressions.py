@@ -8,14 +8,14 @@ from django.core.cache import cache
 from django.test import SimpleTestCase, override_settings
 
 from core.services.ai_review_service import AIReviewService
-from core.views.home_view import HomeView
+from core.views.library_view import LibraryView
 
 
 class RateLimitError(Exception):
     status_code = 429
 
 
-class HomePersonalizationRegressionTest(SimpleTestCase):
+class LibraryPersonalizationRegressionTest(SimpleTestCase):
     def test_recommended_article_uses_featured_image(self):
         article = SimpleNamespace(
             id=10,
@@ -25,7 +25,7 @@ class HomePersonalizationRegressionTest(SimpleTestCase):
             published_at=datetime(2026, 7, 16),
         )
 
-        serialized = HomeView._serialize_recommended_article(article)
+        serialized = LibraryView._serialize_recommended_article(article)
 
         self.assertEqual(serialized['image']['url'], 'https://cdn.example/news.webp')
         self.assertEqual(serialized['published_at'], '16/07/2026')
@@ -39,7 +39,7 @@ class HomePersonalizationRegressionTest(SimpleTestCase):
             published_at=datetime(2026, 7, 16),
         )
 
-        serialized = HomeView._serialize_recommended_article(article)
+        serialized = LibraryView._serialize_recommended_article(article)
 
         self.assertIsNone(serialized['image'])
 

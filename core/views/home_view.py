@@ -28,35 +28,13 @@ class HomeView(TemplateView):
     # Cache timeout em segundos (30 minutos)
     CACHE_TIMEOUT = 1800
 
-    @staticmethod
-    def _serialize_recommended_article(article):
-        """Serializa uma notícia recomendada usando o campo real do model Article."""
-        featured_image = article.featured_image
-        return {
-            'id': article.id,
-            'title': article.title,
-            'subtitle': article.subtitle,
-            'image': {'url': featured_image.url} if featured_image else None,
-            'published_at': (
-                article.published_at.strftime('%d/%m/%Y')
-                if hasattr(article.published_at, 'strftime')
-                else str(article.published_at)
-            ),
-        }
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         now = timezone.now()
         start_total = time.time()
 
-        # Isolar cache por usuário autenticado
-        request = self.request
-        is_auth = request.user.is_authenticated
-        
-        if is_auth:
-            cache_key = f'home_context_user_{request.user.id}'
-        else:
-            cache_key = 'home_full_context'
+        # Toda a página inicial passará a compartilhar a chave de cache global home_full_context
+        cache_key = 'home_full_context'
 
         cached_context = cache.get(cache_key)
 
@@ -153,56 +131,6 @@ class HomeView(TemplateView):
             # Manter tolkien_books para retrocompatibilidade
             'tolkien_books': featured_author_books,
         }
-
-        # Se for autenticado, vamos injetar o pacote de IA personalizado
-        if is_auth:
-            try:
-                from recommendations.services.recommendation_service import BookRecommendationService
-                from recommendations.services.reader_profile_service import ReaderProfileService
-                
-                # Atualizar perfil do usuário antes
-                ReaderProfileService.update_profile_weights(request.user)
-                profile = ReaderProfileService.generate_profile_summary_ai(request.user)
-                
-                personal_recs = BookRecommendationService.get_ai_personalized_recommendations(request.user, limit=6)
-                
-                serialized_recs = {
-                    'profile_biography': profile.profile_summary,
-                    'profile_style': profile.reading_style_ai,
-                    'books': [{
-                        'id': b.id,
-                        'title': b.title,
-                        'author': {'name': b.author.name} if b.author else {'name': 'Desconhecido'},
-                        'cover_image': {'url': b.cover_image.url} if b.cover_image else (b.cover_url_temp if hasattr(b, 'cover_url_temp') else None),
-                        'category': {'name': b.category.name} if b.category else None,
-                    } for b in personal_recs['books']],
-                    'authors': [{
-                        'id': a.id,
-                        'name': a.name,
-                        'photo': {'url': a.photo.url} if a.photo else None,
-                    } for a in personal_recs['authors']],
-                    'news': [
-                        self._serialize_recommended_article(article)
-                        for article in personal_recs['news']
-                    ],
-                    'events': [{
-                        'id': e.id,
-                        'title': e.title,
-                        'banner': {'url': e.banner.url} if e.banner else None,
-                        'start_date': e.start_date.strftime('%d/%m/%Y %H:%M') if hasattr(e.start_date, 'strftime') else str(e.start_date),
-                        'location': e.location,
-                    } for e in personal_recs['events']],
-                    'adaptations': [{
-                        'id': v.id,
-                        'title': v.title,
-                        'duration': v.duration,
-                        'thumbnail_url': v.thumbnail_url or (v.thumbnail_image.url if v.thumbnail_image else None),
-                        'video_url': v.video_url,
-                    } for v in personal_recs['adaptations']]
-                }
-                home_context['personal_recs'] = serialized_recs
-            except Exception as e:
-                logger.error(f"Erro ao injetar recomendações personalizadas na home: {e}", exc_info=True)
 
         # Cachear contexto completo
         cache.set(cache_key, home_context, self.CACHE_TIMEOUT)
