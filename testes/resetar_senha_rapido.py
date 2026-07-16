@@ -6,6 +6,9 @@ import os
 import django
 import sys
 
+# Adicionar diretório raiz do projeto ao sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cgbookstore.settings')
 django.setup()
 
