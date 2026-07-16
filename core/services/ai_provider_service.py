@@ -254,8 +254,7 @@ class OpenRouterAIProvider(BaseAIProvider):
                 "models": [
                     "google/gemma-2-9b-it:free",
                     "meta-llama/llama-3-8b-instruct:free",
-                    "qwen/qwen-2-7b-instruct:free",
-                    "meta-llama/llama-3.1-8b-instruct:free"
+                    "qwen/qwen-2-7b-instruct:free"
                 ],
                 "messages": messages,
                 "temperature": temperature,
