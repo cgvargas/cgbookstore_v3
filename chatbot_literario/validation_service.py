@@ -92,6 +92,41 @@ REGRAS DE RETORNO:
             return validation_response, True
 
     except Exception as err:
-        logger.error(f"❌ Erro ao executar a validação cruzada da IA: {err}", exc_info=True)
+        # Tentar usar o OpenRouter como validador de contingência final
+        if getattr(settings, 'OPENROUTER_API_KEY', ''):
+            logger.info("🔄 Validador secundário falhou. Tentando OpenRouter como validador de contingência...")
+            try:
+                from core.services.ai_provider_service import AIProviderFactory
+                provider = AIProviderFactory.get_provider('openrouter')
+                validation_response = provider.generate_text(
+                    prompt=prompt,
+                    system_instruction="Você é um validador de fatos literários de alta precisão.",
+                    feature_name="chatbot_validation",
+                    temperature=0.3
+                )
+                validation_response = validation_response.strip()
+                validation_response_clean = validation_response.strip().lower().replace('.', '').replace('"', '').replace("'", "")
+                draft_response_clean = draft_response.strip().lower().replace('.', '').replace('"', '').replace("'", "")
+
+                if "aprovado" in validation_response.lower() or validation_response == "APROVADO" or validation_response_clean == draft_response_clean:
+                    logger.info("✅ Validação Cruzada (OpenRouter): Resposta aprovada sem alterações.")
+                    return draft_response, False
+                else:
+                    logger.warning(
+                        f"⚠️ Validação Cruzada (OpenRouter): ERRO DETECTADO. Resposta corrigida de:\n"
+                        f"'{draft_response}'\npara:\n'{validation_response}'"
+                    )
+                    return validation_response, True
+            except Exception as openrouter_err:
+                logger.warning(f"⚠️ Validador OpenRouter de contingência também falhou: {openrouter_err}")
+
+        # Silenciar traceback se for apenas estouro de limite de cota da API externa
+        err_str = str(err).lower()
+        is_quota_err = 'quota' in err_str or '429' in err_str or 'exceeded' in err_str or 'rate' in err_str or 'limit' in err_str or 'exhausted' in err_str
+        if is_quota_err:
+            logger.warning(f"⚠️ Validação cruzada de IA pulada por estouro de cota/limite de requisições: {err}")
+        else:
+            logger.error(f"❌ Erro ao executar a validação cruzada da IA: {err}", exc_info=True)
+            
         # Em caso de falha na validação, retornar a resposta original para não indisponibilizar o serviço
         return draft_response, False
