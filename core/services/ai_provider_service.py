@@ -251,7 +251,12 @@ class OpenRouterAIProvider(BaseAIProvider):
             messages.append({"role": "user", "content": prompt})
             
             payload = {
-                "model": self.model_name,
+                "models": [
+                    "google/gemma-2-9b-it:free",
+                    "meta-llama/llama-3-8b-instruct:free",
+                    "qwen/qwen-2-7b-instruct:free",
+                    "meta-llama/llama-3.1-8b-instruct:free"
+                ],
                 "messages": messages,
                 "temperature": temperature,
                 "max_tokens": max_tokens
@@ -266,6 +271,7 @@ class OpenRouterAIProvider(BaseAIProvider):
             data = response.json()
             content = data['choices'][0]['message']['content']
             
+            actual_model = data.get('model', self.model_name)
             usage = data.get('usage', {})
             prompt_tokens = usage.get('prompt_tokens', 0)
             completion_tokens = usage.get('completion_tokens', 0)
@@ -274,7 +280,7 @@ class OpenRouterAIProvider(BaseAIProvider):
                 user=user,
                 feature_name=feature_name,
                 provider="openrouter",
-                model_name=self.model_name,
+                model_name=actual_model,
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
                 response_time=response_time,
