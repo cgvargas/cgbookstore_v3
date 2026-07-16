@@ -1,3 +1,4 @@
+import json
 import logging
 import environ
 import os
@@ -421,6 +422,30 @@ else:
 
 # Google Books API Configuration
 GOOGLE_BOOKS_API_KEY = env('GOOGLE_BOOKS_API_KEY', default='')
+
+# ==============================================================================
+# COMMERCIAL PARTNERS
+# ==============================================================================
+# Configuração declarativa, indexada pelo slug do AffiliatePartner.
+# Exemplo de valor (sem tracking ID):
+# {"amazon":{"allowed_domains":["amazon.com.br","www.amazon.com.br"],"tracking_query_param":"tag"}}
+#
+# O tracking ID continua sendo lido do cadastro administrativo do parceiro.
+_partner_commercial_config_raw = env('PARTNER_COMMERCIAL_CONFIG', default='{}')
+try:
+    PARTNER_COMMERCIAL_CONFIG = json.loads(_partner_commercial_config_raw or '{}')
+    if not isinstance(PARTNER_COMMERCIAL_CONFIG, dict):
+        PARTNER_COMMERCIAL_CONFIG = {}
+except (TypeError, ValueError):
+    logger.warning("PARTNER_COMMERCIAL_CONFIG inválido; usando configuração vazia.")
+    PARTNER_COMMERCIAL_CONFIG = {}
+
+# Domínios de encurtadores conhecidos. Links encurtados não são destinos finais
+# seguros para a allowlist porque podem redirecionar para hosts não verificados.
+PARTNER_SHORTENER_DOMAINS = {
+    'amzn.to', 'bit.ly', 'buff.ly', 'cutt.ly', 'goo.gl', 'is.gd',
+    'ow.ly', 'shorturl.at', 't.co', 'tinyurl.com',
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

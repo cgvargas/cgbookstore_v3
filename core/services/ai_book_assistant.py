@@ -35,29 +35,6 @@ class AIBookAssistantService:
         """Verifica se a chave da API do Gemini está disponível."""
         return self.model is not None
 
-    def _get_isbn_10(self, isbn: str) -> str:
-        """Retorna o ISBN-10 a partir de um ISBN-13 ou do próprio ISBN-10."""
-        if not isbn:
-            return None
-        clean = re.sub(r'[\-\s]', '', isbn)
-        if len(clean) == 10:
-            return clean
-        if len(clean) == 13 and clean.startswith('978'):
-            nine_digits = clean[3:12]
-            total = 0
-            for i, digit in enumerate(nine_digits):
-                total += int(digit) * (10 - i)
-            remainder = total % 11
-            check_val = 11 - remainder
-            if check_val == 10:
-                check_digit = 'X'
-            elif check_val == 11:
-                check_digit = '0'
-            else:
-                check_digit = str(check_val)
-            return nine_digits + check_digit
-        return None
-
     def _download_temp_cover(self, cover_url: str, isbn: str) -> dict:
         """
         Baixa a imagem da capa e salva temporariamente no media storage (Supabase/R2/Local).
@@ -224,8 +201,6 @@ class AIBookAssistantService:
         - category_name: Categoria ou gênero principal do livro (ex: Fantasia, Ficção Científica, Romance, Biografia) (string).
         - average_rating: Avaliação média do livro de 0.00 a 5.00 (float ou null). Se não souber por fontes externas, estime com base no sucesso crítico global da obra.
         - ratings_count: Número total estimado de avaliações (inteiro ou null). Se não souber por fontes externas, estime baseado no alcance do livro.
-        - purchase_partner_name: "Amazon" (defina sempre como "Amazon").
-
         Preencha o máximo de campos que puder extrair ou pesquisar com alto grau de confiança.
         """
 
@@ -276,17 +251,6 @@ class AIBookAssistantService:
                     extracted_data['average_rating'] = isbn_data.get('average_rating')
                 if isbn_data.get('ratings_count') is not None and extracted_data.get('ratings_count') is None:
                     extracted_data['ratings_count'] = isbn_data.get('ratings_count')
-
-            # 2. Gerar link de parceiro da Amazon deterministicamente
-            isbn_val = extracted_data.get('isbn') or (isbn_data.get('isbn') if isbn_data else None)
-            if isbn_val:
-                isbn10 = self._get_isbn_10(isbn_val)
-                if isbn10:
-                    extracted_data['purchase_partner_name'] = 'Amazon'
-                    extracted_data['purchase_partner_url'] = f"https://www.amazon.com.br/dp/{isbn10}"
-            else:
-                extracted_data['purchase_partner_name'] = 'Amazon'
-                extracted_data['purchase_partner_url'] = ""
 
             # Garantir casting e valores default válidos
             try:
