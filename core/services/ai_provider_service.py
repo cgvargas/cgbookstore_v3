@@ -108,7 +108,8 @@ class GeminiAIProvider(BaseAIProvider):
                 
             response = self.model.generate_content(
                 full_prompt,
-                generation_config=config
+                generation_config=config,
+                request_options={"timeout": 15.0}
             )
             
             response_time = time.time() - start_time
@@ -195,7 +196,8 @@ class GroqAIProvider(BaseAIProvider):
                 messages=messages,
                 model=self.model_name,
                 temperature=temperature,
-                max_tokens=max_tokens
+                max_tokens=max_tokens,
+                timeout=15.0
             )
             response_time = time.time() - start_time
             
@@ -255,7 +257,7 @@ class OpenAIProvider(BaseAIProvider):
                 "max_tokens": max_tokens
             }
             
-            response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=20)
+            response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=15.0)
             response_time = time.time() - start_time
             
             if response.status_code != 200:
@@ -318,7 +320,7 @@ class ClaudeProvider(BaseAIProvider):
             if system_instruction:
                 payload["system"] = system_instruction
                 
-            response = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=payload, timeout=20)
+            response = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=payload, timeout=15.0)
             response_time = time.time() - start_time
             
             if response.status_code != 200:

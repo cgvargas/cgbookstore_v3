@@ -19,6 +19,7 @@ class LibraryPersonalizationRegressionTest(SimpleTestCase):
     def test_recommended_article_uses_featured_image(self):
         article = SimpleNamespace(
             id=10,
+            slug='noticia-literaria',
             title='Notícia literária',
             subtitle='Destaque',
             featured_image=SimpleNamespace(url='https://cdn.example/news.webp'),
@@ -29,10 +30,12 @@ class LibraryPersonalizationRegressionTest(SimpleTestCase):
 
         self.assertEqual(serialized['image']['url'], 'https://cdn.example/news.webp')
         self.assertEqual(serialized['published_at'], '16/07/2026')
+        self.assertEqual(serialized['slug'], 'noticia-literaria')
 
     def test_recommended_article_without_image_returns_none(self):
         article = SimpleNamespace(
             id=11,
+            slug='noticia-sem-imagem',
             title='Notícia sem imagem',
             subtitle='',
             featured_image=None,
@@ -42,6 +45,7 @@ class LibraryPersonalizationRegressionTest(SimpleTestCase):
         serialized = LibraryView._serialize_recommended_article(article)
 
         self.assertIsNone(serialized['image'])
+        self.assertEqual(serialized['slug'], 'noticia-sem-imagem')
 
 
 @override_settings(

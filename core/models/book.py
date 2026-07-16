@@ -205,6 +205,18 @@ class Book(models.Model):
         help_text="Texto que aparecerá no topo da página de detalhes (ex: 'Participe do evento com o autor!')"
     )
 
+    # ========== ANÁLISES DE IA (PERSISTÊNCIA) ==========
+    ai_review = models.JSONField(
+        null=True,
+        blank=True,
+        verbose_name="Análise de IA (JSON)"
+    )
+    ai_expanded_analysis = models.JSONField(
+        null=True,
+        blank=True,
+        verbose_name="Análise Expandida de IA (JSON)"
+    )
+
     # ========== METADADOS ==========
     created_at = models.DateTimeField(
         auto_now_add=True,

@@ -71,22 +71,30 @@ class BookDetailView(DetailView):
 
         context['recommendations'] = BookRecommendationService.get_recommendations_for_book(book, limit=4)
         
-        # Carrega a resenha de IA com cache de 30 dias
-        ai_cache_key = f"ai_review:{book.id}"
-        ai_review = cache.get(ai_cache_key)
+        # 1. Carrega a resenha de IA (busca primeiro no banco de dados, depois na IA)
+        ai_review = book.ai_review
         if not ai_review:
-            ai_review = AIReviewService.generate_review(book)
-            if ai_review:
-                cache.set(ai_cache_key, ai_review, 86400 * 30)  # 30 dias
+            ai_cache_key = f"ai_review:{book.id}"
+            ai_review = cache.get(ai_cache_key)
+            if not ai_review:
+                ai_review = AIReviewService.generate_review(book)
+                if ai_review:
+                    book.ai_review = ai_review
+                    book.save(update_fields=['ai_review', 'updated_at'])
+                    cache.set(ai_cache_key, ai_review, 86400 * 30)  # 30 dias
         context['ai_review'] = ai_review
 
-        # Carrega a análise expandida de IA com cache de 30 dias
-        ai_expanded_cache_key = f"ai_expanded_review:{book.id}"
-        ai_expanded_review = cache.get(ai_expanded_cache_key)
+        # 2. Carrega a análise expandida de IA (busca primeiro no banco de dados, depois na IA)
+        ai_expanded_review = book.ai_expanded_analysis
         if not ai_expanded_review:
-            ai_expanded_review = AIReviewService.generate_expanded_analysis(book)
-            if ai_expanded_review:
-                cache.set(ai_expanded_cache_key, ai_expanded_review, 86400 * 30)
+            ai_expanded_cache_key = f"ai_expanded_review:{book.id}"
+            ai_expanded_review = cache.get(ai_expanded_cache_key)
+            if not ai_expanded_review:
+                ai_expanded_review = AIReviewService.generate_expanded_analysis(book)
+                if ai_expanded_review:
+                    book.ai_expanded_analysis = ai_expanded_review
+                    book.save(update_fields=['ai_expanded_analysis', 'updated_at'])
+                    cache.set(ai_expanded_cache_key, ai_expanded_review, 86400 * 30)
         context['ai_expanded_review'] = ai_expanded_review
 
 

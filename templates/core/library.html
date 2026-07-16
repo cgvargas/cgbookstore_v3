@@ -568,7 +568,7 @@
                                         <h5 class="h6 mb-3 text-muted" style="font-size: 0.85rem;"><i class="fas fa-bullhorn me-2 text-warning"></i>Notícias Recomendadas</h5>
                                         <div class="list-group list-group-flush bg-transparent">
                                             {% for n in personal_recs.news %}
-                                            <a href="/noticias/artigo/{{ n.id }}/" class="list-group-item list-group-item-action bg-transparent border-0 px-0 py-2 d-flex align-items-center gap-3">
+                                            <a href="/noticias/artigo/{{ n.slug }}/" class="list-group-item list-group-item-action bg-transparent border-0 px-0 py-2 d-flex align-items-center gap-3">
                                                 {% if n.image %}
                                                 <img src="{{ n.image.url }}" alt="{{ n.title }}" class="rounded object-fit-cover" style="width: 50px; height: 35px;">
                                                 {% else %}

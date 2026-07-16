@@ -25,6 +25,7 @@ class LibraryView(LoginRequiredMixin, TemplateView):
         featured_image = article.featured_image
         return {
             'id': article.id,
+            'slug': getattr(article, 'slug', ''),
             'title': article.title,
             'subtitle': article.subtitle,
             'image': {'url': featured_image.url} if featured_image else None,
