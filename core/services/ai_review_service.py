@@ -19,6 +19,7 @@ class AIReviewService:
         'groq': 'GROQ_API_KEY',
         'openai': 'OPENAI_API_KEY',
         'claude': 'CLAUDE_API_KEY',
+        'openrouter': 'OPENROUTER_API_KEY',
     }
 
     @classmethod

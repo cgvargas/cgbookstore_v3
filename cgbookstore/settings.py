@@ -499,6 +499,9 @@ GEMINI_API_KEY = env('GEMINI_API_KEY', default='')
 # Crie sua chave em: https://console.groq.com/keys
 GROQ_API_KEY = env('GROQ_API_KEY', default='')
 
+# OpenRouter AI (Provedor gratuito alternativo)
+OPENROUTER_API_KEY = env('OPENROUTER_API_KEY', default='')
+
 # Validação cruzada de IA em tempo real para evitar alucinações
 AI_CROSS_VALIDATION_ENABLED = env.bool('AI_CROSS_VALIDATION_ENABLED', default=True)
 
