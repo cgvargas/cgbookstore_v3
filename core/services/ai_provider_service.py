@@ -229,76 +229,107 @@ class GroqAIProvider(BaseAIProvider):
                 error_message=str(e)
             )
 class OpenRouterAIProvider(BaseAIProvider):
+    """
+    Provedor OpenRouter com fallback sequencial de modelos.
+    Tenta cada modelo individualmente em vez de usar o array `models`
+    (que tem limite de 3 e falha se os modelos saírem do ar).
+    Usa `openrouter/auto` como rota final infalível.
+    """
+    # Lista de modelos para tentar em ordem de preferência.
+    # `openrouter/auto` é o roteador automático do OpenRouter que
+    # seleciona o melhor modelo gratuito disponível no momento.
+    FALLBACK_MODELS = [
+        "openrouter/auto",
+    ]
+
     def __init__(self):
         self.api_key = getattr(settings, 'OPENROUTER_API_KEY', '')
-        self.model_name = 'google/gemma-2-9b-it:free'
+        self.model_name = 'openrouter/auto'
 
     def generate_text(self, prompt: str, system_instruction: str = None, user=None, feature_name="general", temperature=0.3, max_tokens=1000) -> str:
         if not self.api_key:
             raise Exception("OPENROUTER_API_KEY não configurada.")
             
         start_time = time.time()
-        try:
-            headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.api_key}",
-                "HTTP-Referer": "https://www.cgbookstore.com.br",
-                "X-Title": "CG BookStore"
-            }
-            messages = []
-            if system_instruction:
-                messages.append({"role": "system", "content": system_instruction})
-            messages.append({"role": "user", "content": prompt})
-            
-            payload = {
-                "models": [
-                    "google/gemma-2-9b-it:free",
-                    "meta-llama/llama-3-8b-instruct:free",
-                    "qwen/qwen-2-7b-instruct:free"
-                ],
-                "messages": messages,
-                "temperature": temperature,
-                "max_tokens": max_tokens
-            }
-            
-            response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=15.0)
-            response_time = time.time() - start_time
-            
-            if response.status_code != 200:
-                raise Exception(f"OpenRouter API error {response.status_code}: {response.text}")
+        last_error = None
+        
+        for model_id in self.FALLBACK_MODELS:
+            try:
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {self.api_key}",
+                    "HTTP-Referer": "https://www.cgbookstore.com.br",
+                    "X-Title": "CG BookStore"
+                }
+                messages = []
+                if system_instruction:
+                    messages.append({"role": "system", "content": system_instruction})
+                messages.append({"role": "user", "content": prompt})
                 
-            data = response.json()
-            content = data['choices'][0]['message']['content']
-            
-            actual_model = data.get('model', self.model_name)
-            usage = data.get('usage', {})
-            prompt_tokens = usage.get('prompt_tokens', 0)
-            completion_tokens = usage.get('completion_tokens', 0)
-            
-            log_ai_usage(
-                user=user,
-                feature_name=feature_name,
-                provider="openrouter",
-                model_name=actual_model,
-                prompt_tokens=prompt_tokens,
-                completion_tokens=completion_tokens,
-                response_time=response_time,
-                status="success"
-            )
-            return content
-        except Exception as e:
-            logger.error(f"Erro no provedor OpenRouter: {e}")
-            log_ai_usage(
-                user=user,
-                feature_name=feature_name,
-                provider="openrouter",
-                model_name=self.model_name,
-                prompt_tokens=0,
-                completion_tokens=0,
-                response_time=time.time() - start_time,
-                status="error"
-            )
-            raise e
+                payload = {
+                    "model": model_id,
+                    "messages": messages,
+                    "temperature": temperature,
+                    "max_tokens": max_tokens
+                }
+                
+                response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=15.0)
+                
+                if response.status_code != 200:
+                    logger.warning(f"⚠️ OpenRouter modelo '{model_id}' retornou {response.status_code}. Tentando próximo...")
+                    last_error = Exception(f"OpenRouter API error {response.status_code}: {response.text[:200]}")
+                    continue
+                    
+                data = response.json()
+                
+                if 'error' in data:
+                    logger.warning(f"⚠️ OpenRouter modelo '{model_id}' retornou erro: {data['error']}. Tentando próximo...")
+                    last_error = Exception(f"OpenRouter error: {data['error']}")
+                    continue
+                
+                content = data['choices'][0]['message']['content']
+                response_time = time.time() - start_time
+                
+                actual_model = data.get('model', model_id)
+                usage = data.get('usage', {})
+                prompt_tokens = usage.get('prompt_tokens', 0)
+                completion_tokens = usage.get('completion_tokens', 0)
+                
+                log_ai_usage(
+                    user=user,
+                    feature_name=feature_name,
+                    provider="openrouter",
+                    model_name=actual_model,
+                    prompt_tokens=prompt_tokens,
+                    completion_tokens=completion_tokens,
+                    response_time=response_time,
+                    status="success"
+                )
+                logger.info(f"✅ OpenRouter respondeu com sucesso usando modelo '{actual_model}' em {response_time:.2f}s")
+                return content
+                
+            except requests.exceptions.Timeout:
+                logger.warning(f"⚠️ OpenRouter modelo '{model_id}' timeout. Tentando próximo...")
+                last_error = Exception(f"OpenRouter timeout para modelo {model_id}")
+                continue
+            except Exception as e:
+                logger.warning(f"⚠️ OpenRouter modelo '{model_id}' falhou: {e}")
+                last_error = e
+                continue
+        
+        # Todos os modelos falharam
+        logger.error(f"❌ OpenRouter: todos os modelos falharam. Último erro: {last_error}")
+        log_ai_usage(
+            user=user,
+            feature_name=feature_name,
+            provider="openrouter",
+            model_name="all_failed",
+            prompt_tokens=0,
+            completion_tokens=0,
+            response_time=time.time() - start_time,
+            status="error"
+        )
+        raise last_error or Exception("OpenRouter: nenhum modelo disponível")
 
 class OpenAIProvider(BaseAIProvider):
     def __init__(self):
