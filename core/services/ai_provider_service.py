@@ -169,7 +169,7 @@ class GeminiAIProvider(BaseAIProvider):
 class GroqAIProvider(BaseAIProvider):
     def __init__(self):
         self.api_key = getattr(settings, 'GROQ_API_KEY', '')
-        self.model_name = 'llama-3.3-70b-versatile'
+        self.model_name = getattr(settings, 'GROQ_MODEL_NAME', 'llama-3.3-70b-versatile')
         self.client = None
 
     def _setup(self):

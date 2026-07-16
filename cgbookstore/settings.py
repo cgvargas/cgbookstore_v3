@@ -498,6 +498,7 @@ GEMINI_API_KEY = env('GEMINI_API_KEY', default='')
 # Groq AI (Recomendado - Mais rápido e free tier generoso)
 # Crie sua chave em: https://console.groq.com/keys
 GROQ_API_KEY = env('GROQ_API_KEY', default='')
+GROQ_MODEL_NAME = env('GROQ_MODEL_NAME', default='llama-3.3-70b-versatile')
 
 # OpenRouter AI (Provedor gratuito alternativo)
 OPENROUTER_API_KEY = env('OPENROUTER_API_KEY', default='')

@@ -140,7 +140,7 @@ ESCOPO:
         # - llama-3.1-8b-instant (mais rápido)
         # - mixtral-8x7b-32768 (ótimo para contextos longos)
         # - gemma2-9b-it (eficiente e rápido)
-        self.model_name = 'llama-3.3-70b-versatile'
+        self.model_name = getattr(settings, 'GROQ_MODEL_NAME', 'llama-3.3-70b-versatile')
         self._client = None
 
         # Configurações de geração - temperatura muito baixa para mínima alucinação
