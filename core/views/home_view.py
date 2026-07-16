@@ -28,6 +28,22 @@ class HomeView(TemplateView):
     # Cache timeout em segundos (30 minutos)
     CACHE_TIMEOUT = 1800
 
+    @staticmethod
+    def _serialize_recommended_article(article):
+        """Serializa uma notícia recomendada usando o campo real do model Article."""
+        featured_image = article.featured_image
+        return {
+            'id': article.id,
+            'title': article.title,
+            'subtitle': article.subtitle,
+            'image': {'url': featured_image.url} if featured_image else None,
+            'published_at': (
+                article.published_at.strftime('%d/%m/%Y')
+                if hasattr(article.published_at, 'strftime')
+                else str(article.published_at)
+            ),
+        }
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         now = timezone.now()
@@ -165,13 +181,10 @@ class HomeView(TemplateView):
                         'name': a.name,
                         'photo': {'url': a.photo.url} if a.photo else None,
                     } for a in personal_recs['authors']],
-                    'news': [{
-                        'id': n.id,
-                        'title': n.title,
-                        'subtitle': n.subtitle,
-                        'image': {'url': n.image.url} if n.image else None,
-                        'published_at': n.published_at.strftime('%d/%m/%Y') if hasattr(n.published_at, 'strftime') else str(n.published_at),
-                    } for n in personal_recs['news']],
+                    'news': [
+                        self._serialize_recommended_article(article)
+                        for article in personal_recs['news']
+                    ],
                     'events': [{
                         'id': e.id,
                         'title': e.title,

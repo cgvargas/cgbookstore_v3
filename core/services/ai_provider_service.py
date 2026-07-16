@@ -470,8 +470,9 @@ class MockAIProvider(BaseAIProvider):
 
 class AIProviderFactory:
     @classmethod
-    def get_provider(cls) -> BaseAIProvider:
-        ai_provider = getattr(settings, 'AI_PROVIDER', 'mock').lower()
+    def get_provider(cls, provider_name: str = None) -> BaseAIProvider:
+        """Cria o provedor solicitado ou, por compatibilidade, o provedor principal."""
+        ai_provider = (provider_name or getattr(settings, 'AI_PROVIDER', 'mock')).lower()
         
         if ai_provider == 'gemini':
             return GeminiAIProvider()

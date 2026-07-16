@@ -476,9 +476,21 @@ REST_FRAMEWORK = {
 # ==============================================================================
 # AI PROVIDER CONFIGURATION
 # ==============================================================================
-# Escolha o provedor de IA para o chatbot: 'gemini' ou 'groq'
-# Groq recomendado - gratuito, rápido e sem limites rígidos
+# Escolha o provedor principal das funcionalidades de IA.
+# Groq é rápido, mas permanece sujeito às cotas do plano configurado.
 AI_PROVIDER = env('AI_PROVIDER', default='groq')
+
+# Ordem de fallback para funcionalidades gerais de IA, sem duplicar chaves.
+_ai_fallback_providers_raw = env('AI_FALLBACK_PROVIDERS', default='gemini')
+AI_FALLBACK_PROVIDERS = [
+    provider.strip().lower()
+    for provider in _ai_fallback_providers_raw.split(',')
+    if provider.strip()
+]
+AI_RATE_LIMIT_COOLDOWN_SECONDS = env.int(
+    'AI_RATE_LIMIT_COOLDOWN_SECONDS',
+    default=1200,
+)
 
 # Google Gemini AI
 GEMINI_API_KEY = env('GEMINI_API_KEY', default='')
