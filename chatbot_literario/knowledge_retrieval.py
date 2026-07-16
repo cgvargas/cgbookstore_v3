@@ -283,7 +283,7 @@ Categoria/Gênero: {category_name}
             prompt_text += "\n"
 
         prompt_text += "[/DADOS VERIFICADOS]\n\n"
-        prompt_text += "IMPORTANTE: Recomende APENAS estes livros listados acima. NÃO invente outros títulos."
+        prompt_text += "IMPORTANTE: Liste ou recomende APENAS estes livros listados acima. Se o autor tiver outros livros que não constam nesta lista, diga explicitamente: 'Estes são os livros que temos em nosso catálogo. O autor pode ter outras obras que não estão cadastradas em nossa plataforma.' NÃO invente títulos adicionais, antologias ou nomes alternativos de livros sob nenhuma circunstância."
 
         return prompt_text
 

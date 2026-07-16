@@ -27,6 +27,7 @@ class GroqChatbotService:
     """
 
     # Prompt do sistema - Define a personalidade e escopo do chatbot
+    # Prompt do sistema - Define a personalidade e escopo do chatbot
     SYSTEM_PROMPT = """Você é o Assistente Literário da CG.BookStore.
 
 PERSONALIDADE:
@@ -53,28 +54,29 @@ REGRAS ABSOLUTAS:
    - Nomes de autores fictícios
    - Detalhes específicos que você não tem certeza (datas exatas, números)
    - Sequências ou livros de franquias que podem não existir
+9. LISTAGEM DE OBRAS: Ao listar livros de um autor com base em [DADOS VERIFICADOS], liste APENAS e EXATAMENTE as obras informadas. Sob nenhuma hipótese invente outros títulos ou antologias de contos inexistentes. Diga com honestidade que estes são os livros que possuímos cadastrados no catálogo e que o autor pode ter outros.
 
-9. FRANQUIAS DE JOGOS/FILMES (Diablo, Assassin's Creed, etc.):
-   - NÃO invente livros baseados nessas franquias
-   - Se perguntar sobre adaptações literárias, diga: "Não tenho informações verificadas sobre livros dessa franquia"
+10. FRANQUIAS DE JOGOS/FILMES (Diablo, Assassin's Creed, etc.):
+    - NÃO invente livros baseados nessas franquias
+    - Se perguntar sobre adaptações literárias, diga: "Não tenho informações verificadas sobre livros dessa franquia"
 
 ⚠️ REGRAS DE AJUDA (IMPORTANTE):
 
-10. NUNCA OFEREÇA AJUDA QUE VOCÊ NÃO PODE DAR:
+11. NUNCA OFEREÇA AJUDA QUE VOCÊ NÃO PODE DAR:
     - Se você não tem a informação na sua base, NÃO diga "posso ajudar a buscar"
     - Se o usuário pedir mais detalhes que você não tem, seja honesto e conclusivo
     - NÃO fique em loop oferecendo ajuda genérica
 
-11. QUANDO VOCÊ CONSEGUIR RESPONDER: Responda normalmente e finalize!
+12. QUANDO VOCÊ CONSEGUIR RESPONDER: Responda normalmente e finalize!
     - Se você SABE a resposta (bio, autor, sinopse), dê a resposta completa e ponto final
     - NÃO adicione sugestões desnecessárias se a resposta está completa
     - Exemplo: "Quem é o autor?" → "Raphael Montes é um escritor brasileiro de suspense..."
 
-12. QUANDO NÃO CONSEGUIR RESPONDER COMPLETAMENTE:
+13. QUANDO NÃO CONSEGUIR RESPONDER COMPLETAMENTE:
     - Se o usuário pedir algo sobre um livro/autor obscuro, desconhecido ou raro que você NÃO possui em sua base de dados [DADOS VERIFICADOS] nem conhece com certeza em seu conhecimento prévio, avise com honestidade. (Nota: Para obras famosas, populares e clássicos que você conhece de verdade, responda por completo usando seu conhecimento).
     - Exemplo para casos obscuros: "Me dê TODOS os títulos do autor" → Liste os que conhece e avise que pode haver outros.
 
-13. QUANDO O USUÁRIO PEDIR AJUDA GENÉRICA (após você já ter respondido):
+14. QUANDO O USUÁRIO PEDIR AJUDA GENÉRICA (após você já ter respondido):
     - Se você já deu as informações que tinha, sugira que o usuário explore nossa loja ou blog
     - Exemplo: "Me ajude por favor" → Sugira pesquisar nosso acervo ou seção de Notícias
 
@@ -200,6 +202,7 @@ ESCOPO:
             'category_search': r'(ficção|romance|fantasia|terror|suspense|policial|biografia)',
             'adaptation_info': r'(adaptação|adaptaç|filme|série|netflix|hbo|amazon prime|disney)',
             'franchise_info': r'(franquia|universo|mundo de)',
+            'follow_up_author': r'(el[ae]\s+escreveu|outros?\s+livros?|outras?\s+obras?|mais\s+livros?|tem\s+mais|escreveu\s+mais|publicou\s+mais)',
         }
 
         for intent, pattern in patterns.items():
@@ -292,8 +295,26 @@ Se o FAQ responder completamente, NÃO adicione informações extras."""
             return message
 
         try:
+            # INTENT 0.5: Pergunta de follow-up sobre autor anterior (ex: "ela escreveu outros livros?")
+            if intent_type == 'follow_up_author':
+                last_author_data = self.knowledge_service.get_conversation_reference('last_author')
+                if last_author_data and last_author_data.get('name'):
+                    author_name = last_author_data['name']
+                    logger.info(f"RAG: Follow-up detectado. Buscando livros do autor em contexto: {author_name}")
+                    books = self.knowledge_service.search_books_by_author(author_name, limit=10)
+                    if books:
+                        verified_data = self.knowledge_service.format_multiple_books_for_prompt(books, max_books=5)
+                        # Salvar novamente no contexto para manter o encadeamento
+                        self.knowledge_service.store_conversation_reference(
+                            'last_author', 
+                            {'name': books[0]['author_name'], 'id': books[0].get('author_id')}
+                        )
+                        return f"{message}\n\n{verified_data}"
+                    else:
+                        logger.warning(f"RAG: Nenhum livro encontrado para o autor '{author_name}'")
+
             # INTENT 1: Recomendação por categoria
-            if intent_type == 'book_recommendation':
+            elif intent_type == 'book_recommendation':
                 # Detectar categoria na mensagem
                 categories = ['ficção científica', 'romance', 'fantasia', 'terror', 'suspense', 'policial']
                 for category in categories:
@@ -317,6 +338,11 @@ Se o FAQ responder completamente, NÃO adicione informações extras."""
                         book = self.knowledge_service.get_book_by_exact_title(book_title)
                         if book:
                             verified_data = self.knowledge_service.format_book_for_prompt(book)
+                            if book.get('author_name'):
+                                self.knowledge_service.store_conversation_reference(
+                                    'last_author',
+                                    {'name': book['author_name'], 'id': book.get('author_id')}
+                                )
                             return f"{message}\n\n{verified_data}"
 
             # INTENT 3: Referência a livro mencionado (ex: "Me fale sobre o livro 3" ou "terceiro livro")
@@ -355,6 +381,11 @@ Se o FAQ responder completamente, NÃO adicione informações extras."""
                     book_data = self.knowledge_service.get_conversation_reference(ref_id)
                     if book_data:
                         verified_data = self.knowledge_service.format_book_for_prompt(book_data)
+                        if book_data.get('author_name'):
+                            self.knowledge_service.store_conversation_reference(
+                                'last_author',
+                                {'name': book_data['author_name'], 'id': book_data.get('author_id')}
+                            )
                         return f"{message}\n\n{verified_data}"
 
             # INTENT 4: Livros de um autor
@@ -370,6 +401,11 @@ Se o FAQ responder completamente, NÃO adicione informações extras."""
                         books = self.knowledge_service.search_books_by_author(author_name, limit=10)
                         if books:
                             verified_data = self.knowledge_service.format_multiple_books_for_prompt(books, max_books=5)
+                            if books[0].get('author_name'):
+                                self.knowledge_service.store_conversation_reference(
+                                    'last_author',
+                                    {'name': books[0]['author_name'], 'id': books[0].get('author_id')}
+                                )
                             return f"{message}\n\n{verified_data}"
 
             # INTENT 5: Informações sobre série
@@ -428,6 +464,11 @@ Se o FAQ responder completamente, NÃO adicione informações extras."""
                         books = self.knowledge_service.get_books_by_series_detection(keyword)
                         if books:
                             verified_data = self.knowledge_service.format_multiple_books_for_prompt(books, max_books=7)
+                            if books[0].get('author_name'):
+                                self.knowledge_service.store_conversation_reference(
+                                    'last_author',
+                                    {'name': books[0]['author_name'], 'id': books[0].get('author_id')}
+                                )
                             return f"{message}\n\n{verified_data}"
                         else:
                             logger.warning(f"⚠️ Série '{series_name}' detectada mas nenhum livro encontrado no banco")
@@ -494,6 +535,11 @@ Se o FAQ responder completamente, NÃO adicione informações extras."""
                     if book:
                         # Livro encontrado - injetar dados verificados
                         verified_data = self.knowledge_service.format_book_for_prompt(book)
+                        if book.get('author_name'):
+                            self.knowledge_service.store_conversation_reference(
+                                'last_author',
+                                {'name': book['author_name'], 'id': book.get('author_id')}
+                            )
                         enriched_message = f"{message}\n\n{verified_data}"
                         logger.info(f"✅ RAG: Livro '{book_title}' encontrado! Autor: {book.get('author_name', 'N/A')}")
                         return enriched_message
