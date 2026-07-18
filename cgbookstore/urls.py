@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    path('admin/product-analytics/', include('product_analytics.urls', namespace='product_analytics')),
     path('admin/', admin.site.urls),
 
     # Ferramentas administrativas (sem necessidade de Shell)

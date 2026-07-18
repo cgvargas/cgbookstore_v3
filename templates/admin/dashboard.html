@@ -350,16 +350,29 @@
             <h1>🏛️ CGBookStore Admin</h1>
             <p>Visão geral do sistema - Bem-vindo, {{ user.get_full_name|default:user.username }}</p>
         </div>
-        <a href="{% url 'core:home' %}" style="background: rgba(255,255,255,0.2);
-                  padding: 12px 24px;
-                  border-radius: 6px;
-                  color: white;
-                  text-decoration: none;
-                  font-weight: 600;
-                  transition: all 0.3s;
-                  white-space: nowrap;">
-            🏠 Voltar ao Site
-        </a>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="{% url 'product_analytics:dashboard' %}" style="background: linear-gradient(135deg, #6366f1, #a855f7);
+                      padding: 12px 24px;
+                      border-radius: 6px;
+                      color: white;
+                      text-decoration: none;
+                      font-weight: 600;
+                      transition: all 0.3s;
+                      white-space: nowrap;
+                      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);">
+                📈 Product Analytics
+            </a>
+            <a href="{% url 'core:home' %}" style="background: rgba(255,255,255,0.2);
+                      padding: 12px 24px;
+                      border-radius: 6px;
+                      color: white;
+                      text-decoration: none;
+                      font-weight: 600;
+                      transition: all 0.3s;
+                      white-space: nowrap;">
+                🏠 Voltar ao Site
+            </a>
+        </div>
     </div>
 </div>
 
@@ -596,6 +609,9 @@
             {% endif %}
             <a href="{% url 'admin_tools:reports_dashboard' %}" class="action-btn" style="background: #667eea;">
                 📊 Relatórios
+            </a>
+            <a href="{% url 'product_analytics:dashboard' %}" class="action-btn" style="background: linear-gradient(135deg, #6366f1, #a855f7);">
+                📈 Product Analytics
             </a>
         </div>
     </div>

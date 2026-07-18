@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'ereader.apps.EreaderConfig',  # RetroReader - Leitor de E-Books
     'monitoring.apps.MonitoringConfig',  # Sistema de Monitoramento + Alertas WhatsApp
     'partners.apps.PartnersConfig',
+    'product_analytics.apps.ProductAnalyticsConfig',  # Analytics de Produto
 
     # Third-party Apps
     'rest_framework',
@@ -92,6 +93,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',  # Requerido pelo allauth
     'core.middleware.RateLimitMiddleware',  # Rate limiting
     'core.middleware.PerformanceMonitoringMiddleware',  # Monitoramento de performance do Backend
+    'product_analytics.middleware.AnalyticsMiddleware',  # Analytics de Produto (feature flag)
 ]
 
 ROOT_URLCONF = 'cgbookstore.urls'
@@ -354,6 +356,31 @@ MONITORING_SPAM_WINDOW_SECONDS = env.int('MONITORING_SPAM_WINDOW_SECONDS', defau
 
 # Severidade mínima para enviar alerta WhatsApp: 'low', 'medium', 'high', 'critical'
 MONITORING_ALERT_MIN_SEVERITY = env('MONITORING_ALERT_MIN_SEVERITY', default='medium')
+
+
+# ==============================================================================
+# PRODUCT ANALYTICS CONFIGURATION
+# ==============================================================================
+# PROCESSING_MODE:
+#   'disabled'     — Nenhum evento rastreado. Zero impacto de performance.
+#   'synchronous'  — Gravação síncrona protegida em try/except. Padrão.
+#                    Impacto estimado: < 5ms por requisição de página.
+#   'celery'       — Gravação assíncrona via Celery (requer worker ativo).
+#                    Fallback automático para modo síncrono se broker indisponível.
+#
+# Configure via variável de ambiente: PRODUCT_ANALYTICS_PROCESSING_MODE
+# Não cria dependência obrigatória de nenhum serviço pago adicional.
+PRODUCT_ANALYTICS = {
+    'PROCESSING_MODE': env(
+        'PRODUCT_ANALYTICS_PROCESSING_MODE',
+        default='synchronous'
+    ),
+    # Timeout de inatividade em minutos para encerrar uma sessão
+    'SESSION_TIMEOUT_MINUTES': env.int('PRODUCT_ANALYTICS_SESSION_TIMEOUT', default=30),
+    # Retenção de ProductEvent e AnalyticsSession em dias (para purge automático na Fase 2)
+    'EVENT_RETENTION_DAYS': env.int('PRODUCT_ANALYTICS_EVENT_RETENTION_DAYS', default=90),
+    'SESSION_RETENTION_DAYS': env.int('PRODUCT_ANALYTICS_SESSION_RETENTION_DAYS', default=90),
+}
 
 
 # Static files (CSS, JavaScript, Images)

@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Analítico de Produto</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #6366f1;
+            --primary-gradient: linear-gradient(135deg, #6366f1, #4f46e5);
+            --secondary-gradient: linear-gradient(135deg, #a855f7, #9333ea);
+            --emerald-gradient: linear-gradient(135deg, #10b981, #059669);
+            --amber-gradient: linear-gradient(135deg, #f59e0b, #d97706);
+            --danger: #ef4444;
+            --success: #10b981;
+            --border-color: #334155;
+            --active-item: #38bdf8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.5;
+        }
+
+        /* Container Principal */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Cabeçalho */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .header-title h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #38bdf8, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-title p {
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+            font-size: 0.95rem;
+        }
+
+        /* Filtros de Data */
+        .filter-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-filters {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .quick-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .quick-btn:hover, .quick-btn.active {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+        }
+
+        .date-picker-form {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--card-bg);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .date-picker-form label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .date-picker-form input[type="date"] {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.85rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .filter-submit-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: opacity 0.2s;
+        }
+
+        .filter-submit-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Seção do Dashboard */
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background-color: var(--primary);
+            border-radius: 2px;
+        }
+
+        /* Grid de Cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .metric-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            border-color: #475569;
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.3rem;
+        }
+
+        .metric-trend {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+        }
+
+        .trend-up {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .trend-down {
+            background-color: rgba(239, 68, 110, 0.15);
+            color: var(--danger);
+        }
+
+        .trend-neutral {
+            background-color: rgba(148, 163, 184, 0.15);
+            color: var(--text-muted);
+        }
+
+        .compare-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+            display: block;
+        }
+
+        /* Card Decoration Gradients */
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+
+        .card-active-users::after { background: var(--primary-gradient); }
+        .card-pageviews::after { background: var(--secondary-gradient); }
+        .card-engagement::after { background: var(--emerald-gradient); }
+        .card-business::after { background: var(--amber-gradient); }
+
+        /* Painel de Gráficos e Tabelas */
+        .dashboard-content-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-content-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .content-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+
+        /* Tabela de Retenção e Funil */
+        .retention-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        .retention-table th {
+            color: var(--text-muted);
+            font-weight: 500;
+            padding: 0.8rem;
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        .retention-table td {
+            padding: 1rem 0.8rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .retention-bar-bg {
+            background-color: #334155;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.4rem;
+        }
+
+        .retention-bar-fill {
+            background: var(--primary-gradient);
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        /* Botões de Voltar ao Admin */
+        .back-to-admin {
+            margin-bottom: 1.5rem;
+        }
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: color 0.2s;
+        }
+        .back-link:hover {
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- Voltar ao Painel Django -->
+    <div class="back-to-admin">
+        <a href="/admin/" class="back-link">
+            &larr; Voltar para a Administração Geral
+        </a>
+    </div>
+
+    <!-- Cabeçalho -->
+    <header>
+        <div class="header-title">
+            <h1>Analytics de Produto</h1>
+            <p>Monitoramento comportamental de usuários, conversão de funil e retenção.</p>
+        </div>
+        
+        <!-- Controles de Filtros -->
+        <div class="filter-container">
+            <div class="quick-filters">
+                <a href="?start_date={{ quick_filters.7d.start }}&end_date={{ quick_filters.7d.end }}" 
+                   class="quick-btn {% if start_date == quick_filters.7d.start %}active{% endif %}">
+                   Últimos 7 dias
+                </a>
+                <a href="?start_date={{ quick_filters.30d.start }}&end_date={{ quick_filters.30d.end }}" 
+                   class="quick-btn {% if start_date == quick_filters.30d.start %}active{% endif %}">
+                   Últimos 30 dias
+                </a>
+                <a href="?start_date={{ quick_filters.90d.start }}&end_date={{ quick_filters.90d.end }}" 
+                   class="quick-btn {% if start_date == quick_filters.90d.start %}active{% endif %}">
+                   Últimos 90 dias
+                </a>
+            </div>
+
+            <form class="date-picker-form" method="GET">
+                <label for="start_date">De:</label>
+                <input type="date" id="start_date" name="start_date" value="{{ start_date }}">
+                
+                <label for="end_date">Até:</label>
+                <input type="date" id="end_date" name="end_date" value="{{ end_date }}">
+                
+                <button type="submit" class="filter-submit-btn">Filtrar</button>
+            </form>
+        </div>
+    </header>
+
+    <!-- 1. MÉTRICAS ANALÍTICAS ATIVAS -->
+    <h2 class="section-title">Engajamento e Uso Ativo</h2>
+    <div class="metrics-grid">
+        <!-- DAU -->
+        <div class="metric-card card-active-users">
+            <div class="metric-header">
+                <span class="metric-label">DAU (Média Ativos Diários)</span>
+            </div>
+            <div class="metric-value">{{ metrics.dau.value|floatformat:"0" }}</div>
+            <div class="metric-trend {% if metrics.dau.delta > 0 %}trend-up{% elif metrics.dau.delta < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                {% if metrics.dau.delta > 0 %}▲{% elif metrics.dau.delta < 0 %}▼{% endif %} {{ metrics.dau.delta_abs }}%
+            </div>
+            <span class="compare-label">vs. período anterior ({{ compare_start }} - {{ compare_end }})</span>
+        </div>
+
+        <!-- WAU -->
+        <div class="metric-card card-active-users">
+            <div class="metric-header">
+                <span class="metric-label">WAU (Média Ativos Semanais)</span>
+            </div>
+            <div class="metric-value">{{ metrics.wau.value|floatformat:"0" }}</div>
+            <div class="metric-trend {% if metrics.wau.delta > 0 %}trend-up{% elif metrics.wau.delta < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                {% if metrics.wau.delta > 0 %}▲{% elif metrics.wau.delta < 0 %}▼{% endif %} {{ metrics.wau.delta_abs }}%
+            </div>
+            <span class="compare-label">vs. período anterior</span>
+        </div>
+
+        <!-- MAU -->
+        <div class="metric-card card-active-users">
+            <div class="metric-header">
+                <span class="metric-label">MAU (Média Ativos Mensais)</span>
+            </div>
+            <div class="metric-value">{{ metrics.mau.value|floatformat:"0" }}</div>
+            <div class="metric-trend {% if metrics.mau.delta > 0 %}trend-up{% elif metrics.mau.delta < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                {% if metrics.mau.delta > 0 %}▲{% elif metrics.mau.delta < 0 %}▼{% endif %} {{ metrics.mau.delta_abs }}%
+            </div>
+            <span class="compare-label">vs. período anterior</span>
+        </div>
+
+        <!-- DAU/MAU Ratio -->
+        <div class="metric-card card-active-users">
+            <div class="metric-header">
+                <span class="metric-label">DAU / MAU (Frequência)</span>
+            </div>
+            <div class="metric-value">{{ metrics.dau_mau_ratio.value }}%</div>
+            <div class="metric-trend {% if metrics.dau_mau_ratio.delta > 0 %}trend-up{% elif metrics.dau_mau_ratio.delta < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                {% if metrics.dau_mau_ratio.delta > 0 %}▲{% elif metrics.dau_mau_ratio.delta < 0 %}▼{% endif %} {{ metrics.dau_mau_ratio.delta_abs }}%
+            </div>
+            <span class="compare-label">vs. período anterior</span>
+        </div>
+    </div>
+
+    <!-- 2. TRÁFEGO E INTERAÇÃO -->
+    <h2 class="section-title">Visualizações de Páginas e Sessões</h2>
+    <div class="metrics-grid">
+        <!-- Page Views -->
+        <div class="metric-card card-pageviews">
+            <div class="metric-header">
+                <span class="metric-label">Visualizações de Página</span>
+            </div>
+            <div class="metric-value">{{ metrics.page_views_total.value|floatformat:"0" }}</div>
+            <div class="metric-trend {% if metrics.page_views_total.delta > 0 %}trend-up{% elif metrics.page_views_total.delta < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                {% if metrics.page_views_total.delta > 0 %}▲{% elif metrics.page_views_total.delta < 0 %}▼{% endif %} {{ metrics.page_views_total.delta_abs }}%
+            </div>
+            <span class="compare-label">Total do período</span>
+        </div>
+
+        <!-- Sessões -->
+        <div class="metric-card card-pageviews">
+            <div class="metric-header">
+                <span class="metric-label">Sessões Criadas</span>
+            </div>
+            <div class="metric-value">{{ metrics.sessions_total.value|floatformat:"0" }}</div>
+            <div class="metric-trend {% if metrics.sessions_total.delta > 0 %}trend-up{% elif metrics.sessions_total.delta < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                {% if metrics.sessions_total.delta > 0 %}▲{% elif metrics.sessions_total.delta < 0 %}▼{% endif %} {{ metrics.sessions_total.delta_abs }}%
+            </div>
+            <span class="compare-label">Total do período</span>
+        </div>
+
+        <!-- Páginas por Sessão -->
+        <div class="metric-card card-pageviews">
+            <div class="metric-header">
+                <span class="metric-label">Páginas / Sessão</span>
+            </div>
+            <div class="metric-value">{{ metrics.pages_per_session.value }}</div>
+            <div class="metric-trend {% if metrics.pages_per_session.delta > 0 %}trend-up{% elif metrics.pages_per_session.delta < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                {% if metrics.pages_per_session.delta > 0 %}▲{% elif metrics.pages_per_session.delta < 0 %}▼{% endif %} {{ metrics.pages_per_session.delta_abs }}%
+            </div>
+            <span class="compare-label">Média do período</span>
+        </div>
+
+        <!-- Duração Média da Sessão -->
+        <div class="metric-card card-pageviews">
+            <div class="metric-header">
+                <span class="metric-label">Duração da Sessão</span>
+            </div>
+            <div class="metric-value">{{ metrics.avg_session_duration_seconds.value }}s</div>
+            <div class="metric-trend {% if metrics.avg_session_duration_seconds.delta > 0 %}trend-up{% elif metrics.avg_session_duration_seconds.delta < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                {% if metrics.avg_session_duration_seconds.delta > 0 %}▲{% elif metrics.avg_session_duration_seconds.delta < 0 %}▼{% endif %} {{ metrics.avg_session_duration_seconds.delta_abs }}%
+            </div>
+            <span class="compare-label">Média em segundos</span>
+        </div>
+    </div>
+
+    <!-- 3. MÉTRICAS CANÔNICAS (CONVERSÃO DE FUNIL E CADASTRO) -->
+    <h2 class="section-title">Aquisição, Ativação e Conversão Comercial</h2>
+    <div class="metrics-grid">
+        <!-- Novos Usuários -->
+        <div class="metric-card card-business">
+            <div class="metric-header">
+                <span class="metric-label">Cadastros Realizados</span>
+            </div>
+            <div class="metric-value">{{ metrics.new_users.value|floatformat:"0" }}</div>
+            <div class="metric-trend {% if metrics.new_users.delta > 0 %}trend-up{% elif metrics.new_users.delta < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                {% if metrics.new_users.delta > 0 %}▲{% elif metrics.new_users.delta < 0 %}▼{% endif %} {{ metrics.new_users.delta_abs }}%
+            </div>
+            <span class="compare-label">Total novos usuários</span>
+        </div>
+
+        <!-- Conversões Premium -->
+        <div class="metric-card card-business">
+            <div class="metric-header">
+                <span class="metric-label">Conversões Premium</span>
+            </div>
+            <div class="metric-value">{{ metrics.premium_conversions.value|floatformat:"0" }}</div>
+            <div class="metric-trend {% if metrics.premium_conversions.delta > 0 %}trend-up{% elif metrics.premium_conversions.delta < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                {% if metrics.premium_conversions.delta > 0 %}▲{% elif metrics.premium_conversions.delta < 0 %}▼{% endif %} {{ metrics.premium_conversions.delta_abs }}%
+            </div>
+            <span class="compare-label">Assinaturas ativas iniciadas</span>
+        </div>
+
+        <!-- Livros Adicionados à Prateleira -->
+        <div class="metric-card card-business">
+            <div class="metric-header">
+                <span class="metric-label">Livros Adicionados</span>
+            </div>
+            <div class="metric-value">{{ metrics.books_added.value|floatformat:"0" }}</div>
+            <div class="metric-trend {% if metrics.books_added.delta > 0 %}trend-up{% elif metrics.books_added.delta < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                {% if metrics.books_added.delta > 0 %}▲{% elif metrics.books_added.delta < 0 %}▼{% endif %} {{ metrics.books_added.delta_abs }}%
+            </div>
+            <span class="compare-label">Adicionados às prateleiras</span>
+        </div>
+
+        <!-- Livros Concluídos -->
+        <div class="metric-card card-business">
+            <div class="metric-header">
+                <span class="metric-label">Leituras Concluídas</span>
+            </div>
+            <div class="metric-value">{{ metrics.books_completed.value|floatformat:"0" }}</div>
+            <div class="metric-trend {% if metrics.books_completed.delta > 0 %}trend-up{% elif metrics.books_completed.delta < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                {% if metrics.books_completed.delta > 0 %}▲{% elif metrics.books_completed.delta < 0 %}▼{% endif %} {{ metrics.books_completed.delta_abs }}%
+            </div>
+            <span class="compare-label">Marcados como "lidos"</span>
+        </div>
+    </div>
+
+    <!-- GRÁFICOS E TABELA DE RETENÇÃO -->
+    <div class="dashboard-content-layout">
+        
+        <!-- Série Temporal -->
+        <div class="content-card">
+            <div class="section-title">Histórico e Tendências Diárias</div>
+            <div class="chart-wrapper">
+                <canvas id="trendsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tabela de Retenção de Usuários -->
+        <div class="content-card">
+            <div class="section-title">Retenção de Cohorts (Média)</div>
+            
+            <table class="retention-table">
+                <thead>
+                    <tr>
+                        <th>Intervalo</th>
+                        <th>Retenção %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Retenção D1</strong>
+                            <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">Retorno exato 1 dia após cadastro</p>
+                        </td>
+                        <td>
+                            <span style="font-weight: 600; color: var(--text-main);">{{ metrics.retention_d1.value }}%</span>
+                            <div class="retention-bar-bg">
+                                <div class="retention-bar-fill" style="width: {{ metrics.retention_d1.value }}%;"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Retenção D7</strong>
+                            <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">Retorno em qualquer dia entre D+2 e D+7</p>
+                        </td>
+                        <td>
+                            <span style="font-weight: 600; color: var(--text-main);">{{ metrics.retention_d7.value }}%</span>
+                            <div class="retention-bar-bg">
+                                <div class="retention-bar-fill" style="width: {{ metrics.retention_d7.value }}%;"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Retenção D30</strong>
+                            <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">Retorno em qualquer dia entre D+8 e D+30</p>
+                        </td>
+                        <td>
+                            <span style="font-weight: 600; color: var(--text-main);">{{ metrics.retention_d30.value }}%</span>
+                            <div class="retention-bar-bg">
+                                <div class="retention-bar-fill" style="width: {{ metrics.retention_d30.value }}%;"></div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem;">Outros Indicadores Comportamentais</h4>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.85rem;">
+                    <span style="color: var(--text-muted);">Cliques em Parceiros</span>
+                    <span style="font-weight: 500;">{{ metrics.partner_clicks.value|floatformat:"0" }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                    <span style="color: var(--text-muted);">Sessões do Chatbot</span>
+                    <span style="font-weight: 500;">{{ metrics.chatbot_sessions.value|floatformat:"0" }}</span>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+</div>
+
+<!-- Script Chart.js -->
+<script>
+    const labels = {{ charts.labels|safe }};
+    const dauData = {{ charts.series.dau|safe }};
+    const pvData = {{ charts.series.page_views_total|safe }};
+    const sessionData = {{ charts.series.sessions_total|safe }};
+    const regData = {{ charts.series.new_users|safe }};
+
+    const ctx = document.getElementById('trendsChart').getContext('2d');
+    
+    // Configura e renderiza o gráfico de linhas do histórico
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Visualizações de Página',
+                    data: pvData,
+                    borderColor: '#a855f7',
+                    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                    tension: 0.3,
+                    borderWidth: 2,
+                    fill: true,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Usuários Ativos (DAU)',
+                    data: dauData,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                    tension: 0.3,
+                    borderWidth: 2,
+                    yAxisID: 'y1'
+                },
+                {
+                    label: 'Sessões Criadas',
+                    data: sessionData,
+                    borderColor: '#10b981',
+                    backgroundColor: 'transparent',
+                    tension: 0.3,
+                    borderWidth: 1.5,
+                    borderDash: [5, 5],
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#94a3b8',
+                        font: {
+                            family: 'Outfit'
+                        }
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: '#334155'
+                    },
+                    ticks: {
+                        color: '#94a3b8'
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    grid: {
+                        color: '#334155'
+                    },
+                    ticks: {
+                        color: '#94a3b8'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Páginas Visualizadas',
+                        color: '#94a3b8'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    grid: {
+                        drawOnChartArea: false, // Evita sobreposição de linhas
+                    },
+                    ticks: {
+                        color: '#94a3b8'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Usuários / Sessões',
+                        color: '#94a3b8'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

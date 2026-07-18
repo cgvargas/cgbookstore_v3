@@ -55,6 +55,18 @@ app.conf.beat_schedule = {
         'task': 'recommendations.tasks.precompute_trending_books',
         'schedule': crontab(minute=0, hour='*/6'),
     },
+
+    # Product Analytics: consolidar métricas diárias de ontem
+    'compute-daily-metrics': {
+        'task': 'product_analytics.compute_daily_metrics',
+        'schedule': crontab(minute=15, hour=3),  # Diariamente às 3h15
+    },
+
+    # Product Analytics: limpar dados analíticos expirados (> 90 dias)
+    'purge-expired-analytics-data': {
+        'task': 'product_analytics.purge_expired_data',
+        'schedule': crontab(minute=15, hour=4),  # Diariamente às 4h15
+    },
 }
 
 @app.task(bind=True)
