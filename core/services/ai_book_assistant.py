@@ -35,6 +35,27 @@ class AIBookAssistantService:
         """Verifica se a chave da API do Gemini está disponível."""
         return self.model is not None
 
+    def _get_amazon_url(self, isbn: str) -> str:
+        """Retorna a URL do livro na Amazon baseada no ISBN (convertendo para ISBN-10 se possível)."""
+        if not isbn:
+            return ""
+        clean = re.sub(r'[\-\s]', '', isbn)
+        if len(clean) == 13 and clean.startswith('978'):
+            nine_digits = clean[3:12]
+            total = 0
+            for i, digit in enumerate(nine_digits):
+                total += int(digit) * (10 - i)
+            remainder = total % 11
+            check_digit = 11 - remainder
+            if check_digit == 10:
+                check_digit = 'X'
+            elif check_digit == 11:
+                check_digit = '0'
+            asin = f"{nine_digits}{check_digit}"
+        else:
+            asin = clean
+        return f"https://www.amazon.com.br/dp/{asin}"
+
     def _download_temp_cover(self, cover_url: str, isbn: str) -> dict:
         """
         Baixa a imagem da capa e salva temporariamente no media storage (Supabase/R2/Local).
@@ -170,6 +191,35 @@ class AIBookAssistantService:
         # Buscar metadados externos deterministicamente se houver ISBN no texto
         isbn_data = self._fetch_isbn_metadata(text_content)
 
+        # Se o usuário enviou um arquivo de imagem físico, usá-lo como capa temporária
+        if file_path and mime_type and mime_type.startswith('image/'):
+            try:
+                import uuid
+                from django.core.files.storage import default_storage
+                from django.core.files.base import ContentFile
+                
+                isbn_for_file = isbn_data.get('isbn') if isbn_data else None
+                if not isbn_for_file:
+                    isbn_pattern = re.compile(r'\b(?:ISBN(?:-1[03])?:?\s*)?([0-9xX]{10,13})\b', re.IGNORECASE)
+                    match = isbn_pattern.search(text_content or '')
+                    isbn_for_file = match.group(1) if match else uuid.uuid4().hex
+                
+                filename = f"temp_upload_{isbn_for_file}.jpg"
+                relative_path = f"books/covers/{filename}"
+                
+                if not default_storage.exists(relative_path):
+                    with open(file_path, 'rb') as f:
+                        saved_path = default_storage.save(relative_path, ContentFile(f.read()))
+                    public_url = default_storage.url(saved_path)
+                    
+                    if not isbn_data:
+                        isbn_data = {}
+                    isbn_data['temp_cover_image'] = saved_path
+                    isbn_data['temp_cover_url'] = public_url
+                    logger.info("Imagem de upload copiada com sucesso para capa temporária: %s", saved_path)
+            except Exception as e:
+                logger.error("Erro ao copiar imagem de upload para capa temporária: %s", e)
+
         prompt = """
         Você é um auxiliar administrativo experiente encarregado de extrair e pesquisar informações detalhadas sobre livros na internet ou a partir dos dados fornecidos (texto, imagens ou documentos).
         
@@ -189,7 +239,7 @@ class AIBookAssistantService:
         - publication_date: Data de publicação no formato YYYY-MM-DD. Se apenas o ano for conhecido, use YYYY-01-01. Se a data for inválida ou desconhecida, retorne null.
         - isbn: Código ISBN (10 ou 13 dígitos) contendo apenas dígitos e hífens.
         - publisher: Nome da editora (string, ou string vazia "" se desconhecido).
-        - price: Preço médio estimado de mercado em reais (float ou null).
+        - price: Preço médio estimado de mercado em reais (float). NÃO retorne null nem 0. Se desconhecido, estime com base em preços normais do mercado para o gênero e formato do livro (ex: R$ 49.90 ou R$ 59.90).
         - page_count: Número de páginas (inteiro ou null).
         - language: Código ISO 639-1 de idioma (ex: 'pt', 'en', 'es', 'fr').
         - available_print: true se houver qualquer indicação de versão física/impressa, caso contrário false.
@@ -199,8 +249,11 @@ class AIBookAssistantService:
         - author_name: Nome do autor principal do livro (string).
         - author_bio: Biografia ou resumo resumido sobre a vida e obra do autor principal em português (string, ou string vazia "" se desconhecido).
         - category_name: Categoria ou gênero principal do livro (ex: Fantasia, Ficção Científica, Romance, Biografia) (string).
-        - average_rating: Avaliação média do livro de 0.00 a 5.00 (float ou null). Se não souber por fontes externas, estime com base no sucesso crítico global da obra.
-        - ratings_count: Número total estimado de avaliações (inteiro ou null). Se não souber por fontes externas, estime baseado no alcance do livro.
+        - average_rating: Avaliação média do livro de 0.00 a 5.00 (float). NÃO retorne null. Se não souber por fontes externas, estime com base no sucesso crítico global da obra ou na popularidade.
+        - ratings_count: Número total estimado de avaliações (inteiro). NÃO retorne null. Se não souber por fontes externas, estime baseado no alcance do livro.
+        - purchase_partner_name: Nome do parceiro comercial principal (string, ex: 'Amazon' ou 'Amazon Brasil').
+        - purchase_partner_url: Link completo de compra do livro no parceiro comercial (string).
+
         Preencha o máximo de campos que puder extrair ou pesquisar com alto grau de confiança.
         """
 
@@ -247,9 +300,9 @@ class AIBookAssistantService:
                     extracted_data['temp_cover_url'] = isbn_data['temp_cover_url']
                 
                 # Integrar avaliações se obtidas da API e não preenchidas
-                if isbn_data.get('average_rating') is not None and extracted_data.get('average_rating') is None:
+                if isbn_data.get('average_rating') is not None and extracted_data.get('average_rating') in (None, 0.0, 0):
                     extracted_data['average_rating'] = isbn_data.get('average_rating')
-                if isbn_data.get('ratings_count') is not None and extracted_data.get('ratings_count') is None:
+                if isbn_data.get('ratings_count') is not None and extracted_data.get('ratings_count') in (None, 0):
                     extracted_data['ratings_count'] = isbn_data.get('ratings_count')
 
             # Garantir casting e valores default válidos
@@ -263,6 +316,24 @@ class AIBookAssistantService:
             except (ValueError, TypeError):
                 extracted_data['ratings_count'] = 0
 
+            try:
+                extracted_data['price'] = float(extracted_data.get('price', 0.0) or 0.0)
+                if extracted_data['price'] <= 0.0:
+                    extracted_data['price'] = 49.90  # Default fallback price
+            except (ValueError, TypeError):
+                extracted_data['price'] = 49.90
+
+            # Configurar parceiro e link da Amazon automaticamente se houver ISBN
+            isbn_val = extracted_data.get('isbn')
+            if isbn_val:
+                clean_isbn = re.sub(r'[\-\s]', '', isbn_val)
+                if len(clean_isbn) in (10, 13):
+                    if not extracted_data.get('purchase_partner_name'):
+                        extracted_data['purchase_partner_name'] = 'Amazon'
+                    partner_url = extracted_data.get('purchase_partner_url', '')
+                    if not partner_url or 'amazon' not in partner_url.lower() or partner_url.endswith('.com') or partner_url.endswith('.com/'):
+                        extracted_data['purchase_partner_url'] = self._get_amazon_url(clean_isbn)
+
             # Mapear Autor e Categoria no banco de dados local
             author_name = extracted_data.get('author_name', '').strip()
             category_name = extracted_data.get('category_name', '').strip()
@@ -271,11 +342,10 @@ class AIBookAssistantService:
             category_id = None
 
             if author_name:
-                # Busca case-insensitive
                 author_obj = Author.objects.filter(name__iexact=author_name).first()
                 if author_obj:
                     author_id = author_obj.id
-                    extracted_data['author_name'] = author_obj.name  # Normalizar nome exato
+                    extracted_data['author_name'] = author_obj.name
                 else:
                     logger.info("Autor não encontrado no banco local: '%s'", author_name)
 
@@ -283,7 +353,7 @@ class AIBookAssistantService:
                 category_obj = Category.objects.filter(name__iexact=category_name).first()
                 if category_obj:
                     category_id = category_obj.id
-                    extracted_data['category_name'] = category_obj.name  # Normalizar nome exato
+                    extracted_data['category_name'] = category_obj.name
                 else:
                     logger.info("Categoria não encontrada no banco local: '%s'", category_name)
 
