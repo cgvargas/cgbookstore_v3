@@ -517,13 +517,14 @@
                         {% if book.affiliate_url %}
                             <a href="{{ book.affiliate_url }}"
                                target="_blank"
-                               rel="noopener noreferrer"
+                               rel="noopener noreferrer sponsored"
                                class="btn {{ book.affiliate_button_class }} btn-lg"
                                onclick="return handlePurchaseClick(event, '{{ book.affiliate_url }}')">
                                 <i class="{{ book.affiliate_icon_class }} me-2"></i>
                                 Comprar na {{ book.affiliate_display_name }}
                                 <i class="fas fa-external-link-alt ms-1" style="font-size: 0.75rem;"></i>
                             </a>
+
                         {% else %}
                             <button class="btn btn-outline-secondary btn-lg" disabled>
                                 <i class="fas fa-store-slash me-2"></i>
@@ -2155,9 +2156,9 @@
             }
         }
 
-        // Redireciona para o parceiro comercial
+        // Redireciona para o parceiro comercial em nova aba
         setTimeout(() => {
-            window.location.href = targetRedirectUrl;
+            window.open(targetRedirectUrl, '_blank');
         }, 800); // Aguarda um pequeno momento para o usuário ver o toast de sucesso
     }
 
@@ -2166,8 +2167,9 @@
         if (quickAddModalObj) {
             quickAddModalObj.hide();
         }
-        window.location.href = targetRedirectUrl;
+        window.open(targetRedirectUrl, '_blank');
     }
+
 
     function checkSkipPreference() {
         const checkbox = document.getElementById('skipQuickAddPreference');

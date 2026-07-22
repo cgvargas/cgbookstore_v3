@@ -47,11 +47,12 @@
                 <div class="card-body bg-dark text-center pb-3">
                     <div class="d-grid gap-2">
                         {% if book.affiliate_url %}
-                            <a href="{{ book.affiliate_url }}" target="_blank" rel="noopener noreferrer" class="btn {{ book.affiliate_button_class }} fw-bold d-flex align-items-center justify-content-center" onclick="return handlePurchaseClick(event, '{{ book.affiliate_url }}')">
+                            <a href="{{ book.affiliate_url }}" target="_blank" rel="noopener noreferrer sponsored" class="btn {{ book.affiliate_button_class }} fw-bold d-flex align-items-center justify-content-center" onclick="return handlePurchaseClick(event, '{{ book.affiliate_url }}')">
                                 <i class="{{ book.affiliate_icon_class }} fa-lg me-2"></i>
                                 Comprar na {{ book.affiliate_display_name }}
                                 <i class="fas fa-external-link-alt ms-2 small"></i>
                             </a>
+
                         {% else %}
                             <button class="btn btn-outline-secondary d-flex align-items-center justify-content-center" disabled>
                                 <i class="fas fa-store-slash fa-lg me-2"></i>Lojas parceiras indisponíveis
@@ -599,9 +600,9 @@
             }
         }
 
-        // Redireciona para o parceiro comercial
+        // Redireciona para o parceiro comercial em nova aba
         setTimeout(() => {
-            window.location.href = targetRedirectUrl;
+            window.open(targetRedirectUrl, '_blank');
         }, 800); // Aguarda um pequeno momento para o usuário ver o toast de sucesso
     }
 
@@ -610,8 +611,9 @@
         if (quickAddModalObj) {
             quickAddModalObj.hide();
         }
-        window.location.href = targetRedirectUrl;
+        window.open(targetRedirectUrl, '_blank');
     }
+
 
     function checkSkipPreference() {
         const checkbox = document.getElementById('skipQuickAddPreference');

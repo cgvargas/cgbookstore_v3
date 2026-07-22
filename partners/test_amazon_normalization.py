@@ -116,6 +116,13 @@ class AmazonURLNormalizerTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('purchase_partner_url', form.errors)
 
+    def test_book_detail_template_renders_new_tab_and_sponsored_rel(self):
+        response = self.client.get(self.book.get_absolute_url())
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'target="_blank"')
+        self.assertContains(response, 'rel="noopener noreferrer sponsored"')
+
+
 
 class NormalizeAmazonLinksCommandTestCase(TestCase):
     def setUp(self):
