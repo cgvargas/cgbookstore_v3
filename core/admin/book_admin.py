@@ -33,6 +33,26 @@ class BookAdminForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             self.fields['existing_articles'].initial = self.instance.articles.all()
 
+    def clean_purchase_partner_url(self):
+        url = self.cleaned_data.get('purchase_partner_url')
+        partner_name = (self.cleaned_data.get('purchase_partner_name') or '').strip()
+
+        if url:
+            from partners.services.amazon_service import AmazonURLNormalizer
+
+            is_amazon_partner = partner_name.lower() == 'amazon'
+            is_amazon_domain = AmazonURLNormalizer.is_amazon_url(url)
+
+            if is_amazon_partner or is_amazon_domain:
+                try:
+                    return AmazonURLNormalizer.normalize(url)
+                except ValueError as exc:
+                    raise forms.ValidationError(
+                        f"URL da Amazon inválida ou ASIN não localizado: {exc}"
+                    )
+        return url
+
+
     def save(self, commit=True):
         book = super().save(commit=False)
         

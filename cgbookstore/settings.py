@@ -474,6 +474,10 @@ PARTNER_SHORTENER_DOMAINS = {
     'ow.ly', 'shorturl.at', 't.co', 'tinyurl.com',
 }
 
+# Tag padrão de associado Amazon Brasil
+AMAZON_ASSOCIATE_TAG = env('AMAZON_ASSOCIATE_TAG', default='cgbookstore-20')
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

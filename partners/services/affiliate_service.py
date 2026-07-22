@@ -5,6 +5,7 @@ from django.db import models
 from django.utils.text import slugify
 
 from partners.models import AffiliatePartner
+from partners.services.amazon_service import AmazonURLNormalizer
 from partners.services.url_validation_service import URLValidationResult, URLValidationService
 
 
@@ -44,12 +45,21 @@ class AffiliateService:
         if not url_original:
             return ""
 
-        tracking_id = partner.tracking_id
+        # Normalização especial de links da Amazon Brasil
+        if (partner and partner.slug == 'amazon') or AmazonURLNormalizer.is_amazon_url(url_original):
+            try:
+                tag = partner.tracking_id if partner and partner.tracking_id else None
+                return AmazonURLNormalizer.normalize(url_original, associate_tag=tag)
+            except ValueError:
+                pass
+
+        tracking_id = partner.tracking_id if partner else ""
         if not tracking_id:
             return url_original
 
         param_name = URLValidationService.get_tracking_query_param(partner)
         return AffiliateService._apply_query_param(url_original, param_name, tracking_id)
+
 
     @staticmethod
     def _apply_query_param(url: str, param_name: str, param_value: str) -> str:
