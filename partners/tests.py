@@ -91,19 +91,17 @@ class AffiliateServiceTest(TestCase):
 
     def test_generate_link_amazon_with_existing_params(self):
         """
-        Testa se o link da Amazon com parâmetros existentes preserva os parâmetros e insere/substitui a tag.
+        Testa se o link da Amazon com parâmetros limpa os parâmetros antigos (ref, etc.) e insere a tag padronizada.
         """
         url = "https://www.amazon.com.br/dp/8573266416?ref_=ast_author_dp&language=pt_BR"
         final_url = AffiliateService.generate_link(self.partner_amazon, self.book, url)
-        self.assertIn("tag=cgbookstore-20", final_url)
-        self.assertIn("ref_=ast_author_dp", final_url)
-        self.assertIn("language=pt_BR", final_url)
+        self.assertEqual(final_url, "https://www.amazon.com.br/dp/8573266416?tag=cgbookstore-20")
 
         # Teste de substituição de tag existente
         url_with_tag = "https://www.amazon.com.br/dp/8573266416?tag=oldtag-20&ref_=dp"
         final_url_replaced = AffiliateService.generate_link(self.partner_amazon, self.book, url_with_tag)
-        self.assertIn("tag=cgbookstore-20", final_url_replaced)
-        self.assertNotIn("tag=oldtag-20", final_url_replaced)
+        self.assertEqual(final_url_replaced, "https://www.amazon.com.br/dp/8573266416?tag=cgbookstore-20")
+
 
     def test_get_link_for_book_with_partner(self):
         """
