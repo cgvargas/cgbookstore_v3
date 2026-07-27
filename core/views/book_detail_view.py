@@ -124,7 +124,7 @@ class BookDetailView(DetailView):
         context['book_articles'] = Article.objects.filter(
             related_book=book,
             is_published=True
-        ).select_related('category').order_by('-published_at')[:3]
+        ).select_related('category').order_by('-published_at')
 
         # === ESTATÍSTICAS DE AVALIAÇÃO (Visíveis para todos) ===
         from accounts.models import BookReview

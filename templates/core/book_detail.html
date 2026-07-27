@@ -5,7 +5,49 @@
 {% block title %}{{ book.title }} - CGBookStore{% endblock %}
 
 {% block extra_css %}
+<!-- Swiper CSS CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
 <style>
+/* === Carrosséis da Página do Livro (Vídeos e Artigos) === */
+.video-swiper-prev, .video-swiper-next,
+.article-swiper-prev, .article-swiper-next {
+    color: #ffffff !important;
+    background: rgba(0, 0, 0, 0.65);
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50%;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.25s ease;
+    top: 45% !important;
+}
+.video-swiper-prev:after, .video-swiper-next:after,
+.article-swiper-prev:after, .article-swiper-next:after {
+    font-size: 15px !important;
+    font-weight: bold;
+}
+.video-swiper-prev:hover, .video-swiper-next:hover,
+.article-swiper-prev:hover, .article-swiper-next:hover {
+    background: var(--bs-primary, #0d6efd) !important;
+    border-color: var(--bs-primary, #0d6efd) !important;
+    color: #ffffff !important;
+    transform: scale(1.1);
+}
+.video-swiper-pagination .swiper-pagination-bullet,
+.article-swiper-pagination .swiper-pagination-bullet {
+    background: var(--bs-primary, #0d6efd);
+    opacity: 0.35;
+    transition: all 0.25s ease;
+}
+.video-swiper-pagination .swiper-pagination-bullet-active,
+.article-swiper-pagination .swiper-pagination-bullet-active {
+    background: var(--bs-primary, #0d6efd);
+    opacity: 1;
+    width: 22px;
+    border-radius: 10px;
+}
+
 /* === Seção de Vídeos do Livro === */
 .book-video-card {
     transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -1534,225 +1576,239 @@
                     </a>
                 </div>
 
-                <div class="row g-3">
-                    {% for video in book_videos %}
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow-sm rounded-3 book-video-card" style="background-color: var(--card-bg); overflow: hidden;">
+                <!-- Carrossel Swiper para Vídeos -->
+                <div class="swiper book-videos-swiper position-relative pb-5">
+                    <div class="swiper-wrapper">
+                        {% for video in book_videos %}
+                        <div class="swiper-slide h-auto">
+                            <div class="card h-100 border-0 shadow-sm rounded-3 book-video-card" style="background-color: var(--card-bg); overflow: hidden;">
 
-                            <!-- Thumbnail clicável -->
-                            <div class="book-video-thumb-wrapper position-relative"
-                                 style="cursor:pointer;"
-                                 data-bs-toggle="{% if video.platform == 'youtube' and video.embed_code %}modal{% endif %}"
-                                 data-bs-target="{% if video.platform == 'youtube' and video.embed_code %}#videoModal-{{ video.id }}{% endif %}"
-                                 {% if video.platform != 'youtube' or not video.embed_code %}
-                                 onclick="window.open('{{ video.video_url }}', '_blank', 'noopener')"
-                                 {% endif %}>
+                                <!-- Thumbnail clicável -->
+                                <div class="book-video-thumb-wrapper position-relative"
+                                     style="cursor:pointer;"
+                                     data-bs-toggle="{% if video.platform == 'youtube' and video.embed_code %}modal{% endif %}"
+                                     data-bs-target="{% if video.platform == 'youtube' and video.embed_code %}#videoModal-{{ video.id }}{% endif %}"
+                                     {% if video.platform != 'youtube' or not video.embed_code %}
+                                     onclick="window.open('{{ video.video_url }}', '_blank', 'noopener')"
+                                     {% endif %}>
 
-                                {% if video.thumbnail_image %}
-                                    <img src="{{ video.thumbnail_image.url }}"
-                                         alt="{{ video.title }}"
-                                         class="w-100 book-video-thumb"
-                                         loading="lazy">
-                                {% elif video.thumbnail_url %}
-                                    <img src="{{ video.thumbnail_url }}"
-                                         alt="{{ video.title }}"
-                                         class="w-100 book-video-thumb"
-                                         loading="lazy"
-                                         {% if video.embed_code %}onerror="this.onerror=null; this.src='https://img.youtube.com/vi/{{ video.embed_code }}/hqdefault.jpg';"{% endif %}>
-                                {% else %}
-                                    <div class="book-video-thumb-placeholder d-flex align-items-center justify-content-center bg-dark">
-                                        <i class="fas fa-film fa-3x text-secondary opacity-50"></i>
-                                    </div>
-                                {% endif %}
-
-                                <!-- Overlay de play -->
-                                <div class="book-video-play-overlay d-flex align-items-center justify-content-center">
-                                    {% if video.platform == 'youtube' %}
-                                        <div class="book-video-play-btn shadow">
-                                            <i class="fab fa-youtube"></i>
-                                        </div>
-                                    {% elif video.platform == 'vimeo' %}
-                                        <div class="book-video-play-btn book-video-play-btn--vimeo shadow">
-                                            <i class="fab fa-vimeo-v"></i>
-                                        </div>
+                                    {% if video.thumbnail_image %}
+                                        <img src="{{ video.thumbnail_image.url }}"
+                                             alt="{{ video.title }}"
+                                             class="w-100 book-video-thumb"
+                                             loading="lazy">
+                                    {% elif video.thumbnail_url %}
+                                        <img src="{{ video.thumbnail_url }}"
+                                             alt="{{ video.title }}"
+                                             class="w-100 book-video-thumb"
+                                             loading="lazy"
+                                             {% if video.embed_code %}onerror="this.onerror=null; this.src='https://img.youtube.com/vi/{{ video.embed_code }}/hqdefault.jpg';"{% endif %}>
                                     {% else %}
-                                        <div class="book-video-play-btn book-video-play-btn--generic shadow">
-                                            <i class="fas fa-play"></i>
+                                        <div class="book-video-thumb-placeholder d-flex align-items-center justify-content-center bg-dark">
+                                            <i class="fas fa-film fa-3x text-secondary opacity-50"></i>
                                         </div>
                                     {% endif %}
-                                </div>
 
-                                <!-- Badge de tipo -->
-                                <span class="position-absolute top-0 start-0 m-2 badge rounded-pill"
-                                      style="background: rgba(0,0,0,0.7); font-size: 0.7rem; letter-spacing: 0.5px;">
-                                    <i class="fas fa-tag me-1"></i>{{ video.get_video_type_display }}
-                                </span>
-
-                                {% if video.duration %}
-                                <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark"
-                                      style="font-size: 0.72rem;">
-                                    <i class="far fa-clock me-1"></i>{{ video.duration }}
-                                </span>
-                                {% endif %}
-
-                                {% if video.featured %}
-                                <span class="position-absolute top-0 end-0 m-2 badge bg-warning text-dark"
-                                      style="font-size: 0.7rem;">
-                                    <i class="fas fa-star me-1"></i>Destaque
-                                </span>
-                                {% endif %}
-                            </div>
-
-                            <div class="card-body p-3 d-flex flex-column">
-                                <h6 class="fw-bold mb-1" style="font-size: 0.95rem; line-height: 1.3;">
-                                    {{ video.title|truncatewords:10 }}
-                                </h6>
-                                {% if video.description %}
-                                <p class="card-text text-muted small mb-2" style="-webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;">
-                                    {{ video.description|truncatewords:18 }}
-                                </p>
-                                {% endif %}
-                                <div class="mt-auto pt-2 border-top" style="border-color: var(--border-color) !important;">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted">
-                                            <i class="far fa-calendar me-1"></i>
-                                            {{ video.published_date|date:"d/m/Y"|default:video.created_at|date:"d/m/Y" }}
-                                        </small>
-                                        {% if video.platform == 'youtube' and video.embed_code %}
-                                        <button class="btn btn-danger btn-sm rounded-pill px-3"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#videoModal-{{ video.id }}">
-                                            <i class="fas fa-play me-1"></i>Assistir
-                                        </button>
+                                    <!-- Overlay de play -->
+                                    <div class="book-video-play-overlay d-flex align-items-center justify-content-center">
+                                        {% if video.platform == 'youtube' %}
+                                            <div class="book-video-play-btn shadow">
+                                                <i class="fab fa-youtube"></i>
+                                            </div>
+                                        {% elif video.platform == 'vimeo' %}
+                                            <div class="book-video-play-btn book-video-play-btn--vimeo shadow">
+                                                <i class="fab fa-vimeo-v"></i>
+                                            </div>
                                         {% else %}
-                                        <a href="{{ video.video_url }}" target="_blank" rel="noopener noreferrer"
-                                           class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-                                            <i class="fas fa-external-link-alt me-1"></i>Abrir
-                                        </a>
+                                            <div class="book-video-play-btn book-video-play-btn--generic shadow">
+                                                <i class="fas fa-play"></i>
+                                            </div>
                                         {% endif %}
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Modal de vídeo inline (apenas para YouTube) -->
-                    {% if video.platform == 'youtube' and video.embed_code %}
-                    <div class="modal fade" id="videoModal-{{ video.id }}" tabindex="-1"
-                         aria-labelledby="videoModalLabel-{{ video.id }}" aria-hidden="true"
-                         data-video-embed="{{ video.get_embed_url }}">
-                        <div class="modal-dialog modal-dialog-centered modal-xl">
-                            <div class="modal-content bg-dark border-0 rounded-4 shadow-lg">
-                                <div class="modal-header border-0 pb-0 px-4 pt-3">
-                                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                                        <i class="fab fa-youtube text-danger fs-4"></i>
-                                        <h5 class="modal-title text-white fw-bold mb-0" id="videoModalLabel-{{ video.id }}">
-                                            {{ video.title }}
-                                        </h5>
-                                    </div>
-                                    <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                                </div>
-                                <div class="modal-body px-4 pb-4">
-                                    <!-- Container gerenciado pelo YouTube IFrame Player API -->
-                                    <div class="position-relative rounded-3 overflow-hidden shadow"
-                                         style="aspect-ratio: 16/9; background:#000;"
-                                         id="yt-wrapper-{{ video.id }}"
-                                         data-video-id="{{ video.embed_code }}"
-                                         data-video-url="{{ video.video_url }}">
-                                        <!-- YT.Player injeta o iframe aqui -->
-                                        <div id="yt-player-{{ video.id }}" style="width:100%;height:100%;"></div>
-                                        <!-- Fallback quando embedding é bloqueado (Erro 153, etc.) -->
-                                        <div class="yt-embed-fallback d-none position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center"
-                                             id="yt-fallback-{{ video.id }}"
-                                             style="background:#0f0f0f; z-index:10;">
-                                            <i class="fab fa-youtube text-danger mb-3" style="font-size:3.5rem;"></i>
-                                            <h6 class="text-white mb-1">Este vídeo não pode ser reproduzido aqui</h6>
-                                            <p class="text-muted small mb-4">O dono do vídeo desativou a reprodução em sites externos.</p>
-                                            <a href="{{ video.video_url }}" target="_blank" rel="noopener noreferrer"
-                                               class="btn btn-danger rounded-pill px-4">
-                                                <i class="fab fa-youtube me-2"></i>Assistir no YouTube
-                                            </a>
-                                        </div>
-                                    </div>
-                                    {% if video.description %}
-                                    <p class="text-muted small mt-3 mb-0">{{ video.description|truncatewords:35 }}</p>
+                                    <!-- Badge de tipo -->
+                                    <span class="position-absolute top-0 start-0 m-2 badge rounded-pill"
+                                          style="background: rgba(0,0,0,0.7); font-size: 0.7rem; letter-spacing: 0.5px;">
+                                        <i class="fas fa-tag me-1"></i>{{ video.get_video_type_display }}
+                                    </span>
+
+                                    {% if video.duration %}
+                                    <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark"
+                                          style="font-size: 0.72rem;">
+                                        <i class="far fa-clock me-1"></i>{{ video.duration }}
+                                    </span>
                                     {% endif %}
-                                    <!-- Livro vinculado -->
-                                    <div class="mt-3 p-3 rounded-3 d-flex align-items-center gap-3"
-                                         style="background: rgba(255,255,255,0.05);">
-                                        {% if book.cover_image %}
-                                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}"
-                                             class="rounded-2 shadow-sm flex-shrink-0"
-                                             style="width:52px; height:72px; object-fit:cover;">
-                                        {% endif %}
-                                        <div>
-                                            <small class="text-muted text-uppercase fw-bold" style="letter-spacing:.5px;">Livro relacionado</small>
-                                            <p class="mb-0 text-white fw-semibold">{{ book.title }}</p>
-                                            {% if book.author %}<small class="text-secondary">{{ book.author.name }}</small>{% endif %}
+
+                                    {% if video.featured %}
+                                    <span class="position-absolute top-0 end-0 m-2 badge bg-warning text-dark"
+                                          style="font-size: 0.7rem;">
+                                        <i class="fas fa-star me-1"></i>Destaque
+                                    </span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="card-body p-3 d-flex flex-column">
+                                    <h6 class="fw-bold mb-1" style="font-size: 0.95rem; line-height: 1.3;">
+                                        {{ video.title|truncatewords:10 }}
+                                    </h6>
+                                    {% if video.description %}
+                                    <p class="card-text text-muted small mb-2" style="-webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;">
+                                        {{ video.description|truncatewords:18 }}
+                                    </p>
+                                    {% endif %}
+                                    <div class="mt-auto pt-2 border-top" style="border-color: var(--border-color) !important;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="far fa-calendar me-1"></i>
+                                                {{ video.published_date|date:"d/m/Y"|default:video.created_at|date:"d/m/Y" }}
+                                            </small>
+                                            {% if video.platform == 'youtube' and video.embed_code %}
+                                            <button class="btn btn-danger btn-sm rounded-pill px-3"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#videoModal-{{ video.id }}">
+                                                <i class="fas fa-play me-1"></i>Assistir
+                                            </button>
+                                            {% else %}
+                                            <a href="{{ video.video_url }}" target="_blank" rel="noopener noreferrer"
+                                               class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                                                <i class="fas fa-external-link-alt me-1"></i>Abrir
+                                            </a>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
-                    {% endif %}
-
-                    {% endfor %}
+                    <!-- Botões de navegação e paginação -->
+                    <div class="swiper-button-prev video-swiper-prev"></div>
+                    <div class="swiper-button-next video-swiper-next"></div>
+                    <div class="swiper-pagination video-swiper-pagination"></div>
                 </div>
+
+                <!-- Modais de vídeo inline (apenas para YouTube) -->
+                {% for video in book_videos %}
+                {% if video.platform == 'youtube' and video.embed_code %}
+                <div class="modal fade" id="videoModal-{{ video.id }}" tabindex="-1"
+                     aria-labelledby="videoModalLabel-{{ video.id }}" aria-hidden="true"
+                     data-video-embed="{{ video.get_embed_url }}">
+                    <div class="modal-dialog modal-dialog-centered modal-xl">
+                        <div class="modal-content bg-dark border-0 rounded-4 shadow-lg">
+                            <div class="modal-header border-0 pb-0 px-4 pt-3">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <i class="fab fa-youtube text-danger fs-4"></i>
+                                    <h5 class="modal-title text-white fw-bold mb-0" id="videoModalLabel-{{ video.id }}">
+                                        {{ video.title }}
+                                    </h5>
+                                </div>
+                                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                            </div>
+                            <div class="modal-body px-4 pb-4">
+                                <div class="position-relative rounded-3 overflow-hidden shadow"
+                                     style="aspect-ratio: 16/9; background:#000;"
+                                     id="yt-wrapper-{{ video.id }}"
+                                     data-video-id="{{ video.embed_code }}"
+                                     data-video-url="{{ video.video_url }}">
+                                    <div id="yt-player-{{ video.id }}" style="width:100%;height:100%;"></div>
+                                    <div class="yt-embed-fallback d-none position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center"
+                                         id="yt-fallback-{{ video.id }}"
+                                         style="background:#0f0f0f; z-index:10;">
+                                        <i class="fab fa-youtube text-danger mb-3" style="font-size:3.5rem;"></i>
+                                        <h6 class="text-white mb-1">Este vídeo não pode ser reproduzido aqui</h6>
+                                        <p class="text-muted small mb-4">O dono do vídeo desativou a reprodução em sites externos.</p>
+                                        <a href="{{ video.video_url }}" target="_blank" rel="noopener noreferrer"
+                                           class="btn btn-danger rounded-pill px-4">
+                                            <i class="fab fa-youtube me-2"></i>Assistir no YouTube
+                                        </a>
+                                    </div>
+                                </div>
+                                {% if video.description %}
+                                <p class="text-muted small mt-3 mb-0">{{ video.description|truncatewords:35 }}</p>
+                                {% endif %}
+                                <div class="mt-3 p-3 rounded-3 d-flex align-items-center gap-3"
+                                     style="background: rgba(255,255,255,0.05);">
+                                    {% if book.cover_image %}
+                                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}"
+                                         class="rounded-2 shadow-sm flex-shrink-0"
+                                         style="width:52px; height:72px; object-fit:cover;">
+                                    {% endif %}
+                                    <div>
+                                        <small class="text-muted text-uppercase fw-bold" style="letter-spacing:.5px;">Livro relacionado</small>
+                                        <p class="mb-0 text-white fw-semibold">{{ book.title }}</p>
+                                        {% if book.author %}<small class="text-secondary">{{ book.author.name }}</small>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
             </section>
             {% endif %}
             <!-- FIM: ADAPTAÇÕES E VÍDEOS -->
+
             {# ===== SEÇÃO: CONTEÚDOS RELACIONADOS (Artigos e Notícias) ===== #}
             {% if book_articles %}
+            <hr class="my-5 border-secondary opacity-25">
             <div class="related-content-section mb-4 mt-4">
-                <h5 class="related-content-title mb-3">
-                    <i class="fas fa-newspaper me-2"></i>Conteúdos Relacionados
-                </h5>
-                <div class="row g-3">
-
-                    {# --- Cards de Artigos/Notícias --- #}
-                    {% for article in book_articles %}
-                    <div class="col-lg-4 col-md-6 col-12">
-                        <a href="{{ article.get_absolute_url }}"
-                           class="related-card-link text-decoration-none"
-                           title="{{ article.title }}">
-                            <div class="related-card">
-                                <div class="related-card-image">
-                                    {% if article.featured_image %}
-                                    <img src="{{ article.featured_image.url }}"
-                                         alt="{{ article.title }}"
-                                         loading="lazy">
-                                    {% else %}
-                                    <div class="related-card-placeholder">
-                                        <i class="fas fa-newspaper fa-3x"></i>
-                                    </div>
-                                    {% endif %}
-                                    <div class="related-card-overlay"></div>
-                                    <span class="related-card-badge related-card-badge--article">
-                                        <i class="fas fa-newspaper me-1"></i>{{ article.get_content_type_display }}
-                                    </span>
-                                </div>
-                                <div class="related-card-body">
-                                    <h6 class="related-card-title">{{ article.title }}</h6>
-                                    {% if article.published_at %}
-                                    <span class="related-card-meta">
-                                        <i class="fas fa-calendar-alt me-1"></i>{{ article.published_at|date:"d/m/Y" }}
-                                    </span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    {% endfor %}
-
+                <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+                    <h4 class="mb-0">
+                        <i class="fas fa-newspaper me-2 text-primary"></i>Artigos e Notícias Relacionados
+                    </h4>
+                    <a href="{% url 'news:home' %}" class="btn btn-sm btn-outline-primary rounded-pill">
+                        <i class="fas fa-newspaper me-1"></i>Ver todas as notícias
+                    </a>
                 </div>
 
-                {# Link "Ver todas as notícias" #}
-                <div class="d-flex flex-wrap gap-3 mt-3">
-                    <a href="{% url 'news:home' %}" class="related-content-viewall">
-                        <i class="fas fa-newspaper me-1"></i>Ver todas as notícias
-                        <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
+                <!-- Carrossel Swiper para Artigos -->
+                <div class="swiper book-articles-swiper position-relative pb-5">
+                    <div class="swiper-wrapper">
+                        {% for article in book_articles %}
+                        <div class="swiper-slide h-auto">
+                            <a href="{{ article.get_absolute_url }}"
+                               class="related-card-link text-decoration-none h-100 d-block"
+                               title="{{ article.title }}">
+                                <div class="related-card h-100 shadow-sm border-0 rounded-3 overflow-hidden" style="background-color: var(--card-bg);">
+                                    <div class="related-card-image position-relative overflow-hidden" style="height: 180px;">
+                                        {% if article.featured_image %}
+                                        <img src="{{ article.featured_image.url }}"
+                                             alt="{{ article.title }}"
+                                             class="w-100 h-100" style="object-fit: cover; transition: transform 0.3s ease;"
+                                             loading="lazy">
+                                        {% else %}
+                                        <div class="related-card-placeholder w-100 h-100 d-flex align-items-center justify-content-center bg-dark text-secondary">
+                                            <i class="fas fa-newspaper fa-3x opacity-50"></i>
+                                        </div>
+                                        {% endif %}
+                                        <div class="related-card-overlay position-absolute inset-0 bg-dark opacity-25"></div>
+                                        <span class="related-card-badge related-card-badge--article position-absolute top-0 start-0 m-2 badge rounded-pill bg-primary">
+                                            <i class="fas fa-newspaper me-1"></i>{{ article.get_content_type_display|default:"Artigo" }}
+                                        </span>
+                                    </div>
+                                    <div class="related-card-body p-3 d-flex flex-column h-100">
+                                        <h6 class="related-card-title fw-bold mb-2 text-reset" style="font-size: 0.95rem; line-height: 1.3;">{{ article.title }}</h6>
+                                        {% if article.subtitle %}
+                                        <p class="text-muted small mb-2" style="-webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;">
+                                            {{ article.subtitle }}
+                                        </p>
+                                        {% endif %}
+                                        <div class="mt-auto pt-2 border-top border-secondary opacity-75">
+                                            <span class="related-card-meta text-muted small">
+                                                <i class="fas fa-calendar-alt me-1"></i>{{ article.published_at|date:"d/m/Y" }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <!-- Botões de navegação e paginação -->
+                    <div class="swiper-button-prev article-swiper-prev"></div>
+                    <div class="swiper-button-next article-swiper-next"></div>
+                    <div class="swiper-pagination article-swiper-pagination"></div>
                 </div>
             </div>
             {% endif %}
@@ -2177,5 +2233,55 @@
             localStorage.setItem('skip_quick_add_modal', 'true');
         }
     }
+</script>
+
+<!-- Swiper JS CDN e Inicialização dos Carrosséis -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Inicializar Carrossel de Vídeos
+        const videoSwiperEl = document.querySelector('.book-videos-swiper');
+        if (videoSwiperEl) {
+            new Swiper(videoSwiperEl, {
+                slidesPerView: 1,
+                spaceBetween: 20,
+                grabCursor: true,
+                navigation: {
+                    nextEl: '.video-swiper-next',
+                    prevEl: '.video-swiper-prev',
+                },
+                pagination: {
+                    el: '.video-swiper-pagination',
+                    clickable: true,
+                },
+                breakpoints: {
+                    576: { slidesPerView: 2, spaceBetween: 20 },
+                    992: { slidesPerView: 3, spaceBetween: 24 }
+                }
+            });
+        }
+
+        // Inicializar Carrossel de Artigos
+        const articleSwiperEl = document.querySelector('.book-articles-swiper');
+        if (articleSwiperEl) {
+            new Swiper(articleSwiperEl, {
+                slidesPerView: 1,
+                spaceBetween: 20,
+                grabCursor: true,
+                navigation: {
+                    nextEl: '.article-swiper-next',
+                    prevEl: '.article-swiper-prev',
+                },
+                pagination: {
+                    el: '.article-swiper-pagination',
+                    clickable: true,
+                },
+                breakpoints: {
+                    576: { slidesPerView: 2, spaceBetween: 20 },
+                    992: { slidesPerView: 3, spaceBetween: 24 }
+                }
+            });
+        }
+    });
 </script>
 {% endblock %}
