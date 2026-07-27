@@ -3,10 +3,11 @@ Admin para Book
 """
 import logging
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.contenttypes.models import ContentType
 from django.db.models.functions import ExtractYear
-from core.models import Book, Video
+from core.models import Book, Video, Section, SectionItem
 from news.models import Article
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,12 @@ class BookAdminForm(forms.ModelForm):
         label="Artigos e Notícias Vinculados",
         help_text="Selecione os artigos/notícias já criados para vinculá-los a este livro."
     )
+    target_section = forms.ModelChoiceField(
+        queryset=Section.objects.none(),
+        required=False,
+        label="📌 Destacar na Seção da Home",
+        help_text="Selecione uma seção da Home Page para colocar este livro em 1º lugar (o último livro será rotacionado/removido se a seção atingir o limite)."
+    )
 
     class Meta:
         model = Book
@@ -30,8 +37,25 @@ class BookAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['target_section'].queryset = Section.objects.filter(
+            active=True,
+            content_type__in=['books', 'mixed']
+        ).order_by('order', 'title')
+
         if self.instance and self.instance.pk:
             self.fields['existing_articles'].initial = self.instance.articles.all()
+            # Tentar pré-selecionar a seção atual do livro se já estiver em alguma
+            try:
+                book_ct = ContentType.objects.get_for_model(Book)
+                item = SectionItem.objects.filter(
+                    content_type=book_ct,
+                    object_id=self.instance.pk,
+                    active=True
+                ).select_related('section').first()
+                if item:
+                    self.fields['target_section'].initial = item.section
+            except Exception as e:
+                logger.debug(f"[BOOK ADMIN FORM] Não foi possível carregar seção inicial: {e}")
 
     def clean_purchase_partner_url(self):
         url = self.cleaned_data.get('purchase_partner_url')
@@ -51,7 +75,6 @@ class BookAdminForm(forms.ModelForm):
                         f"URL da Amazon inválida ou ASIN não localizado: {exc}"
                     )
         return url
-
 
     def save(self, commit=True):
         book = super().save(commit=False)
@@ -89,9 +112,6 @@ class VideoInline(admin.TabularInline):
         return super().get_queryset(request).select_related('related_book')
 
 
-
-
-
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
     """Administração de Livros com autocomplete de autor."""
@@ -125,16 +145,11 @@ class BookAdmin(admin.ModelAdmin):
         'author'
     ]
     search_fields = [
-        # PERFORMANCE: Prefixo '^' usa LIKE 'texto%' (pode usar índice B-tree)
-        # vs busca padrão que usa LIKE '%texto%' (full scan, sem índice)
         '^title',
         'subtitle',
         'author__name',
         'isbn',
         'google_books_id',
-        # REMOVIDO: 'description' — TextField longo sem índice.
-        # Busca com LIKE '%...%' em TextField causava queries de 60+ segundos.
-        # Para busca full-text em descrições, considere PostgreSQL SearchVector + GIN index.
     ]
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ['created_at', 'updated_at']
@@ -153,6 +168,12 @@ class BookAdmin(admin.ModelAdmin):
                 'category',
                 'description'
             )
+        }),
+        ('📌 Destaque na Seção da Home', {
+            'fields': (
+                'target_section',
+            ),
+            'description': '💡 Selecione a seção da Home Page onde este livro deve entrar em 1º lugar (ex: Lançamentos, Mais Vendidos). O último livro da seção será rotacionado/removido se atingir o limite.',
         }),
         ('Detalhes de Publicação', {
             'fields': (
@@ -234,7 +255,6 @@ class BookAdmin(admin.ModelAdmin):
         """
         extra_context = extra_context or {}
 
-        # Anos distintos de publication_date presentes no banco
         anos = (
             Book.objects
             .annotate(ano=ExtractYear('publication_date'))
@@ -243,20 +263,17 @@ class BookAdmin(admin.ModelAdmin):
             .order_by('-ano')
         )
         extra_context['anos_disponiveis'] = [a for a in anos if a]
-
-        # Ano atualmente filtrado (via GET ?publication_date__year=XXXX)
         extra_context['ano_selecionado'] = request.GET.get('publication_date__year', '')
 
         return super().changelist_view(request, extra_context=extra_context)
 
     def save_model(self, request, obj, form, change):
-        """Sobrescreve save_model para associar a imagem de capa baixada temporariamente pela IA."""
+        """Sobrescreve save_model para associar capa de IA e automatizar inserção em Seção da Home."""
         temp_cover_image = form.cleaned_data.get('temp_cover_image') or request.POST.get('temp_cover_image')
         logger.info("ADMIN SAVE MODEL - temp_cover_image resolved: %s", temp_cover_image)
         logger.info("ADMIN SAVE MODEL - current obj.cover_image: %s (bool: %s)", obj.cover_image, bool(obj.cover_image))
         
         if temp_cover_image:
-            # Se o usuário não enviou um arquivo manualmente e temos capa da IA
             if not obj.cover_image:
                 from django.core.files.storage import default_storage
                 import os
@@ -270,7 +287,6 @@ class BookAdmin(admin.ModelAdmin):
                             base_name = os.path.basename(temp_cover_image).replace('temp_', '')
                             obj.cover_image.save(base_name, f, save=False)
                         logger.info("ADMIN SAVE MODEL - Capa da IA salva com sucesso: %s", obj.cover_image)
-                        # Tentar remover o arquivo temporário do storage
                         default_storage.delete(temp_cover_image)
                     except Exception as e:
                         logger.error("ADMIN SAVE MODEL - Erro ao salvar capa da IA: %s", e, exc_info=True)
@@ -281,3 +297,19 @@ class BookAdmin(admin.ModelAdmin):
                 logger.info("ADMIN SAVE MODEL - Capa do livro já estava preenchida pelo usuário: %s", obj.cover_image)
         
         super().save_model(request, obj, form, change)
+
+        # Automação de inserção/rotação em Seção da Home
+        target_section = form.cleaned_data.get('target_section')
+        if target_section:
+            from core.services.section_service import insert_book_into_section
+            success, msg = insert_book_into_section(obj, target_section)
+            if success:
+                self.message_user(request, f"✅ {msg}", level=messages.SUCCESS)
+            else:
+                self.message_user(request, f"⚠️ {msg}", level=messages.WARNING)
+        elif not change:
+            # Ao criar um novo livro sem seção manual selecionada, tentar auto-detectar categoria 'Lançamentos'
+            from core.services.section_service import auto_detect_and_insert_book_section
+            processed, msg = auto_detect_and_insert_book_section(obj)
+            if processed:
+                self.message_user(request, f"🚀 [Auto-Seção] {msg}", level=messages.SUCCESS)
