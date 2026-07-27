@@ -39,6 +39,7 @@ class Video(models.Model):
     )
 
     slug = models.SlugField(
+        max_length=255,
         unique=True,
         blank=True,
         verbose_name="Slug",
@@ -60,6 +61,7 @@ class Video(models.Model):
     )
 
     video_url = models.URLField(
+        max_length=500,
         blank=True,
         verbose_name="URL do Vídeo",
         help_text="URL completa do vídeo (para YouTube, Vimeo, Instagram, TikTok)"
@@ -101,6 +103,7 @@ class Video(models.Model):
     )
 
     thumbnail_url = models.URLField(
+        max_length=500,
         blank=True,
         verbose_name="URL da Thumbnail",
         help_text="URL da imagem de preview (gerada automaticamente para YouTube)"
@@ -175,11 +178,13 @@ class Video(models.Model):
     def save(self, *args, **kwargs):
         """Gera slug automaticamente e extrai embed_code do YouTube"""
         if not self.slug:
-            base_slug = slugify(self.title)
+            base_slug = slugify(self.title)[:200]
+            if not base_slug:
+                base_slug = 'video'
             slug = base_slug
             counter = 1
             while type(self).objects.filter(slug=slug).exclude(pk=self.pk).exists():
-                slug = f"{base_slug}-{counter}"
+                slug = f"{base_slug[:190]}-{counter}"
                 counter += 1
             self.slug = slug
 
