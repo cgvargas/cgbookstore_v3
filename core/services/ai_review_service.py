@@ -83,7 +83,7 @@ class AIReviewService:
             attempted_provider = True
             try:
                 provider = AIProviderFactory.get_provider(provider_name)
-                return provider.generate_json(prompt=prompt, feature_name=feature_name)
+                return provider.generate_json(prompt=prompt, feature_name=feature_name, max_tokens=2000)
             except Exception as error:
                 if cls._is_rate_limit_error(error):
                     cache.set(cache_key, True, cooldown)
