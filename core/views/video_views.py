@@ -44,9 +44,11 @@ class VideoListView(ListView):
         # Consolidar conjunto de IDs únicos
         unique_ids = set(urls_ids) | set(files_ids) | set(others_ids)
 
-        # Filtrar o queryset original usando os IDs consolidados e aplicar ordenação/select_related
-        return Video.objects.filter(id__in=unique_ids).select_related(
-            'related_book', 'related_book__author'
+        # Filtrar o queryset original usando os IDs consolidados e aplicar ordenação/prefetch_related
+        return Video.objects.filter(id__in=unique_ids).prefetch_related(
+            'related_books', 'related_books__author'
+        ).select_related(
+            'related_author'
         ).order_by('-created_at')
 
     def get_context_data(self, **kwargs):

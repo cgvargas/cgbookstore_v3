@@ -273,7 +273,7 @@ class BookRecommendationService:
         adaptations_qs = Video.objects.filter(
             video_type='adaptation'
         ).filter(
-            Q(related_book__category__name__in=categories) | Q(related_author__name__in=authors)
+            Q(related_books__category__name__in=categories) | Q(related_author__name__in=authors)
         ).distinct().order_by('-views_count')
         recommended_adaptations = adaptations_qs[:limit]
         if len(recommended_adaptations) < limit:
