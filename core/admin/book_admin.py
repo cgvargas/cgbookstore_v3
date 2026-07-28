@@ -24,6 +24,13 @@ class BookAdminForm(forms.ModelForm):
         label="Artigos e Notícias Vinculados",
         help_text="Selecione os artigos/notícias já criados para vinculá-los a este livro."
     )
+    existing_videos = forms.ModelMultipleChoiceField(
+        queryset=Video.objects.only('id', 'title').order_by('title'),
+        required=False,
+        widget=FilteredSelectMultiple("Vídeos/Adaptações", is_stacked=False),
+        label="🎬 Vídeos e Adaptações Vinculados",
+        help_text="Selecione ou pesquise vídeos já cadastrados no banco de dados para vinculá-los a este livro (digite as iniciais no filtro para localizar)."
+    )
     target_section = forms.ModelChoiceField(
         queryset=Section.objects.none(),
         required=False,
@@ -44,6 +51,7 @@ class BookAdminForm(forms.ModelForm):
 
         if self.instance and self.instance.pk:
             self.fields['existing_articles'].initial = self.instance.articles.all()
+            self.fields['existing_videos'].initial = self.instance.videos.all()
             # Tentar pré-selecionar a seção atual do livro se já estiver em alguma
             try:
                 book_ct = ContentType.objects.get_for_model(Book)
@@ -79,37 +87,33 @@ class BookAdminForm(forms.ModelForm):
     def save(self, commit=True):
         book = super().save(commit=False)
         
-        def save_m2m_articles():
+        def save_m2m_relations():
             if book.pk:
                 book.articles.set(self.cleaned_data['existing_articles'])
+                book.videos.set(self.cleaned_data['existing_videos'])
 
         if commit:
             book.save()
             self.save_m2m()
-            save_m2m_articles()
+            save_m2m_relations()
         else:
             old_save_m2m = self.save_m2m
             def new_save_m2m():
                 old_save_m2m()
-                save_m2m_articles()
+                save_m2m_relations()
             self.save_m2m = new_save_m2m
             
         return book
 
 
 class VideoInline(admin.TabularInline):
-    """Inline para vincular vídeos ao livro."""
-    model = Video
-    fk_name = 'related_book'
+    """Inline para vincular/criar novos vídeos diretamente no livro."""
+    model = Video.related_books.through
     extra = 0
     min_num = 0
-    fields = ['title', 'platform', 'video_url', 'video_type', 'thumbnail_image', 'active']
-    verbose_name = '🎬 Vídeo Vinculado'
-    verbose_name_plural = '🎬 Vídeos Vinculados (Adaptações, Trailers, Entrevistas)'
+    verbose_name = '🎬 Criar Novo Vídeo'
+    verbose_name_plural = '🎬 Criar Novos Vídeos Vinculados'
     classes = ['collapse']
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('related_book')
 
 
 @admin.register(Book)
@@ -120,9 +124,6 @@ class BookAdmin(admin.ModelAdmin):
 
     # Otimização: Evitar N+1 queries ao listar livros
     list_select_related = ['author', 'category']
-
-    # Inlines para vincular vídeos
-    inlines = [VideoInline]
 
     list_display = [
         'title',
@@ -175,6 +176,18 @@ class BookAdmin(admin.ModelAdmin):
             ),
             'description': '💡 Selecione a seção da Home Page onde este livro deve entrar em 1º lugar (ex: Lançamentos, Mais Vendidos). O último livro da seção será rotacionado/removido se atingir o limite.',
         }),
+        ('🎬 Vídeos e Adaptações Vinculados', {
+            'fields': (
+                'existing_videos',
+            ),
+            'description': 'Pesquise por iniciais ou título na caixa da esquerda para vincular vídeos já cadastrados no banco de dados a este livro.'
+        }),
+        ('📰 Artigos e Notícias Vinculados', {
+            'fields': (
+                'existing_articles',
+            ),
+            'description': 'Pesquise por iniciais ou título na caixa da esquerda para vincular notícias ou artigos já cadastrados a este livro.'
+        }),
         ('Detalhes de Publicação', {
             'fields': (
                 'publication_date',
@@ -226,12 +239,6 @@ class BookAdmin(admin.ModelAdmin):
                 'highlight_message',
             ),
             'description': '💡 Use para exibir anúncios ou informações importantes em destaque (cor verde).',
-        }),
-        ('Artigos e Notícias', {
-            'fields': (
-                'existing_articles',
-            ),
-            'description': 'Selecione as notícias ou artigos deste livro.'
         }),
         ('Metadados', {
             'classes': ('collapse',),

@@ -150,13 +150,12 @@ class Article(models.Model):
         related_name='articles',
         verbose_name="Autor"
     )
-    related_book = models.ForeignKey(
+    related_books = models.ManyToManyField(
         'core.Book',
-        on_delete=models.SET_NULL,
-        null=True,
         blank=True,
         related_name='articles',
-        verbose_name="Livro Relacionado"
+        verbose_name="Livros Relacionados",
+        help_text="Selecione um ou mais livros relacionados a este artigo"
     )
 
     # Prioridade e Destaque

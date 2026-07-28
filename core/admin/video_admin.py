@@ -13,7 +13,7 @@ class VideoAdmin(admin.ModelAdmin):
         'title',
         'platform',
         'video_type',
-        'related_book',
+        'get_related_books',
         'related_author',
         'featured',
         'active',
@@ -29,7 +29,7 @@ class VideoAdmin(admin.ModelAdmin):
     search_fields = [
         'title',
         'description',
-        'related_book__title',
+        'related_books__title',
         'related_author__name'
     ]
     prepopulated_fields = {'slug': ('title',)}
@@ -37,8 +37,12 @@ class VideoAdmin(admin.ModelAdmin):
     list_editable = ['featured', 'active']
     date_hierarchy = 'created_at'
 
-    # Autocomplete
-    autocomplete_fields = ['related_book', 'related_author']
+    filter_horizontal = ('related_books',)
+    autocomplete_fields = ['related_author']
+
+    def get_related_books(self, obj):
+        return ", ".join([b.title for b in obj.related_books.all()[:3]]) or "-"
+    get_related_books.short_description = "Livros Relacionados"
 
     fieldsets = (
         ('Informações Básicas', {
@@ -63,7 +67,7 @@ class VideoAdmin(admin.ModelAdmin):
         }),
         ('Relacionamentos', {
             'fields': (
-                'related_book',
+                'related_books',
                 'related_author'
             )
         }),

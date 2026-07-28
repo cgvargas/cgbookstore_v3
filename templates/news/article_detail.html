@@ -124,18 +124,21 @@
             </div>
             {% endif %}
 
-            <!-- Livro Relacionado -->
-            {% if article.related_book %}
+            <!-- Livros Relacionados -->
+            {% if article.related_books.exists %}
+            {% for rel_book in article.related_books.all %}
             <div class="col-md-6 mb-3">
                 <div class="related-book-box h-100">
                     <h3>📚 Livro Relacionado</h3>
                     <div class="d-flex align-items-start gap-3">
-                        <img src="{{ article.related_book.cover_image.url }}" alt="{{ article.related_book.title }}"
+                        {% if rel_book.cover_image %}
+                        <img src="{{ rel_book.cover_image.url }}" alt="{{ rel_book.title }}"
                             style="width: 100px; height: 150px; object-fit: cover; border-radius: 8px;">
+                        {% endif %}
                         <div class="flex-grow-1">
-                            <h4>{{ article.related_book.title }}</h4>
-                            <p class="text-muted mb-2">{{ article.related_book.author }}</p>
-                            <a href="{% url 'core:book_detail' article.related_book.slug %}"
+                            <h4>{{ rel_book.title }}</h4>
+                            <p class="text-muted mb-2">{{ rel_book.author }}</p>
+                            <a href="{% url 'core:book_detail' rel_book.slug %}"
                                 class="btn btn-sm btn-primary">
                                 <i class="fas fa-book"></i> Ver livro
                             </a>
@@ -143,6 +146,7 @@
                     </div>
                 </div>
             </div>
+            {% endfor %}
             {% endif %}
 
             <!-- Quiz Relacionado -->

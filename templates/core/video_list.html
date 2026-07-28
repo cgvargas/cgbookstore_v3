@@ -215,12 +215,13 @@
                     {% endif %}
 
                     <!-- Livro Relacionado -->
-                    {% if video.related_book %}
+                    {% with rel_book=video.related_books.first %}
+                    {% if rel_book %}
                     <div class="video-related-book mt-2 mb-3 p-2 rounded-3 d-flex align-items-center gap-2"
                          style="background: rgba(var(--bs-primary-rgb, 13,110,253),0.07); border: 1px solid rgba(var(--bs-primary-rgb, 13,110,253),0.18);">
-                        {% if video.related_book.cover_image %}
-                        <img src="{{ video.related_book.cover_image.url }}"
-                             alt="{{ video.related_book.title }}"
+                        {% if rel_book.cover_image %}
+                        <img src="{{ rel_book.cover_image.url }}"
+                             alt="{{ rel_book.title }}"
                              class="rounded-2 flex-shrink-0 shadow-sm"
                              style="width:38px; height:52px; object-fit:cover;">
                         {% else %}
@@ -231,20 +232,21 @@
                         {% endif %}
                         <div class="overflow-hidden">
                             <div class="text-uppercase fw-bold" style="font-size:0.6rem; letter-spacing:.6px; opacity:.6;">Livro relacionado</div>
-                            <a href="{% url 'core:book_detail' video.related_book.slug %}"
+                            <a href="{% url 'core:book_detail' rel_book.slug %}"
                                class="text-decoration-none fw-semibold text-truncate d-block"
                                style="font-size:0.82rem; line-height:1.2;"
-                               title="{{ video.related_book.title }}">
-                                {{ video.related_book.title|truncatewords:6 }}
+                               title="{{ rel_book.title }}">
+                                {{ rel_book.title|truncatewords:6 }}
                             </a>
-                            {% if video.related_book.author %}
+                            {% if rel_book.author %}
                             <small class="text-muted text-truncate d-block" style="font-size:0.72rem;">
-                                {{ video.related_book.author.name }}
+                                {{ rel_book.author.name }}
                             </small>
                             {% endif %}
                         </div>
                     </div>
                     {% endif %}
+                    {% endwith %}
 
                     <!-- Informações do Vídeo -->
                     <div class="video-info mt-auto">

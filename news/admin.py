@@ -79,7 +79,7 @@ class ArticleAdmin(admin.ModelAdmin):
     ]
     search_fields = ['^title', 'subtitle', 'excerpt']
     prepopulated_fields = {'slug': ('title',)}
-    filter_horizontal = ['tags']
+    filter_horizontal = ['tags', 'related_books']
     date_hierarchy = 'published_at'
     list_per_page = 25
 
@@ -102,7 +102,7 @@ class ArticleAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
         ('Relacionamentos', {
-            'fields': ('category', 'tags', 'author', 'related_book'),
+            'fields': ('category', 'tags', 'author', 'related_books'),
             'classes': ('collapse',)
         }),
         ('Prioridade e Destaque', {

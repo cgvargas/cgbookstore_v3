@@ -113,16 +113,12 @@ class BookDetailView(DetailView):
 
 
         # Vídeos relacionados ao livro (adaptações, trailers, entrevistas)
-        from core.models import Video
-        context['book_videos'] = Video.objects.filter(
-            related_book=book,
+        context['book_videos'] = book.videos.filter(
             active=True
         ).order_by('-featured', '-created_at')
 
         # Artigos/notícias relacionados ao livro (adaptações, resenhas, eventos)
-        from news.models import Article
-        context['book_articles'] = Article.objects.filter(
-            related_book=book,
+        context['book_articles'] = book.articles.filter(
             is_published=True
         ).select_related('category').order_by('-published_at')
 
