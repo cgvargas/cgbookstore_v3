@@ -692,3 +692,37 @@ class NewsAgentConfig(models.Model):
                 themes.append(cleaned.lower())  # Normalizar para minúsculo
         
         return themes
+
+
+class ArticleLike(models.Model):
+    """Curtidas (likes) dos leitores em artigos/notícias"""
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='likes', verbose_name="Artigo")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='article_likes', verbose_name="Usuário")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Curtido em")
+
+    class Meta:
+        verbose_name = "Curtida em Artigo"
+        verbose_name_plural = "Curtidas em Artigos"
+        unique_together = ('article', 'user')
+
+    def __str__(self):
+        return f"{self.user.username} curtiu {self.article.title[:30]}"
+
+
+class ArticleComment(models.Model):
+    """Comentários dos leitores nos artigos/notícias"""
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='comments', verbose_name="Artigo")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='article_comments', verbose_name="Autor do Comentário")
+    content = models.TextField(verbose_name="Comentário", help_text="Texto do comentário publicado pelo leitor")
+    is_active = models.BooleanField(default=True, verbose_name="Ativo / Moderado", help_text="Desmarque para ocultar do site público")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
+
+    class Meta:
+        verbose_name = "Comentário de Artigo"
+        verbose_name_plural = "Comentários de Artigos"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Comentário por {self.user.username} em {self.article.title[:30]}"
+

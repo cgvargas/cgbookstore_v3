@@ -5,7 +5,13 @@ from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from .models import Article, Category, Tag, Quiz, QuizQuestion, Newsletter, QuizAttempt
+from django.conf import settings
+import logging
+
+from .models import Article, Category, Tag, Quiz, QuizQuestion, Newsletter, QuizAttempt, ArticleLike, ArticleComment
+from .forms import ArticleCommentForm
+
+logger = logging.getLogger(__name__)
 
 
 def news_home(request):
@@ -18,6 +24,193 @@ def news_home(request):
     ).order_by('-published_at').first()
 
     # Artigo em destaque principal (prioridade 5)
+    featured_main = Article.objects.defer('content').filter(
+        is_published=True,
+        is_featured=True,
+        priority=5
+    ).order_by('-published_at').first()
+
+    # Se não houver prioridade 5, pega o destaque mais recente
+    if not featured_main:
+        featured_main = Article.objects.defer('content').filter(
+            is_published=True,
+            is_featured=True
+        ).order_by('-published_at').first()
+
+    # Outros destaques (prioridade 3 ou 4)
+    exclude_ids = [a.id for a in [breaking_news, featured_main] if a]
+    featured_secondary = Article.objects.defer('content').filter(
+        is_published=True,
+        is_featured=True
+    ).exclude(id__in=exclude_ids).order_by('-priority', '-published_at')[:4]
+
+    # Notícias recentes (por categoria ou geral)
+    recent_articles = Article.objects.defer('content').filter(
+        is_published=True
+    ).exclude(id__in=exclude_ids + [a.id for a in featured_secondary]).order_by('-published_at')[:6]
+
+    # Entrevistas
+    interviews = Article.objects.defer('content').filter(
+        is_published=True,
+        content_type='interview'
+    ).order_by('-published_at')[:3]
+
+    # Próximos eventos
+    events = Article.objects.defer('content').filter(
+        is_published=True,
+        content_type='event',
+        event_date__isnull=False
+    ).order_by('event_date')[:4]
+
+    # Guias e artigos
+    guides = Article.objects.defer('content').filter(
+        is_published=True,
+        content_type__in=['guide', 'article']
+    ).order_by('-published_at')[:4]
+
+    # Dica da semana
+    tip_of_week = Article.objects.defer('content').filter(
+        is_published=True,
+        content_type='tip'
+    ).order_by('-published_at').first()
+
+    # Categorias ativas
+    categories = Category.objects.filter(is_active=True).order_by('order', 'name')
+
+    # Verificar se usuário está inscrito na newsletter
+    is_newsletter_subscribed = False
+    if request.user.is_authenticated:
+        is_newsletter_subscribed = Newsletter.objects.filter(
+            email=request.user.email,
+            is_active=True
+        ).exists()
+    else:
+        subscribed_email = request.session.get('newsletter_subscribed_email')
+        if subscribed_email:
+            is_newsletter_subscribed = Newsletter.objects.filter(
+                email=subscribed_email,
+                is_active=True
+            ).exists()
+
+    context = {
+        'breaking_news': breaking_news,
+        'featured_main': featured_main,
+        'featured_secondary': featured_secondary,
+        'recent_articles': recent_articles,
+        'interviews': interviews,
+        'events': events,
+        'guides': guides,
+        'tip_of_week': tip_of_week,
+        'categories': categories,
+        'is_newsletter_subscribed': is_newsletter_subscribed,
+    }
+
+    return render(request, 'news/home.html', context)
+
+
+def article_detail(request, slug):
+    """Página de detalhes de um artigo/notícia"""
+    # Se o usuário for staff, permite ver artigos não publicados (draft)
+    if request.user.is_staff:
+        article = get_object_or_404(Article, slug=slug)
+    else:
+        article = get_object_or_404(Article, slug=slug, is_published=True)
+
+    # Incrementar visualizações
+    article.increment_views()
+
+    # Artigos relacionados (mesma categoria ou tags)
+    related_articles = Article.objects.defer('content').filter(
+        Q(category=article.category) | Q(tags__in=article.tags.all()),
+        is_published=True
+    ).exclude(id=article.id).distinct().order_by('-published_at')[:4]
+
+    categories = Category.objects.filter(is_active=True).order_by('order', 'name')
+
+    # Comentários e Curtidas
+    comments = article.comments.filter(is_active=True).select_related('user').order_by('-created_at')
+    likes_count = article.likes.count()
+    user_has_liked = False
+    if request.user.is_authenticated:
+        user_has_liked = article.likes.filter(user=request.user).exists()
+
+    context = {
+        'article': article,
+        'related_articles': related_articles,
+        'categories': categories,
+        'comments': comments,
+        'comments_count': comments.count(),
+        'likes_count': likes_count,
+        'user_has_liked': user_has_liked,
+        'comment_form': ArticleCommentForm(),
+    }
+
+    return render(request, 'news/article_detail.html', context)
+
+
+@require_POST
+def toggle_article_like(request, article_id):
+    """Endpoint AJAX para dar/remover curtida em um artigo"""
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'success': False,
+            'error': 'login_required',
+            'message': 'Faça login para curtir este artigo.'
+        }, status=401)
+
+    article = get_object_or_404(Article, pk=article_id, is_published=True)
+    like_obj, created = ArticleLike.objects.get_or_create(article=article, user=request.user)
+
+    if not created:
+        like_obj.delete()
+        liked = False
+    else:
+        liked = True
+
+    likes_count = article.likes.count()
+    return JsonResponse({
+        'success': True,
+        'liked': liked,
+        'likes_count': likes_count
+    })
+
+
+@login_required
+@require_POST
+def add_article_comment(request, article_id):
+    """Endpoint para publicar um comentário no artigo e emitir alerta WhatsApp via CallMeBot"""
+    article = get_object_or_404(Article, pk=article_id, is_published=True)
+    form = ArticleCommentForm(request.POST)
+
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.article = article
+        comment.user = request.user
+        comment.save()
+
+        # Enviar alerta instantâneo para o moderador via WhatsApp CallMeBot
+        try:
+            from monitoring.whatsapp_service import get_whatsapp_notifier
+            notifier = get_whatsapp_notifier()
+            if notifier.enabled:
+                comment_preview = comment.content[:120]
+                if len(comment.content) > 120:
+                    comment_preview += "..."
+                notifier._send_message(
+                    f"💬 *NOVO COMENTÁRIO EM ARTIGO*\n\n"
+                    f"📰 *Artigo:* _{article.title[:45]}_\n"
+                    f"👤 *Leitor:* {request.user.username} (ID {request.user.id})\n"
+                    f"💬 *Comentário:* _{comment_preview}_\n\n"
+                    f"🔗 Moderar: {getattr(settings, 'SITE_URL', '')}/admin/news/articlecomment/"
+                )
+        except Exception as e:
+            logger.warning(f"Erro ao enviar notificação WhatsApp do comentário: {e}")
+
+        messages.success(request, "Seu comentário foi publicado com sucesso!")
+    else:
+        messages.error(request, "Não foi possível enviar o comentário. Por favor, tente novamente.")
+
+    return redirect(f"{article.get_absolute_url()}#comments-section")
     featured_main = Article.objects.defer('content').filter(
         is_published=True,
         is_featured=True,

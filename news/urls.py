@@ -10,6 +10,8 @@ urlpatterns = [
 
     # Artigos
     path('artigo/<slug:slug>/', views.article_detail, name='article_detail'),
+    path('artigo/<int:article_id>/curtir/', views.toggle_article_like, name='toggle_article_like'),
+    path('artigo/<int:article_id>/comentar/', views.add_article_comment, name='add_article_comment'),
 
     # Filtros por categoria
     path('categoria/<slug:slug>/', views.category_articles, name='category_articles'),

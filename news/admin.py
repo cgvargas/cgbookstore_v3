@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
-from .models import Category, Tag, Article, Quiz, QuizQuestion, QuizOption, Newsletter, QuizAttempt, NewsSource, NewsAgentConfig
+from .models import Category, Tag, Article, Quiz, QuizQuestion, QuizOption, Newsletter, QuizAttempt, NewsSource, NewsAgentConfig, ArticleComment, ArticleLike
 
 
 @admin.register(Category)
@@ -549,5 +549,27 @@ class NewsAgentConfigAdmin(admin.ModelAdmin):
             self.message_user(request, "🔄 Agendamento atualizado!", level=messages.INFO)
         except Exception as e:
             self.message_user(request, f"⚠️ Schedulter não iniciado: {e}", level=messages.WARNING)
+
+
+@admin.register(ArticleComment)
+class ArticleCommentAdmin(admin.ModelAdmin):
+    list_display = ['user', 'article', 'short_content', 'is_active', 'created_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['content', 'user__username', 'article__title']
+    list_editable = ['is_active']
+    raw_id_fields = ['article', 'user']
+
+    def short_content(self, obj):
+        return obj.content[:60] + ('...' if len(obj.content) > 60 else '')
+    short_content.short_description = 'Comentário'
+
+
+@admin.register(ArticleLike)
+class ArticleLikeAdmin(admin.ModelAdmin):
+    list_display = ['user', 'article', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['user__username', 'article__title']
+    raw_id_fields = ['article', 'user']
+
 
 
