@@ -197,6 +197,7 @@ class SectionAdmin(admin.ModelAdmin):
         'content_type',
         'layout',
         'banner_preview',
+        'carousel_autoplay',
         'card_style',
         'card_hover_effect',
         'active',
@@ -207,13 +208,14 @@ class SectionAdmin(admin.ModelAdmin):
     list_filter = [
         'content_type',
         'layout',
+        'carousel_autoplay',
         'card_style',
         'card_hover_effect',
         'active',
         'created_at'
     ]
     search_fields = ['title', 'subtitle']
-    list_editable = ['active', 'order']
+    list_editable = ['carousel_autoplay', 'active', 'order']
     date_hierarchy = 'created_at'
     inlines = [SectionItemInline]
 
@@ -240,6 +242,12 @@ class SectionAdmin(admin.ModelAdmin):
                 '<strong>Máximo de Itens:</strong> Para seções de notícias, controla quantos cards ficam visíveis. '
                 'Ao publicar uma nova notícia, ela entra no início e o card mais antigo é removido automaticamente.'
             )
+        }),
+        ('Configurações do Carrossel (Autoplay)', {
+            'fields': (
+                ('carousel_autoplay', 'carousel_autoplay_delay'),
+            ),
+            'description': 'Configure se o carrossel se move automaticamente e o intervalo de tempo entre as transições.'
         }),
         ('Personalização de Cards', {
             'fields': (

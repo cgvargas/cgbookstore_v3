@@ -292,6 +292,19 @@ class Section(models.Model):
         )
     )
 
+    # Configurações de carrossel
+    carousel_autoplay = models.BooleanField(
+        default=False,
+        verbose_name="Carrossel Automático (Autoplay)",
+        help_text="Mover os itens do carrossel automaticamente sem precisar clicar"
+    )
+
+    carousel_autoplay_delay = models.PositiveIntegerField(
+        default=4000,
+        verbose_name="Velocidade do Autoplay (ms)",
+        help_text="Tempo em milissegundos entre cada transição automática (ex: 3000 = 3s, 4000 = 4s, 5000 = 5s)"
+    )
+
 
     # Timestamps
     created_at = models.DateTimeField(

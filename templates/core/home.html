@@ -1056,7 +1056,7 @@
 
             {% elif section.layout == 'carousel' %}
                 <!-- Layout Carrossel (Swiper) -->
-                <div class="swiper books-swiper">
+                <div class="swiper books-swiper" data-autoplay="{{ section.carousel_autoplay|yesno:'true,false' }}" data-autoplay-delay="{{ section.carousel_autoplay_delay|default:4000 }}">
                     <div class="swiper-wrapper">
                         {% for item in section.items %}
                             {% with obj=item.obj display_title=item.display_title %}
@@ -1435,7 +1435,7 @@
 
             {% elif section.layout == 'banner_slider' %}
                 <!-- Layout Banner com Slider - Cards de livros em destaque -->
-                <div class="swiper banner-slider-swiper">
+                <div class="swiper banner-slider-swiper" data-autoplay="{{ section.carousel_autoplay|yesno:'true,false' }}" data-autoplay-delay="{{ section.carousel_autoplay_delay|default:5000 }}">
                     <div class="swiper-wrapper">
                         {% for item in section.items %}
                             {% with obj=item.obj display_title=item.display_title %}
@@ -1657,7 +1657,10 @@
 <script>
     // Inicializar todos os carrosseis Swiper
     document.querySelectorAll('.books-swiper').forEach((swiperEl) => {
-        new Swiper(swiperEl, {
+        const isAutoplay = swiperEl.dataset.autoplay === 'true';
+        const delayMs = parseInt(swiperEl.dataset.autoplayDelay, 10) || 4000;
+
+        const swiperConfig = {
             // Mobile: 2 cards por tela (estilo Crunchyroll)
             slidesPerView: 2,
             spaceBetween: 5,
@@ -1691,7 +1694,18 @@
                     spaceBetween: 30,
                 },
             },
-        });
+        };
+
+        if (isAutoplay) {
+            swiperConfig.autoplay = {
+                delay: delayMs,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+            };
+            swiperConfig.loop = true;
+        }
+
+        new Swiper(swiperEl, swiperConfig);
     });
 
     // Inicializar Swiper Tolkien (seção especial)
@@ -1737,14 +1751,12 @@
 
     // Inicializar Swiper Banner Slider (layout banner_slider)
     document.querySelectorAll('.banner-slider-swiper').forEach((swiperEl) => {
-        new Swiper(swiperEl, {
+        const isAutoplay = swiperEl.dataset.autoplay === 'true';
+        const delayMs = parseInt(swiperEl.dataset.autoplayDelay, 10) || 5000;
+
+        const swiperConfig = {
             slidesPerView: 1,
             spaceBetween: 20,
-            loop: true,
-            autoplay: {
-                delay: 5000,
-                disableOnInteraction: false,
-            },
             navigation: {
                 nextEl: swiperEl.querySelector('.swiper-button-next'),
                 prevEl: swiperEl.querySelector('.swiper-button-prev'),
@@ -1763,7 +1775,18 @@
                     spaceBetween: 30,
                 },
             },
-        });
+        };
+
+        if (isAutoplay) {
+            swiperConfig.autoplay = {
+                delay: delayMs,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+            };
+            swiperConfig.loop = true;
+        }
+
+        new Swiper(swiperEl, swiperConfig);
     });
 </script>
 
