@@ -366,6 +366,16 @@ class SectionAdmin(admin.ModelAdmin):
 
     items_count.short_description = 'Itens (Ativos/Total)'
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        from django.core.cache import cache
+        cache.delete('home_full_context')
+
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        from django.core.cache import cache
+        cache.delete('home_full_context')
+
     def changelist_view(self, request, extra_context=None):
         from django.contrib import messages
         from django.urls import reverse

@@ -299,6 +299,9 @@ class HomeView(TemplateView):
                 ),
                 # Limite de itens para rotação automática de notícias
                 'max_items': section.max_items,
+                # Carousel autoplay settings
+                'carousel_autoplay': getattr(section, 'carousel_autoplay', False),
+                'carousel_autoplay_delay': getattr(section, 'carousel_autoplay_delay', 4000),
                 # Items
                 'items': items_data,
             }

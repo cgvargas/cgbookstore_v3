@@ -329,3 +329,13 @@ class Section(models.Model):
     def get_items(self):
         """Retorna os itens da seção ordenados"""
         return self.items.filter(active=True).order_by('order')
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        from django.core.cache import cache
+        cache.delete('home_full_context')
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        from django.core.cache import cache
+        cache.delete('home_full_context')
