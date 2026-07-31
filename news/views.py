@@ -37,17 +37,23 @@ def news_home(request):
             is_featured=True
         ).order_by('-published_at').first()
 
-    # Outros destaques (prioridade 3 ou 4)
+    # Destaques para navegador lateral esquerdo (sidebar)
     exclude_ids = [a.id for a in [breaking_news, featured_main] if a]
-    featured_secondary = Article.objects.defer('content').filter(
+    sidebar_highlights = Article.objects.defer('content').filter(
         is_published=True,
         is_featured=True
-    ).exclude(id__in=exclude_ids).order_by('-priority', '-published_at')[:4]
+    ).exclude(id__in=exclude_ids).order_by('-priority', '-published_at')[:6]
 
-    # Notícias recentes (por categoria ou geral)
-    recent_articles = Article.objects.defer('content').filter(
+    # Se não houver destaques secundários suficientes, completa com os artigos mais recentes
+    if len(sidebar_highlights) < 4:
+        sidebar_highlights = Article.objects.defer('content').filter(
+            is_published=True
+        ).exclude(id__in=exclude_ids).order_by('-published_at')[:6]
+
+    # Últimas notícias para a coluna central (grid de notícias)
+    latest_news = Article.objects.defer('content').filter(
         is_published=True
-    ).exclude(id__in=exclude_ids + [a.id for a in featured_secondary]).order_by('-published_at')[:6]
+    ).exclude(id=featured_main.id if featured_main else None).order_by('-published_at')[:8]
 
     # Entrevistas
     interviews = Article.objects.defer('content').filter(
@@ -95,8 +101,10 @@ def news_home(request):
     context = {
         'breaking_news': breaking_news,
         'featured_main': featured_main,
-        'featured_secondary': featured_secondary,
-        'recent_articles': recent_articles,
+        'sidebar_highlights': sidebar_highlights,
+        'featured_secondary': sidebar_highlights,
+        'latest_news': latest_news,
+        'recent_articles': latest_news,
         'interviews': interviews,
         'events': events,
         'guides': guides,
