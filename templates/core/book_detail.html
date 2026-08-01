@@ -490,8 +490,8 @@
         <!-- Coluna da Capa e Compra -->
         <div class="col-md-3 mb-4">
             <div class="card shadow-sm mb-3">
-                {% if book.cover_image %}
-                    <img src="{{ book.cover_image.url }}" class="card-img-top" alt="{{ book.title }}">
+                {% if book.cover_image_url %}
+                    <img src="{{ book.cover_image_url }}" class="card-img-top" alt="{{ book.title }}" onerror="this.onerror=null; this.src='{% static \'images/no-cover-placeholder.svg\' %}';">
                 {% else %}
                     <img src="{% static 'images/no-cover-placeholder.svg' %}"
                          class="card-img-top" alt="Sem capa">

@@ -355,14 +355,14 @@ class SupabaseMediaStorage(Storage):
         return super().get_available_name(name, max_length)
 
 
+from django.core.files.storage import FileSystemStorage
+
 @deconstructible
-class CloudflareR2MediaStorage(S3Boto3Storage):
+class CloudflareR2MediaStorage(FileSystemStorage if S3Boto3Storage is object else S3Boto3Storage):
     """
     Storage backend customizado para Cloudflare R2
     """
-    # Se quiser que os arquivos fiquem em uma subpasta 'media' dentro do bucket
-    # Mude para location = '' se quiser na raiz do bucket
-    location = ''
+    location = getattr(settings, 'MEDIA_ROOT', '')
     file_overwrite = False
     
     def get_available_name(self, name, max_length=None):
@@ -372,4 +372,7 @@ class CloudflareR2MediaStorage(S3Boto3Storage):
         dir_name, file_name = os.path.split(name)
         normalized_file_name = normalize_filename(file_name)
         new_name = os.path.join(dir_name, normalized_file_name).replace('\\', '/')
-        return super().get_available_name(new_name, max_length)
+        if hasattr(super(), 'get_available_name'):
+            return super().get_available_name(new_name, max_length)
+        return new_name
+
