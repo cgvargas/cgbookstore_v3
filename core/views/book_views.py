@@ -153,8 +153,10 @@ class BookListView(ListView):
         """
         context = super().get_context_data(**kwargs)
 
-        # Lista de todas as categorias para o formulário de filtros
-        context['all_categories'] = Category.objects.all().order_by('name')
+        # Lista de categorias filtradas para o formulário (apenas categorias com até duas palavras)
+        all_cats = Category.objects.all().order_by('name')
+        context['all_categories'] = [cat for cat in all_cats if len(cat.name.strip().split()) <= 2]
+
 
         # Parâmetros atuais (para manter estado do formulário)
         context['current_search'] = self.request.GET.get('q', '')
@@ -201,11 +203,15 @@ class BookListView(ListView):
             if author:
                 context['author_name'] = author.name
 
-        # Listar prateleiras disponíveis para filtro rápido
-        context['available_shelves'] = Section.objects.filter(
+        # Listar prateleiras disponíveis para filtro rápido (apenas títulos com até 2 palavras)
+        shelves_qs = Section.objects.filter(
             active=True,
             content_type='books'
         ).exclude(title='').values_list('id', 'title').order_by('order')
+        context['available_shelves'] = [
+            (s_id, title) for s_id, title in shelves_qs if len(title.strip().split()) <= 2
+        ]
+
 
         # Total de resultados (para exibir contador)
         context['total_results'] = self.get_queryset().count()
