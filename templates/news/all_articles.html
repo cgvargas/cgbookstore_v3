@@ -52,19 +52,35 @@
             <ul class="pagination justify-content-center">
                 {% if articles.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ articles.previous_page_number }}">Anterior</a>
+                    <a class="page-link" href="?page=1" aria-label="Primeira" title="Primeira página">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ articles.previous_page_number }}" aria-label="Anterior" title="Página anterior">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
                 </li>
                 {% endif %}
 
                 {% for num in articles.paginator.page_range %}
-                <li class="page-item {% if articles.number == num %}active{% endif %}">
-                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                </li>
+                    {% if articles.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > articles.number|add:'-3' and num < articles.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
                 {% endfor %}
 
                 {% if articles.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ articles.next_page_number }}">Próxima</a>
+                    <a class="page-link" href="?page={{ articles.next_page_number }}" aria-label="Próxima" title="Próxima página">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ articles.paginator.num_pages }}" aria-label="Última" title="Última página">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
                 </li>
                 {% endif %}
             </ul>
