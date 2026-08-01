@@ -474,8 +474,13 @@ PARTNER_SHORTENER_DOMAINS = {
     'ow.ly', 'shorturl.at', 't.co', 'tinyurl.com',
 }
 
-# Tag padrão de associado Amazon Brasil
+# Configurações da API da Amazon Brasil (Programa de Associados)
 AMAZON_ASSOCIATE_TAG = env('AMAZON_ASSOCIATE_TAG', default='cgbookstore-20')
+AMAZON_ACCESS_KEY = env('AMAZON_ACCESS_KEY', default='')
+AMAZON_SECRET_KEY = env('AMAZON_SECRET_KEY', default='')
+AMAZON_API_ENABLED = env.bool('AMAZON_API_ENABLED', default=False)
+AMAZON_API_MOCK_MODE = env.bool('AMAZON_API_MOCK_MODE', default=True)
+
 
 
 # Default primary key field type

@@ -152,12 +152,25 @@ class BookAdmin(admin.ModelAdmin):
         'isbn',
         'google_books_id',
     ]
-    prepopulated_fields = {'slug': ('title',)}
-    readonly_fields = ['created_at', 'updated_at']
-    date_hierarchy = 'publication_date'
+    actions = ['sync_metadata_with_amazon']
+
+    @admin.action(description="📦 Sincronizar metadados com Amazon Brasil e Google Books")
+    def sync_metadata_with_amazon(self, request, queryset):
+        """Ação administrativa para enriched metadata."""
+        from core.services.book_metadata_aggregator import BookMetadataAggregator
+        count = 0
+        for book in queryset:
+            res = BookMetadataAggregator.fetch_and_enrich_book(book)
+            if res.get('changes'):
+                count += 1
+        self.message_user(
+            request,
+            f"✅ {count} de {queryset.count()} livro(s) foram sincronizados com sucesso via Amazon Brasil e fontes agregadas."
+        )
 
     # Autocomplete para Author e Category
     autocomplete_fields = ['author', 'category']
+
 
     fieldsets = (
         ('Informações Principais', {
