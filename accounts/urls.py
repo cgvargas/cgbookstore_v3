@@ -21,6 +21,10 @@ urlpatterns = [
     path('delete-account/confirm/', views.delete_account_confirm, name='delete_account_confirm'),
     path('delete-account/', views.delete_account, name='delete_account'),
 
+    # Verificação de disponibilidade de Username (AJAX)
+    path('check-username/', views.check_username_availability, name='check_username'),
+
     # URLs de Autenticação (LEGADO - mantidas por compatibilidade)
     path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
+
 ]

@@ -630,3 +630,21 @@ def delete_account(request):
             'success': False,
             'error': 'Erro ao excluir conta. Tente novamente ou contate o suporte.'
         }, status=500)
+
+
+def check_username_availability(request):
+    """
+    Endpoint AJAX para verificação rápida de disponibilidade de nome de usuário.
+    """
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    
+    username = request.GET.get('username', '').strip()
+    if not username or len(username) < 3:
+        return JsonResponse({'available': False, 'reason': 'curto'})
+
+    exists = User.objects.filter(username__iexact=username).exists()
+    return JsonResponse({
+        'available': not exists,
+        'username': username
+    })

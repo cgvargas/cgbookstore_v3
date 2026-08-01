@@ -28,7 +28,6 @@ body {
     backdrop-filter: blur(8px);
 }
 
-
 .auth-title {
     text-align: center;
     margin-bottom: 10px;
@@ -143,6 +142,7 @@ body {
 /* Formulário */
 .auth-form .form-group {
     margin-bottom: 20px;
+    position: relative;
 }
 
 .auth-form label {
@@ -161,7 +161,7 @@ body {
     border-radius: var(--border-radius);
     color: var(--text-primary);
     font-size: 15px;
-    transition: border-color 0.3s;
+    transition: border-color 0.2s ease;
 }
 
 .auth-form .form-control:focus {
@@ -170,6 +170,74 @@ body {
     background-color: var(--input-bg);
 }
 
+/* Validações em tempo real discretas */
+.form-control.is-valid-custom {
+    border-color: #28a745 !important;
+}
+
+.form-control.is-invalid-custom {
+    border-color: #dc3545 !important;
+}
+
+/* Input com Ícone de Toggle de Senha */
+.input-password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-password-wrapper .form-control {
+    padding-right: 45px;
+}
+
+.toggle-password-btn {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 5px;
+    font-size: 15px;
+    transition: color 0.2s;
+}
+
+.toggle-password-btn:hover,
+.toggle-password-btn:focus {
+    color: var(--text-primary);
+    outline: none;
+}
+
+/* Indicador de Força de Senha Discreto */
+.password-requirements {
+    display: none;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    gap: 8px 12px;
+    flex-wrap: wrap;
+}
+
+.password-requirements.active {
+    display: flex;
+}
+
+.req-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.2s;
+}
+
+.req-item.valid {
+    color: #28a745;
+}
+
+.req-item.valid i::before {
+    content: "\f00c"; /* fa-check */
+}
+
+/* Botão de Envio */
 .btn-primary-custom {
     width: 100%;
     padding: 14px;
@@ -187,8 +255,6 @@ body {
     background: var(--primary-hover);
 }
 
-
-
 .error-message {
     color: var(--danger-color);
     font-size: 13px;
@@ -203,11 +269,62 @@ body {
     display: block;
 }
 
+.feedback-text {
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+}
+
+.feedback-text.text-success-custom {
+    color: #28a745;
+}
+
+.feedback-text.text-danger-custom {
+    color: #dc3545;
+}
+
+/* Benefícios Discretos pós-botão */
+.signup-benefits {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--border-color);
+    text-align: center;
+}
+
+.benefits-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 14px;
+    padding: 0;
+    margin: 0 0 10px 0;
+    list-style: none;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.benefits-list li {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.benefits-list li i {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.signup-speed-badge {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
 /* Footer */
 .auth-footer {
     text-align: center;
-    margin-top: 25px;
-    padding-top: 20px;
+    margin-top: 20px;
+    padding-top: 15px;
     border-top: 1px solid var(--border-color);
 }
 
@@ -245,13 +362,13 @@ body {
             <div class="social-buttons">
                 {% for provider in socialaccount_providers %}
                     {% if provider.id == 'google' %}
-                    <a href="{% provider_login_url provider.id %}" class="btn-social btn-google">
-                        <i class="fab fa-google"></i>
+                    <a href="{% provider_login_url provider.id %}" class="btn-social btn-google" aria-label="Continuar com a conta do Google">
+                        <i class="fab fa-google" aria-hidden="true"></i>
                         <span>Continuar com Google</span>
                     </a>
                     {% elif provider.id == 'facebook' %}
-                    <a href="{% provider_login_url provider.id %}" class="btn-social btn-facebook">
-                        <i class="fab fa-facebook-f"></i>
+                    <a href="{% provider_login_url provider.id %}" class="btn-social btn-facebook" aria-label="Continuar com a conta do Facebook">
+                        <i class="fab fa-facebook-f" aria-hidden="true"></i>
                         <span>Continuar com Facebook</span>
                     </a>
                     {% endif %}
@@ -265,12 +382,12 @@ body {
         {% endif %}
 
         <!-- Formulário Tradicional -->
-        <form method="post" class="auth-form">
+        <form method="post" class="auth-form" id="signupForm" novalidate>
             {% csrf_token %}
 
-            <!-- Mensagens de erro -->
+            <!-- Mensagens de erro backend -->
             {% if form.non_field_errors %}
-                <div class="alert alert-error">
+                <div class="alert alert-error" role="alert">
                     {% for error in form.non_field_errors %}
                         {{ error }}
                     {% endfor %}
@@ -279,7 +396,7 @@ body {
 
             <!-- Mensagem específica para email já existente -->
             {% if form.email.errors %}
-                <div class="alert alert-error">
+                <div class="alert alert-error" role="alert">
                     <strong>Email já cadastrado!</strong><br>
                     Este email já está associado a uma conta existente.
                     <a href="{% url 'account_login' %}" style="color: white; text-decoration: underline;">
@@ -302,14 +419,16 @@ body {
                     placeholder="Escolha um nome de usuário"
                     required
                     autofocus
+                    aria-describedby="username_help username_feedback"
                     value="{{ form.username.value|default:'' }}"
                 >
+                <span id="username_feedback" class="feedback-text" aria-live="polite"></span>
                 {% if form.username.errors %}
                     {% for error in form.username.errors %}
                         <span class="error-message">{{ error }}</span>
                     {% endfor %}
                 {% endif %}
-                <span class="help-text">Seu nome de usuário será público</span>
+                <span id="username_help" class="help-text">Você poderá alterá-lo depois.</span>
             </div>
 
             <!-- Email -->
@@ -322,8 +441,10 @@ body {
                     class="form-control"
                     placeholder="seu@email.com"
                     required
+                    aria-describedby="email_feedback"
                     value="{{ form.email.value|default:'' }}"
                 >
+                <span id="email_feedback" class="feedback-text" aria-live="polite"></span>
                 {% if form.email.errors %}
                     {% for error in form.email.errors %}
                         <span class="error-message">{{ error }}</span>
@@ -334,33 +455,52 @@ body {
             <!-- Senha -->
             <div class="form-group">
                 <label for="id_password1">Senha</label>
-                <input
-                    type="password"
-                    name="password1"
-                    id="id_password1"
-                    class="form-control"
-                    placeholder="Crie uma senha forte"
-                    required
-                >
+                <div class="input-password-wrapper">
+                    <input
+                        type="password"
+                        name="password1"
+                        id="id_password1"
+                        class="form-control"
+                        placeholder="Crie uma senha forte"
+                        required
+                        aria-describedby="pass1_reqs"
+                    >
+                    <button type="button" class="toggle-password-btn" data-target="id_password1" aria-label="Mostrar ou ocultar senha">
+                        <i class="far fa-eye" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <!-- Requisitos Discretos de Senha -->
+                <div id="pass1_reqs" class="password-requirements">
+                    <span class="req-item" id="req-length"><i class="far fa-circle" aria-hidden="true"></i> 8+ caracteres</span>
+                    <span class="req-item" id="req-upper"><i class="far fa-circle" aria-hidden="true"></i> Maiúscula</span>
+                    <span class="req-item" id="req-number"><i class="far fa-circle" aria-hidden="true"></i> Número</span>
+                    <span class="req-item" id="req-special"><i class="far fa-circle" aria-hidden="true"></i> Especial</span>
+                </div>
                 {% if form.password1.errors %}
                     {% for error in form.password1.errors %}
                         <span class="error-message">{{ error }}</span>
                     {% endfor %}
                 {% endif %}
-                <span class="help-text">Mínimo 8 caracteres</span>
             </div>
 
             <!-- Confirmar Senha -->
             <div class="form-group">
                 <label for="id_password2">Confirmar Senha</label>
-                <input
-                    type="password"
-                    name="password2"
-                    id="id_password2"
-                    class="form-control"
-                    placeholder="Digite a senha novamente"
-                    required
-                >
+                <div class="input-password-wrapper">
+                    <input
+                        type="password"
+                        name="password2"
+                        id="id_password2"
+                        class="form-control"
+                        placeholder="Digite a senha novamente"
+                        required
+                        aria-describedby="pass2_feedback"
+                    >
+                    <button type="button" class="toggle-password-btn" data-target="id_password2" aria-label="Mostrar ou ocultar confirmação de senha">
+                        <i class="far fa-eye" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <span id="pass2_feedback" class="feedback-text" aria-live="polite"></span>
                 {% if form.password2.errors %}
                     {% for error in form.password2.errors %}
                         <span class="error-message">{{ error }}</span>
@@ -374,6 +514,18 @@ body {
             </button>
         </form>
 
+        <!-- Benefícios Discretos -->
+        <div class="signup-benefits">
+            <ul class="benefits-list">
+                <li><i class="fas fa-book" aria-hidden="true"></i> Biblioteca pessoal</li>
+                <li><i class="fas fa-magic" aria-hidden="true"></i> Recomendações inteligentes</li>
+                <li><i class="fas fa-heart" aria-hidden="true"></i> Favoritos</li>
+                <li><i class="fas fa-users" aria-hidden="true"></i> Comunidade</li>
+                <li><i class="fas fa-gift" aria-hidden="true"></i> Gratuito</li>
+            </ul>
+            <p class="signup-speed-badge">Cadastro gratuito • Leva menos de 30 segundos</p>
+        </div>
+
         <!-- Link para Login -->
         <div class="auth-footer">
             <p>
@@ -383,4 +535,143 @@ body {
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Alternar visualização da senha (Mostrar / Ocultar)
+    document.querySelectorAll('.toggle-password-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var targetId = this.getAttribute('data-target');
+            var input = document.getElementById(targetId);
+            var icon = this.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'far fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'far fa-eye';
+            }
+        });
+    });
+
+    var usernameInput = document.getElementById('id_username');
+    var emailInput = document.getElementById('id_email');
+    var pass1Input = document.getElementById('id_password1');
+    var pass2Input = document.getElementById('id_password2');
+
+    var usernameFeedback = document.getElementById('username_feedback');
+    var emailFeedback = document.getElementById('email_feedback');
+    var pass2Feedback = document.getElementById('pass2_feedback');
+    var passReqsContainer = document.getElementById('pass1_reqs');
+
+    var usernameTimeout = null;
+
+    // 2. Verificação de Disponibilidade do Nome de Usuário (AJAX)
+    usernameInput.addEventListener('input', function() {
+        var val = this.value.trim();
+        clearTimeout(usernameTimeout);
+        usernameFeedback.textContent = '';
+        this.classList.remove('is-valid-custom', 'is-invalid-custom');
+
+        if (val.length < 3) {
+            return;
+        }
+
+        usernameTimeout = setTimeout(function() {
+            fetch('/accounts/check-username/?username=' + encodeURIComponent(val))
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.available) {
+                        usernameInput.classList.add('is-valid-custom');
+                        usernameFeedback.className = 'feedback-text text-success-custom';
+                        usernameFeedback.textContent = '✓ Nome de usuário disponível';
+                    } else {
+                        usernameInput.classList.add('is-invalid-custom');
+                        usernameFeedback.className = 'feedback-text text-danger-custom';
+                        usernameFeedback.textContent = '✕ Este nome de usuário já está em uso';
+                    }
+                })
+                .catch(function() {});
+        }, 400);
+    });
+
+    // 3. Validação do formato do E-mail
+    emailInput.addEventListener('input', function() {
+        var val = this.value.trim();
+        emailFeedback.textContent = '';
+        this.classList.remove('is-valid-custom', 'is-invalid-custom');
+
+        if (val.length === 0) return;
+
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (emailRegex.test(val)) {
+            this.classList.add('is-valid-custom');
+        } else {
+            this.classList.add('is-invalid-custom');
+            emailFeedback.className = 'feedback-text text-danger-custom';
+            emailFeedback.textContent = 'Insira um e-mail válido';
+        }
+    });
+
+    // 4. Indicador Discreto de Força da Senha (aparece apenas digitando)
+    pass1Input.addEventListener('focus', function() {
+        passReqsContainer.classList.add('active');
+    });
+
+    pass1Input.addEventListener('input', function() {
+        var val = this.value;
+        if (val.length > 0) {
+            passReqsContainer.classList.add('active');
+        }
+
+        var hasLen = val.length >= 8;
+        var hasUpper = /[A-Z]/.test(val);
+        var hasNum = /[0-9]/.test(val);
+        var hasSpec = /[^A-Za-z0-9]/.test(val);
+
+        toggleReq('req-length', hasLen);
+        toggleReq('req-upper', hasUpper);
+        toggleReq('req-number', hasNum);
+        toggleReq('req-special', hasSpec);
+
+        // Se houver confirmação preenchida, revalida
+        if (pass2Input.value.length > 0) {
+            validatePasswordMatch();
+        }
+    });
+
+    function toggleReq(id, isValid) {
+        var el = document.getElementById(id);
+        if (isValid) {
+            el.classList.add('valid');
+        } else {
+            el.classList.remove('valid');
+        }
+    }
+
+    // 5. Confirmação visual de coincidência de senhas
+    pass2Input.addEventListener('input', validatePasswordMatch);
+
+    function validatePasswordMatch() {
+        var p1 = pass1Input.value;
+        var p2 = pass2Input.value;
+
+        pass2Feedback.textContent = '';
+        pass2Input.classList.remove('is-valid-custom', 'is-invalid-custom');
+
+        if (p2.length === 0) return;
+
+        if (p1 === p2 && p1.length > 0) {
+            pass2Input.classList.add('is-valid-custom');
+            pass2Feedback.className = 'feedback-text text-success-custom';
+            pass2Feedback.textContent = '✓ Senhas coincidem';
+        } else {
+            pass2Input.classList.add('is-invalid-custom');
+            pass2Feedback.className = 'feedback-text text-danger-custom';
+            pass2Feedback.textContent = 'As senhas não coincidem';
+        }
+    }
+});
+</script>
 {% endblock %}
+
