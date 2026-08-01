@@ -362,7 +362,7 @@ class CloudflareR2MediaStorage(FileSystemStorage if S3Boto3Storage is object els
     """
     Storage backend customizado para Cloudflare R2
     """
-    location = getattr(settings, 'MEDIA_ROOT', '')
+    location = ''
     file_overwrite = False
     
     def get_available_name(self, name, max_length=None):
@@ -375,4 +375,5 @@ class CloudflareR2MediaStorage(FileSystemStorage if S3Boto3Storage is object els
         if hasattr(super(), 'get_available_name'):
             return super().get_available_name(new_name, max_length)
         return new_name
+
 
