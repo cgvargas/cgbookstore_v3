@@ -175,9 +175,49 @@
     transform: translateY(-1px);
 }
 
+/* CTA Secundário (Discreto e Transparente) */
+.banner-cta-button-secondary {
+    display: inline-block;
+    padding: 0.95rem 2.2rem;
+    font-size: 1.05rem;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none !important;
+    backdrop-filter: blur(4px);
+    animation: fadeInUp 0.8s ease-out 0.9s both;
+}
+
+.banner-cta-button-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.8);
+    transform: translateY(-2px);
+    color: #fff !important;
+}
+
+/* Suporte a movimento reduzido (Acessibilidade) */
+@media (prefers-reduced-motion: reduce) {
+    .banner-image-wrapper video {
+        animation: none !important;
+        display: none !important;
+    }
+    .banner-title,
+    .banner-subtitle,
+    .banner-description,
+    .banner-cta-button,
+    .banner-cta-button-secondary {
+        animation: none !important;
+    }
+}
+
 /* ============================================
    CONTROLES DE NAVEGAÇÃO
    ============================================ */
+
 
 .banner-control {
     position: absolute;
