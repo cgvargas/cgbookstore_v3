@@ -657,27 +657,33 @@
                     $(this).removeClass('is-ai-filled');
                 });
             }
+        // Abrir sidebar automaticamente APENAS se o usuário vier de FORA da seção de adição de livros
+        // Se a requisição veio após submeter/salvar um livro (referrer da mesma página de livros), manter fechado
+        const referrer = document.referrer || '';
+        const isInternalBookNav = referrer.includes('/admin/core/book/');
+        const isAddForm = window.location.pathname.includes('/admin/core/book/add/');
+        
+        if (isAddForm && !isInternalBookNav) {
+            sidebar.addClass('open');
         }
 
         function selectAutocompleteValue(fieldName, id, text) {
             const selectEl = $('#id_' + fieldName);
             if (selectEl.length) {
-                // Para Django admin autocomplete (que usa select2)
-                if (selectEl.hasClass('select2-hidden-accessible')) {
-                    // Se a opção não existir no dropdown, adicioná-la
-                    if (selectEl.find("option[value='" + id + "']").length === 0) {
-                        const newOption = new Option(text, id, true, true);
-                        selectEl.append(newOption).trigger('change');
-                    } else {
-                        selectEl.val(id).trigger('change');
-                    }
+                // Se o campo for um select nativo ou já transformado em select2
+                if (selectEl.find("option[value='" + id + "']").length === 0) {
+                    const newOption = new Option(text, id, true, true);
+                    selectEl.append(newOption);
                 } else {
-                    // Fallback para select padrão
                     selectEl.val(id);
                 }
                 
-                // Highlight visual
-                const container = selectEl.closest('.form-row').find('.select2-selection');
+                // Forçar atualização do Select2 (Django Admin Autocomplete)
+                selectEl.trigger('change');
+                selectEl.trigger('change.select2');
+                
+                // Adicionar destaque visual
+                const container = selectEl.closest('.form-row').find('.select2-selection, select');
                 if (container.length) {
                     container.addClass('is-ai-filled');
                     selectEl.one('change', function() {

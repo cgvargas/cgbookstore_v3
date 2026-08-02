@@ -221,15 +221,14 @@ class AIBookAssistantService:
                 logger.error("Erro ao copiar imagem de upload para capa temporária: %s", e)
 
         prompt = """
-        Você é um auxiliar administrativo experiente encarregado de extrair e pesquisar informações detalhadas sobre livros na internet ou a partir dos dados fornecidos (texto, imagens ou documentos).
-        
-        Você tem acesso à ferramenta de busca do Google (Google Search). Utilize-a ativamente para buscar e confirmar informações em sites como Google Books, Amazon, Skoob, editoras e outras fontes literárias confiáveis sempre que:
-        1. O usuário fornecer apenas o título, autor ou ISBN parciais (ex: "pesquise o livro X").
-        2. Faltarem dados importantes como ISBN, data de publicação, quantidade de páginas, editora ou preço de mercado.
-        3. For necessário obter uma sinopse completa e correta em português.
+        Você é um auxiliar administrativo especialista encarregado de extrair e pesquisar informações detalhadas sobre livros na internet.
+
+        [FONTE PRIMÁRIA DE PESQUISA]:
+        Você tem acesso à ferramenta de busca do Google (Google Search). Priorize buscar informações primariamente na AMAZON BRASIL (amazon.com.br) na seção de Livros.
+        Utilize as informações da Amazon Brasil (como título, sinopse em português, editora, quantidade de páginas, formato, preço em R$ e avaliações) como referência principal para garantir dados atualizados do mercado brasileiro e comissionamento de afiliados.
 
         [REGRA CRÍTICA PARA ISBN]:
-        Se for fornecida uma seção de [DADOS DE REFERÊNCIA OBTIDOS PELO ISBN NA WEB], os valores ali contidos (como título, autor, editora, isbn, quantidade de páginas) são a VERDADE ABSOLUTA. Você DEVE usar exatamente os valores dessa seção para preencher os respectivos campos (title, author_name, publisher, isbn, page_count) para evitar qualquer alucinação do nome do livro associado ao ISBN. Use as ferramentas de busca ou seu próprio conhecimento para traduzir, buscar a sinopse em português ('description') e preencher os demais campos.
+        Se for fornecida uma seção de [DADOS DE REFERÊNCIA OBTIDOS PELO ISBN NA WEB], os valores ali contidos (como título, autor, editora, isbn, quantidade de páginas) são a VERDADE ABSOLUTA. Você DEVE usar exatamente os valores dessa seção para preencher os respectivos campos (title, author_name, publisher, isbn, page_count) para evitar qualquer alucinação do nome do livro associado ao ISBN. Use a busca na Amazon Brasil para obter a sinopse em português ('description') e preencher os demais campos.
 
         Sua resposta deve ser estritamente em formato JSON, sem blocos de código markdown (NÃO use ```json ou ```). A resposta deve conter as seguintes chaves e formatos exatos:
         
@@ -239,7 +238,7 @@ class AIBookAssistantService:
         - publication_date: Data de publicação no formato YYYY-MM-DD. Se apenas o ano for conhecido, use YYYY-01-01. Se a data for inválida ou desconhecida, retorne null.
         - isbn: Código ISBN (10 ou 13 dígitos) contendo apenas dígitos e hífens.
         - publisher: Nome da editora (string, ou string vazia "" se desconhecido).
-        - price: Preço médio estimado de mercado em reais (float). NÃO retorne null nem 0. Se desconhecido, estime com base em preços normais do mercado para o gênero e formato do livro (ex: R$ 49.90 ou R$ 59.90).
+        - price: Preço médio estimado de mercado na Amazon Brasil em reais (float). NÃO retorne null nem 0. Se desconhecido, estime com base em preços normais do mercado para o gênero e formato do livro (ex: R$ 49.90 ou R$ 59.90).
         - page_count: Número de páginas (inteiro ou null).
         - language: Código ISO 639-1 de idioma (ex: 'pt', 'en', 'es', 'fr').
         - available_print: true se houver qualquer indicação de versão física/impressa, caso contrário false.
@@ -248,11 +247,11 @@ class AIBookAssistantService:
         - available_pdf: true se houver indicação de formato PDF, caso contrário false.
         - author_name: Nome do autor principal do livro (string).
         - author_bio: Biografia ou resumo resumido sobre a vida e obra do autor principal em português (string, ou string vazia "" se desconhecido).
-        - category_name: Categoria ou gênero principal do livro (ex: Fantasia, Ficção Científica, Romance, Biografia) (string).
+        - category_name: Categoria ou gênero principal do livro (ex: Fantasia, Ficção Científica, Romance, Biografia, Manga, HQ, Terror, Suspense, Autoajuda, Tecnologia) (string).
         - average_rating: Avaliação média do livro de 0.00 a 5.00 (float). NÃO retorne null. Se não souber por fontes externas, estime com base no sucesso crítico global da obra ou na popularidade.
         - ratings_count: Número total estimado de avaliações (inteiro). NÃO retorne null. Se não souber por fontes externas, estime baseado no alcance do livro.
-        - purchase_partner_name: Nome do parceiro comercial principal (string, ex: 'Amazon' ou 'Amazon Brasil').
-        - purchase_partner_url: Link completo de compra do livro no parceiro comercial (string).
+        - purchase_partner_name: 'Amazon Brasil' ou 'Amazon'.
+        - purchase_partner_url: Link completo do livro na Amazon Brasil (string).
 
         Preencha o máximo de campos que puder extrair ou pesquisar com alto grau de confiança.
         """
@@ -328,8 +327,7 @@ class AIBookAssistantService:
             if isbn_val:
                 clean_isbn = re.sub(r'[\-\s]', '', isbn_val)
                 if len(clean_isbn) in (10, 13):
-                    if not extracted_data.get('purchase_partner_name'):
-                        extracted_data['purchase_partner_name'] = 'Amazon'
+                    extracted_data['purchase_partner_name'] = 'Amazon Brasil'
                     partner_url = extracted_data.get('purchase_partner_url', '')
                     if not partner_url or 'amazon' not in partner_url.lower() or partner_url.endswith('.com') or partner_url.endswith('.com/'):
                         extracted_data['purchase_partner_url'] = self._get_amazon_url(clean_isbn)
@@ -343,6 +341,8 @@ class AIBookAssistantService:
 
             if author_name:
                 author_obj = Author.objects.filter(name__iexact=author_name).first()
+                if not author_obj:
+                    author_obj = Author.objects.filter(name__icontains=author_name).first()
                 if author_obj:
                     author_id = author_obj.id
                     extracted_data['author_name'] = author_obj.name
@@ -351,6 +351,14 @@ class AIBookAssistantService:
 
             if category_name:
                 category_obj = Category.objects.filter(name__iexact=category_name).first()
+                if not category_obj:
+                    category_obj = Category.objects.filter(name__icontains=category_name).first()
+                if not category_obj:
+                    # Tentar correspondência por palavra-chave comum
+                    first_word = category_name.split()[0]
+                    if len(first_word) >= 3:
+                        category_obj = Category.objects.filter(name__icontains=first_word).first()
+                
                 if category_obj:
                     category_id = category_obj.id
                     extracted_data['category_name'] = category_obj.name
