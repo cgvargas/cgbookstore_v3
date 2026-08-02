@@ -257,13 +257,15 @@ class BookAdmin(admin.ModelAdmin):
             ),
             'description': '💡 Use para exibir anúncios ou informações importantes em destaque (cor verde).',
         }),
-        ('Metadados', {
+        ('Análise de IA & Metadados', {
             'classes': ('collapse',),
             'fields': (
+                'ai_expanded_analysis',
                 'created_at',
                 'updated_at'
-            )
-        })
+            ),
+            'description': '💡 Conteúdo da Análise Expandida da IA (JSON) editável diretamente pelo administrador.'
+        }),
     )
 
     def has_google_books_data(self, obj):

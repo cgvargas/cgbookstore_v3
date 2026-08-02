@@ -176,12 +176,17 @@ class AIReviewService:
             
             prompt = f"""
             Você é um crítico literário sênior e analista oficial da rede social CG.BookStore.
-            Sua missão é gerar uma análise literária expandida e rica para o seguinte livro:
+            Sua missão é gerar uma análise literária expandida 100% FIEL E FACTUAL para o seguinte livro:
             Título: "{book.title}"
             Autor: "{author_name}"
             Categoria: "{category_name}"
             Descrição: "{description[:800]}"
             
+            ⚠️ REGRAS CRÍTICAS DE FIDELIDADE (ANTI-ALUCINAÇÃO):
+            1. NUNCA invente ou repita o mesmo título de livro como nome de saga/trilogia ou sequências (ex: O Nome do Vento faz parte da saga "A Crônica do Matador do Rei", NÃO "Saga do Rei dos Assassinos").
+            2. NUNCA inverta os papéis dos personagens. Se for "O Nome do Vento", Kvothe/Kote é o protagonista e Ambrose Jakis é seu rival/inimigo arrogante da Universidade (NUNCA o chame de "amigo" ou "mago aliado").
+            3. Se você não tiver certeza absoluta sobre um fato, personagem ou nome de saga, limite-se estritamente aos dados fornecidos na Descrição do livro.
+
             Gere um JSON estruturado contendo exatamente as seguintes chaves e informações em português:
             {{
                 "contexto_historico": "Explique em 2 ou 3 sentenças o contexto histórico ou biográfico de escrita da obra, o que inspirou o autor e o impacto sociocultural da época.",
@@ -200,7 +205,7 @@ class AIReviewService:
                         "papel": "Breve descrição..."
                     }}
                 ],
-                "conexoes_universo": "Diga se o livro faz parte de um universo maior, série ou saga literária. Sugira qual a relação temática dele com outras obras do mesmo autor ou gênero em 2 sentenças."
+                "conexoes_universo": "Diga se o livro faz parte de um universo maior, série ou saga literária correta. Sugira qual a relação temática dele com outras obras do mesmo autor ou gênero em 2 sentenças."
             }}
             
             IMPORTANTE: Responda APENAS com o JSON válido. Não inclua blocos markdown (como ```json) ou qualquer outro texto explicativo.
