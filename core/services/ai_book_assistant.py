@@ -221,11 +221,14 @@ class AIBookAssistantService:
                 logger.error("Erro ao copiar imagem de upload para capa temporária: %s", e)
 
         prompt = """
-        Você é um auxiliar administrativo especialista encarregado de extrair e pesquisar informações detalhadas sobre livros na internet.
+        Você é um auxiliar administrativo especialista encarregado de extrair e pesquisar informações detalhadas sobre livros na internet com FIDELIDADE ABSOLUTA.
 
-        [FONTE PRIMÁRIA DE PESQUISA]:
-        Você tem acesso à ferramenta de busca do Google (Google Search). Priorize buscar informações primariamente na AMAZON BRASIL (amazon.com.br) na seção de Livros.
-        Utilize as informações da Amazon Brasil (como título, sinopse em português, editora, quantidade de páginas, formato, preço em R$ e avaliações) como referência principal para garantir dados atualizados do mercado brasileiro e comissionamento de afiliados.
+        [FONTE PRIMÁRIA DE PESQUISA & REGRAS ANTI-ALUCINAÇÃO]:
+        Você tem acesso à ferramenta de busca do Google (Google Search). Priorize buscar informações primariamente na AMAZON BRASIL (amazon.com.br) na seção de Livros e na sinopse oficial da editora.
+        
+        ⚠️ REGRA CRÍTICA PARA PERSONAGENS E TRAMAS:
+        NUNCA invente ou inverta o papel de personagens (ex: nunca confunda antagônicos/vilões com aliados ou amigos do protagonista).
+        Se você não tiver certeza absoluta sobre a função exata de um personagem secundário, limite-se a transcrever fielmente a sinopse oficial publicada pela editora na Amazon Brasil.
 
         [REGRA CRÍTICA PARA ISBN]:
         Se for fornecida uma seção de [DADOS DE REFERÊNCIA OBTIDOS PELO ISBN NA WEB], os valores ali contidos (como título, autor, editora, isbn, quantidade de páginas) são a VERDADE ABSOLUTA. Você DEVE usar exatamente os valores dessa seção para preencher os respectivos campos (title, author_name, publisher, isbn, page_count) para evitar qualquer alucinação do nome do livro associado ao ISBN. Use a busca na Amazon Brasil para obter a sinopse em português ('description') e preencher os demais campos.
@@ -234,7 +237,7 @@ class AIBookAssistantService:
         
         - title: Título principal do livro (string).
         - subtitle: Subtítulo do livro (string, ou string vazia "" se não houver).
-        - description: Sinopse ou descrição detalhada do livro em português (string).
+        - description: Sinopse ou descrição detalhada do livro em português exatamente como na editora (string).
         - publication_date: Data de publicação no formato YYYY-MM-DD. Se apenas o ano for conhecido, use YYYY-01-01. Se a data for inválida ou desconhecida, retorne null.
         - isbn: Código ISBN (10 ou 13 dígitos) contendo apenas dígitos e hífens.
         - publisher: Nome da editora (string, ou string vazia "" se desconhecido).
@@ -275,7 +278,11 @@ class AIBookAssistantService:
             logger.info("Chamando API do Gemini (gemini-2.5-flash) com structured JSON...")
             response = self.model.generate_content(
                 contents,
-                generation_config={"response_mime_type": "application/json"}
+                generation_config={
+                    "response_mime_type": "application/json",
+                    "temperature": 0.0,
+                    "top_p": 0.1,
+                }
             )
 
             response_text = response.text.strip()
