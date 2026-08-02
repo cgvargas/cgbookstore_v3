@@ -657,13 +657,9 @@
                     $(this).removeClass('is-ai-filled');
                 });
             }
-        // Abrir sidebar automaticamente APENAS se o usuário vier de FORA da seção de adição de livros
-        // Se a requisição veio após submeter/salvar um livro (referrer da mesma página de livros), manter fechado
-        const referrer = document.referrer || '';
-        const isInternalBookNav = referrer.includes('/admin/core/book/');
+        // Abrir sidebar automaticamente quando estiver na página de adição de livro
         const isAddForm = window.location.pathname.includes('/admin/core/book/add/');
-        
-        if (isAddForm && !isInternalBookNav) {
+        if (isAddForm) {
             sidebar.addClass('open');
         }
 

@@ -366,6 +366,15 @@
   var closeBtn = document.getElementById('form-card-close');
   if (!overlay || !closeBtn) return;
 
+  // Verificar se o usuário veio de dentro da própria seção de livros
+  // (ex: salvou um livro, alterou filtros ou navegou na lista de livros)
+  var referrer = document.referrer || '';
+  var isInternalBookNav = referrer.indexOf('/admin/core/book/') !== -1;
+
+  if (isInternalBookNav) {
+    overlay.style.display = 'none';
+  }
+
   function closeCard() {
     overlay.style.animation = 'fcOverlayIn .18s ease reverse forwards';
     var card = document.getElementById('form-card');
