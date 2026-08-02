@@ -16,8 +16,8 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
     <meta property="og:url" content="{% block og_url %}{{ SEO_CANONICAL_URL }}{% endblock %}">
-    <meta property="og:title" content="{% block og_title %}{% block title %}CG.BookStore{% endblock %}{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}{% block meta_description_og %}{{ SEO_DEFAULT_DESCRIPTION }}{% endblock %}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}CG.BookStore{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ SEO_DEFAULT_DESCRIPTION }}{% endblock %}">
     <meta property="og:image" content="{% block og_image %}{{ SEO_DEFAULT_OG_IMAGE }}{% endblock %}">
     <meta property="og:site_name" content="{{ SEO_SITE_NAME }}">
     <meta property="og:locale" content="pt_BR">
@@ -25,7 +25,7 @@
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="{% block twitter_card %}summary_large_image{% endblock %}">
     <meta name="twitter:url" content="{% block twitter_url %}{{ SEO_CANONICAL_URL }}{% endblock %}">
-    <meta name="twitter:title" content="{% block twitter_title %}{% block title_twitter %}CG.BookStore{% endblock %}{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}CG.BookStore{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}{{ SEO_DEFAULT_DESCRIPTION }}{% endblock %}">
     <meta name="twitter:image" content="{% block twitter_image %}{{ SEO_DEFAULT_OG_IMAGE }}{% endblock %}">
 
