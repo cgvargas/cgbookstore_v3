@@ -219,6 +219,11 @@ class SectionAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
     inlines = [SectionItemInline]
 
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name in ['banner_text_color', 'background_color']:
+            kwargs['widget'] = forms.TextInput(attrs={'type': 'color', 'style': 'height:38px; width:80px; padding:2px; cursor:pointer;'})
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
+
     fieldsets = (
         ('Informações Básicas', {
             'fields': (
@@ -272,10 +277,12 @@ class SectionAdmin(admin.ModelAdmin):
         ('Efeitos Visuais do Banner', {
             'classes': ('collapse',),
             'fields': (
+                'banner_text_color',
                 'banner_overlay_opacity',
                 ('banner_blur_edges', 'banner_blur_intensity'),
             ),
             'description': (
+                'Cor dos Textos: Escolha a cor do título e subtítulo sobre o banner.<br>'
                 'Overlay: Escurecimento sobre a imagem do banner (0.0-1.0, recomendado: 0.4-0.6)<br>'
                 'Desfoque: Aplica fade gradual nas bordas superior e inferior (60-120px)'
             )

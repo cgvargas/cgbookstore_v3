@@ -58,6 +58,14 @@ class FeaturedAuthorSettings(models.Model):
         verbose_name='Banner da Seção',
         help_text='Imagem de fundo da seção (recomendado: 1920x600px)'
     )
+
+    home_text_color = models.CharField(
+        max_length=20,
+        default='#ffffff',
+        blank=True,
+        verbose_name='Cor dos Textos na Home',
+        help_text='Cor do título, subtítulo e descrição sobre o banner na home (ex: #ffffff, #f4d03f, #000000)'
+    )
     
     home_button_text = models.CharField(
         max_length=50,

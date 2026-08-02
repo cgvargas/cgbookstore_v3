@@ -121,6 +121,14 @@ class Banner(models.Model):
     )
 
     # Efeitos visuais
+    text_color = models.CharField(
+        max_length=20,
+        default='#ffffff',
+        blank=True,
+        verbose_name="Cor dos Textos",
+        help_text="Cor do título, subtítulo e descrição sobre a imagem (ex: #ffffff, #f4d03f, #000000)"
+    )
+
     overlay_opacity = models.FloatField(
         default=0.3,
         verbose_name="Opacidade do Overlay Escuro",

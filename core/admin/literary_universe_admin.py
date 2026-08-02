@@ -1,9 +1,4 @@
-# core/admin/literary_universe_admin.py
-"""
-Admin para Universos Literários.
-Configuração completa com inlines para conteúdo e banners.
-"""
-
+from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 from core.models import LiteraryUniverse, UniverseContentItem, UniverseBanner
@@ -28,6 +23,11 @@ class UniverseBannerInline(admin.TabularInline):
 @admin.register(LiteraryUniverse)
 class LiteraryUniverseAdmin(admin.ModelAdmin):
     """Admin completo para Universos Literários."""
+    
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name in ['theme_color_primary', 'theme_color_secondary']:
+            kwargs['widget'] = forms.TextInput(attrs={'type': 'color', 'style': 'height:38px; width:80px; padding:2px; cursor:pointer;'})
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
     
     list_display = [
         'title', 

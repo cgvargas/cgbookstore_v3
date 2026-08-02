@@ -1,6 +1,5 @@
-"""
-Admin para Banner
-"""
+from django import forms
+from django.db import models
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
@@ -10,6 +9,15 @@ from core.models import Banner
 @admin.register(Banner)
 class BannerAdmin(admin.ModelAdmin):
     """Administração de Banners da Home."""
+
+    formfield_overrides = {
+        models.CharField: {'widget': forms.TextInput(attrs={'type': 'text'})}
+    }
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == 'text_color':
+            kwargs['widget'] = forms.TextInput(attrs={'type': 'color', 'style': 'height:38px; width:80px; padding:2px; cursor:pointer;'})
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
 
     list_display = [
         'title',
@@ -43,6 +51,10 @@ class BannerAdmin(admin.ModelAdmin):
     list_display_links = ['title']
     date_hierarchy = 'created_at'
 
+    formfield_overrides = {
+        models.CharField: {'widget': forms.TextInput(attrs={'type': 'color', 'style': 'height:38px; width:80px; padding:2px; cursor:pointer;'})}
+    }
+
     fieldsets = (
         ('Informações Básicas', {
             'fields': (
@@ -67,10 +79,12 @@ class BannerAdmin(admin.ModelAdmin):
         }),
         ('Efeitos Visuais', {
             'fields': (
+                'text_color',
                 'overlay_opacity',
                 ('blur_edges', 'blur_intensity'),
             ),
             'description': (
+                'Cor dos Textos: Escolha a cor do título, subtítulo e descrição do banner.<br>'
                 'Overlay: Escurecimento sobre a imagem (0.0-1.0, recomendado: 0.2-0.4)<br>'
                 'Desfoque: Aplica fade gradual nas bordas superior e inferior (80-150px)'
             )

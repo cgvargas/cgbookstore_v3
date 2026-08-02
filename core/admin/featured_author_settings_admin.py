@@ -1,9 +1,4 @@
-# core/admin/featured_author_settings_admin.py
-"""
-Admin para configuração de Autor em Destaque.
-Interface amigável para editar seção da home e página dedicada.
-"""
-
+from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 from core.models import FeaturedAuthorSettings
@@ -13,6 +8,11 @@ from core.models import FeaturedAuthorSettings
 class FeaturedAuthorSettingsAdmin(admin.ModelAdmin):
     """Admin para FeaturedAuthorSettings com preview e organização por fieldsets."""
     
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == 'home_text_color':
+            kwargs['widget'] = forms.TextInput(attrs={'type': 'color', 'style': 'height:38px; width:80px; padding:2px; cursor:pointer;'})
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
+
     list_display = [
         'author_display',
         'home_title',
@@ -36,6 +36,7 @@ class FeaturedAuthorSettingsAdmin(admin.ModelAdmin):
                 'home_subtitle',
                 'home_title',
                 'home_description',
+                'home_text_color',
                 'home_banner_image',
                 'banner_preview',
                 'home_button_text',

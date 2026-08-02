@@ -61,6 +61,7 @@ class HomeView(TemplateView):
                 'title': b.title,
                 'subtitle': b.subtitle,
                 'description': b.description,
+                'text_color': getattr(b, 'text_color', '#ffffff') or '#ffffff',
                 'height': b.height,
                 'image': {'url': b.image.url} if b.image else None,  # Estrutura compatível com template {{ b.image.url }}
                 'video_file': {'url': b.video_file.url} if hasattr(b, 'video_file') and b.video_file else None,
@@ -277,6 +278,7 @@ class HomeView(TemplateView):
                 'container_background_position': section.container_background_position,
                 # Banner settings
                 'banner_image_url': banner_url,
+                'banner_text_color': getattr(section, 'banner_text_color', '#ffffff') or '#ffffff',
                 'banner_position_vertical': section.banner_position_vertical,
                 'banner_position_horizontal': section.banner_position_horizontal,
                 'banner_height': section.banner_height,

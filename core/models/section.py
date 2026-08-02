@@ -129,6 +129,14 @@ class Section(models.Model):
     )
 
     # Efeitos visuais do banner
+    banner_text_color = models.CharField(
+        max_length=20,
+        default='#ffffff',
+        blank=True,
+        verbose_name="Cor dos Textos do Banner",
+        help_text="Cor do título e subtítulo sobre o banner (ex: #ffffff, #f4d03f, #000000)"
+    )
+
     banner_overlay_opacity = models.FloatField(
         default=0.5,
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],

@@ -875,18 +875,18 @@
                 <img src="{% static 'images/tolkien_banner.png' %}" alt="{{ featured_author.home_title|default:'Mundo de Tolkien' }}" loading="lazy">
                 {% endif %}
                 <div class="tolkien-banner-overlay"></div>
-                <div class="tolkien-banner-content">
+                <div class="tolkien-banner-content" style="color: {{ featured_author.home_text_color|default:'#ffffff' }};">
                     <div class="tolkien-icon-ring">
                         <i class="fas fa-ring"></i>
                     </div>
-                    <h2 class="tolkien-title">
-                        <span class="tolkien-subtitle">{{ featured_author.home_subtitle|default:'Explore o Mundo de' }}</span>
+                    <h2 class="tolkien-title" style="color: inherit;">
+                        <span class="tolkien-subtitle" style="color: inherit; opacity: 0.9;">{{ featured_author.home_subtitle|default:'Explore o Mundo de' }}</span>
                         {{ featured_author.home_title|default:'J.R.R. Tolkien' }}
                     </h2>
-                    <p class="tolkien-description">
+                    <p class="tolkien-description" style="color: inherit; opacity: 0.85;">
                         {{ featured_author.home_description|default:'Descubra a Terra-média através das obras do mestre da fantasia' }}
                     </p>
-                    <div class="tolkien-stats">
+                    <div class="tolkien-stats" style="color: inherit; opacity: 0.9;">
                         <span class="tolkien-stat">
                             <i class="fas fa-book"></i> {{ featured_author_books|length }} Livros
                         </span>
@@ -977,9 +977,9 @@
 
             <!-- Overlay com textos (só exibe se houver título ou botão Ver todos) -->
             {% if section.title or section.subtitle or section.show_see_more %}
-            <div class="section-banner-overlay">
+            <div class="section-banner-overlay" style="color: {{ section.banner_text_color|default:'#ffffff' }};">
                 {% if section.title %}
-                <h2>
+                <h2 style="color: inherit;">
                     {% if section.content_type == 'books' %}
                         <i class="fas fa-book me-2"></i>
                     {% elif section.content_type == 'authors' %}
@@ -995,7 +995,7 @@
                 </h2>
                 {% endif %}
                 {% if section.subtitle %}
-                    <p>{{ section.subtitle }}</p>
+                    <p style="color: inherit; opacity: 0.9;">{{ section.subtitle }}</p>
                 {% endif %}
                 {% if section.show_see_more and section.see_more_url %}
                     <a href="{{ section.see_more_url }}" class="view-all-link-banner">
