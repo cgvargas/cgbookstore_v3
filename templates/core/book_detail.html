@@ -2,7 +2,86 @@
 {% load static %}
 {% load l10n %}
 
-{% block title %}{{ book.title }} - CGBookStore{% endblock %}
+{% block title %}{{ book.title }}{% if book.author %} por {{ book.author.name }}{% endif %} - CG.BookStore{% endblock %}
+
+{% block meta_description %}{% if book.description %}{{ book.description|striptags|truncatewords:30 }}{% else %}Compre ou descubra o livro {{ book.title }} de {{ book.author.name|default:"Autor Desconhecido" }} na CG.BookStore.{% endif %}{% endblock %}
+
+{% block og_type %}book{% endblock %}
+{% block og_image %}{% if book.cover_image %}{{ book.cover_image.url }}{% else %}{{ SEO_DEFAULT_OG_IMAGE }}{% endif %}{% endblock %}
+
+{% block schema_json_ld %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Book",
+  "name": "{{ book.title|escapejs }}",
+  {% if book.subtitle %}"alternativeHeadline": "{{ book.subtitle|escapejs }}",{% endif %}
+  "isbn": "{{ book.isbn|default:'' }}",
+  {% if book.author %}"author": {
+    "@type": "Person",
+    "name": "{{ book.author.name|escapejs }}"
+  },{% endif %}
+  {% if book.publisher %}"publisher": {
+    "@type": "Organization",
+    "name": "{{ book.publisher.name|default:book.publisher|escapejs }}"
+  },{% endif %}
+  {% if book.publication_date %}"datePublished": "{{ book.publication_date|date:'Y-m-d' }}",{% endif %}
+  "inLanguage": "{{ book.language|default:'pt-BR' }}",
+  {% if book.cover_image %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}",{% endif %}
+  "description": "{{ book.description|striptags|truncatewords:40|escapejs }}",
+  "workExample": {
+    "@type": "Book",
+    "bookFormat": "https://schema.org/Hardcover",
+    "potentialAction": {
+      "@type": "ReadAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "{{ SEO_CANONICAL_URL }}"
+      }
+    }
+  }{% if book.average_rating and book.ratings_count %},
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ book.average_rating|floatformat:1 }}",
+    "reviewCount": "{{ book.ratings_count }}"
+  }{% endif %}{% if book.price %},
+  "offers": {
+    "@type": "Offer",
+    "price": "{{ book.price }}",
+    "priceCurrency": "BRL",
+    "availability": "https://schema.org/InStock",
+    "url": "{{ SEO_CANONICAL_URL }}"
+  }{% endif %}
+}
+</script>
+<!-- BreadcrumbList Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://www.cgbookstore.com.br/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Livros",
+      "item": "https://www.cgbookstore.com.br/livros/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ book.title|escapejs }}",
+      "item": "{{ SEO_CANONICAL_URL }}"
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block extra_css %}
 <!-- Swiper CSS CDN -->

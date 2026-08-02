@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Página Não Encontrada (404) - CG.BookStore{% endblock %}
+{% block meta_robots %}noindex, follow{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5 my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="mb-4">
+                <i class="fas fa-book-dead fa-6x text-primary opacity-75"></i>
+            </div>
+            <h1 class="display-4 fw-bold mb-3">Página Não Encontrada</h1>
+            <p class="lead text-muted mb-4">
+                Ops! A página ou livro que você procurava parece ter sido movido ou não existe mais no nosso catálogo.
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a href="{% url 'core:home' %}" class="btn btn-primary rounded-pill px-4 py-2">
+                    <i class="fas fa-home me-2"></i>Voltar para o Início
+                </a>
+                <a href="{% url 'core:book_list' %}" class="btn btn-outline-primary rounded-pill px-4 py-2">
+                    <i class="fas fa-search me-2"></i>Explorar Catálogo
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

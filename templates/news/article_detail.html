@@ -4,6 +4,37 @@
 
 {% block title %}{{ article.title }} - CG.Fandom News{% endblock %}
 
+{% block meta_description %}{% if article.excerpt %}{{ article.excerpt|striptags }}{% else %}{{ article.title }} - Leia a notícia completa na CG.Fandom News.{% endif %}{% endblock %}
+
+{% block og_type %}article{% endblock %}
+{% block og_image %}{% if article.featured_image %}{{ article.featured_image.url }}{% else %}{{ SEO_DEFAULT_OG_IMAGE }}{% endif %}{% endblock %}
+
+{% block schema_json_ld %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "{{ article.title|escapejs }}",
+  "description": "{{ article.excerpt|default:article.title|striptags|escapejs }}",
+  {% if article.featured_image %}"image": ["{{ request.scheme }}://{{ request.get_host }}{{ article.featured_image.url }}"],{% endif %}
+  "datePublished": "{{ article.published_at|date:'c' }}",
+  "dateModified": "{{ article.updated_at|default:article.published_at|date:'c' }}",
+  "author": {
+    "@type": "Person",
+    "name": "{{ article.author.get_full_name|default:article.author.username|escapejs }}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "CG.BookStore",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://www.cgbookstore.com.br/static/images/logo_appweb.png"
+    }
+  }
+}
+</script>
+{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/news.css' %}">
 {% endblock %}

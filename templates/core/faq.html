@@ -3,6 +3,43 @@
 
 {% block title %}FAQ - Perguntas Frequentes | CG.BookStore{% endblock %}
 
+{% block meta_description %}Tire suas dúvidas sobre o catálogo, compra de livros, clube de assinaturas premium, entregas e como usar a CG.BookStore.{% endblock %}
+
+{% block schema_json_ld %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Como funciona a biblioteca virtual da CG.BookStore?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Na CG.BookStore você pode organizar seus livros em prateleiras personalizadas, acompanhar metas de leitura, receber recomendações por IA e adquirir livros físicos ou e-books."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Como funcionam as comissões e links de afiliados da Amazon?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Somos associados oficiais da Amazon Brasil. Ao comprar um livro recomendado através dos nossos links, recebemos comissão sem nenhum custo adicional para você."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quais as vantagens de assinar o plano Premium?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Assinantes Premium contam com recomendações personalizadas por IA sem limites, cupons de desconto exclusivos, suporte priorizado e badges especiais na comunidade."
+      }
+    }
+  ]
+}
+</script>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     :root {

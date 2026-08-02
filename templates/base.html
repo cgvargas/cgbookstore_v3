@@ -6,10 +6,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}CG.BookStore{% endblock %}</title>
 
-    <!-- Favicon -->
+    <!-- Metadados de SEO Técnico & Meta Tags Dinâmicas -->
+    <meta name="description" content="{% block meta_description %}{{ SEO_DEFAULT_DESCRIPTION }}{% endblock %}">
+    <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
+    <link rel="canonical" href="{% block canonical_url %}{{ SEO_CANONICAL_URL }}{% endblock %}">
+    <link rel="alternate" hreflang="pt-BR" href="{{ SEO_CANONICAL_URL }}">
+    <link rel="alternate" hreflang="x-default" href="{{ SEO_CANONICAL_URL }}">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ SEO_CANONICAL_URL }}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}{% block title %}CG.BookStore{% endblock %}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{% block meta_description_og %}{{ SEO_DEFAULT_DESCRIPTION }}{% endblock %}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ SEO_DEFAULT_OG_IMAGE }}{% endblock %}">
+    <meta property="og:site_name" content="{{ SEO_SITE_NAME }}">
+    <meta property="og:locale" content="pt_BR">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="{% block twitter_card %}summary_large_image{% endblock %}">
+    <meta name="twitter:url" content="{% block twitter_url %}{{ SEO_CANONICAL_URL }}{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}{% block title_twitter %}CG.BookStore{% endblock %}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{{ SEO_DEFAULT_DESCRIPTION }}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ SEO_DEFAULT_OG_IMAGE }}{% endblock %}">
+
+    <!-- Otimizações de Desempenho & Core Web Vitals (Preconnect & Preload) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+
+    <!-- Favicon & Touch Icons -->
     {% load static %}
     <link rel="icon" type="image/png" href="{% static 'images/logo_appweb.png' %}">
     <link rel="apple-touch-icon" href="{% static 'images/logo_appweb.png' %}">
+
+    <!-- Schema.org JSON-LD Globais (Organization, WebSite & SearchAction) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "CG.BookStore",
+      "url": "https://www.cgbookstore.com.br/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.cgbookstore.com.br/busca/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "CG.BookStore",
+      "url": "https://www.cgbookstore.com.br/",
+      "logo": "https://www.cgbookstore.com.br/static/images/logo_appweb.png",
+      "sameAs": [
+        "https://www.instagram.com/cgbookstore",
+        "https://www.cgvargas.com.br"
+      ]
+    }
+    </script>
+    {% block schema_json_ld %}{% endblock %}
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">

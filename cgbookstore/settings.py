@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',  # Filtros de formatação (intcomma, naturaltime, etc)
     'django.contrib.sites',  # Requerido pelo allauth
+    'django.contrib.sitemaps',  # Django Sitemap XML Framework
 
     # Django-allauth
     'allauth',
@@ -108,6 +109,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.seo_context',  # Context processor para SEO Técnico
             ],
         },
     },

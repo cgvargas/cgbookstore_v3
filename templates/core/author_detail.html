@@ -2,7 +2,22 @@
 {% load static %}
 {% load custom_filters %}
 
-{% block title %}{{ author.name }} - CG.BookStore{% endblock %}
+{% block title %}{{ author.name }} - Autor em CG.BookStore{% endblock %}
+
+{% block meta_description %}{% if author.bio %}{{ author.bio|striptags|truncatewords:30 }}{% else %}Conheça a biografia, história e livros de {{ author.name }} na CG.BookStore.{% endif %}{% endblock %}
+
+{% block schema_json_ld %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "{{ author.name|escapejs }}",
+  {% if author.photo %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ author.photo.url }}",{% endif %}
+  "description": "{{ author.bio|default:author.name|striptags|truncatewords:30|escapejs }}",
+  "url": "{{ SEO_CANONICAL_URL }}"
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="container my-5">
