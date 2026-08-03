@@ -2,14 +2,24 @@
 """
 View dinâmica para Universos Literários.
 Exibe página temática de um autor e seu universo de obras.
+HUB de conhecimento otimizado com prefetch_related, SEO microdata,
+ordem de leitura, cronologia, FAQ e adaptações.
 """
 
 from django.views.generic import DetailView
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.http import Http404
 
-from core.models import LiteraryUniverse, Book
+from core.models import (
+    LiteraryUniverse, 
+    Book, 
+    UniverseBanner, 
+    UniverseReadingOrder, 
+    UniverseTimelineEvent, 
+    UniverseFAQ,
+    UniverseContentItem,
+)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -18,7 +28,8 @@ logger = logging.getLogger(__name__)
 class LiteraryUniverseView(DetailView):
     """
     View genérica para qualquer universo literário.
-    Exibe livros, artigos, vídeos e conteúdo do universo.
+    Exibe livros, autores, artigos, vídeos, quizzes, ordem de leitura,
+    cronologia, FAQ e adaptações.
     """
     
     model = LiteraryUniverse
@@ -29,10 +40,25 @@ class LiteraryUniverseView(DetailView):
     CACHE_TIMEOUT = 1800
     
     def get_queryset(self):
-        """Retorna apenas universos ativos."""
+        """Retorna universos ativos pré-carregando relacionamentos otimizados."""
         return LiteraryUniverse.objects.filter(
             is_active=True
-        ).select_related('author')
+        ).select_related(
+            'author', 'collection'
+        ).prefetch_related(
+            'additional_authors',
+            'books__author', 'books__category',
+            'videos',
+            'articles__category',
+            'quizzes',
+            'related_universes__author',
+            'related_categories',
+            Prefetch('reading_order', queryset=UniverseReadingOrder.objects.select_related('book')),
+            Prefetch('timeline_events', queryset=UniverseTimelineEvent.objects.filter(is_active=True)),
+            Prefetch('faqs', queryset=UniverseFAQ.objects.filter(is_active=True)),
+            Prefetch('content_items', queryset=UniverseContentItem.objects.filter(is_active=True)),
+            Prefetch('banners', queryset=UniverseBanner.objects.filter(is_active=True)),
+        )
     
     def get_object(self, queryset=None):
         """Busca o universo pelo slug."""
@@ -63,13 +89,13 @@ class LiteraryUniverseView(DetailView):
         
         logger.info(f"[UNIVERSE:{universe.slug}] Cache MISS - construindo contexto...")
         
-        # === LIVROS DO AUTOR ===
-        author_books = list(Book.objects.filter(
-            author=universe.author
-        ).select_related('author', 'category').order_by('title'))
+        # === LIVROS DO UNIVERSO (M2M + Autores) ===
+        author_books = list(universe.get_all_books())
+        
+        # === AUTORES (Principal + Adicionais) ===
+        authors_list = list(universe.get_all_authors())
         
         # === ARTIGOS RELACIONADOS ===
-        # Combina artigos selecionados manualmente + artigos por tag do autor
         author_articles = []
         manual_article_ids = set()
         
@@ -77,11 +103,11 @@ class LiteraryUniverseView(DetailView):
             from news.models import Article, Tag
             
             # 1. Artigos selecionados manualmente no admin
-            manual_articles = list(universe.articles.filter(is_published=True))
+            manual_articles = list(universe.articles.filter(is_published=True).select_related('category'))
             author_articles.extend(manual_articles)
             manual_article_ids = set(a.id for a in manual_articles)
             
-            # 2. Artigos por tag com sobrenome do autor (excluindo os já adicionados)
+            # 2. Artigos por tag com sobrenome do autor principal
             author_surname = universe.author.name.split()[-1]
             author_tag = Tag.objects.filter(
                 Q(name__icontains=author_surname) |
@@ -103,24 +129,36 @@ class LiteraryUniverseView(DetailView):
         # === VÍDEOS ===
         all_videos = list(universe.get_all_videos())
         
-        # === CONTEÚDO ADICIONAL ===
-        games = list(universe.content_items.filter(
-            content_type='game', is_active=True
-        ).order_by('display_order'))
+        # === QUIZZES ===
+        quizzes = list(universe.quizzes.filter(is_active=True).select_related('category'))
         
-        adaptations = list(universe.content_items.filter(
-            content_type='adaptation', is_active=True
-        ).order_by('display_order'))
+        # === ORDEM DE LEITURA ===
+        reading_order = list(universe.reading_order.all().select_related('book'))
         
-        podcasts = list(universe.content_items.filter(
-            content_type='podcast', is_active=True
-        ).order_by('display_order'))
+        # === CRONOLOGIA ===
+        timeline_events = list(universe.timeline_events.filter(is_active=True).order_by('chronological_position'))
         
-        other_content = list(universe.content_items.filter(
-            is_active=True
-        ).exclude(
-            content_type__in=['game', 'adaptation', 'podcast']
-        ).order_by('display_order'))
+        # === FAQS & SCHEMA JSON-LD ===
+        faqs = list(universe.get_active_faqs())
+        faq_schema_json = universe.get_faq_schema_json()
+        
+        # === CONTEÚDO ADICIONAL E ADAPTAÇÕES ===
+        active_content_items = list(universe.content_items.filter(is_active=True))
+        
+        adaptations = [
+            item for item in active_content_items 
+            if item.content_type in ['adaptation', 'game', 'anime', 'hq']
+        ]
+        
+        podcasts = [item for item in active_content_items if item.content_type == 'podcast']
+        other_content = [
+            item for item in active_content_items 
+            if item.content_type not in ['adaptation', 'game', 'anime', 'hq', 'podcast']
+        ]
+        
+        # === UNIVERSOS E CATEGORIAS RELACIONADAS ===
+        related_universes = list(universe.related_universes.filter(is_active=True).select_related('author'))
+        related_categories = list(universe.related_categories.all())
         
         # === BANNERS POR POSIÇÃO ===
         banners_after_hero = list(universe.get_active_banners('after_hero'))
@@ -138,16 +176,24 @@ class LiteraryUniverseView(DetailView):
         # Contexto para cache
         page_context = {
             'author': universe.author,
+            'authors_list': authors_list,
             'author_books': author_books,
             'books_count': len(author_books),
             'author_articles': author_articles,
             'articles_count': len(author_articles),
             'videos': all_videos,
             'videos_count': len(all_videos),
-            'games': games,
+            'quizzes': quizzes,
+            'quizzes_count': len(quizzes),
+            'reading_order': reading_order,
+            'timeline_events': timeline_events,
+            'faqs': faqs,
+            'faq_schema_json': faq_schema_json,
             'adaptations': adaptations,
             'podcasts': podcasts,
             'other_content': other_content,
+            'related_universes': related_universes,
+            'related_categories': related_categories,
             'total_pages': total_pages,
             # Banners
             'banners_after_hero': banners_after_hero,

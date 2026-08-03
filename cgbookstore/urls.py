@@ -12,6 +12,7 @@ from core.sitemaps import (
     AuthorSitemap,
     CategorySitemap,
     ArticleSitemap,
+    LiteraryUniverseSitemap,
 )
 
 sitemaps = {
@@ -20,6 +21,7 @@ sitemaps = {
     'authors': AuthorSitemap,
     'categories': CategorySitemap,
     'articles': ArticleSitemap,
+    'universes': LiteraryUniverseSitemap,
 }
 
 def robots_txt(request):

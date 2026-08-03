@@ -1,5 +1,5 @@
 """
-Signals para invalidar cache da home page quando dados relevantes mudam.
+Signals para invalidar cache da home page e universos literários quando dados relevantes mudam.
 
 IMPORTANTE: Não invalidar em updates de contadores (views, clicks) pois
 são operações frequentes que não afetam o conteúdo exibido.
@@ -30,6 +30,22 @@ def invalidate_home_cache():
         cache.clear()
         logger.info("[CACHE] Todo o cache foi limpo (fallback)")
     logger.info("[CACHE] Home cache invalidado")
+
+
+def invalidate_universe_cache(universe_slug=None):
+    """Invalida o cache de um universo específico ou de todos os universos."""
+    if universe_slug:
+        cache.delete(f'literary_universe_{universe_slug}')
+        logger.info(f"[CACHE] Cache do universo '{universe_slug}' invalidado")
+    else:
+        if hasattr(cache, 'delete_pattern'):
+            try:
+                cache.delete_pattern('literary_universe_*')
+                logger.info("[CACHE] Todos os caches de universos deletados")
+            except Exception:
+                cache.clear()
+        else:
+            cache.clear()
 
 
 # ==============================================================================
@@ -86,6 +102,36 @@ def video_changed(sender, **kwargs):
 
 
 # ==============================================================================
+# SIGNALS DE CACHE — Universos Literários
+# ==============================================================================
+
+@receiver(post_save, sender='core.LiteraryUniverse')
+@receiver(post_delete, sender='core.LiteraryUniverse')
+def universe_changed(sender, instance, **kwargs):
+    """Invalida cache do universo e da home page."""
+    invalidate_universe_cache(instance.slug)
+    invalidate_home_cache()
+
+
+@receiver(post_save, sender='core.UniverseContentItem')
+@receiver(post_delete, sender='core.UniverseContentItem')
+@receiver(post_save, sender='core.UniverseBanner')
+@receiver(post_delete, sender='core.UniverseBanner')
+@receiver(post_save, sender='core.UniverseReadingOrder')
+@receiver(post_delete, sender='core.UniverseReadingOrder')
+@receiver(post_save, sender='core.UniverseTimelineEvent')
+@receiver(post_delete, sender='core.UniverseTimelineEvent')
+@receiver(post_save, sender='core.UniverseFAQ')
+@receiver(post_delete, sender='core.UniverseFAQ')
+@receiver(post_save, sender='core.UniverseCharacter')
+@receiver(post_delete, sender='core.UniverseCharacter')
+def universe_child_changed(sender, instance, **kwargs):
+    """Invalida cache do universo pai quando algum filho muda."""
+    if hasattr(instance, 'universe') and instance.universe:
+        invalidate_universe_cache(instance.universe.slug)
+
+
+# ==============================================================================
 # SIGNALS DE BOOK — R2 Assíncrono + Cache
 # ==============================================================================
 
@@ -93,24 +139,13 @@ def video_changed(sender, **kwargs):
 def book_pre_delete_capture_files(sender, instance, **kwargs):
     """
     Captura o nome do arquivo ANTES da deleção e zera o campo.
-
-    Isso impede que o django_cleanup faça a chamada HTTP síncrona ao R2
-    durante o request do admin (que causava ~1.5s de latência).
-
-    O arquivo capturado será deletado de forma assíncrona via Celery
-    no signal post_delete abaixo.
     """
-    # Capturar o nome do arquivo antes de ser zerado
     cover_name = None
     if instance.cover_image and instance.cover_image.name:
         cover_name = instance.cover_image.name
 
-    # Guardar no objeto para usar no post_delete
-    # (o objeto instance é passado para os receivers na mesma thread)
     instance._pending_file_delete = cover_name
 
-    # Zerar o campo para que o django_cleanup não encontre arquivo para deletar
-    # (evita a chamada HTTP síncrona ao R2 durante o request)
     if cover_name:
         instance.cover_image = None
         logger.debug(f"[STORAGE] Arquivo capturado para deleção async: {cover_name}")
@@ -120,10 +155,9 @@ def book_pre_delete_capture_files(sender, instance, **kwargs):
 def book_post_delete(sender, instance, **kwargs):
     """
     Após deleção do Book:
-    1. Agenda deleção do arquivo R2 via Celery (assíncrono, não bloqueia o request)
-    2. Invalida o cache da home page
+    1. Agenda deleção do arquivo R2 via Celery
+    2. Invalida o cache da home e universos
     """
-    # Deletar arquivo do R2 de forma assíncrona
     file_name = getattr(instance, '_pending_file_delete', None)
     if file_name:
         try:
@@ -131,17 +165,17 @@ def book_post_delete(sender, instance, **kwargs):
             delete_storage_file.delay(file_name)
             logger.info(f"[STORAGE] Task agendada para deletar: {file_name}")
         except Exception as e:
-            # Fallback: logar mas não bloquear o response
             logger.error(f"[STORAGE] ❌ Falha ao agendar task de deleção: {e}")
 
-    # Invalidar cache da home
     invalidate_home_cache()
+    invalidate_universe_cache()
 
 
 @receiver(post_save, sender='core.Book')
 def book_changed(sender, **kwargs):
     """Invalida cache quando Book muda."""
     invalidate_home_cache()
+    invalidate_universe_cache()
 
 
 @receiver(post_save, sender='core.Author')
@@ -149,6 +183,7 @@ def book_changed(sender, **kwargs):
 def author_changed(sender, **kwargs):
     """Invalida cache quando Author muda."""
     invalidate_home_cache()
+    invalidate_universe_cache()
 
 
 @receiver(post_save, sender='news.Article')
@@ -156,6 +191,7 @@ def author_changed(sender, **kwargs):
 def news_article_changed(sender, **kwargs):
     """Invalida cache quando um artigo de notícias muda ou é deletado."""
     invalidate_home_cache()
+    invalidate_universe_cache()
 
 
 @receiver(post_save, sender='news.Category')
@@ -163,6 +199,7 @@ def news_article_changed(sender, **kwargs):
 def news_category_changed(sender, **kwargs):
     """Invalida cache quando uma categoria de notícias muda ou é deletada."""
     invalidate_home_cache()
+    invalidate_universe_cache()
 
 
 # ==============================================================================
@@ -171,21 +208,11 @@ def news_category_changed(sender, **kwargs):
 
 @receiver(connection_created)
 def set_db_statement_timeout(sender, connection, **kwargs):
-    """
-    Define statement_timeout para cada nova conexão PostgreSQL.
-
-    POR QUÊ AQUI e não em settings.py OPTIONS:
-    O Supabase usa PgBouncer em transaction mode, onde comandos SET
-    não persistem entre transações. Este signal roda a cada nova conexão
-    obtida do pool, garantindo que o timeout seja aplicado via SQL real.
-
-    Timeout: 25s (antes do timeout do Gunicorn de 30s)
-    """
+    """Define statement_timeout para cada nova conexão PostgreSQL."""
     if connection.vendor == 'postgresql':
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SET statement_timeout = '25000'")  # 25 segundos em ms
+                cursor.execute("SET statement_timeout = '25000'")
             logger.debug("[DB] statement_timeout=25s aplicado via connection_created")
         except Exception as e:
             logger.warning(f"[DB] Falha ao aplicar statement_timeout: {e}")
-

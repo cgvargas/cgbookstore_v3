@@ -13,7 +13,16 @@ from .section_item import SectionItem
 from .event import Event
 from .banner import Banner
 from .featured_author_settings import FeaturedAuthorSettings
-from .literary_universe import LiteraryUniverse, UniverseContentItem, UniverseBanner
+from .literary_universe import (
+    LiteraryUniverse,
+    UniverseContentItem,
+    UniverseBanner,
+    UniverseReadingOrder,
+    UniverseTimelineEvent,
+    UniverseFAQ,
+    UniverseCharacter,
+    UniverseCollection,
+)
 
 __all__ = [
     'Category',
@@ -29,5 +38,9 @@ __all__ = [
     'LiteraryUniverse',
     'UniverseContentItem',
     'UniverseBanner',
+    'UniverseReadingOrder',
+    'UniverseTimelineEvent',
+    'UniverseFAQ',
+    'UniverseCharacter',
+    'UniverseCollection',
 ]
-

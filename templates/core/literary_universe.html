@@ -3,6 +3,40 @@
 
 {% block title %}{% if universe.meta_title %}{{ universe.meta_title }}{% else %}{{ universe.page_title }} - CG.BookStore{% endif %}{% endblock %}
 
+{% block extra_head %}
+{{ block.super }}
+<!-- SEO e Open Graph Tags -->
+<meta name="description" content="{% if universe.meta_description %}{{ universe.meta_description }}{% else %}{{ universe.page_description|truncatewords:30 }}{% endif %}">
+{% if universe.canonical_url %}
+<link rel="canonical" href="{{ universe.canonical_url }}">
+{% else %}
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endif %}
+
+<!-- Open Graph / Facebook / WhatsApp -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:title" content="{% if universe.og_title %}{{ universe.og_title }}{% elif universe.meta_title %}{{ universe.meta_title }}{% else %}{{ universe.page_title }}{% endif %}">
+<meta property="og:description" content="{% if universe.og_description %}{{ universe.og_description }}{% elif universe.meta_description %}{{ universe.meta_description }}{% else %}{{ universe.page_description|truncatewords:30 }}{% endif %}">
+{% if universe.og_image %}
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ universe.og_image.url }}">
+{% elif universe.hero_banner_image %}
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ universe.hero_banner_image.url }}">
+{% endif %}
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{% if universe.og_title %}{{ universe.og_title }}{% else %}{{ universe.page_title }}{% endif %}">
+<meta name="twitter:description" content="{% if universe.og_description %}{{ universe.og_description }}{% else %}{{ universe.page_description|truncatewords:30 }}{% endif %}">
+
+<!-- FAQ Schema JSON-LD -->
+{% if faq_schema_json %}
+<script type="application/ld+json">
+{{ faq_schema_json|safe }}
+</script>
+{% endif %}
+{% endblock %}
+
 {% block extra_css %}
 {{ block.super }}
 <style>
@@ -29,7 +63,7 @@
         color: #fff;
     }
 
-    /* Imagem de fundo como elemento real (não pseudo) */
+    /* Imagem de fundo como elemento real */
     .universe-hero-bg {
         position: absolute;
         top: 0;
@@ -67,6 +101,13 @@
         z-index: 2;
         max-width: 800px;
         padding: 2rem;
+    }
+
+    .universe-logo-img {
+        max-width: 140px;
+        max-height: 140px;
+        margin-bottom: 1rem;
+        filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
     }
 
     .universe-icon {
@@ -240,6 +281,66 @@
     .universe-book-body .pages i {
         color: var(--universe-secondary);
         margin-right: 0.3rem;
+    }
+
+    /* Estilos Ordem de Leitura */
+    .reading-order-table {
+        background: var(--card-bg);
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+    }
+    .reading-order-table th {
+        background: rgba(0,0,0,0.05);
+        color: var(--text-primary);
+    }
+
+    /* Estilos Timeline Cronologia */
+    .timeline-container {
+        position: relative;
+        padding-left: 2rem;
+        border-left: 3px solid var(--universe-primary);
+        margin-left: 1rem;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: calc(-2rem - 7px);
+        top: 4px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--universe-primary);
+        border: 2px solid var(--body-bg);
+    }
+    .timeline-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.25rem;
+        border: 1px solid var(--border-color);
+    }
+
+    /* Estilos FAQ Accordion */
+    .faq-accordion .accordion-item {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+    .faq-accordion .accordion-button {
+        background: var(--card-bg);
+        color: var(--text-primary);
+        font-weight: 600;
+        box-shadow: none;
+    }
+    .faq-accordion .accordion-button:not(.collapsed) {
+        color: var(--universe-secondary);
+        background: rgba(244, 208, 63, 0.05);
     }
 
     /* Seção de Artigos */
@@ -431,6 +532,11 @@
         .universe-book-cover {
             height: 200px;
         }
+
+        .timeline-container {
+            padding-left: 1.25rem;
+            margin-left: 0.5rem;
+        }
     }
 </style>
 {% endblock %}
@@ -452,7 +558,9 @@
          style="background: rgba(0, 0, 0, {{ universe.hero_banner_overlay_opacity|default:0.5 }});"></div>
     
     <div class="universe-hero-content">
-        {% if universe.hero_icon %}
+        {% if universe.logo %}
+        <img src="{{ universe.logo.url }}" alt="{{ universe.title }}" class="universe-logo-img">
+        {% elif universe.hero_icon %}
         <div class="universe-icon">
             <i class="fas {{ universe.hero_icon }}"></i>
         </div>
@@ -479,6 +587,11 @@
                 <i class="fas fa-play-circle"></i> {{ videos_count }} Vídeos
             </span>
             {% endif %}
+            {% if quizzes_count > 0 %}
+            <span class="universe-stat-item">
+                <i class="fas fa-question-circle"></i> {{ quizzes_count }} Quizzes
+            </span>
+            {% endif %}
         </div>
     </div>
 </section>
@@ -501,25 +614,29 @@
     </div>
     {% endif %}
 
-    <!-- Biografia do Autor -->
-    {% if author and author.bio %}
-    <div class="universe-author-bio">
+    <!-- Biografia do Autor(es) -->
+    {% if authors_list %}
+    {% for author_obj in authors_list %}
+    {% if author_obj.bio %}
+    <div class="universe-author-bio mb-4">
         <div class="row align-items-center">
             <div class="col-md-3 text-center mb-3 mb-md-0">
-                {% if author.photo %}
-                <img src="{{ author.photo.url }}" alt="{{ author.name }}" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid var(--universe-secondary);">
+                {% if author_obj.photo %}
+                <img src="{{ author_obj.photo.url }}" alt="{{ author_obj.name }}" class="rounded-circle" style="width: 140px; height: 140px; object-fit: cover; border: 4px solid var(--universe-secondary);">
                 {% else %}
-                <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 150px; height: 150px; background: linear-gradient(135deg, #1a1a2e, #16213e); border: 4px solid var(--universe-secondary);">
+                <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 140px; height: 140px; background: linear-gradient(135deg, #1a1a2e, #16213e); border: 4px solid var(--universe-secondary);">
                     <i class="fas fa-user fa-3x" style="color: var(--universe-secondary);"></i>
                 </div>
                 {% endif %}
             </div>
             <div class="col-md-9">
-                <h3><i class="fas fa-feather-alt me-2" style="color: var(--universe-secondary);"></i>Sobre o Autor</h3>
-                <p>{{ author.bio|linebreaks }}</p>
+                <h3><i class="fas fa-feather-alt me-2" style="color: var(--universe-secondary);"></i>Sobre {{ author_obj.name }}</h3>
+                <p>{{ author_obj.bio|linebreaks }}</p>
             </div>
         </div>
     </div>
+    {% endif %}
+    {% endfor %}
     {% endif %}
 
     <!-- Banners antes dos Livros -->
@@ -535,9 +652,58 @@
     </div>
     {% endif %}
 
+    <!-- Ordem de Leitura Recomendada -->
+    {% if reading_order %}
+    <h2 class="universe-section-title">
+        <i class="fas fa-list-ol"></i> Ordem de Leitura Recomendada
+    </h2>
+    <div class="table-responsive mb-5">
+        <table class="table table-hover align-middle reading-order-table">
+            <thead>
+                <tr>
+                    <th style="width: 70px;">#</th>
+                    <th>Título da Obra</th>
+                    <th>Tipo</th>
+                    <th>Publicação</th>
+                    <th>Essencial</th>
+                    <th>Observações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in reading_order %}
+                <tr>
+                    <td class="fw-bold text-center" style="color: var(--universe-secondary);">{{ item.order_number }}</td>
+                    <td>
+                        {% if item.book %}
+                        <a href="{% url 'core:book_detail' item.book.slug %}" class="fw-bold text-decoration-none" style="color: var(--text-primary);">
+                            {{ item.title }}
+                        </a>
+                        {% else %}
+                        <span class="fw-bold">{{ item.title }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary">{{ item.get_book_type_display }}</span>
+                    </td>
+                    <td>{{ item.publication_year|default:"—" }}</td>
+                    <td>
+                        {% if item.is_essential %}
+                        <span class="badge bg-danger"><i class="fas fa-star me-1"></i>Essencial</span>
+                        {% else %}
+                        <span class="badge bg-light text-dark">Opcional</span>
+                        {% endif %}
+                    </td>
+                    <td class="small text-muted">{{ item.notes|default:"—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
     <!-- Seção de Livros -->
     <h2 class="universe-section-title">
-        <i class="fas fa-book-open"></i> Obras de {{ author.name }}
+        <i class="fas fa-book-open"></i> Obras do Universo
     </h2>
 
     {% if author_books %}
@@ -558,7 +724,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     {% if book.page_count %}
                     <span class="pages">
-                        <i class="fas fa-file-alt"></i> {{ book.page_count }} páginas
+                        <i class="fas fa-file-alt"></i> {{ book.page_count }} pág.
                     </span>
                     {% endif %}
                     
@@ -580,6 +746,32 @@
     </div>
     {% endif %}
 
+    <!-- Cronologia do Universo -->
+    {% if timeline_events %}
+    <h2 class="universe-section-title">
+        <i class="fas fa-history"></i> Cronologia dos Acontecimentos
+    </h2>
+    <div class="timeline-container mb-5">
+        {% for event in timeline_events %}
+        <div class="timeline-item">
+            <div class="timeline-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">{{ event.title }}</h5>
+                    {% if event.era or event.approximate_date %}
+                    <span class="badge" style="background: var(--universe-primary); color: #1a1a2e;">
+                        {{ event.era }}{% if event.era and event.approximate_date %} • {% endif %}{{ event.approximate_date }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% if event.description %}
+                <p class="text-secondary small mb-0">{{ event.description }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <!-- Banners após Livros -->
     {% if banners_after_books %}
     <div class="row justify-content-center">
@@ -593,21 +785,32 @@
     </div>
     {% endif %}
 
-    <!-- Seção de Vídeos -->
-    {% if videos %}
-    <!-- Banners antes dos Vídeos -->
-    {% if banners_before_videos %}
-    <div class="row justify-content-center">
-        {% for banner in banners_before_videos %}
-        <div class="{{ banner.get_size_class }} universe-banner">
-            {% if banner.link_url %}<a href="{{ banner.link_url }}" target="{{ banner.link_target }}">{% endif %}
-            <img src="{{ banner.image.url }}" alt="{{ banner.alt_text }}">
-            {% if banner.link_url %}</a>{% endif %}
+    <!-- Seção de Quizzes -->
+    {% if quizzes %}
+    <h2 class="universe-section-title">
+        <i class="fas fa-question-circle"></i> Quizzes e Desafios
+    </h2>
+    <div class="row g-4 mb-5">
+        {% for quiz in quizzes %}
+        <div class="col-md-6 col-lg-4">
+            <div class="universe-article-card">
+                {% if quiz.featured_image %}
+                <img src="{{ quiz.featured_image.url }}" alt="{{ quiz.title }}" loading="lazy">
+                {% endif %}
+                <div class="card-body">
+                    <span class="badge mb-2"><i class="fas fa-brain me-1"></i>Quiz</span>
+                    <h5>{{ quiz.title }}</h5>
+                    <p>{{ quiz.description|truncatewords:15 }}</p>
+                    <a href="{% url 'news:quiz_detail' quiz.slug %}" class="btn btn-sm btn-outline-primary mt-2">Fazer Quiz</a>
+                </div>
+            </div>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
+    <!-- Seção de Vídeos -->
+    {% if videos %}
     <h2 class="universe-section-title">
         <i class="fas fa-play-circle"></i> Vídeos
     </h2>
@@ -636,36 +839,10 @@
         </div>
         {% endfor %}
     </div>
-
-    <!-- Banners após Vídeos -->
-    {% if banners_after_videos %}
-    <div class="row justify-content-center">
-        {% for banner in banners_after_videos %}
-        <div class="{{ banner.get_size_class }} universe-banner">
-            {% if banner.link_url %}<a href="{{ banner.link_url }}" target="{{ banner.link_target }}">{% endif %}
-            <img src="{{ banner.image.url }}" alt="{{ banner.alt_text }}">
-            {% if banner.link_url %}</a>{% endif %}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
     {% endif %}
 
     <!-- Seção de Artigos -->
     {% if author_articles %}
-    <!-- Banners antes dos Artigos -->
-    {% if banners_before_articles %}
-    <div class="row justify-content-center">
-        {% for banner in banners_before_articles %}
-        <div class="{{ banner.get_size_class }} universe-banner">
-            {% if banner.link_url %}<a href="{{ banner.link_url }}" target="{{ banner.link_target }}">{% endif %}
-            <img src="{{ banner.image.url }}" alt="{{ banner.alt_text }}">
-            {% if banner.link_url %}</a>{% endif %}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
     <h2 class="universe-section-title">
         <i class="fas fa-newspaper"></i> Artigos e Notícias
     </h2>
@@ -688,48 +865,15 @@
         </div>
         {% endfor %}
     </div>
-
-    <!-- Banners após Artigos -->
-    {% if banners_after_articles %}
-    <div class="row justify-content-center">
-        {% for banner in banners_after_articles %}
-        <div class="{{ banner.get_size_class }} universe-banner">
-            {% if banner.link_url %}<a href="{{ banner.link_url }}" target="{{ banner.link_target }}">{% endif %}
-            <img src="{{ banner.image.url }}" alt="{{ banner.alt_text }}">
-            {% if banner.link_url %}</a>{% endif %}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
     {% endif %}
 
     <!-- Games e Adaptações -->
-    {% if games or adaptations %}
+    {% if adaptations %}
     <h2 class="universe-section-title">
-        <i class="fas fa-gamepad"></i> Games e Adaptações
+        <i class="fas fa-film"></i> Adaptações, Games & Mídias
     </h2>
 
     <div class="row g-4 mb-5">
-        {% for item in games %}
-        <div class="col-md-6 col-lg-4">
-            <div class="universe-article-card">
-                {% if item.thumbnail %}
-                <img src="{{ item.thumbnail.url }}" alt="{{ item.title }}" loading="lazy">
-                {% endif %}
-                <div class="card-body">
-                    <span class="badge mb-2"><i class="fas fa-gamepad me-1"></i>Game</span>
-                    <h5>{{ item.title }}</h5>
-                    {% if item.platform %}
-                    <p class="small text-muted mb-1"><i class="fas fa-desktop me-1"></i>{{ item.platform }}</p>
-                    {% endif %}
-                    <p>{{ item.description|truncatewords:15 }}</p>
-                    {% if item.url %}
-                    <a href="{{ item.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Ver mais</a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endfor %}
         {% for item in adaptations %}
         <div class="col-md-6 col-lg-4">
             <div class="universe-article-card">
@@ -737,14 +881,68 @@
                 <img src="{{ item.thumbnail.url }}" alt="{{ item.title }}" loading="lazy">
                 {% endif %}
                 <div class="card-body">
-                    <span class="badge mb-2"><i class="fas fa-film me-1"></i>Adaptação</span>
+                    <span class="badge mb-2">{{ item.get_content_type_display }}</span>
+                    {% if item.media_status %}
+                    <span class="badge bg-secondary mb-2">{{ item.get_media_status_display }}</span>
+                    {% endif %}
                     <h5>{{ item.title }}</h5>
+                    {% if item.studio or item.year %}
+                    <p class="small text-muted mb-1">
+                        {% if item.studio %}<i class="fas fa-building me-1"></i>{{ item.studio }}{% endif %}
+                        {% if item.year %} ({{ item.year }}){% endif %}
+                    </p>
+                    {% endif %}
                     <p>{{ item.description|truncatewords:15 }}</p>
                     {% if item.url %}
-                    <a href="{{ item.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Ver mais</a>
+                    <a href="{{ item.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Saber mais</a>
                     {% endif %}
                 </div>
             </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Perguntas Frequentes (FAQ) -->
+    {% if faqs %}
+    <h2 class="universe-section-title">
+        <i class="fas fa-question"></i> Perguntas Frequentes
+    </h2>
+    <div class="accordion faq-accordion mb-5" id="universeFaqAccordion">
+        {% for faq in faqs %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faqHeading{{ forloop.counter }}">
+                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse{{ forloop.counter }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="faqCollapse{{ forloop.counter }}">
+                    {{ faq.question }}
+                </button>
+            </h2>
+            <div id="faqCollapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="faqHeading{{ forloop.counter }}" data-bs-parent="#universeFaqAccordion">
+                <div class="accordion-body text-secondary">
+                    {{ faq.answer|linebreaks }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Universos Relacionados -->
+    {% if related_universes %}
+    <h2 class="universe-section-title">
+        <i class="fas fa-project-diagram"></i> Universos Semelhantes
+    </h2>
+    <div class="row g-4 mb-5">
+        {% for rel in related_universes %}
+        <div class="col-md-6 col-lg-4">
+            <a href="{% url 'core:literary_universe' rel.slug %}" class="text-decoration-none">
+                <div class="universe-article-card">
+                    <div class="card-body">
+                        <h5><i class="fas {{ rel.hero_icon|default:'fa-ring' }} me-2" style="color: {{ rel.theme_color_primary }};"></i>{{ rel.title }}</h5>
+                        <p class="small text-muted mb-2">Autor: {{ rel.author.name }}</p>
+                        <p>{{ rel.page_description|truncatewords:15 }}</p>
+                    </div>
+                </div>
+            </a>
         </div>
         {% endfor %}
     </div>

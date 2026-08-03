@@ -1,6 +1,6 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
-from core.models import Book, Author, Category
+from core.models import Book, Author, Category, LiteraryUniverse
 from news.models import Article
 
 class StaticViewSitemap(Sitemap):
@@ -76,3 +76,18 @@ class ArticleSitemap(Sitemap):
 
     def location(self, obj):
         return reverse('news:article_detail', kwargs={'slug': obj.slug})
+
+
+class LiteraryUniverseSitemap(Sitemap):
+    """Sitemap XML para Universos Literários."""
+    changefreq = 'weekly'
+    priority = 0.9
+
+    def items(self):
+        return LiteraryUniverse.objects.filter(is_active=True)
+
+    def lastmod(self, obj):
+        return obj.updated_at
+
+    def location(self, obj):
+        return obj.get_absolute_url()

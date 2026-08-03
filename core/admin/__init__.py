@@ -15,6 +15,11 @@ from .literary_universe_admin import (
     LiteraryUniverseAdmin,
     UniverseContentItemAdmin,
     UniverseBannerAdmin,
+    UniverseReadingOrderAdmin,
+    UniverseTimelineEventAdmin,
+    UniverseFAQAdmin,
+    UniverseCharacterAdmin,
+    UniverseCollectionAdmin,
 )
 
 __all__ = [
@@ -29,6 +34,11 @@ __all__ = [
     'LiteraryUniverseAdmin',
     'UniverseContentItemAdmin',
     'UniverseBannerAdmin',
+    'UniverseReadingOrderAdmin',
+    'UniverseTimelineEventAdmin',
+    'UniverseFAQAdmin',
+    'UniverseCharacterAdmin',
+    'UniverseCollectionAdmin',
 ]
 
 # URLs customizadas para Google Books
