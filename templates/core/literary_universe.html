@@ -285,14 +285,25 @@
 
     /* Estilos Ordem de Leitura */
     .reading-order-table {
-        background: var(--card-bg);
+        background-color: var(--card-bg) !important;
+        color: var(--text-primary) !important;
         border-radius: 12px;
         overflow: hidden;
         border: 1px solid var(--border-color);
     }
     .reading-order-table th {
-        background: rgba(0,0,0,0.05);
-        color: var(--text-primary);
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: var(--text-primary) !important;
+        border-bottom: 2px solid var(--border-color) !important;
+        font-weight: 600;
+    }
+    .reading-order-table td {
+        background-color: transparent !important;
+        color: var(--text-primary) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+    }
+    .reading-order-table tr:hover td {
+        background-color: rgba(244, 208, 63, 0.08) !important;
     }
 
     /* Estilos Timeline Cronologia */
@@ -719,17 +730,17 @@
                         {% endif %}
                     </td>
                     <td>
-                        <span class="badge bg-secondary">{{ item.get_book_type_display }}</span>
+                        <span class="badge border" style="background: rgba(255,255,255,0.08); color: var(--text-primary); border-color: var(--border-color) !important;">{{ item.get_book_type_display }}</span>
                     </td>
                     <td>{{ item.publication_year|default:"—" }}</td>
                     <td>
                         {% if item.is_essential %}
                         <span class="badge bg-danger"><i class="fas fa-star me-1"></i>Essencial</span>
                         {% else %}
-                        <span class="badge bg-light text-dark">Opcional</span>
+                        <span class="badge border text-secondary" style="background: rgba(255,255,255,0.03); border-color: var(--border-color) !important;">Opcional</span>
                         {% endif %}
                     </td>
-                    <td class="small text-muted">{{ item.notes|default:"—" }}</td>
+                    <td class="small text-secondary">{{ item.notes|default:"—" }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
