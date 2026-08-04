@@ -298,11 +298,30 @@ def local_books_search_api(request):
     if not query:
         return JsonResponse({'success': False, 'message': 'O termo de busca não foi fornecido.'}, status=400)
 
-    books = Book.objects.filter(
+    # Filtro primário por expressão inteira ou ISBN
+    basic_q = (
         Q(title__icontains=query) |
+        Q(subtitle__icontains=query) |
         Q(author__name__icontains=query) |
         Q(isbn__icontains=query)
-    ).distinct()[:10]
+    )
+
+    # Filtro secundário: se houver múltiplas palavras, todas devem estar presentes em algum dos campos
+    words = [w for w in query.split() if len(w) > 2]
+    if len(words) > 1:
+        words_q = Q()
+        for w in words:
+            words_q &= (
+                Q(title__icontains=w) |
+                Q(subtitle__icontains=w) |
+                Q(author__name__icontains=w) |
+                Q(isbn__icontains=w)
+            )
+        filter_q = basic_q | words_q
+    else:
+        filter_q = basic_q
+
+    books = Book.objects.filter(filter_q).distinct()[:10]
 
     results = [{
         'id': book.id,

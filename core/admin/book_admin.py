@@ -146,7 +146,7 @@ class BookAdmin(admin.ModelAdmin):
         'author'
     ]
     search_fields = [
-        '^title',
+        'title',
         'subtitle',
         'author__name',
         'isbn',

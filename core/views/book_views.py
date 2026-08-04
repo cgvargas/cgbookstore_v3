@@ -93,13 +93,31 @@ class BookListView(ListView):
                 # Prateleira não encontrada, retornar vazio
                 queryset = queryset.none()
 
-        # ========== FILTRO: BUSCA POR TÍTULO/AUTOR ==========
+        # ========== FILTRO: BUSCA POR TÍTULO/SUBTÍTULO/AUTOR/ISBN ==========
         search_query = self.request.GET.get('q', '').strip()
         if search_query:
-            queryset = queryset.filter(
+            basic_q = (
                 Q(title__icontains=search_query) |
-                Q(author__name__icontains=search_query)
+                Q(subtitle__icontains=search_query) |
+                Q(author__name__icontains=search_query) |
+                Q(isbn__icontains=search_query)
             )
+
+            words = [w for w in search_query.split() if len(w) > 2]
+            if len(words) > 1:
+                words_q = Q()
+                for w in words:
+                    words_q &= (
+                        Q(title__icontains=w) |
+                        Q(subtitle__icontains=w) |
+                        Q(author__name__icontains=w) |
+                        Q(isbn__icontains=w)
+                    )
+                filter_q = basic_q | words_q
+            else:
+                filter_q = basic_q
+
+            queryset = queryset.filter(filter_q)
 
         # ========== FILTRO: CATEGORIAS (múltiplas) ==========
         categories = self.request.GET.getlist('category')
