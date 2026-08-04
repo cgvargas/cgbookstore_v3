@@ -504,6 +504,42 @@
         opacity: 0.5;
     }
 
+    /* Cards de Personagens */
+    .universe-character-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .universe-character-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        border-color: var(--universe-secondary);
+    }
+
+    .universe-character-img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+    }
+
+    .universe-character-placeholder {
+        width: 100%;
+        height: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        color: var(--universe-secondary);
+        font-size: 3.5rem;
+    }
+
     /* Responsivo */
     @media (max-width: 768px) {
         .universe-hero h1 {
@@ -862,6 +898,42 @@
                     </div>
                 </div>
             </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Seção de Personagens -->
+    {% if characters %}
+    <h2 class="universe-section-title">
+        <i class="fas fa-users"></i> Personagens Principais
+    </h2>
+
+    <div class="row g-4 mb-5">
+        {% for char in characters %}
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="universe-character-card">
+                {% if char.image %}
+                <img src="{{ char.image.url }}" alt="{{ char.name }}" class="universe-character-img" loading="lazy">
+                {% else %}
+                <div class="universe-character-placeholder">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                {% endif %}
+                <div class="card-body d-flex flex-column p-3">
+                    <div class="mb-2">
+                        <span class="badge bg-dark border" style="border-color: var(--universe-primary) !important;">
+                            {{ char.get_role_display }}
+                        </span>
+                    </div>
+                    <h5 class="fw-bold fs-6 mb-1" style="color: var(--text-primary);">{{ char.name }}</h5>
+                    {% if char.description %}
+                    <p class="small text-secondary mb-0 flex-grow-1" style="font-size: 0.85rem; line-height: 1.4;">
+                        {{ char.description|truncatewords:18 }}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
         {% endfor %}
     </div>

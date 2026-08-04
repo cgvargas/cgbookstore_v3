@@ -18,6 +18,7 @@ from core.models import (
     UniverseReadingOrder, 
     UniverseTimelineEvent, 
     UniverseFAQ,
+    UniverseCharacter,
     UniverseContentItem,
 )
 import logging
@@ -57,6 +58,7 @@ class LiteraryUniverseView(DetailView):
             Prefetch('timeline_events', queryset=UniverseTimelineEvent.objects.filter(is_active=True)),
             Prefetch('faqs', queryset=UniverseFAQ.objects.filter(is_active=True)),
             Prefetch('content_items', queryset=UniverseContentItem.objects.filter(is_active=True)),
+            Prefetch('characters', queryset=UniverseCharacter.objects.filter(is_active=True)),
             Prefetch('banners', queryset=UniverseBanner.objects.filter(is_active=True)),
         )
     
@@ -156,6 +158,9 @@ class LiteraryUniverseView(DetailView):
             if item.content_type not in ['adaptation', 'game', 'anime', 'hq', 'podcast']
         ]
         
+        # === PERSONAGENS ===
+        characters = list(universe.characters.filter(is_active=True).order_by('display_order', 'name'))
+        
         # === UNIVERSOS E CATEGORIAS RELACIONADAS ===
         related_universes = list(universe.related_universes.filter(is_active=True).select_related('author'))
         related_categories = list(universe.related_categories.all())
@@ -192,6 +197,7 @@ class LiteraryUniverseView(DetailView):
             'adaptations': adaptations,
             'podcasts': podcasts,
             'other_content': other_content,
+            'characters': characters,
             'related_universes': related_universes,
             'related_categories': related_categories,
             'total_pages': total_pages,

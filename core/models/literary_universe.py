@@ -1075,15 +1075,20 @@ class UniverseFAQ(models.Model):
 class UniverseCharacter(models.Model):
     """
     Personagem importante de um universo literário.
-    Preparação para futuras expansões — sem páginas públicas nesta fase.
+    Exibido na página pública do universo em formato de galeria de cards.
     """
     
     ROLE_CHOICES = [
         ('protagonist', '⭐ Protagonista'),
-        ('antagonist', '💀 Antagonista'),
-        ('supporting', '👤 Coadjuvante'),
-        ('mentor', '🧙 Mentor'),
-        ('other', '📌 Outro'),
+        ('supporting', '🤝 Coadjuvante'),
+        ('mentor', '🎓 Mentor'),
+        ('antagonist', '😈 Antagonista'),
+        ('ruler', '👑 Governante'),
+        ('warrior', '⚔️ Guerreiro'),
+        ('mage', '🧙 Mago'),
+        ('leader', '🧝 Líder'),
+        ('ally', '🛡️ Aliado'),
+        ('other', '❓ Outro'),
     ]
     
     universe = models.ForeignKey(
