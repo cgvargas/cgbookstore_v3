@@ -502,7 +502,7 @@ class LiteraryUniverse(models.Model):
         
         return {
             'books_count': all_books.count(),
-            'authors_count': self.get_all_authors().count(),
+            'authors_count': len(self.get_all_authors()),
             'articles_count': self.articles.count(),
             'videos_count': self.videos.count(),
             'quizzes_count': self.quizzes.count(),
