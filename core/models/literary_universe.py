@@ -596,6 +596,7 @@ class UniverseContentItem(models.Model):
     """
     
     CONTENT_TYPES = [
+        ('review', '✍️ Resenha'),
         ('game', '🎮 Game'),
         ('adaptation', '🎬 Adaptação (Filme/Série)'),
         ('anime', '🎌 Anime'),
