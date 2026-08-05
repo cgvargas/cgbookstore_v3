@@ -423,11 +423,12 @@ class LiteraryUniverse(models.Model):
         ).select_related('author', 'category').order_by('title')
     
     def get_all_authors(self):
-        """Retorna autor principal + autores adicionais sem duplicatas."""
+        """Retorna autor principal em 1º lugar, seguido pelos autores adicionais."""
         from core.models import Author
-        author_ids = {self.author_id}
-        author_ids.update(self.additional_authors.values_list('id', flat=True))
-        return Author.objects.filter(id__in=author_ids).order_by('name')
+        authors = [self.author]
+        additional = list(self.additional_authors.exclude(id=self.author_id).order_by('name'))
+        authors.extend(additional)
+        return authors
     
     def get_active_banners(self, position=None):
         """Retorna banners ativos, opcionalmente filtrados por posição."""

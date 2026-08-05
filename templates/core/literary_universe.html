@@ -677,7 +677,14 @@
                 {% endif %}
             </div>
             <div class="col-md-9">
-                <h3><i class="fas fa-feather-alt me-2" style="color: var(--universe-secondary);"></i>Sobre {{ author_obj.name }}</h3>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <h3 class="mb-0"><i class="fas fa-feather-alt me-2" style="color: var(--universe-secondary);"></i>Sobre {{ author_obj.name }}</h3>
+                    {% if forloop.first %}
+                    <span class="badge bg-warning text-dark"><i class="fas fa-star me-1"></i>Autor Principal</span>
+                    {% else %}
+                    <span class="badge bg-secondary"><i class="fas fa-pen-nib me-1"></i>Coautor</span>
+                    {% endif %}
+                </div>
                 <p>{{ author_obj.bio|linebreaks }}</p>
             </div>
         </div>
