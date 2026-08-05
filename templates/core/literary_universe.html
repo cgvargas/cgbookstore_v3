@@ -1122,7 +1122,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (embedUrl.endsWith('.mp4') || embedUrl.endsWith('.webm') || embedUrl.endsWith('.mov')) {
                     playerContainer.innerHTML = `<video src="${embedUrl}" controls autoplay style="width:100%; height:100%; object-fit:contain;"></video>`;
                 } else {
-                    playerContainer.innerHTML = `<iframe src="${embedUrl}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border:0; width:100%; height:100%;"></iframe>`;
+                    const currentOrigin = window.location.origin;
+                    let finalUrl = embedUrl;
+                    if (embedUrl.includes('youtube.com')) {
+                        const separator = embedUrl.includes('?') ? '&' : '?';
+                        finalUrl = `${embedUrl}${separator}autoplay=1&enablejsapi=1&origin=${encodeURIComponent(currentOrigin)}&rel=0`;
+                    } else if (!embedUrl.includes('?')) {
+                        finalUrl = `${embedUrl}?autoplay=1`;
+                    }
+                    playerContainer.innerHTML = `<iframe src="${finalUrl}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen style="border:0; width:100%; height:100%;"></iframe>`;
                 }
             } else {
                 playerContainer.innerHTML = `<div class="d-flex align-items-center justify-content-center h-100 text-muted">Vídeo indisponível para reprodução direta.</div>`;

@@ -16,8 +16,8 @@ class StaticViewSitemap(Sitemap):
             'core:contact',
             'core:faq',
             'core:events',
-            'core:terms',
-            'core:privacy',
+            'core:terms_of_service',
+            'core:privacy_policy',
             'news:home',
             'news:all_articles',
         ]
