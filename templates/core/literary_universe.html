@@ -408,6 +408,7 @@
         overflow: hidden;
         border: 1px solid var(--border-color);
         transition: all 0.3s ease;
+        cursor: pointer;
     }
 
     .universe-video-card:hover {
@@ -872,24 +873,33 @@
     <div class="row g-4 mb-5">
         {% for video in videos %}
         <div class="col-md-6 col-lg-4">
-            <a href="{{ video.video_url }}" target="_blank" class="text-decoration-none">
-                <div class="universe-video-card">
-                    <div class="universe-video-thumbnail">
-                        {% if video.get_thumbnail %}
-                        <img src="{{ video.get_thumbnail }}" alt="{{ video.title }}" loading="lazy">
-                        {% endif %}
-                        <div class="universe-video-play">
-                            <i class="fas fa-play"></i>
-                        </div>
+            <div class="universe-video-card" 
+                 data-bs-toggle="modal" 
+                 data-bs-target="#universeVideoModal"
+                 data-video-title="{{ video.title }}"
+                 data-video-embed="{{ video.get_embed_url|default:'' }}"
+                 data-video-platform="{{ video.platform }}"
+                 data-video-description="{{ video.description|default:'' }}">
+                <div class="universe-video-thumbnail">
+                    {% if video.get_thumbnail %}
+                    <img src="{{ video.get_thumbnail }}" alt="{{ video.title }}" loading="lazy">
+                    {% endif %}
+                    <div class="universe-video-play">
+                        <i class="fas fa-play"></i>
                     </div>
-                    <div class="universe-video-body">
-                        <h5>{{ video.title }}</h5>
+                </div>
+                <div class="universe-video-body">
+                    <h5>{{ video.title }}</h5>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <span class="badge bg-secondary opacity-75">
+                            {{ video.get_platform_display|default:video.platform|title }}
+                        </span>
                         {% if video.duration %}
-                        <span class="duration"><i class="fas fa-clock me-1"></i>{{ video.duration }}</span>
+                        <span class="duration text-secondary small"><i class="fas fa-clock me-1"></i>{{ video.duration }}</span>
                         {% endif %}
                     </div>
                 </div>
-            </a>
+            </div>
         </div>
         {% endfor %}
     </div>
@@ -1061,4 +1071,69 @@
         </a>
     </div>
 </div>
+
+<!-- Modal para Player de Vídeo em Tela Cheia -->
+<div class="modal fade" id="universeVideoModal" tabindex="-1" aria-labelledby="universeVideoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="background-color: var(--card-bg); color: var(--text-primary); border-radius: 16px; overflow: hidden;">
+            <div class="modal-header border-0 pb-0" style="background-color: var(--card-bg);">
+                <h5 class="modal-title fw-bold" id="universeVideoModalLabel" style="color: var(--text-primary);"></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body p-0 mt-3">
+                <div class="ratio ratio-16x9 bg-black" id="universeVideoPlayerContainer">
+                    <!-- Iframe / Video Player injetado via JS -->
+                </div>
+                <div class="p-3" id="universeVideoDescriptionWrapper" style="display: none;">
+                    <p class="small text-secondary mb-0" id="universeVideoDescriptionText"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const universeVideoModal = document.getElementById('universeVideoModal');
+    const modalTitle = document.getElementById('universeVideoModalLabel');
+    const playerContainer = document.getElementById('universeVideoPlayerContainer');
+    const descWrapper = document.getElementById('universeVideoDescriptionWrapper');
+    const descText = document.getElementById('universeVideoDescriptionText');
+
+    if (universeVideoModal) {
+        universeVideoModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const title = button.getAttribute('data-video-title');
+            const embedUrl = button.getAttribute('data-video-embed');
+            const description = button.getAttribute('data-video-description');
+
+            modalTitle.textContent = title || 'Vídeo';
+
+            if (description && description.trim() !== '') {
+                descText.textContent = description;
+                descWrapper.style.display = 'block';
+            } else {
+                descWrapper.style.display = 'none';
+            }
+
+            if (embedUrl) {
+                if (embedUrl.endsWith('.mp4') || embedUrl.endsWith('.webm') || embedUrl.endsWith('.mov')) {
+                    playerContainer.innerHTML = `<video src="${embedUrl}" controls autoplay style="width:100%; height:100%; object-fit:contain;"></video>`;
+                } else {
+                    playerContainer.innerHTML = `<iframe src="${embedUrl}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border:0; width:100%; height:100%;"></iframe>`;
+                }
+            } else {
+                playerContainer.innerHTML = `<div class="d-flex align-items-center justify-content-center h-100 text-muted">Vídeo indisponível para reprodução direta.</div>`;
+            }
+        });
+
+        universeVideoModal.addEventListener('hidden.bs.modal', function() {
+            playerContainer.innerHTML = '';
+        });
+    }
+});
+</script>
+{% endblock %}
 {% endblock %}
