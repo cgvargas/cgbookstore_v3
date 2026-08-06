@@ -116,7 +116,25 @@
     <h2 class="dashboard-section-title">📊 Dashboards e Análises</h2>
 
     <div class="dashboard-cards">
-        <!-- Card: Dashboard de Relatórios (NOVO) -->
+        <!-- Card: Dashboard de Auditoria de Direitos Autorais de Imagens -->
+        <a href="{% url 'copyright_audit_dashboard' %}" class="dashboard-card success">
+            <div class="dashboard-card-icon">🛡️</div>
+            <h3 class="dashboard-card-title">Auditoria de Direitos Autorais</h3>
+            <p class="dashboard-card-description">
+                Gestão corporativa de procedência, licenças (TASL, CC) e comprovação jurídica de imagens.
+            </p>
+        </a>
+
+        <!-- Card: Mapa de Conformidade de Ativos Visuais -->
+        <a href="{% url 'copyright_compliance_map' %}" class="dashboard-card info">
+            <div class="dashboard-card-icon">🗺️</div>
+            <h3 class="dashboard-card-title">Mapa de Conformidade Visuais</h3>
+            <p class="dashboard-card-description">
+                Percentual de conformidade de mídias por modelo e controle de divergências por checksum.
+            </p>
+        </a>
+
+        <!-- Card: Dashboard de Relatórios -->
         <a href="{% url 'admin_tools:reports_dashboard' %}" class="dashboard-card info">
             <div class="dashboard-card-icon">📊</div>
             <h3 class="dashboard-card-title">Dashboard de Relatórios</h3>
