@@ -866,10 +866,10 @@
     </div>
     {% endif %}
 
-    <!-- Seção de Vídeos -->
+    <!-- Central de Mídias do Universo -->
     {% if videos %}
     <h2 class="universe-section-title">
-        <i class="fas fa-play-circle"></i> Vídeos
+        <i class="fas fa-film me-2"></i> Central de Mídias do Universo
     </h2>
 
     <div class="row g-4 mb-5">
@@ -891,14 +891,26 @@
                     </div>
                 </div>
                 <div class="universe-video-body">
-                    <h5>{{ video.title }}</h5>
+                    <div class="d-flex align-items-center mb-1">
+                        <h5 class="mb-0 flex-grow-1 text-truncate">{{ video.title }}</h5>
+                        {% if video.is_official_channel %}
+                        <span class="badge bg-warning text-dark ms-2" title="Canal Oficial Verificado" style="font-size: 0.68rem;">
+                            <i class="fas fa-check-circle me-1"></i> Oficial
+                        </span>
+                        {% endif %}
+                    </div>
                     <div class="d-flex justify-content-between align-items-center mt-2">
                         <span class="badge bg-secondary opacity-75">
-                            {{ video.get_platform_display|default:video.platform|title }}
+                            {{ video.get_video_type_display }}
                         </span>
-                        {% if video.duration %}
-                        <span class="duration text-secondary small"><i class="fas fa-clock me-1"></i>{{ video.duration }}</span>
+                        {% if video.formatted_duration %}
+                        <span class="duration text-secondary small"><i class="fas fa-clock me-1"></i>{{ video.formatted_duration }}</span>
                         {% endif %}
+                    </div>
+                    <div class="mt-2 text-end">
+                        <a href="{% url 'core:video_detail' video.slug %}" class="small text-decoration-none text-primary" onclick="event.stopPropagation();">
+                            Ver Página Editorial <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
                     </div>
                 </div>
             </div>

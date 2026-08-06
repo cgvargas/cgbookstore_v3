@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% load static %}
+{% load copyright_tags %}
+
+{% block title %}{{ video.title }} - Central de Mídias | CG.BookStore{% endblock %}
+
+{% block meta_description %}{{ video.short_description|default:video.title }}{% endblock %}
+
+{% block extra_head %}
+<!-- SEO Open Graph & Twitter Cards -->
+<meta property="og:type" content="video.other">
+<meta property="og:title" content="{{ video.title }} - CG.BookStore">
+<meta property="og:description" content="{{ video.short_description|default:video.title }}">
+{% if video.get_thumbnail %}
+<meta property="og:image" content="{{ video.get_thumbnail }}">
+{% endif %}
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+
+{% if json_ld_video %}
+<script type="application/ld+json">
+{{ json_ld_video|json_script:"video-json-ld" }}
+</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Início</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'core:video_list' %}">Central de Mídias</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ video.title|truncatechars:35 }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Player & Conteúdo Editorial (Coluna Principal) -->
+        <div class="col-lg-8">
+            <h1 class="h2 font-weight-bold mb-2">{{ video.title }}</h1>
+            
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-3 text-muted small">
+                <span class="badge bg-secondary me-2">{{ video.get_video_type_display }}</span>
+                
+                {% if video.is_official_channel %}
+                <span class="badge bg-warning text-dark me-2" title="Canal Oficial Verificado">
+                    <i class="fas fa-check-circle me-1"></i> Canal Oficial
+                </span>
+                {% endif %}
+
+                {% if video.channel_name %}
+                <span class="me-3"><i class="fas fa-user-circle me-1"></i> {{ video.channel_name }}</span>
+                {% endif %}
+
+                {% if video.formatted_duration %}
+                <span class="me-3"><i class="fas fa-clock me-1"></i> {{ video.formatted_duration }}</span>
+                {% endif %}
+
+                <span><i class="fas fa-eye me-1"></i> {{ video.views_count }} visualizações</span>
+            </div>
+
+            <!-- Player Responsivo com Fallback Gracioso -->
+            <div class="card border-0 shadow-sm mb-4 overflow-hidden rounded-3">
+                {% if video.media_status == 'removed' or video.media_status == 'embed_blocked' or video.media_status == 'private' %}
+                <div class="p-5 text-center bg-dark text-white">
+                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                    <h4>Mídia Temporariamente Indisponível</h4>
+                    <p class="text-muted small mb-0">
+                        O reprodutor oficial desta mídia está indisponível na plataforma de origem (status: {{ video.get_media_status_display }}).
+                        Abaixo você confere todas as informações editoriais mantidas na CG.BookStore.
+                    </p>
+                </div>
+                {% elif video.get_embed_url %}
+                <div class="ratio ratio-16x9">
+                    <iframe src="{{ video.get_embed_url }}" 
+                            title="{{ video.title }}" 
+                            allowfullscreen 
+                            loading="lazy" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+                    </iframe>
+                </div>
+                {% else %}
+                <div class="p-5 text-center bg-light">
+                    <p class="text-muted mb-0">Player não disponível para esta mídia.</p>
+                </div>
+                {% endif %}
+
+                <!-- Renderização dos Créditos da Capa Customizada (se existir) -->
+                {% if video.thumbnail_image %}
+                <div class="card-footer bg-light border-0 py-2">
+                    {% render_image_rights video 'thumbnail_image' %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Resumo e Conteúdo Editorial -->
+            {% if video.short_description %}
+            <div class="lead text-secondary mb-4" style="font-size: 1.1rem; line-height: 1.6;">
+                {{ video.short_description }}
+            </div>
+            {% endif %}
+
+            {% if video.description %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title text-dark font-weight-bold mb-3">
+                        <i class="fas fa-align-left me-2 text-primary"></i> Contexto Editorial
+                    </h5>
+                    <div class="editorial-content text-dark">
+                        {{ video.description|linebreaks }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Barra Lateral de Relacionamentos -->
+        <div class="col-lg-4">
+            <!-- Livros Relacionados -->
+            {% if video.related_books.all %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h5 class="card-title mb-0"><i class="fas fa-book me-2 text-primary"></i> Livros Relacionados</h5>
+                </div>
+                <div class="card-body p-2">
+                    <div class="list-group list-group-flush">
+                        {% for book in video.related_books.all %}
+                        <a href="{% url 'core:book_detail' book.slug %}" class="list-group-item list-group-item-action d-flex align-items-center py-2 px-3 border-0 rounded-2 mb-1">
+                            {% if book.cover_image %}
+                            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="width: 40px; height: 55px; object-fit: cover; border-radius: 4px;" class="me-3">
+                            {% endif %}
+                            <div>
+                                <div class="font-weight-bold text-dark mb-0 small">{{ book.title }}</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">{{ book.author.name }}</div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Universos Relacionados -->
+            {% if video.related_universes.all %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h5 class="card-title mb-0"><i class="fas fa-globe me-2 text-primary"></i> Universos Literários</h5>
+                </div>
+                <div class="card-body p-2">
+                    <div class="list-group list-group-flush">
+                        {% for universe in video.related_universes.all %}
+                        <a href="{% url 'core:literary_universe' universe.slug %}" class="list-group-item list-group-item-action d-flex align-items-center py-2 px-3 border-0 rounded-2 mb-1">
+                            <i class="fas fa-star text-warning me-2"></i>
+                            <span class="font-weight-bold small text-dark">{{ universe.page_title }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Outras Mídias Semelhantes -->
+            {% if related_media %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h5 class="card-title mb-0"><i class="fas fa-play-circle me-2 text-primary"></i> Mídias Semelhantes</h5>
+                </div>
+                <div class="card-body p-2">
+                    <div class="list-group list-group-flush">
+                        {% for item in related_media %}
+                        <a href="{% url 'core:video_detail' item.slug %}" class="list-group-item list-group-item-action py-2 px-3 border-0 rounded-2 mb-1">
+                            <div class="font-weight-bold text-dark small text-truncate">{{ item.title }}</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">{{ item.get_video_type_display }}</div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
