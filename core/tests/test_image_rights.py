@@ -108,3 +108,25 @@ class ImageRightsRecordTestCase(TestCase):
         dummy_img = SimpleUploadedFile("teste.jpg", b"fake_image_bytes_content")
         checksum = ImageRightsRecord.calculate_file_checksum(dummy_img)
         self.assertEqual(len(checksum), 64) # Tamanho padrão do hash SHA-256
+
+    def test_compliance_map_view_requires_staff(self):
+        """Verifica se o Mapa de Conformidade de Ativos Visuais exige autenticação staff."""
+        client = Client()
+        url = reverse('copyright_compliance_map')
+
+        # Não logado -> Redireciona para o login
+        resp_anonymous = client.get(url)
+        self.assertEqual(resp_anonymous.status_code, 302)
+
+        # Logado como staff -> Permite acesso 200 OK
+        client.login(username='admin_test', password='password123')
+        resp_staff = client.get(url)
+        self.assertEqual(resp_staff.status_code, 200)
+
+    def test_field_audit_status_calculation(self):
+        """Verifica os cálculos dos status de auditoria (missing vs regularized)."""
+        from core.services.image_rights_service import ImageRightsAuditService
+
+        # 1. Livro sem capa salva no disco
+        status, record = ImageRightsAuditService.get_field_audit_status(self.book, 'cover_image')
+        self.assertEqual(status, 'no_image')

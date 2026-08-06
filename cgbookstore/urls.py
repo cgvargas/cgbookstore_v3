@@ -44,6 +44,7 @@ urlpatterns = [
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('admin/product-analytics/', include('product_analytics.urls', namespace='product_analytics')),
     path('admin/audit/image-copyright/', copyright_views.copyright_audit_dashboard, name='copyright_audit_dashboard'),
+    path('admin/audit/image-copyright/compliance-map/', copyright_views.copyright_compliance_map, name='copyright_compliance_map'),
     path('admin/copyright-doc/<int:record_id>/', copyright_views.protected_copyright_document_download, name='protected_copyright_document'),
     path('admin/', admin.site.urls),
 

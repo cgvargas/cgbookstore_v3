@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load copyright_tags %}
 
 {% block title %}{{ quiz.title }} - CG.Fandom News Quiz{% endblock %}
 
@@ -24,7 +25,10 @@
                     <p class="lead">{{ quiz.description }}</p>
 
                     {% if quiz.featured_image %}
-                    <img src="{% if quiz.featured_image.name %}{{ quiz.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" class="img-fluid rounded mb-4" alt="{{ quiz.title }}">
+                    <img src="{% if quiz.featured_image.name %}{{ quiz.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" class="img-fluid rounded mb-2" alt="{{ quiz.title }}">
+                    <div class="mb-3 text-center">
+                        {% render_image_rights quiz 'featured_image' %}
+                    </div>
                     {% endif %}
 
                     <form method="post" action="{% url 'news:submit_quiz' quiz.slug %}">
@@ -36,6 +40,9 @@
 
                             {% if question.question_image %}
                             <img src="{{ question.question_image.url }}" class="img-fluid rounded my-2" style="max-height: 300px;">
+                            <div class="text-center">
+                                {% render_image_rights question 'question_image' %}
+                            </div>
                             {% endif %}
 
                             <div class="mt-3">

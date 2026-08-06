@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load copyright_tags %}
 
 {% block title %}{{ event.title }} - CG.BookStore{% endblock %}
 
@@ -23,6 +24,9 @@
                      class="w-100" 
                      style="height: 400px; object-fit: cover;"
                      alt="{{ event.title }}">
+                <div class="text-center mt-1">
+                    {% render_image_rights event 'banner_image' %}
+                </div>
             {% else %}
                 <div class="bg-gradient-primary d-flex align-items-center justify-content-center" 
                      style="height: 400px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">

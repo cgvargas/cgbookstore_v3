@@ -1,6 +1,7 @@
 # core/views/copyright_views.py
 """
-Views para a Dashboard Administrativa de Auditoria de Direitos Autorais de Imagens
+Views para a Dashboard Administrativa de Auditoria de Direitos Autorais de Imagens,
+Mapa de Conformidade de Ativos Visuais por Modelo
 e para o Acesso Seguro/Protegido aos Documentos de Autorização.
 """
 
@@ -11,6 +12,9 @@ from django.shortcuts import render, get_object_or_404
 from django.db import models
 
 from core.models.image_rights import ImageRightsRecord
+from core.models import Book, Author, LiteraryUniverse, Banner, Section, Event
+from news.models import Article, Quiz
+from core.services.image_rights_service import ImageRightsAuditService
 
 
 @staff_member_required
@@ -42,7 +46,6 @@ def copyright_audit_dashboard(request):
         license_distribution.append({'code': '', 'label': '⚠️ Sem Licença Informada', 'count': unlicensed_records.count()})
 
     # 2. Cálculo da Taxa de Atribuição e Procedência (%)
-    # Requer licença definida E (credit_name ou source_url)
     valid_attribution_count = 0
     valid_legal_proof_count = 0
 
@@ -74,7 +77,7 @@ def copyright_audit_dashboard(request):
 
         # Regra de Comprovação Jurídica
         if rec.license_type == 'own':
-            has_legal_proof = True # Própria/CG.BookStore
+            has_legal_proof = True
         elif rec.license_type in ['licensed', 'other']:
             if rec.permission_document or rec.usage_notes:
                 has_legal_proof = True
@@ -94,9 +97,8 @@ def copyright_audit_dashboard(request):
         if has_legal_proof:
             valid_legal_proof_count += 1
 
-        # Adicionar à fila de pendências se houver qualquer apontamento
+        # Adicionar à fila de pendências
         if issues or not rec.license_type:
-            # Tentar resgatar nome do objeto
             obj_name = f"ID #{rec.object_id}"
             if rec.content_object:
                 obj_name = str(rec.content_object)
@@ -118,11 +120,30 @@ def copyright_audit_dashboard(request):
         'attribution_rate': attribution_rate,
         'legal_proof_rate': legal_proof_rate,
         'license_distribution': license_distribution,
-        'pending_records': pending_records[:100], # Limitar a 100 itens principais
+        'pending_records': pending_records[:100],
         'pending_total': len(pending_records),
     }
 
     return render(request, 'admin/copyright_audit.html', context)
+
+
+@staff_member_required
+def copyright_compliance_map(request):
+    """
+    Página do Mapa de Conformidade de Ativos Visuais.
+    Calcula o percentual de conformidade de cada modelo da aplicação.
+    """
+    models_to_audit = [Book, Author, LiteraryUniverse, Article, Quiz, Event, Banner, Section]
+    compliance_map = []
+
+    for m in models_to_audit:
+        stats = ImageRightsAuditService.get_model_compliance_stats(m)
+        compliance_map.append(stats)
+
+    context = {
+        'compliance_map': compliance_map,
+    }
+    return render(request, 'admin/copyright_compliance_map.html', context)
 
 
 @staff_member_required

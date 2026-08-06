@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load news_tags %}
+{% load copyright_tags %}
 
 {% block title %}{{ article.title }} - CG.Fandom News{% endblock %}
 
@@ -115,6 +116,9 @@
             {% if article.image_caption %}
             <figcaption>{{ article.image_caption }}</figcaption>
             {% endif %}
+            <div class="text-center mt-1">
+                {% render_image_rights article 'featured_image' %}
+            </div>
         </figure>
 
         <!-- Conteúdo -->

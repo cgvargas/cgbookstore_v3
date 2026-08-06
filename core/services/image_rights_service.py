@@ -1,57 +1,145 @@
 # core/services/image_rights_service.py
 """
-Serviço para verificação de procedência de imagens, detecção de troca por Checksum (SHA-256)
-e utilitários para avisos não-bloqueantes no Django Admin.
+Serviço para verificação de procedência de imagens, cálculo de badges de auditoria 🟢 🟡 🔴 ⚠️,
+detecção de troca por Checksum (SHA-256) e mapa de conformidade corporativo por modelo.
 """
 
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.utils.html import format_html
 
 from core.models.image_rights import ImageRightsRecord
 
 
 class ImageRightsAuditService:
     """
-    Serviço central de auxílio e auditoria de direitos de imagens para admins.
+    Serviço central de auxílio e auditoria de direitos de imagens para admins e mapa de conformidade.
     """
+
+    @classmethod
+    def get_field_audit_status(cls, obj, field_name):
+        """
+        Retorna o estado da auditoria de um determinado campo de imagem em um objeto.
+        - 'regularized': 🟢 Registro completo e consistente
+        - 'pending': 🟡 Registro existente, mas com informações incompletas
+        - 'missing': 🔴 Existe imagem, porém nenhum ImageRightsRecord correspondente
+        - 'divergent': ⚠️ Checksum diferente da imagem cadastrada originalmente
+        - 'no_image': None (sem imagem enviada no campo)
+        """
+        if not obj or not getattr(obj, 'pk', None):
+            return 'no_image', None
+
+        file_attr = getattr(obj, field_name, None)
+        if not file_attr or not hasattr(file_attr, 'name') or not file_attr.name:
+            return 'no_image', None
+
+        ct = ContentType.objects.get_for_model(obj)
+        rights_record = ImageRightsRecord.objects.filter(
+            content_type=ct,
+            object_id=obj.pk,
+            image_field_name=field_name
+        ).first()
+
+        if not rights_record:
+            return 'missing', None
+
+        # Verificar se o checksum do arquivo mudou
+        if rights_record.image_checksum:
+            current_checksum = ImageRightsRecord.calculate_file_checksum(file_attr)
+            if current_checksum and current_checksum != rights_record.image_checksum:
+                return 'divergent', rights_record
+
+        # Verificar completude da licença
+        if not rights_record.license_type:
+            return 'pending', rights_record
+        if rights_record.license_type == 'cc' and (not rights_record.license_url or not rights_record.source_url):
+            return 'pending', rights_record
+
+        return 'regularized', rights_record
+
+    @classmethod
+    def get_field_audit_badge_html(cls, obj, field_name):
+        """Retorna a badge HTML formatada para exibição em formulários/listagens do admin."""
+        status, record = cls.get_field_audit_status(obj, field_name)
+        if status == 'no_image':
+            return ''
+        elif status == 'regularized':
+            return format_html('<span style="background:#27ae60; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">🟢 Regularizada</span>')
+        elif status == 'pending':
+            return format_html('<span style="background:#f39c12; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">🟡 Pendente</span>')
+        elif status == 'divergent':
+            return format_html('<span style="background:#e67e22; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">⚠️ Checksum Divergente</span>')
+        else:
+            return format_html('<span style="background:#c0392b; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">🔴 Sem Registro</span>')
 
     @classmethod
     def audit_model_admin_save(cls, request, obj):
         """
-        Executado no save_model dos admins principais (Book, Author, LiteraryUniverse, Banner, etc.).
-        Verifica os campos de imagem do objeto:
-        1. Alerta se houver imagem sem registro de direitos autorais.
-        2. Detecta se a imagem mudou comparando o Checksum SHA-256 e alerta sobre a necessidade de reauditoria.
+        Executado no save_model dos admins principais.
+        Verifica os campos de imagem e exibe avisos educativos não-bloqueantes.
         """
         if not obj or not obj.pk:
             return
 
-        ct = ContentType.objects.get_for_model(obj)
         model_cls = obj.__class__
 
         for field in model_cls._meta.get_fields():
             if isinstance(field, (models.ImageField, models.FileField)):
-                file_attr = getattr(obj, field.name, None)
-                if file_attr and hasattr(file_attr, 'name') and file_attr.name:
-                    # Tentar buscar o registro de direitos autorais existente
-                    rights_record = ImageRightsRecord.objects.filter(
-                        content_type=ct,
-                        object_id=obj.pk,
-                        image_field_name=field.name
-                    ).first()
+                status, record = cls.get_field_audit_status(obj, field.name)
+                if status == 'missing':
+                    messages.warning(
+                        request,
+                        f"⚠️ Auditoria de Imagens: O campo '{field.verbose_name}' possui imagem enviada sem registro de procedência. Preencha na seção 'Direitos Autorais e Procedência'."
+                    )
+                elif status == 'divergent':
+                    messages.warning(
+                        request,
+                        f"⚠️ Alerta Checksum: O arquivo do campo '{field.verbose_name}' foi alterado no disco. Atualize os direitos autorais deste ativo visual!"
+                    )
 
-                    if not rights_record:
-                        messages.warning(
-                            request,
-                            f"⚠️ Auditoria de Imagens: O campo de imagem '{field.verbose_name}' ({field.name}) possui arquivo cadastrado, mas NÃO tem registro de procedência/direitos autorais. Adicione na seção 'Direitos Autorais e Procedência'."
-                        )
-                    else:
-                        # Verificar se o arquivo mudou via Checksum SHA-256
-                        if rights_record.image_checksum:
-                            current_checksum = ImageRightsRecord.calculate_file_checksum(file_attr)
-                            if current_checksum and current_checksum != rights_record.image_checksum:
-                                messages.warning(
-                                    request,
-                                    f"⚠️ Alerta de Substituição de Arquivo: O arquivo do campo '{field.verbose_name}' foi alterado (Checksum SHA-256 divergente do auditado). Por favor, revise e atualize os direitos autorais deste ativo visual!"
-                                )
+    @classmethod
+    def get_model_compliance_stats(cls, model_cls):
+        """
+        Calcula as estatísticas e a taxa percentual de conformidade de mídias para um modelo específico.
+        """
+        ct = ContentType.objects.get_for_model(model_cls)
+        image_field_names = [
+            f.name for f in model_cls._meta.get_fields()
+            if isinstance(f, (models.ImageField, models.FileField))
+        ]
+
+        if not image_field_names:
+            return {'total_images': 0, 'regularized': 0, 'pending': 0, 'missing': 0, 'divergent': 0, 'rate': 100.0}
+
+        total_images = 0
+        regularized = 0
+        pending = 0
+        missing = 0
+        divergent = 0
+
+        # Iterar sobre as instâncias do modelo que possuem arquivo
+        for obj in model_cls.objects.all():
+            for field_name in image_field_names:
+                status, record = cls.get_field_audit_status(obj, field_name)
+                if status != 'no_image':
+                    total_images += 1
+                    if status == 'regularized':
+                        regularized += 1
+                    elif status == 'pending':
+                        pending += 1
+                    elif status == 'divergent':
+                        divergent += 1
+                    elif status == 'missing':
+                        missing += 1
+
+        rate = round((regularized / total_images * 100), 1) if total_images > 0 else 100.0
+        return {
+            'model_name': model_cls._meta.verbose_name_plural.title(),
+            'total_images': total_images,
+            'regularized': regularized,
+            'pending': pending,
+            'missing': missing,
+            'divergent': divergent,
+            'rate': rate
+        }
