@@ -87,6 +87,9 @@ class BookInline(admin.TabularInline):
         obj.save()
 
 
+from core.admin.image_rights_admin import ImageRightsRecordInline
+from core.services.image_rights_service import ImageRightsAuditService
+
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
     """Administração de Autores com inline de livros."""
@@ -96,7 +99,11 @@ class AuthorAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     readonly_fields = ['created_at', 'photo_preview', 'associate_books_widget', 'import_works_widget', 'delete_works_widget']
     date_hierarchy = 'created_at'
-    inlines = [BookInline, AuthorWorkInline]
+    inlines = [BookInline, AuthorWorkInline, ImageRightsRecordInline]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
 
     fieldsets = (
         ('Informações Básicas', {

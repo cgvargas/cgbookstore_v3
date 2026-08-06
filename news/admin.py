@@ -5,6 +5,8 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
 from .models import Category, Tag, Article, Quiz, QuizQuestion, QuizOption, Newsletter, QuizAttempt, NewsSource, NewsAgentConfig, ArticleComment, ArticleLike
+from core.admin.image_rights_admin import ImageRightsRecordInline
+from core.services.image_rights_service import ImageRightsAuditService
 
 
 @admin.register(Category)
@@ -80,8 +82,11 @@ class ArticleAdmin(admin.ModelAdmin):
     search_fields = ['^title', 'subtitle', 'excerpt']
     prepopulated_fields = {'slug': ('title',)}
     filter_horizontal = ['tags', 'related_books']
-    date_hierarchy = 'published_at'
-    list_per_page = 25
+    inlines = [ImageRightsRecordInline]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
 
     class Media:
         css = {

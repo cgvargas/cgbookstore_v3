@@ -6,9 +6,19 @@ from django.utils import timezone
 from core.models import Banner
 
 
+from core.admin.image_rights_admin import ImageRightsRecordInline
+from core.services.image_rights_service import ImageRightsAuditService
+
+
 @admin.register(Banner)
 class BannerAdmin(admin.ModelAdmin):
     """Administração de Banners da Home."""
+
+    inlines = [ImageRightsRecordInline]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
 
     formfield_overrides = {
         models.CharField: {'widget': forms.TextInput(attrs={'type': 'text'})}
