@@ -8,14 +8,39 @@
 {% endblock %}
 
 {% block nav-global %}
-<div style="float: right; margin-right: 20px;">
-    <a href="{% url 'admin:google_books_search' %}"
-       style="background: #28a745;
+<div style="float: right; margin-right: 20px; display: flex; gap: 10px; align-items: center;">
+    <a href="{% url 'copyright_audit_dashboard' %}"
+       style="background: #34495e;
               color: white;
-              padding: 8px 16px;
+              padding: 6px 12px;
               border-radius: 4px;
               text-decoration: none;
               font-weight: 600;
+              font-size: 0.85rem;
+              display: inline-block;
+              transition: all 0.3s;">
+        🛡️ Auditoria de Imagens
+    </a>
+    <a href="{% url 'copyright_compliance_map' %}"
+       style="background: #2980b9;
+              color: white;
+              padding: 6px 12px;
+              border-radius: 4px;
+              text-decoration: none;
+              font-weight: 600;
+              font-size: 0.85rem;
+              display: inline-block;
+              transition: all 0.3s;">
+        🗺️ Mapa de Conformidade
+    </a>
+    <a href="{% url 'admin:google_books_search' %}"
+       style="background: #28a745;
+              color: white;
+              padding: 6px 12px;
+              border-radius: 4px;
+              text-decoration: none;
+              font-weight: 600;
+              font-size: 0.85rem;
               display: inline-block;
               transition: all 0.3s;">
         🔍 Buscar no Google Books
@@ -26,9 +51,9 @@
 {% block extrastyle %}
 {{ block.super }}
 <style>
-    /* Hover effect para o botão */
-    a[href*="google-books"]:hover {
-        background: #218838 !important;
+    /* Hover effect para os botões do nav-global */
+    #nav-global a:hover {
+        opacity: 0.9;
         transform: translateY(-1px);
     }
 </style>

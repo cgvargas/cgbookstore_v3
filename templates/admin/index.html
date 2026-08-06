@@ -25,7 +25,6 @@
         --dashboard-card-shadow-hover: rgba(0, 0, 0, 0.5);
     }
 
-    /* Para detectar dark mode automaticamente se o admin não usar data-theme */
     @media (prefers-color-scheme: dark) {
         :root:not([data-theme="light"]) {
             --dashboard-card-bg: #2b2b2b;
@@ -109,11 +108,13 @@
 </style>
 {% endblock %}
 
-{% block content %}
-{{ block.super }}
+{% block content_title %}
+    <h1>Painel de Controle — CG.BookStore Admin</h1>
+{% endblock %}
 
+{% block content %}
 <div class="dashboard-section">
-    <h2 class="dashboard-section-title">📊 Dashboards e Análises</h2>
+    <h2 class="dashboard-section-title">🛡️ Governança de Ativos Visuais e Direitos Autorais</h2>
 
     <div class="dashboard-cards">
         <!-- Card: Dashboard de Auditoria de Direitos Autorais de Imagens -->
@@ -133,7 +134,13 @@
                 Percentual de conformidade de mídias por modelo e controle de divergências por checksum.
             </p>
         </a>
+    </div>
+</div>
 
+<div class="dashboard-section">
+    <h2 class="dashboard-section-title">📊 Dashboards e Análises</h2>
+
+    <div class="dashboard-cards">
         <!-- Card: Dashboard de Relatórios -->
         <a href="{% url 'admin_tools:reports_dashboard' %}" class="dashboard-card info">
             <div class="dashboard-card-icon">📊</div>
@@ -224,4 +231,6 @@
         </a>
     </div>
 </div>
+
+{{ block.super }}
 {% endblock %}
