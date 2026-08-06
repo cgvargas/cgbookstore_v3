@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load l10n %}
+{% load copyright_tags %}
 
 {% block title %}{{ book.title }}{% if book.author %} por {{ book.author.name }}{% endif %} - CG.BookStore{% endblock %}
 
