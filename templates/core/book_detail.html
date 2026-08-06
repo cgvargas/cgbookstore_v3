@@ -1043,14 +1043,28 @@
                 </div>
             {% endif %}
 
-            <!-- Categoria -->
-            {% if book.category %}
-                <p>
-                    <i class="fas fa-tag me-2"></i>
-                    <strong>Categoria:</strong>
-                    <span class="badge bg-primary">{{ book.category.name }}</span>
-                </p>
-            {% endif %}
+            <!-- Categoria e Universo Literário -->
+            <div class="d-flex align-items-center flex-wrap gap-3 mb-3">
+                {% if book.category %}
+                    <p class="mb-0">
+                        <i class="fas fa-tag me-1 text-primary"></i>
+                        <strong>Categoria:</strong>
+                        <span class="badge bg-primary ms-1">{{ book.category.name }}</span>
+                    </p>
+                {% endif %}
+
+                {% if book.literary_universes.all %}
+                    <p class="mb-0">
+                        <i class="fas fa-globe me-1 text-warning"></i>
+                        <strong>Universo Literário:</strong>
+                        {% for universe in book.literary_universes.all %}
+                            <a href="{% url 'core:literary_universe' universe.slug %}" class="badge bg-warning text-dark text-decoration-none ms-1" style="font-size: 0.85rem;" title="Explorar o Universo {{ universe.page_title }}">
+                                <i class="fas fa-star me-1"></i>{{ universe.page_title }}
+                            </a>
+                        {% endfor %}
+                    </p>
+                {% endif %}
+            </div>
 
             <hr>
 

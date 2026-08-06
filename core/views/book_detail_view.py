@@ -17,6 +17,9 @@ class BookDetailView(DetailView):
     template_name = 'core/book_detail.html'
     context_object_name = 'book'
 
+    def get_queryset(self):
+        return super().get_queryset().select_related('author', 'category').prefetch_related('literary_universes')
+
     def get_context_data(self, **kwargs):
         """Adiciona contexto extra para o template."""
         context = super().get_context_data(**kwargs)
