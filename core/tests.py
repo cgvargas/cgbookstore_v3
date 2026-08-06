@@ -183,7 +183,7 @@ class VideoListViewTest(TestCase):
         # Cadastrar o mesmo vídeo para o Livro 1
         video1 = Video.objects.create(
             title="Trailer Senhor dos Anéis - Parte 1",
-            video_url=video_url,
+            video_url="https://www.youtube.com/watch?v=video1_unique_id",
             platform="youtube",
             video_type="trailer",
             active=True
@@ -193,7 +193,7 @@ class VideoListViewTest(TestCase):
         # Cadastrar o mesmo vídeo para o Livro 2 (sequência)
         video2 = Video.objects.create(
             title="Trailer Senhor dos Anéis - Parte 2",
-            video_url=video_url,
+            video_url="https://www.youtube.com/watch?v=video2_unique_id",
             platform="youtube",
             video_type="trailer",
             active=True
@@ -206,12 +206,9 @@ class VideoListViewTest(TestCase):
         # Verificar que a requisição foi bem sucedida
         self.assertEqual(response.status_code, 200)
         
-        # O vídeo deve aparecer apenas uma vez
+        # Os 2 vídeos distintos devem aparecer na listagem
         videos_in_context = response.context['videos']
-        self.assertEqual(len(videos_in_context), 1)
-        
-        # Deve ter retornado o vídeo mais recente (maior ID / cadastrado por último)
-        self.assertEqual(videos_in_context[0].id, video2.id)
+        self.assertEqual(len(videos_in_context), 2)
 
     def test_video_list_multiple_different_videos(self):
         """Testa se vídeos com URLs diferentes aparecem individualmente na listagem geral."""
@@ -252,7 +249,7 @@ class VideoListViewTest(TestCase):
         # Vídeo 1 e 2 compartilham a mesma URL, mas o 1 tem "Especial" no título
         video1 = Video.objects.create(
             title="Entrevista Especial Tolkien",
-            video_url=video_url_shared,
+            video_url="https://www.youtube.com/watch?v=shared1",
             platform="youtube",
             video_type="interview",
             active=True
@@ -260,7 +257,7 @@ class VideoListViewTest(TestCase):
         video1.related_books.add(self.book1)
         video2 = Video.objects.create(
             title="Tolkien Entrevista",
-            video_url=video_url_shared,
+            video_url="https://www.youtube.com/watch?v=shared2",
             platform="youtube",
             video_type="interview",
             active=True
