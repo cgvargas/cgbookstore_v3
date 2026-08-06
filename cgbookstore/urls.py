@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from django.http import HttpResponse
+from core.views import copyright_views
 
 from django.contrib.sitemaps.views import sitemap
 from core.sitemaps import (
@@ -42,6 +43,8 @@ urlpatterns = [
     path('robots.txt', robots_txt, name='robots_txt'),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('admin/product-analytics/', include('product_analytics.urls', namespace='product_analytics')),
+    path('admin/audit/image-copyright/', copyright_views.copyright_audit_dashboard, name='copyright_audit_dashboard'),
+    path('admin/copyright-doc/<int:record_id>/', copyright_views.protected_copyright_document_download, name='protected_copyright_document'),
     path('admin/', admin.site.urls),
 
     # Ferramentas administrativas (sem necessidade de Shell)

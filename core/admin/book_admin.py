@@ -8,6 +8,8 @@ from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.functions import ExtractYear
 from core.models import Book, Video, Section, SectionItem
+from core.admin.image_rights_admin import ImageRightsRecordInline
+from core.services.image_rights_service import ImageRightsAuditService
 from news.models import Article
 
 logger = logging.getLogger(__name__)
@@ -116,11 +118,17 @@ class VideoInline(admin.TabularInline):
     classes = ['collapse']
 
 
+
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
     """Administração de Livros com autocomplete de autor."""
 
     form = BookAdminForm
+    inlines = [VideoInline, ImageRightsRecordInline]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
 
     # Otimização: Evitar N+1 queries ao listar livros
     list_select_related = ['author', 'category']

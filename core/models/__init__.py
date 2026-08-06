@@ -13,6 +13,7 @@ from .section_item import SectionItem
 from .event import Event
 from .banner import Banner
 from .featured_author_settings import FeaturedAuthorSettings
+from .image_rights import ImageRightsRecord
 from .literary_universe import (
     LiteraryUniverse,
     UniverseContentItem,
@@ -35,6 +36,7 @@ __all__ = [
     'Event',
     'Banner',
     'FeaturedAuthorSettings',
+    'ImageRightsRecord',
     'LiteraryUniverse',
     'UniverseContentItem',
     'UniverseBanner',

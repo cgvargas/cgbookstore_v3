@@ -186,9 +186,9 @@ class VideoListViewTest(TestCase):
             video_url=video_url,
             platform="youtube",
             video_type="trailer",
-            related_book=self.book1,
             active=True
         )
+        video1.related_books.add(self.book1)
 
         # Cadastrar o mesmo vídeo para o Livro 2 (sequência)
         video2 = Video.objects.create(
@@ -196,9 +196,9 @@ class VideoListViewTest(TestCase):
             video_url=video_url,
             platform="youtube",
             video_type="trailer",
-            related_book=self.book2,
             active=True
         )
+        video2.related_books.add(self.book2)
 
         # Acessar a página de vídeos
         response = self.client.get(reverse('core:video_list'))
@@ -224,17 +224,17 @@ class VideoListViewTest(TestCase):
             video_url="https://www.youtube.com/watch?v=video1",
             platform="youtube",
             video_type="trailer",
-            related_book=self.book1,
             active=True
         )
+        video1.related_books.add(self.book1)
         video2 = Video.objects.create(
             title="Trailer 2",
             video_url="https://www.youtube.com/watch?v=video2",
             platform="youtube",
             video_type="trailer",
-            related_book=self.book2,
             active=True
         )
+        video2.related_books.add(self.book2)
 
         response = self.client.get(reverse('core:video_list'))
         self.assertEqual(response.status_code, 200)
@@ -255,17 +255,17 @@ class VideoListViewTest(TestCase):
             video_url=video_url_shared,
             platform="youtube",
             video_type="interview",
-            related_book=self.book1,
             active=True
         )
+        video1.related_books.add(self.book1)
         video2 = Video.objects.create(
             title="Tolkien Entrevista",
             video_url=video_url_shared,
             platform="youtube",
             video_type="interview",
-            related_book=self.book2,
             active=True
         )
+        video2.related_books.add(self.book2)
 
         # Vídeo 3 com URL diferente e tipo diferente
         video3 = Video.objects.create(
@@ -273,9 +273,9 @@ class VideoListViewTest(TestCase):
             video_url="https://www.youtube.com/watch?v=different",
             platform="youtube",
             video_type="discussion",
-            related_book=self.book1,
             active=True
         )
+        video3.related_books.add(self.book1)
 
         # 1. Testar busca com termo "Especial"
         response = self.client.get(reverse('core:video_list') + "?q=Especial")

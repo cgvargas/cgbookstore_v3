@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load copyright_tags %}
 
 {% block title %}{% if universe.meta_title %}{{ universe.meta_title }}{% else %}{{ universe.page_title }} - CG.BookStore{% endif %}{% endblock %}
 
@@ -618,6 +619,7 @@
             {{ universe.page_title }}
         </h1>
         <p>{{ universe.page_description }}</p>
+        {% render_image_rights universe 'hero_banner_image' %}
         <div class="universe-stats-bar">
             <span class="universe-stat-item">
                 <i class="fas fa-book"></i> {{ books_count }} Livros

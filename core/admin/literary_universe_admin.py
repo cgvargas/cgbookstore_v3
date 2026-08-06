@@ -21,6 +21,8 @@ from core.models import (
     UniverseCharacter,
     UniverseCollection,
 )
+from core.admin.image_rights_admin import ImageRightsRecordInline
+from core.services.image_rights_service import ImageRightsAuditService
 
 
 # ==============================================================================
@@ -143,7 +145,12 @@ class LiteraryUniverseAdmin(admin.ModelAdmin):
         UniverseContentItemInline,
         UniverseCharacterInline,
         UniverseBannerInline,
+        ImageRightsRecordInline,
     ]
+    
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
     
     fieldsets = (
         ('📋 Informações Gerais', {
