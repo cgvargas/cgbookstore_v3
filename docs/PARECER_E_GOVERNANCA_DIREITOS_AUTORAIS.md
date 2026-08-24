@@ -59,4 +59,4 @@ A governança corporativa de imagens é mantida através do modelo `ImageRightsR
 1. Identificação precisa do modelo e objeto vinculado via `GenericForeignKey`.
 2. Verificação de integridade via **SHA-256 Checksum** do arquivo para detectar trocas não auditadas.
 3. Rastreamento da finalidade do uso, enquadramento legal, dimensões físicas e créditos TASL (*Title, Author, Source, License*).
-4. Monitoramento percentual das taxas de conformidade da aplicação através do Mapa de Conformidade e Dashboard de Auditoria em `/admin/core/copyright-audit/`.
+4. Monitoramento percentual das taxas de conformidade da aplicação através do Mapa de Conformidade e Dashboard de Auditoria em `/admin/audit/image-copyright/`.
