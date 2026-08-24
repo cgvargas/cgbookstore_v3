@@ -286,3 +286,92 @@ class VideoListViewTest(TestCase):
         self.assertEqual(len(videos_in_context), 1)
         self.assertEqual(videos_in_context[0].id, video3.id)
 
+
+class LiteraryUniverseModelTest(TestCase):
+    """Testes do modelo LiteraryUniverse e isolamento de livros de autores adicionais."""
+
+    def setUp(self):
+        from core.models import LiteraryUniverse, Author, Book, UniverseReadingOrder
+        from django.utils import timezone
+
+        # Autores: Robert Jordan (principal) e Brandon Sanderson (adicional)
+        self.robert_jordan = Author.objects.create(name="Robert Jordan", slug="robert-jordan")
+        self.brandon_sanderson = Author.objects.create(name="Brandon Sanderson", slug="brandon-sanderson")
+
+        # Livros de A Roda do Tempo (Robert Jordan)
+        self.wot_book1 = Book.objects.create(
+            title="O Olho do Mundo (A Roda do Tempo 1)",
+            author=self.robert_jordan,
+            publication_date=timezone.now().date(),
+            isbn="9780000000001"
+        )
+        self.wot_book2 = Book.objects.create(
+            title="A Grande Caçada (A Roda do Tempo 2)",
+            author=self.robert_jordan,
+            publication_date=timezone.now().date(),
+            isbn="9780000000002"
+        )
+
+        # Livro final de A Roda do Tempo (Brandon Sanderson)
+        self.wot_sanderson_book = Book.objects.create(
+            title="A Tempestade Imminente (A Roda do Tempo 12)",
+            author=self.brandon_sanderson,
+            publication_date=timezone.now().date(),
+            isbn="9780000000012"
+        )
+
+        # Livro de outro universo (Mistborn - Brandon Sanderson)
+        self.mistborn_book = Book.objects.create(
+            title="Mistborn: O Império Final",
+            author=self.brandon_sanderson,
+            publication_date=timezone.now().date(),
+            isbn="9780000000099"
+        )
+
+        # Universo A Roda do Tempo
+        self.universe = LiteraryUniverse.objects.create(
+            title="A Roda do Tempo",
+            slug="roda-do-tempo",
+            author=self.robert_jordan
+        )
+        self.universe.additional_authors.add(self.brandon_sanderson)
+
+    def test_additional_author_unrelated_books_are_excluded(self):
+        """Garante que livros não vinculados de autores adicionais (ex: Mistborn) não apareçam no universo."""
+        books = list(self.universe.get_all_books())
+
+        # Deve incluir apenas os livros de Robert Jordan
+        self.assertIn(self.wot_book1, books)
+        self.assertIn(self.wot_book2, books)
+
+        # Mistborn NÃO deve estar presente
+        self.assertNotIn(self.mistborn_book, books)
+        # O livro do Sanderson para WoT ainda não foi associado manualmente, então não deve estar
+        self.assertNotIn(self.wot_sanderson_book, books)
+
+    def test_additional_author_book_included_when_added_to_books(self):
+        """Garante que quando o livro de autor adicional for adicionado a 'books', ele seja incluído no universo."""
+        self.universe.books.add(self.wot_sanderson_book)
+
+        books = list(self.universe.get_all_books())
+
+        self.assertIn(self.wot_book1, books)
+        self.assertIn(self.wot_sanderson_book, books)
+        self.assertNotIn(self.mistborn_book, books)
+
+    def test_additional_author_book_included_when_in_reading_order(self):
+        """Garante que se o livro estiver na ordem de leitura, ele seja incluído."""
+        from core.models import UniverseReadingOrder
+        UniverseReadingOrder.objects.create(
+            universe=self.universe,
+            book=self.wot_sanderson_book,
+            order_number=12,
+            title="A Tempestade Imminente"
+        )
+
+        books = list(self.universe.get_all_books())
+
+        self.assertIn(self.wot_sanderson_book, books)
+        self.assertNotIn(self.mistborn_book, books)
+
+

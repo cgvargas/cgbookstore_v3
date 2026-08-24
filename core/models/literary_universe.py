@@ -392,35 +392,41 @@ class LiteraryUniverse(models.Model):
     
     def get_all_books(self):
         """
-        Retorna todos os livros do universo, combinando:
-        1. Livros selecionados manualmente (M2M books)
-        2. Livros do autor principal (FK author)
-        3. Livros dos autores adicionais (M2M additional_authors)
-        Remove duplicatas e ordena por título.
+        Retorna os livros pertencentes a este universo literário.
+        
+        Regras de inclusão:
+        1. Livros associados manualmente no campo 'books' (M2M).
+        2. Livros associados através da Ordem de Leitura ('reading_order').
+        3. Livros do autor principal (FK author).
+        
+        NOTA: Livros de 'additional_authors' NÃO são incluídos automaticamente 
+        para evitar que obras não relacionadas do autor adicional (ex: Mistborn 
+        de Brandon Sanderson) apareçam indevidamente no universo (ex: A Roda do Tempo).
+        Para que um livro de um autor adicional apareça no universo, ele deve ser 
+        selecionado em 'books' ou cadastrado na 'Ordem de Leitura'.
         """
         from core.models import Book
         
-        # IDs de livros selecionados manualmente
+        # 1. IDs de livros selecionados manualmente no M2M 'books'
         manual_ids = set(self.books.values_list('id', flat=True))
         
-        # IDs de livros do autor principal
+        # 2. IDs de livros presentes na Ordem de Leitura deste universo
+        reading_order_ids = set(
+            self.reading_order.filter(book__isnull=False).values_list('book_id', flat=True)
+        )
+        
+        # 3. IDs de livros do autor principal
         author_ids = set(
             Book.objects.filter(author=self.author).values_list('id', flat=True)
-        )
+        ) if self.author_id else set()
         
-        # IDs de livros dos autores adicionais
-        additional_ids = set(
-            Book.objects.filter(
-                author__in=self.additional_authors.all()
-            ).values_list('id', flat=True)
-        )
-        
-        # Combinar todos os IDs
-        all_ids = manual_ids | author_ids | additional_ids
+        # Combinar apenas os livros legítimos do universo
+        all_ids = manual_ids | reading_order_ids | author_ids
         
         return Book.objects.filter(
             id__in=all_ids
         ).select_related('author', 'category').order_by('title')
+
     
     def get_all_authors(self):
         """Retorna autor principal em 1º lugar, seguido pelos autores adicionais."""
