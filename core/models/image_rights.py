@@ -30,6 +30,25 @@ class ImageRightsRecord(models.Model):
         ('other', '📌 Outra'),
     ]
 
+    PURPOSE_CHOICES = [
+        ('review_debate', '💬 Resenha & Debate Literário'),
+        ('affiliate_promotion', '🛒 Divulgação & Afiliado Amazon'),
+        ('author_bio', '👤 Perfil & Biografia de Autor'),
+        ('event_publicity', '📅 Divulgação Gratuita de Evento'),
+        ('adaptation_info', '🎬 Adaptação Literária'),
+        ('institutional', '🎨 Identidade Visual & Layout'),
+        ('other', '📌 Outra'),
+    ]
+
+    LEGAL_BASIS_CHOICES = [
+        ('fair_use_art46', '⚖️ Limitação aos Direitos Autorais (Art. 46 Lei 9.610/98 / Fair Use)'),
+        ('express_consent', '📜 Autorização Expressa da Editora/Autor'),
+        ('amazon_affiliate_terms', '🛒 Termos do Programa de Afiliados Amazon'),
+        ('public_domain', '🌐 Domínio Público'),
+        ('creative_commons', '🔀 Licença Creative Commons'),
+        ('own_production', '🏠 Produção Própria / Interna'),
+    ]
+
     # Relacionamento Genérico (compatível com BigAutoField via PositiveBigIntegerField)
     content_type = models.ForeignKey(
         ContentType,
@@ -63,6 +82,50 @@ class ImageRightsRecord(models.Model):
         default='',
         db_index=True,
         verbose_name="Checksum SHA-256 da Imagem"
+    )
+
+    # Enquadramento e Finalidade do Uso (Proteção Jurídica)
+    usage_purpose = models.CharField(
+        max_length=30,
+        choices=PURPOSE_CHOICES,
+        blank=True,
+        default='',
+        db_index=True,
+        verbose_name="Finalidade do Uso",
+        help_text="Propósito do uso da imagem na aplicação (ex: resenha/debate, indicação de compra)."
+    )
+    legal_basis = models.CharField(
+        max_length=30,
+        choices=LEGAL_BASIS_CHOICES,
+        blank=True,
+        default='',
+        db_index=True,
+        verbose_name="Fundamento Jurídico",
+        help_text="Enquadramento legal para proteção do uso (ex: Art. 46 LDA / Fair Use, Afiliados Amazon)."
+    )
+
+    # Dimensões e Especificações Técnicas (Resolução Proporcional)
+    display_dimensions = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        verbose_name="Dimensões de Exibição / Resolução",
+        help_text="Dimensões auditadas do arquivo ou formato na interface (ex: 400x600px - Card Preview)."
+    )
+    image_width_px = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Largura (px)"
+    )
+    image_height_px = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Altura (px)"
+    )
+    file_size_kb = models.FloatField(
+        null=True,
+        blank=True,
+        verbose_name="Tamanho do Arquivo (KB)"
     )
 
     # Atribuição TASL (Title, Author, Source, License)
@@ -151,6 +214,7 @@ class ImageRightsRecord(models.Model):
         indexes = [
             models.Index(fields=['content_type', 'object_id']),
             models.Index(fields=['license_type', 'is_ai_generated']),
+            models.Index(fields=['usage_purpose', 'legal_basis']),
         ]
 
     def __str__(self):
@@ -171,3 +235,35 @@ class ImageRightsRecord(models.Model):
             return hasher.hexdigest()
         except Exception:
             return ''
+
+    @staticmethod
+    def extract_file_metadata(file_field):
+        """Extrai checksum, largura, altura e tamanho em KB do arquivo de imagem se existir."""
+        if not file_field:
+            return {'checksum': '', 'width': None, 'height': None, 'size_kb': None}
+        
+        checksum = ImageRightsRecord.calculate_file_checksum(file_field)
+        width, height, size_kb = None, None, None
+        
+        try:
+            if hasattr(file_field, 'size') and file_field.size:
+                size_kb = round(file_field.size / 1024.0, 2)
+        except Exception:
+            pass
+
+        try:
+            from PIL import Image
+            file_field.open('rb')
+            img = Image.open(file_field)
+            width, height = img.size
+            file_field.close()
+        except Exception:
+            pass
+
+        return {
+            'checksum': checksum,
+            'width': width,
+            'height': height,
+            'size_kb': size_kb
+        }
+

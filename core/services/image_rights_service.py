@@ -17,6 +17,59 @@ class ImageRightsAuditService:
     Serviço central de auxílio e auditoria de direitos de imagens para admins e mapa de conformidade.
     """
 
+    DEFAULT_MODEL_PURPOSES = {
+        'book': ('review_debate', 'fair_use_art46'),
+        'author': ('author_bio', 'fair_use_art46'),
+        ('literaryuniverse', 'universecharacter', 'universelocation'): ('adaptation_info', 'fair_use_art46'),
+        'event': ('event_publicity', 'express_consent'),
+        ('banner', 'section'): ('institutional', 'own_production'),
+        ('article', 'quiz'): ('review_debate', 'fair_use_art46'),
+    }
+
+    @classmethod
+    def get_default_purpose_and_legal_basis(cls, model_name):
+        """Retorna sugestões padrão de finalidade do uso e suporte jurídico com base no nome do modelo."""
+        model_name = model_name.lower()
+        for key, value in cls.DEFAULT_MODEL_PURPOSES.items():
+            if isinstance(key, tuple) and model_name in key:
+                return value
+            elif isinstance(key, str) and model_name == key:
+                return value
+        return ('other', 'fair_use_art46')
+
+    @classmethod
+    def sync_file_metadata(cls, rights_record, file_attr):
+        """Sincroniza automaticamente dimensões, peso em KB e checksum do arquivo no registro."""
+        if not rights_record or not file_attr:
+            return False
+
+        meta = ImageRightsRecord.extract_file_metadata(file_attr)
+        updated = False
+
+        if meta['checksum'] and rights_record.image_checksum != meta['checksum']:
+            rights_record.image_checksum = meta['checksum']
+            updated = True
+
+        if meta['width'] and rights_record.image_width_px != meta['width']:
+            rights_record.image_width_px = meta['width']
+            rights_record.image_height_px = meta['height']
+            updated = True
+
+        if meta['size_kb'] and rights_record.file_size_kb != meta['size_kb']:
+            rights_record.file_size_kb = meta['size_kb']
+            updated = True
+
+        if meta['width'] and meta['height']:
+            dim_str = f"{meta['width']}x{meta['height']}px ({meta['size_kb']} KB)"
+            if rights_record.display_dimensions != dim_str:
+                rights_record.display_dimensions = dim_str
+                updated = True
+
+        if updated:
+            rights_record.save()
+
+        return updated
+
     @classmethod
     def get_field_audit_status(cls, obj, field_name):
         """
@@ -44,13 +97,17 @@ class ImageRightsAuditService:
         if not rights_record:
             return 'missing', None
 
+        # Sincronizar metadados do arquivo se necessário
+        if file_attr:
+            cls.sync_file_metadata(rights_record, file_attr)
+
         # Verificar se o checksum do arquivo mudou
         if rights_record.image_checksum:
             current_checksum = ImageRightsRecord.calculate_file_checksum(file_attr)
             if current_checksum and current_checksum != rights_record.image_checksum:
                 return 'divergent', rights_record
 
-        # Verificar completude da licença
+        # Verificar completude da licença e enquadramento
         if not rights_record.license_type:
             return 'pending', rights_record
         if rights_record.license_type == 'cc' and (not rights_record.license_url or not rights_record.source_url):
@@ -143,3 +200,4 @@ class ImageRightsAuditService:
             'divergent': divergent,
             'rate': rate
         }
+

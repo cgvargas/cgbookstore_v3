@@ -45,6 +45,23 @@ def copyright_audit_dashboard(request):
     if unlicensed_records.exists():
         license_distribution.append({'code': '', 'label': '⚠️ Sem Licença Informada', 'count': unlicensed_records.count()})
 
+    # Distribuição por Finalidade do Uso
+    purpose_distribution = []
+    for code, label in ImageRightsRecord.PURPOSE_CHOICES:
+        count = ImageRightsRecord.objects.filter(usage_purpose=code).count()
+        if count > 0:
+            purpose_distribution.append({'code': code, 'label': label, 'count': count})
+
+    # Distribuição por Fundamento Jurídico
+    legal_basis_distribution = []
+    for code, label in ImageRightsRecord.LEGAL_BASIS_CHOICES:
+        count = ImageRightsRecord.objects.filter(legal_basis=code).count()
+        if count > 0:
+            legal_basis_distribution.append({'code': code, 'label': label, 'count': count})
+
+    # Registros com Especificações de Dimensão / Resolução Auditadas
+    records_with_specs_count = ImageRightsRecord.objects.exclude(display_dimensions='').count()
+
     # 2. Cálculo da Taxa de Atribuição e Procedência (%)
     valid_attribution_count = 0
     valid_legal_proof_count = 0
@@ -58,7 +75,7 @@ def copyright_audit_dashboard(request):
         issues = []
 
         # Regra de Atribuição
-        if rec.license_type:
+        if rec.license_type or rec.legal_basis:
             if rec.license_type == 'cc':
                 if rec.credit_name and rec.source_url and rec.license_url:
                     has_attribution = True
@@ -67,27 +84,24 @@ def copyright_audit_dashboard(request):
                         issues.append("CC sem URL da Licença")
                     if not rec.source_url:
                         issues.append("CC sem URL da Fonte")
-            elif rec.credit_name or rec.source_url or rec.license_type in ['own', 'publisher', 'amazon', 'google_books']:
+            elif rec.credit_name or rec.source_url or rec.license_type in ['own', 'publisher', 'amazon', 'google_books'] or rec.legal_basis:
                 has_attribution = True
         else:
-            issues.append("Licença não informada")
+            issues.append("Licença/Fundamento não informado")
 
         if has_attribution:
             valid_attribution_count += 1
 
         # Regra de Comprovação Jurídica
-        if rec.license_type == 'own':
+        if rec.legal_basis == 'fair_use_art46' or rec.license_type == 'own' or rec.legal_basis == 'own_production':
             has_legal_proof = True
         elif rec.license_type in ['licensed', 'other']:
             if rec.permission_document or rec.usage_notes:
                 has_legal_proof = True
             else:
                 issues.append("Licenciada sem Documento ou Observação Interna")
-        elif rec.license_type in ['publisher', 'amazon', 'google_books', 'open_library', 'wikimedia']:
-            if rec.source_url or rec.usage_notes:
-                has_legal_proof = True
-            else:
-                issues.append("Origem institucional sem URL ou nota")
+        elif rec.license_type in ['publisher', 'amazon', 'google_books', 'open_library', 'wikimedia'] or rec.legal_basis == 'amazon_affiliate_terms':
+            has_legal_proof = True
         elif rec.license_type in ['cc', 'public_domain']:
             if rec.source_url or rec.license_url:
                 has_legal_proof = True
@@ -98,7 +112,7 @@ def copyright_audit_dashboard(request):
             valid_legal_proof_count += 1
 
         # Adicionar à fila de pendências
-        if issues or not rec.license_type:
+        if issues or (not rec.license_type and not rec.legal_basis):
             obj_name = f"ID #{rec.object_id}"
             if rec.content_object:
                 obj_name = str(rec.content_object)
@@ -117,14 +131,18 @@ def copyright_audit_dashboard(request):
         'unlicensed_count': unlicensed_records.count(),
         'ai_generated_count': ai_generated_records.count(),
         'with_doc_count': records_with_doc.count(),
+        'records_with_specs_count': records_with_specs_count,
         'attribution_rate': attribution_rate,
         'legal_proof_rate': legal_proof_rate,
         'license_distribution': license_distribution,
+        'purpose_distribution': purpose_distribution,
+        'legal_basis_distribution': legal_basis_distribution,
         'pending_records': pending_records[:100],
         'pending_total': len(pending_records),
     }
 
     return render(request, 'admin/copyright_audit.html', context)
+
 
 
 @staff_member_required

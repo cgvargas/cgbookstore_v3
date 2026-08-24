@@ -130,3 +130,27 @@ class ImageRightsRecordTestCase(TestCase):
         # 1. Livro sem capa salva no disco
         status, record = ImageRightsAuditService.get_field_audit_status(self.book, 'cover_image')
         self.assertEqual(status, 'no_image')
+
+    def test_usage_purpose_and_legal_basis_fields(self):
+        """Verifica se os campos de finalidade e enquadramento jurídico salvam corretamente."""
+        record = ImageRightsRecord.objects.create(
+            content_type=self.book_ct,
+            object_id=self.book.id,
+            image_field_name='cover_image',
+            usage_purpose='review_debate',
+            legal_basis='fair_use_art46',
+            display_dimensions='400x600px (120 KB)'
+        )
+        self.assertEqual(record.usage_purpose, 'review_debate')
+        self.assertEqual(record.legal_basis, 'fair_use_art46')
+        self.assertEqual(record.display_dimensions, '400x600px (120 KB)')
+
+    def test_audit_image_rights_management_command(self):
+        """Verifica a execução do comando de gerenciamento audit_image_rights sem erros."""
+        from django.core.management import call_command
+        from io import StringIO
+
+        out = StringIO()
+        call_command('audit_image_rights', '--auto-create', stdout=out)
+        self.assertIn('[OK] Rastreamento Concluido!', out.getvalue())
+

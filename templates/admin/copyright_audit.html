@@ -15,7 +15,7 @@
     </div>
 
     <!-- Indicadores Principais (KPIs) -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
         
         <!-- KPI 1: Taxa de Atribuição -->
         <div style="background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 5px solid #27ae60;">
@@ -28,17 +28,24 @@
         <div style="background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 5px solid #2980b9;">
             <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #7f8c8d; font-weight: 600;">Taxa de Comprovação Jurídica</div>
             <div style="font-size: 2.2rem; font-weight: 800; color: #2980b9; margin: 8px 0;">{{ legal_proof_rate }}%</div>
-            <div style="font-size: 0.8rem; color: #95a5a6;">Sustentação por contrato, nota ou documento</div>
+            <div style="font-size: 0.8rem; color: #95a5a6;">Sustentação por contrato, nota ou Art. 46 LDA</div>
         </div>
 
-        <!-- KPI 3: Sem Licença -->
+        <!-- KPI 3: Dimensões Auditadas -->
+        <div style="background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 5px solid #16a085;">
+            <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #7f8c8d; font-weight: 600;">Dimensões Auditadas</div>
+            <div style="font-size: 2.2rem; font-weight: 800; color: #16a085; margin: 8px 0;">{{ records_with_specs_count }}</div>
+            <div style="font-size: 0.8rem; color: #95a5a6;">Ativos com resolução e peso calculados</div>
+        </div>
+
+        <!-- KPI 4: Sem Licença -->
         <div style="background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 5px solid #e74c3c;">
             <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #7f8c8d; font-weight: 600;">Sem Licença Informada</div>
             <div style="font-size: 2.2rem; font-weight: 800; color: #e74c3c; margin: 8px 0;">{{ unlicensed_count }}</div>
             <div style="font-size: 0.8rem; color: #95a5a6;">Necessitam de auditoria de procedência</div>
         </div>
 
-        <!-- KPI 4: Geradas por IA -->
+        <!-- KPI 5: Geradas por IA -->
         <div style="background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 5px solid #8e44ad;">
             <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #7f8c8d; font-weight: 600;">Geradas por IA</div>
             <div style="font-size: 2.2rem; font-weight: 800; color: #8e44ad; margin: 8px 0;">{{ ai_generated_count }}</div>
@@ -46,18 +53,54 @@
         </div>
     </div>
 
-    <!-- Tabela de Distribuição por Licença -->
-    <div style="background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 35px;">
-        <h3 style="margin-top: 0; font-size: 1.2rem; font-weight: 600; color: #34495e;">📊 Distribuição de Imagens por Regime de Licença</h3>
-        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px;">
-            {% for item in license_distribution %}
-            <div style="background: #f8f9fa; border: 1px solid #e9ecef; padding: 10px 16px; border-radius: 8px; font-size: 0.9rem;">
-                <span style="font-weight: 600; color: #2c3e50;">{{ item.label }}:</span>
-                <span style="font-weight: 700; color: #2980b9; margin-left: 5px;">{{ item.count }}</span>
+    <!-- Painéis de Distribuição (Licenças, Finalidades e Suporte Jurídico) -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 35px;">
+        
+        <!-- Bloco 1: Finalidade do Uso -->
+        <div style="background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+            <h3 style="margin-top: 0; font-size: 1.1rem; font-weight: 600; color: #34495e;">💬 Finalidade do Uso da Imagem</h3>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 15px;">
+                {% for item in purpose_distribution %}
+                <div style="display: flex; justify-content: space-between; background: #f8f9fa; border: 1px solid #e9ecef; padding: 8px 14px; border-radius: 8px; font-size: 0.88rem;">
+                    <span style="font-weight: 600; color: #2c3e50;">{{ item.label }}</span>
+                    <span style="font-weight: 700; color: #8e44ad;">{{ item.count }}</span>
+                </div>
+                {% empty %}
+                <div style="color: #95a5a6; font-size: 0.85rem;">Nenhuma finalidade registrada.</div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
+
+        <!-- Bloco 2: Fundamento Jurídico -->
+        <div style="background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+            <h3 style="margin-top: 0; font-size: 1.1rem; font-weight: 600; color: #34495e;">⚖️ Fundamento Jurídico de Proteção</h3>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 15px;">
+                {% for item in legal_basis_distribution %}
+                <div style="display: flex; justify-content: space-between; background: #f8f9fa; border: 1px solid #e9ecef; padding: 8px 14px; border-radius: 8px; font-size: 0.88rem;">
+                    <span style="font-weight: 600; color: #2c3e50;">{{ item.label }}</span>
+                    <span style="font-weight: 700; color: #27ae60;">{{ item.count }}</span>
+                </div>
+                {% empty %}
+                <div style="color: #95a5a6; font-size: 0.85rem;">Nenhum fundamento cadastrado.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Bloco 3: Regime de Licença -->
+        <div style="background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+            <h3 style="margin-top: 0; font-size: 1.1rem; font-weight: 600; color: #34495e;">📊 Regime de Licença</h3>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 15px;">
+                {% for item in license_distribution %}
+                <div style="display: flex; justify-content: space-between; background: #f8f9fa; border: 1px solid #e9ecef; padding: 8px 14px; border-radius: 8px; font-size: 0.88rem;">
+                    <span style="font-weight: 600; color: #2c3e50;">{{ item.label }}</span>
+                    <span style="font-weight: 700; color: #2980b9;">{{ item.count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
     </div>
+
 
     <!-- Fila de Pendências / Registros para Revisão -->
     <div style="background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
