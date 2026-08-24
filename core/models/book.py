@@ -66,6 +66,28 @@ class Book(models.Model):
         blank=True,
         verbose_name="Editora"
     )
+
+    # ========== CRÉDITOS DE ILUSTRAÇÃO E IDADE DE LEITURA (PROTEÇÃO JURÍDICA) ==========
+    has_illustrator = models.BooleanField(
+        default=False,
+        verbose_name="Possui Ilustrador?",
+        help_text="Marque se a obra possui ilustrador ou artista responsável pelas artes/ilustrações."
+    )
+    illustrator_name = models.CharField(
+        max_length=200,
+        blank=True,
+        default='',
+        verbose_name="Nome do Ilustrador",
+        help_text="Nome do artista/ilustrador responsável pelas ilustrações (para crédito legal de direitos autorais)."
+    )
+    reading_age = models.CharField(
+        max_length=50,
+        blank=True,
+        default='',
+        verbose_name="Idade de Leitura / Faixa Etária",
+        help_text="Faixa etária recomendada para leitura (ex: Livre, 10+ anos, 14+ anos, 18+ anos, Infanto-Juvenil)."
+    )
+
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -74,6 +96,7 @@ class Book(models.Model):
         blank=True,
         help_text="Valor médio de mercado (informativo)"
     )
+
 
     # ========== CAMPOS DE PARCEIRO COMERCIAL ==========
     purchase_partner_name = models.CharField(

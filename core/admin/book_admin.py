@@ -213,15 +213,19 @@ class BookAdmin(admin.ModelAdmin):
             ),
             'description': 'Pesquise por iniciais ou título na caixa da esquerda para vincular notícias ou artigos já cadastrados a este livro.'
         }),
-        ('Detalhes de Publicação', {
+        ('Detalhes de Publicação e Créditos', {
             'fields': (
                 'publication_date',
                 'isbn',
                 'publisher',
                 'page_count',
-                'language'
-            )
+                'language',
+                'reading_age',
+                ('has_illustrator', 'illustrator_name')
+            ),
+            'description': 'Informações de catálogo, faixa etária e créditos legais do ilustrador.'
         }),
+
         ('Compra e Imagens', {
             'fields': (
                 'price',

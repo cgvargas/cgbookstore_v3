@@ -1115,6 +1115,37 @@
                         </div>
                     </div>
                 </div>
+                {% if book.reading_age %}
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                <i class="fas fa-child me-2"></i>Faixa Etária / Idade
+                            </h6>
+                            <p class="card-text mb-0 fw-semibold">{{ book.reading_age }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% if book.has_illustrator or book.illustrator_name %}
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                <i class="fas fa-paint-brush me-2"></i>Ilustrador
+                            </h6>
+                            <p class="card-text mb-0 fw-semibold">
+                                {% if book.illustrator_name %}
+                                    {{ book.illustrator_name }}
+                                {% else %}
+                                    <span class="text-muted fw-normal">Sim (Obra Ilustrada)</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-body">
