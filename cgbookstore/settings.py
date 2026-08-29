@@ -519,7 +519,7 @@ REST_FRAMEWORK = {
 AI_PROVIDER = env('AI_PROVIDER', default='groq')
 
 # Ordem de fallback para funcionalidades gerais de IA, sem duplicar chaves.
-_ai_fallback_providers_raw = env('AI_FALLBACK_PROVIDERS', default='gemini')
+_ai_fallback_providers_raw = env('AI_FALLBACK_PROVIDERS', default='gemini,groq,openrouter')
 AI_FALLBACK_PROVIDERS = [
     provider.strip().lower()
     for provider in _ai_fallback_providers_raw.split(',')
@@ -536,7 +536,7 @@ GEMINI_API_KEY = env('GEMINI_API_KEY', default='')
 # Groq AI (Recomendado - Mais rápido e free tier generoso)
 # Crie sua chave em: https://console.groq.com/keys
 GROQ_API_KEY = env('GROQ_API_KEY', default='')
-GROQ_MODEL_NAME = env('GROQ_MODEL_NAME', default='llama-3.3-70b-versatile')
+GROQ_MODEL_NAME = env('GROQ_MODEL_NAME', default='qwen/qwen3.8-27b')
 
 # OpenRouter AI (Provedor gratuito alternativo)
 OPENROUTER_API_KEY = env('OPENROUTER_API_KEY', default='')

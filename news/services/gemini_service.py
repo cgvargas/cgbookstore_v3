@@ -44,7 +44,7 @@ class GeminiNewsService:
             try:
                 self.groq_client = Groq(api_key=groq_key)
                 self.provider = 'groq'
-                self.model_name = 'llama-3.3-70b-versatile'
+                self.model_name = getattr(settings, 'GROQ_MODEL_NAME', 'qwen/qwen3.8-27b')
                 logger.info(f"✅ AI Service inicializado com Groq ({self.model_name})")
             except Exception as e:
                 logger.warning(f"Groq indisponível: {e}")
@@ -68,29 +68,47 @@ class GeminiNewsService:
     
     def _call_ai(self, prompt: str, temperature: float = 0.3, max_tokens: int = 4096) -> str:
         """
-        Chamada unificada para a IA (Groq ou Gemini).
+        Chamada unificada para a IA (Groq ou Gemini) com contingência.
         
         Returns:
             Resposta em texto da IA
         """
         if self.provider == 'groq':
-            response = self.groq_client.chat.completions.create(
-                messages=[{"role": "user", "content": prompt}],
-                model=self.model_name,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
-            return response.choices[0].message.content
+            fallback_models = ['qwen/qwen3.8-27b', 'groq/compound-mini', 'openai/gpt-oss-120b']
+            models_to_try = [self.model_name] + [m for m in fallback_models if m != self.model_name]
+            last_err = None
+            for m in models_to_try:
+                try:
+                    response = self.groq_client.chat.completions.create(
+                        messages=[{"role": "user", "content": prompt}],
+                        model=m,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                    )
+                    return response.choices[0].message.content
+                except Exception as e:
+                    last_err = e
+                    continue
+            raise last_err or Exception("Erro na chamada Groq")
         
         elif self.provider == 'gemini':
-            response = self.gemini_model.generate_content(
-                prompt,
-                generation_config=genai.GenerationConfig(
-                    temperature=temperature,
-                    max_output_tokens=max_tokens,
-                )
-            )
-            return response.text
+            fallback_models = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest']
+            last_err = None
+            for m in fallback_models:
+                try:
+                    model = genai.GenerativeModel(m)
+                    response = model.generate_content(
+                        prompt,
+                        generation_config=genai.GenerationConfig(
+                            temperature=temperature,
+                            max_output_tokens=max_tokens,
+                        )
+                    )
+                    return response.text
+                except Exception as e:
+                    last_err = e
+                    continue
+            raise last_err or Exception("Erro na chamada Gemini")
         
         else:
             raise Exception("Nenhuma API de IA disponível")

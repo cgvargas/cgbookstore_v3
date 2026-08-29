@@ -71,16 +71,26 @@ def analyze_metadata(request):
             mime_type=mime_type
         )
 
-        return JsonResponse({
+        response_payload = {
             'success': True,
             'data': data
-        })
+        }
+        if data.get('_degraded_notice'):
+            response_payload['message'] = data.get('_degraded_notice')
+
+        return JsonResponse(response_payload)
 
     except Exception as e:
         logger.error("Erro ao processar metadados com IA: %s", e, exc_info=True)
+        err_msg = str(e)
+        if '429' in err_msg or 'quota' in err_msg.lower() or 'exceeded' in err_msg.lower():
+            user_msg = "Limite temporário de requisições de IA atingido no provedor. Por favor, aguarde alguns segundos e tente novamente."
+        else:
+            user_msg = f"Erro ao processar dados: {err_msg}"
+
         return JsonResponse({
             'success': False,
-            'message': f'Erro ao processar dados com IA: {str(e)}'
+            'message': user_msg
         }, status=500)
 
     finally:

@@ -138,11 +138,20 @@ ESCOPO:
 
 ❌ Assuntos fora de literatura ou uso da plataforma: redirecione gentilmente"""
 
+    # Modelos Gemini para contingência (em ordem de preferência)
+    FALLBACK_MODELS = [
+        'models/gemini-2.5-flash',
+        'models/gemini-3.5-flash-lite',
+        'models/gemini-3.5-flash',
+        'models/gemini-3.7-flash',
+        'models/gemini-flash-latest',
+    ]
+
     def __init__(self):
         """Inicializa o serviço do chatbot."""
         self.api_key = settings.GEMINI_API_KEY
-        self.model_name = 'models/gemini-2.5-flash'  # Atualizado para 2.5 flash
-        self._model = None
+        self.model_name = 'models/gemini-2.5-flash'  # Padrão
+        self._models = {}
 
         # Configurações de segurança mais permissivas para conteúdo literário
         self.safety_settings = [
@@ -177,26 +186,27 @@ ESCOPO:
 
         logger.info(f"gemini_service: Inicializando serviço do chatbot literário com RAG ({self.model_name})...")
 
-    @property
-    def model(self):
-        """Lazy loading do modelo Gemini."""
-        if self._model is None:
+    def _get_model(self, model_name: str = None):
+        """Retorna ou instancia um GenerativeModel para o nome especificado."""
+        target_name = model_name or self.model_name
+        if target_name not in self._models:
             if not self.api_key:
                 raise ValueError("GEMINI_API_KEY não configurada nas variáveis de ambiente")
 
-            logger.info("gemini_service: google.generativeai loaded successfully for chatbot")
             genai.configure(api_key=self.api_key)
-
-            logger.info(f"gemini_service: Inicializando modelo Gemini para chatbot ({self.model_name})...")
-            self._model = genai.GenerativeModel(
-                model_name=self.model_name,
+            logger.info(f"gemini_service: Inicializando modelo Gemini para chatbot ({target_name})...")
+            self._models[target_name] = genai.GenerativeModel(
+                model_name=target_name,
                 generation_config=self.generation_config,
                 safety_settings=self.safety_settings,
                 system_instruction=self.SYSTEM_PROMPT
             )
-            logger.info("gemini_service: Modelo Gemini para chatbot inicializado com sucesso")
+        return self._models[target_name]
 
-        return self._model
+    @property
+    def model(self):
+        """Lazy loading do modelo Gemini padrão."""
+        return self._get_model(self.model_name)
 
     def is_available(self) -> bool:
         """Verifica se o serviço está disponível."""
@@ -671,15 +681,40 @@ NÃO invente títulos de livros. Se você não tem certeza, diga honestamente qu
                     logger.info("ℹ️ RAG não ativado: Mensagem sem enriquecimento")
                     enriched_message = message  # manter mensagem original (com prefixo) para a IA
 
-            # Se houver histórico, usar chat session. Caso contrário, gerar conteúdo direto.
-            if conversation_history:
-                chat = self.model.start_chat(history=conversation_history)
-                response = chat.send_message(enriched_message)
-            else:
-                response = self.model.generate_content(
-                    enriched_message,
-                    generation_config=self.generation_config
-                )
+            # Lista de modelos Gemini para tentar em ordem
+            models_to_try = [self.model_name] + [m for m in self.FALLBACK_MODELS if m != self.model_name]
+            last_quota_error = None
+            response = None
+
+            for model_id in models_to_try:
+                try:
+                    current_model = self._get_model(model_id)
+                    logger.info(f"gemini_service: Tentando chamada com modelo '{model_id}'...")
+                    if conversation_history:
+                        chat = current_model.start_chat(history=conversation_history)
+                        response = chat.send_message(enriched_message)
+                    else:
+                        response = current_model.generate_content(
+                            enriched_message,
+                            generation_config=self.generation_config
+                        )
+                    self.model_name = model_id  # Atualizar modelo ativo
+                    break
+                except Exception as call_err:
+                    err_str = str(call_err).lower()
+                    is_quota = 'quota' in err_str or '429' in err_str or 'exceeded' in err_str or 'resourceexhausted' in err_str
+                    if is_quota:
+                        logger.warning(f"⚠️ Gemini quota/rate limit no modelo '{model_id}': {call_err}. Tentando modelo alternativo...")
+                        last_quota_error = call_err
+                        continue
+                    else:
+                        raise call_err
+
+            if not response:
+                if last_quota_error:
+                    logger.warning(f"gemini_service: Todos os modelos Gemini atingiram quota. Propagando para fallback: {last_quota_error}")
+                    raise Exception(f"quota_exceeded: {last_quota_error}")
+                raise Exception("Nenhum modelo Gemini respondeu.")
 
             # Verificar finish_reason
             finish_reason = response.candidates[0].finish_reason

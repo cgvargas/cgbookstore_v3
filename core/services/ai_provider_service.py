@@ -75,6 +75,14 @@ class BaseAIProvider:
             return {}
 
 class GeminiAIProvider(BaseAIProvider):
+    FALLBACK_MODELS = [
+        'gemini-2.5-flash',
+        'gemini-3.5-flash-lite',
+        'gemini-3.5-flash',
+        'gemini-3.7-flash',
+        'gemini-flash-latest',
+    ]
+
     def __init__(self):
         self.api_key = getattr(settings, 'GEMINI_API_KEY', '')
         self.model_name = 'gemini-2.5-flash'
@@ -91,85 +99,107 @@ class GeminiAIProvider(BaseAIProvider):
 
     def generate_text(self, prompt: str, system_instruction: str = None, user=None, feature_name="general", temperature=0.3, max_tokens=1000) -> str:
         self._setup()
-        if not self.model:
+        if not self.api_key:
             raise Exception("Gemini API key não configurada ou falha na inicialização.")
             
         import google.generativeai as genai
         start_time = time.time()
-        try:
-            config = genai.GenerationConfig(
-                temperature=temperature,
-                max_output_tokens=max_tokens
-            )
+        
+        config = genai.GenerationConfig(
+            temperature=temperature,
+            max_output_tokens=max_tokens
+        )
+        
+        full_prompt = prompt
+        if system_instruction:
+            full_prompt = f"[Instrução do Sistema: {system_instruction}]\n\n{prompt}"
             
-            full_prompt = prompt
-            if system_instruction:
-                full_prompt = f"[Instrução do Sistema: {system_instruction}]\n\n{prompt}"
+        models_to_try = [self.model_name] + [m for m in self.FALLBACK_MODELS if m != self.model_name]
+        last_error = None
+
+        for model_id in models_to_try:
+            try:
+                current_model = genai.GenerativeModel(model_id)
+                response = current_model.generate_content(
+                    full_prompt,
+                    generation_config=config,
+                    request_options={"timeout": 15.0}
+                )
                 
-            response = self.model.generate_content(
-                full_prompt,
-                generation_config=config,
-                request_options={"timeout": 15.0}
-            )
-            
-            response_time = time.time() - start_time
-            
-            # Capturar contagem de tokens se disponível
-            prompt_tokens = 0
-            completion_tokens = 0
-            if hasattr(response, 'usage_metadata') and response.usage_metadata:
-                try:
-                    p_count = response.usage_metadata.prompt_token_count
-                    c_count = response.usage_metadata.candidates_token_count
-                    
-                    # Se for um MagicMock, type(obj).__name__ é 'MagicMock'
-                    if type(p_count).__name__ != 'MagicMock' and p_count is not None:
-                        prompt_tokens = int(p_count)
-                    else:
-                        prompt_tokens = len(prompt) // 4
+                response_time = time.time() - start_time
+                self.model_name = model_id
+                
+                # Capturar contagem de tokens se disponível
+                prompt_tokens = 0
+                completion_tokens = 0
+                if hasattr(response, 'usage_metadata') and response.usage_metadata:
+                    try:
+                        p_count = response.usage_metadata.prompt_token_count
+                        c_count = response.usage_metadata.candidates_token_count
                         
-                    if type(c_count).__name__ != 'MagicMock' and c_count is not None:
-                        completion_tokens = int(c_count)
-                    else:
+                        if type(p_count).__name__ != 'MagicMock' and p_count is not None:
+                            prompt_tokens = int(p_count)
+                        else:
+                            prompt_tokens = len(prompt) // 4
+                            
+                        if type(c_count).__name__ != 'MagicMock' and c_count is not None:
+                            completion_tokens = int(c_count)
+                        else:
+                            completion_tokens = len(response.text) // 4
+                    except Exception as token_err:
+                        logger.debug(f"Erro ao parsear tokens de metadados: {token_err}")
+                        prompt_tokens = len(prompt) // 4
                         completion_tokens = len(response.text) // 4
-                except Exception as token_err:
-                    logger.debug(f"Erro ao parsear tokens de metadados: {token_err}")
+                else:
                     prompt_tokens = len(prompt) // 4
                     completion_tokens = len(response.text) // 4
-            else:
-                prompt_tokens = len(prompt) // 4
-                completion_tokens = len(response.text) // 4
-                
-            log_ai_usage(
-                user=user,
-                feature_name=feature_name,
-                provider="gemini",
-                model_name=self.model_name,
-                prompt_tokens=prompt_tokens,
-                completion_tokens=completion_tokens,
-                response_time=response_time,
-                status="success"
-            )
-            return response.text
-        except Exception as e:
-            response_time = time.time() - start_time
-            log_ai_usage(
-                user=user,
-                feature_name=feature_name,
-                provider="gemini",
-                model_name=self.model_name,
-                prompt_tokens=0,
-                completion_tokens=0,
-                response_time=response_time,
-                status="failure",
-                error_message=str(e)
-            )
-            raise e
+                    
+                log_ai_usage(
+                    user=user,
+                    feature_name=feature_name,
+                    provider="gemini",
+                    model_name=model_id,
+                    prompt_tokens=prompt_tokens,
+                    completion_tokens=completion_tokens,
+                    response_time=response_time,
+                    status="success"
+                )
+                return response.text
+            except Exception as e:
+                err_str = str(e).lower()
+                last_error = e
+                is_quota = 'quota' in err_str or '429' in err_str or 'exceeded' in err_str or 'resourceexhausted' in err_str
+                if is_quota:
+                    logger.warning(f"⚠️ Gemini quota excedida no modelo '{model_id}'. Tentando próximo modelo...")
+                    continue
+                else:
+                    break
+
+        response_time = time.time() - start_time
+        log_ai_usage(
+            user=user,
+            feature_name=feature_name,
+            provider="gemini",
+            model_name=self.model_name,
+            prompt_tokens=0,
+            completion_tokens=0,
+            response_time=response_time,
+            status="failure",
+            error_message=str(last_error)
+        )
+        raise last_error or Exception("Falha ao gerar texto com Gemini.")
 
 class GroqAIProvider(BaseAIProvider):
+    FALLBACK_MODELS = [
+        'qwen/qwen3.8-27b',
+        'groq/compound-mini',
+        'openai/gpt-oss-120b',
+        'qwen/qwen3.6-27b',
+    ]
+
     def __init__(self):
         self.api_key = getattr(settings, 'GROQ_API_KEY', '')
-        self.model_name = getattr(settings, 'GROQ_MODEL_NAME', 'llama-3.3-70b-versatile')
+        self.model_name = getattr(settings, 'GROQ_MODEL_NAME', 'qwen/qwen3.8-27b')
         self.client = None
 
     def _setup(self):
@@ -186,48 +216,62 @@ class GroqAIProvider(BaseAIProvider):
             raise Exception("Groq API key não configurada ou falha na inicialização.")
             
         start_time = time.time()
-        try:
-            messages = []
-            if system_instruction:
-                messages.append({"role": "system", "content": system_instruction})
-            messages.append({"role": "user", "content": prompt})
-            
-            response = self.client.chat.completions.create(
-                messages=messages,
-                model=self.model_name,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                timeout=15.0
-            )
-            response_time = time.time() - start_time
-            
-            prompt_tokens = response.usage.prompt_tokens if hasattr(response, 'usage') else len(prompt) // 4
-            completion_tokens = response.usage.completion_tokens if hasattr(response, 'usage') else len(response.choices[0].message.content) // 4
-            
-            log_ai_usage(
-                user=user,
-                feature_name=feature_name,
-                provider="groq",
-                model_name=self.model_name,
-                prompt_tokens=prompt_tokens,
-                completion_tokens=completion_tokens,
-                response_time=response_time,
-                status="success"
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            response_time = time.time() - start_time
-            log_ai_usage(
-                user=user,
-                feature_name=feature_name,
-                provider="groq",
-                model_name=self.model_name,
-                prompt_tokens=0,
-                completion_tokens=0,
-                response_time=response_time,
-                status="failure",
-                error_message=str(e)
-            )
+        messages = []
+        if system_instruction:
+            messages.append({"role": "system", "content": system_instruction})
+        messages.append({"role": "user", "content": prompt})
+        
+        models_to_try = [self.model_name] + [m for m in self.FALLBACK_MODELS if m != self.model_name]
+        last_error = None
+
+        for model_id in models_to_try:
+            try:
+                response = self.client.chat.completions.create(
+                    messages=messages,
+                    model=model_id,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    timeout=15.0
+                )
+                response_time = time.time() - start_time
+                self.model_name = model_id
+                
+                prompt_tokens = response.usage.prompt_tokens if hasattr(response, 'usage') else len(prompt) // 4
+                completion_tokens = response.usage.completion_tokens if hasattr(response, 'usage') else len(response.choices[0].message.content) // 4
+                
+                log_ai_usage(
+                    user=user,
+                    feature_name=feature_name,
+                    provider="groq",
+                    model_name=model_id,
+                    prompt_tokens=prompt_tokens,
+                    completion_tokens=completion_tokens,
+                    response_time=response_time,
+                    status="success"
+                )
+                return response.choices[0].message.content
+            except Exception as e:
+                err_str = str(e).lower()
+                last_error = e
+                if 'not_found' in err_str or '404' in err_str or 'rate' in err_str or '429' in err_str:
+                    logger.warning(f"⚠️ Groq falhou no modelo '{model_id}': {e}. Tentando próximo modelo...")
+                    continue
+                else:
+                    break
+
+        response_time = time.time() - start_time
+        log_ai_usage(
+            user=user,
+            feature_name=feature_name,
+            provider="groq",
+            model_name=self.model_name,
+            prompt_tokens=0,
+            completion_tokens=0,
+            response_time=response_time,
+            status="failure",
+            error_message=str(last_error)
+        )
+        raise last_error or Exception("Falha ao gerar texto com Groq.")
 class OpenRouterAIProvider(BaseAIProvider):
     """
     Provedor OpenRouter com fallback sequencial de modelos.

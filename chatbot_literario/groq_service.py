@@ -133,16 +133,18 @@ ESCOPO:
 
 ❌ Assuntos fora de literatura ou uso da plataforma: redirecione gentilmente"""
 
+    # Modelos ativos no Groq (em ordem de preferência)
+    FALLBACK_MODELS = [
+        'qwen/qwen3.8-27b',
+        'groq/compound-mini',
+        'openai/gpt-oss-120b',
+        'qwen/qwen3.6-27b',
+    ]
+
     def __init__(self):
         """Inicializa o serviço do chatbot com Groq."""
         self.api_key = getattr(settings, 'GROQ_API_KEY', None)
-        # Modelos disponíveis no Groq (gratuitos):
-        # - llama-3.3-70b-versatile (recomendado - mais inteligente, substitui 3.1)
-        # - llama3-70b-8192 (alternativa robusta)
-        # - llama-3.1-8b-instant (mais rápido)
-        # - mixtral-8x7b-32768 (ótimo para contextos longos)
-        # - gemma2-9b-it (eficiente e rápido)
-        self.model_name = getattr(settings, 'GROQ_MODEL_NAME', 'llama-3.3-70b-versatile')
+        self.model_name = getattr(settings, 'GROQ_MODEL_NAME', 'qwen/qwen3.8-27b')
         self._client = None
 
         # Configurações de geração - temperatura muito baixa para mínima alucinação
@@ -765,12 +767,33 @@ NÃO invente títulos de livros. Se você não tem certeza, diga honestamente qu
             # Adicionar mensagem enriquecida (com RAG se aplicável)
             messages.append({"role": "user", "content": enriched_message})
 
-            # Fazer chamada à API Groq
-            chat_completion = self.client.chat.completions.create(
-                messages=messages,
-                model=self.model_name,
-                **self.generation_config
-            )
+            # Lista de modelos para tentar em ordem
+            models_to_try = [self.model_name] + [m for m in self.FALLBACK_MODELS if m != self.model_name]
+            last_error = None
+            chat_completion = None
+
+            for model_id in models_to_try:
+                try:
+                    logger.info(f"Tentando Groq com modelo '{model_id}'...")
+                    chat_completion = self.client.chat.completions.create(
+                        messages=messages,
+                        model=model_id,
+                        **self.generation_config
+                    )
+                    self.model_name = model_id  # Atualizar modelo ativo bem-sucedido
+                    break
+                except Exception as model_err:
+                    err_str = str(model_err).lower()
+                    logger.warning(f"⚠️ Groq falhou com modelo '{model_id}': {model_err}")
+                    last_error = model_err
+                    # Se for 404 (model not found) ou 429 (rate limit), tenta o próximo modelo
+                    if 'not_found' in err_str or '404' in err_str or 'rate' in err_str or '429' in err_str:
+                        continue
+                    else:
+                        break
+
+            if not chat_completion:
+                raise last_error or Exception("Nenhum modelo do Groq disponível")
 
             # Extrair resposta
             bot_response = chat_completion.choices[0].message.content.strip()

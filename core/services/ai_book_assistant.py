@@ -15,25 +15,28 @@ logger = logging.getLogger(__name__)
 
 
 class AIBookAssistantService:
-    """Serviço para extração de informações de livros usando Google Gemini."""
+    """Serviço para extração de informações de livros com múltiplos modelos e contingência."""
+
+    GEMINI_MODELS = [
+        'gemini-2.5-flash',
+        'gemini-3.5-flash-lite',
+        'gemini-3.5-flash',
+        'gemini-3.7-flash',
+        'gemini-flash-latest',
+    ]
 
     def __init__(self):
-        gemini_key = getattr(settings, 'GEMINI_API_KEY', '')
-        if gemini_key:
-            genai.configure(api_key=gemini_key)
-            from google.ai.generativelanguage_v1beta import Tool
-            google_search_tool = Tool(google_search={})
-            self.model = genai.GenerativeModel(
-                model_name='gemini-2.5-flash',
-                tools=[google_search_tool]
-            )
-        else:
-            self.model = None
-            logger.warning("GEMINI_API_KEY não configurada nas configurações do Django.")
+        self.gemini_key = getattr(settings, 'GEMINI_API_KEY', '')
+        if self.gemini_key:
+            genai.configure(api_key=self.gemini_key)
 
     def is_available(self) -> bool:
-        """Verifica se a chave da API do Gemini está disponível."""
-        return self.model is not None
+        """Verifica se alguma chave de IA ou serviço está disponível."""
+        return bool(
+            self.gemini_key or 
+            getattr(settings, 'GROQ_API_KEY', '') or 
+            getattr(settings, 'OPENROUTER_API_KEY', '')
+        )
 
     def _get_amazon_url(self, isbn: str) -> str:
         """Retorna a URL do livro na Amazon baseada no ISBN (convertendo para ISBN-10 se possível)."""
@@ -75,7 +78,6 @@ class AIBookAssistantService:
             logger.info("Baixando imagem de capa temporária de %s para o media storage", cover_url)
             r = requests.get(cover_url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
             if r.status_code == 200:
-                # Salvar no storage ativo (Supabase, R2 ou FileSystem)
                 saved_path = default_storage.save(
                     relative_path,
                     ContentFile(r.content)
@@ -171,27 +173,152 @@ class AIBookAssistantService:
 
         return {}
 
+    def _build_data_from_isbn(self, isbn_data: dict, text_content: str = None) -> dict:
+        """Constrói um payload estruturado diretamente dos metadados de ISBN quando a IA falha."""
+        title = isbn_data.get('title') or ''
+        author = isbn_data.get('author_name') or ''
+        isbn = isbn_data.get('isbn') or ''
+        
+        # Formatar data
+        pub_date = isbn_data.get('publish_date')
+        formatted_date = None
+        if pub_date:
+            year_match = re.search(r'\b(19\d\d|20\d\d)\b', str(pub_date))
+            if year_match:
+                formatted_date = f"{year_match.group(1)}-01-01"
+
+        data = {
+            "title": title,
+            "subtitle": isbn_data.get('subtitle') or '',
+            "description": f"Sinopse e detalhes de '{title}' ({author}). Metadados importados automaticamente via {isbn_data.get('source', 'ISBN')}.",
+            "publication_date": formatted_date,
+            "isbn": isbn,
+            "publisher": isbn_data.get('publisher') or '',
+            "price": 49.90,
+            "page_count": isbn_data.get('page_count'),
+            "language": "pt",
+            "available_print": True,
+            "available_kindle": True,
+            "available_audiobook": False,
+            "available_pdf": False,
+            "author_name": author,
+            "author_bio": f"Autor(a) de {title}." if author else "",
+            "category_name": "Literatura Geral",
+            "average_rating": isbn_data.get('average_rating') or 4.5,
+            "ratings_count": isbn_data.get('ratings_count') or 10,
+            "purchase_partner_name": "Amazon Brasil",
+            "purchase_partner_url": self._get_amazon_url(isbn) if isbn else "",
+            "temp_cover_image": isbn_data.get('temp_cover_image'),
+            "temp_cover_url": isbn_data.get('temp_cover_url'),
+            "_degraded_notice": "Metadados obtidos diretamente de fontes públicas (Open Library/Google Books). A IA está temporariamente em cooldown."
+        }
+        return data
+
+    def _clean_json_response(self, text: str) -> dict:
+        """Limpa blocos de código e decodifica texto JSON."""
+        cleaned = text.strip()
+        if cleaned.startswith("```json"):
+            cleaned = cleaned.replace("```json", "", 1)
+        if cleaned.endswith("```"):
+            cleaned = cleaned[:-3].strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.replace("```", "", 1)
+        
+        # Procurar primeiro '{' e último '}'
+        start_idx = cleaned.find('{')
+        end_idx = cleaned.rfind('}')
+        if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+            cleaned = cleaned[start_idx:end_idx + 1]
+            
+        return json.loads(cleaned.strip())
+
+    def _enrich_and_map_database_entities(self, extracted_data: dict, isbn_data: dict) -> dict:
+        """Enriquece dados com capas, ratings e IDs de Autor/Categoria locais."""
+        # Mapear capa e avaliações do ISBN
+        if isbn_data:
+            if 'temp_cover_image' in isbn_data and isbn_data['temp_cover_image']:
+                extracted_data['temp_cover_image'] = isbn_data['temp_cover_image']
+            if 'temp_cover_url' in isbn_data and isbn_data['temp_cover_url']:
+                extracted_data['temp_cover_url'] = isbn_data['temp_cover_url']
+            
+            if isbn_data.get('average_rating') is not None and extracted_data.get('average_rating') in (None, 0.0, 0):
+                extracted_data['average_rating'] = isbn_data.get('average_rating')
+            if isbn_data.get('ratings_count') is not None and extracted_data.get('ratings_count') in (None, 0):
+                extracted_data['ratings_count'] = isbn_data.get('ratings_count')
+
+        # Garantir casting
+        try:
+            extracted_data['average_rating'] = float(extracted_data.get('average_rating', 0.0) or 0.0)
+        except (ValueError, TypeError):
+            extracted_data['average_rating'] = 4.5
+
+        try:
+            extracted_data['ratings_count'] = int(extracted_data.get('ratings_count', 0) or 0)
+        except (ValueError, TypeError):
+            extracted_data['ratings_count'] = 10
+
+        try:
+            extracted_data['price'] = float(extracted_data.get('price', 0.0) or 0.0)
+            if extracted_data['price'] <= 0.0:
+                extracted_data['price'] = 49.90
+        except (ValueError, TypeError):
+            extracted_data['price'] = 49.90
+
+        # Amazon URL
+        isbn_val = extracted_data.get('isbn')
+        if isbn_val:
+            clean_isbn = re.sub(r'[\-\s]', '', isbn_val)
+            if len(clean_isbn) in (10, 13):
+                extracted_data['purchase_partner_name'] = 'Amazon Brasil'
+                partner_url = extracted_data.get('purchase_partner_url', '')
+                if not partner_url or 'amazon' not in partner_url.lower() or partner_url.endswith('.com') or partner_url.endswith('.com/'):
+                    extracted_data['purchase_partner_url'] = self._get_amazon_url(clean_isbn)
+
+        # Mapear Autor e Categoria no banco local
+        author_name = str(extracted_data.get('author_name', '') or '').strip()
+        category_name = str(extracted_data.get('category_name', '') or '').strip()
+
+        author_id = None
+        category_id = None
+
+        if author_name:
+            author_obj = Author.objects.filter(name__iexact=author_name).first()
+            if not author_obj:
+                author_obj = Author.objects.filter(name__icontains=author_name).first()
+            if author_obj:
+                author_id = author_obj.id
+                extracted_data['author_name'] = author_obj.name
+
+        if category_name:
+            category_obj = Category.objects.filter(name__iexact=category_name).first()
+            if not category_obj:
+                category_obj = Category.objects.filter(name__icontains=category_name).first()
+            if not category_obj:
+                first_word = category_name.split()[0]
+                if len(first_word) >= 3:
+                    category_obj = Category.objects.filter(name__icontains=first_word).first()
+            
+            if category_obj:
+                category_id = category_obj.id
+                extracted_data['category_name'] = category_obj.name
+
+        extracted_data['author_id'] = author_id
+        extracted_data['category_id'] = category_id
+
+        return extracted_data
+
     def analyze_book_data(self, text_content: str = None, file_path: str = None, mime_type: str = None) -> dict:
         """
         Analisa texto e/ou um arquivo para extrair dados estruturados do livro.
-        
-        Args:
-            text_content: Texto copiado, sinopse ou prompt digitado pelo administrador.
-            file_path: Caminho local para o arquivo (imagem ou PDF) carregado temporariamente.
-            mime_type: Tipo MIME do arquivo (ex: 'application/pdf', 'image/jpeg').
-            
-        Returns:
-            Dicionário com os campos estruturados do livro.
+        Possui cascata multi-modelo Gemini, fallback para Groq/OpenRouter e fallback determinístico via ISBN.
         """
         if not self.is_available():
-            raise ValueError(
-                "Serviço de IA indisponível. Por favor, adicione a chave GEMINI_API_KEY no arquivo .env."
-            )
+            raise ValueError("Nenhum serviço de IA configurado no arquivo .env.")
 
-        # Buscar metadados externos deterministicamente se houver ISBN no texto
+        # 1. Buscar metadados externos deterministicamente se houver ISBN no texto
         isbn_data = self._fetch_isbn_metadata(text_content)
 
-        # Se o usuário enviou um arquivo de imagem físico, usá-lo como capa temporária
+        # Se houver arquivo de imagem físico, salvar temporariamente
         if file_path and mime_type and mime_type.startswith('image/'):
             try:
                 import uuid
@@ -224,14 +351,14 @@ class AIBookAssistantService:
         Você é um auxiliar administrativo especialista encarregado de extrair e pesquisar informações detalhadas sobre livros na internet com FIDELIDADE ABSOLUTA.
 
         [FONTE PRIMÁRIA DE PESQUISA & REGRAS ANTI-ALUCINAÇÃO]:
-        Você tem acesso à ferramenta de busca do Google (Google Search). Priorize buscar informações primariamente na AMAZON BRASIL (amazon.com.br) na seção de Livros e na sinopse oficial da editora.
+        Priorize buscar informações na AMAZON BRASIL (amazon.com.br) e na sinopse oficial da editora.
         
         ⚠️ REGRA CRÍTICA PARA PERSONAGENS E TRAMAS:
         NUNCA invente ou inverta o papel de personagens (ex: nunca confunda antagônicos/vilões com aliados ou amigos do protagonista).
         Se você não tiver certeza absoluta sobre a função exata de um personagem secundário, limite-se a transcrever fielmente a sinopse oficial publicada pela editora na Amazon Brasil.
 
         [REGRA CRÍTICA PARA ISBN]:
-        Se for fornecida uma seção de [DADOS DE REFERÊNCIA OBTIDOS PELO ISBN NA WEB], os valores ali contidos (como título, autor, editora, isbn, quantidade de páginas) são a VERDADE ABSOLUTA. Você DEVE usar exatamente os valores dessa seção para preencher os respectivos campos (title, author_name, publisher, isbn, page_count) para evitar qualquer alucinação do nome do livro associado ao ISBN. Use a busca na Amazon Brasil para obter a sinopse em português ('description') e preencher os demais campos.
+        Se for fornecida uma seção de [DADOS DE REFERÊNCIA OBTIDOS PELO ISBN NA WEB], os valores ali contidos (como título, autor, editora, isbn, quantidade de páginas) são a VERDADE ABSOLUTA. Você DEVE usar exatamente os valores dessa seção para preencher os respectivos campos (title, author_name, publisher, isbn, page_count).
 
         Sua resposta deve ser estritamente em formato JSON, sem blocos de código markdown (NÃO use ```json ou ```). A resposta deve conter as seguintes chaves e formatos exatos:
         
@@ -241,33 +368,36 @@ class AIBookAssistantService:
         - publication_date: Data de publicação no formato YYYY-MM-DD. Se apenas o ano for conhecido, use YYYY-01-01. Se a data for inválida ou desconhecida, retorne null.
         - isbn: Código ISBN (10 ou 13 dígitos) contendo apenas dígitos e hífens.
         - publisher: Nome da editora (string, ou string vazia "" se desconhecido).
-        - price: Preço médio estimado de mercado na Amazon Brasil em reais (float). NÃO retorne null nem 0. Se desconhecido, estime com base em preços normais do mercado para o gênero e formato do livro (ex: R$ 49.90 ou R$ 59.90).
+        - price: Preço médio estimado de mercado na Amazon Brasil em reais (float). NÃO retorne null nem 0. Ex: 49.90.
         - page_count: Número de páginas (inteiro ou null).
         - language: Código ISO 639-1 de idioma (ex: 'pt', 'en', 'es', 'fr').
-        - available_print: true se houver qualquer indicação de versão física/impressa, caso contrário false.
+        - available_print: true se houver indicação de versão física/impressa, caso contrário false.
         - available_kindle: true se houver indicação de e-book ou Kindle, caso contrário false.
         - available_audiobook: true se houver indicação de audiolivro, caso contrário false.
         - available_pdf: true se houver indicação de formato PDF, caso contrário false.
         - author_name: Nome do autor principal do livro (string).
         - author_bio: Biografia ou resumo resumido sobre a vida e obra do autor principal em português (string, ou string vazia "" se desconhecido).
         - category_name: Categoria ou gênero principal do livro (ex: Fantasia, Ficção Científica, Romance, Biografia, Manga, HQ, Terror, Suspense, Autoajuda, Tecnologia) (string).
-        - average_rating: Avaliação média do livro de 0.00 a 5.00 (float). NÃO retorne null. Se não souber por fontes externas, estime com base no sucesso crítico global da obra ou na popularidade.
-        - ratings_count: Número total estimado de avaliações (inteiro). NÃO retorne null. Se não souber por fontes externas, estime baseado no alcance do livro.
+        - average_rating: Avaliação média do livro de 0.00 a 5.00 (float).
+        - ratings_count: Número total estimado de avaliações (inteiro).
         - purchase_partner_name: 'Amazon Brasil' ou 'Amazon'.
         - purchase_partner_url: Link completo do livro na Amazon Brasil (string).
-
-        Preencha o máximo de campos que puder extrair ou pesquisar com alto grau de confiança.
         """
 
-        contents = [prompt]
         uploaded_file = None
+        extracted_data = None
+        last_error = None
 
-        try:
-            # Se um arquivo físico for fornecido, subir para a API Files do Gemini
+        # 2. Tentar modelos Gemini em cascata
+        if self.gemini_key:
+            contents = [prompt]
             if file_path:
-                logger.info("Enviando arquivo temporário para API do Gemini: %s (%s)", file_path, mime_type)
-                uploaded_file = genai.upload_file(path=file_path, mime_type=mime_type)
-                contents.append(uploaded_file)
+                try:
+                    logger.info("Enviando arquivo temporário para API do Gemini: %s (%s)", file_path, mime_type)
+                    uploaded_file = genai.upload_file(path=file_path, mime_type=mime_type)
+                    contents.append(uploaded_file)
+                except Exception as up_err:
+                    logger.warning("Falha ao subir arquivo para Gemini Files API: %s", up_err)
 
             if isbn_data:
                 contents.append(f"\n[DADOS DE REFERÊNCIA OBTIDOS PELO ISBN NA WEB]:\n{json.dumps(isbn_data, ensure_ascii=False)}")
@@ -275,119 +405,76 @@ class AIBookAssistantService:
             if text_content:
                 contents.append(f"\nDados ou texto adicional do usuário:\n{text_content}")
 
-            logger.info("Chamando API do Gemini (gemini-2.5-flash) com structured JSON...")
-            response = self.model.generate_content(
-                contents,
-                generation_config={
-                    "response_mime_type": "application/json",
-                    "temperature": 0.0,
-                    "top_p": 0.1,
-                }
-            )
-
-            response_text = response.text.strip()
-            logger.info("Resposta recebida da API do Gemini.")
-
-            # Limpar qualquer markdown restante
-            if response_text.startswith("```json"):
-                response_text = response_text.replace("```json", "", 1)
-            if response_text.endswith("```"):
-                response_text = response_text[:-3].strip()
-            if response_text.startswith("```"):
-                response_text = response_text.replace("```", "", 1)
-
-            extracted_data = json.loads(response_text.strip())
-
-            # 1. Mapear capa e avaliações vindas do pré-processamento
-            if isbn_data:
-                if 'temp_cover_image' in isbn_data and isbn_data['temp_cover_image']:
-                    extracted_data['temp_cover_image'] = isbn_data['temp_cover_image']
-                if 'temp_cover_url' in isbn_data and isbn_data['temp_cover_url']:
-                    extracted_data['temp_cover_url'] = isbn_data['temp_cover_url']
-                
-                # Integrar avaliações se obtidas da API e não preenchidas
-                if isbn_data.get('average_rating') is not None and extracted_data.get('average_rating') in (None, 0.0, 0):
-                    extracted_data['average_rating'] = isbn_data.get('average_rating')
-                if isbn_data.get('ratings_count') is not None and extracted_data.get('ratings_count') in (None, 0):
-                    extracted_data['ratings_count'] = isbn_data.get('ratings_count')
-
-            # Garantir casting e valores default válidos
-            try:
-                extracted_data['average_rating'] = float(extracted_data.get('average_rating', 0.0) or 0.0)
-            except (ValueError, TypeError):
-                extracted_data['average_rating'] = 0.0
-
-            try:
-                extracted_data['ratings_count'] = int(extracted_data.get('ratings_count', 0) or 0)
-            except (ValueError, TypeError):
-                extracted_data['ratings_count'] = 0
-
-            try:
-                extracted_data['price'] = float(extracted_data.get('price', 0.0) or 0.0)
-                if extracted_data['price'] <= 0.0:
-                    extracted_data['price'] = 49.90  # Default fallback price
-            except (ValueError, TypeError):
-                extracted_data['price'] = 49.90
-
-            # Configurar parceiro e link da Amazon automaticamente se houver ISBN
-            isbn_val = extracted_data.get('isbn')
-            if isbn_val:
-                clean_isbn = re.sub(r'[\-\s]', '', isbn_val)
-                if len(clean_isbn) in (10, 13):
-                    extracted_data['purchase_partner_name'] = 'Amazon Brasil'
-                    partner_url = extracted_data.get('purchase_partner_url', '')
-                    if not partner_url or 'amazon' not in partner_url.lower() or partner_url.endswith('.com') or partner_url.endswith('.com/'):
-                        extracted_data['purchase_partner_url'] = self._get_amazon_url(clean_isbn)
-
-            # Mapear Autor e Categoria no banco de dados local
-            author_name = extracted_data.get('author_name', '').strip()
-            category_name = extracted_data.get('category_name', '').strip()
-
-            author_id = None
-            category_id = None
-
-            if author_name:
-                author_obj = Author.objects.filter(name__iexact=author_name).first()
-                if not author_obj:
-                    author_obj = Author.objects.filter(name__icontains=author_name).first()
-                if author_obj:
-                    author_id = author_obj.id
-                    extracted_data['author_name'] = author_obj.name
-                else:
-                    logger.info("Autor não encontrado no banco local: '%s'", author_name)
-
-            if category_name:
-                category_obj = Category.objects.filter(name__iexact=category_name).first()
-                if not category_obj:
-                    category_obj = Category.objects.filter(name__icontains=category_name).first()
-                if not category_obj:
-                    # Tentar correspondência por palavra-chave comum
-                    first_word = category_name.split()[0]
-                    if len(first_word) >= 3:
-                        category_obj = Category.objects.filter(name__icontains=first_word).first()
-                
-                if category_obj:
-                    category_id = category_obj.id
-                    extracted_data['category_name'] = category_obj.name
-                else:
-                    logger.info("Categoria não encontrada no banco local: '%s'", category_name)
-
-            extracted_data['author_id'] = author_id
-            extracted_data['category_id'] = category_id
-
-            return extracted_data
-
-        except json.JSONDecodeError as e:
-            logger.error("Erro ao decodificar JSON retornado pelo Gemini: %s. Resposta: %s", e, response_text)
-            raise ValueError("A IA não retornou um formato JSON válido.") from e
-        except Exception as e:
-            logger.error("Erro geral no AIBookAssistantService: %s", e, exc_info=True)
-            raise e
-        finally:
-            # Excluir o arquivo da nuvem da API do Gemini para limpeza
-            if uploaded_file:
+            for model_name in self.GEMINI_MODELS:
                 try:
-                    logger.info("Limpando arquivo da API do Gemini: %s", uploaded_file.name)
-                    uploaded_file.delete()
-                except Exception as e:
-                    logger.warning("Falha ao remover arquivo temporário do Gemini: %s", e)
+                    logger.info("Chamando Gemini (%s) para extração de metadados...", model_name)
+                    model_inst = genai.GenerativeModel(model_name=model_name)
+                    response = model_inst.generate_content(
+                        contents,
+                        generation_config={
+                            "response_mime_type": "application/json",
+                            "temperature": 0.0,
+                            "top_p": 0.1,
+                        },
+                        request_options={"timeout": 10.0}
+                    )
+
+                    response_text = response.text.strip()
+                    extracted_data = self._clean_json_response(response_text)
+                    logger.info("✅ Extração com Gemini (%s) bem-sucedida!", model_name)
+                    break
+                except Exception as gem_err:
+                    err_str = str(gem_err).lower()
+                    last_error = gem_err
+                    is_quota = 'quota' in err_str or '429' in err_str or 'exceeded' in err_str or 'resourceexhausted' in err_str or '504' in err_str
+                    if is_quota:
+                        logger.warning("⚠️ Gemini quota/timeout no modelo %s. Tentando próximo modelo...", model_name)
+                        continue
+                    else:
+                        logger.warning("⚠️ Erro no modelo %s: %s", model_name, gem_err)
+                        continue
+
+        # 3. Fallback para Groq ou OpenRouter (quando sem arquivo ou se Gemini falhou)
+        if not extracted_data and text_content:
+            from core.services.ai_provider_service import AIProviderFactory
+            for provider_name in ['groq', 'openrouter']:
+                try:
+                    provider = AIProviderFactory.get_provider(provider_name)
+                    if provider and getattr(provider, 'api_key', ''):
+                        logger.info("Tentando contingência de extração com %s...", provider_name)
+                        full_prompt = f"{prompt}\n\n[DADOS DE REFERÊNCIA]:\n{json.dumps(isbn_data or {}, ensure_ascii=False)}\n\n[TEXTO DO USUÁRIO]:\n{text_content}"
+                        resp_text = provider.generate_text(
+                            prompt=full_prompt,
+                            system_instruction="Você é um assistente que extrai dados de livros estritamente em formato JSON.",
+                            feature_name="admin_ai_assistant",
+                            temperature=0.1
+                        )
+                        extracted_data = self._clean_json_response(resp_text)
+                        logger.info("✅ Extração com %s bem-sucedida!", provider_name)
+                        break
+                except Exception as prov_err:
+                    logger.warning("⚠️ Fallback para %s falhou: %s", provider_name, prov_err)
+                    last_error = prov_err
+                    continue
+
+        # 4. Fallback Determinístico Inteligente via ISBN
+        if not extracted_data and isbn_data:
+            logger.info("ℹ️ Todas as IAs indisponíveis. Usando fallback determinístico via metadados de ISBN.")
+            extracted_data = self._build_data_from_isbn(isbn_data, text_content)
+
+        # Limpar arquivo temporário da API do Gemini
+        if uploaded_file:
+            try:
+                uploaded_file.delete()
+            except Exception as e:
+                logger.warning("Falha ao remover arquivo temporário do Gemini: %s", e)
+
+        # Se ainda não houver dados extraídos, lançar erro humanizado
+        if not extracted_data:
+            err_msg = str(last_error or 'Serviço de IA indisponível')
+            if '429' in err_msg or 'quota' in err_msg.lower() or 'exceeded' in err_msg.lower():
+                raise Exception("Limite temporário de requisições de IA atingido. Por favor, aguarde alguns instantes e tente novamente.")
+            raise Exception(f"Não foi possível processar os dados: {err_msg}")
+
+        # 5. Enriquecer e mapear entidades do banco de dados
+        return self._enrich_and_map_database_entities(extracted_data, isbn_data)

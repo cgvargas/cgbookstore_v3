@@ -153,6 +153,7 @@ class SendMessageAPIView(APIView):
                 message_with_context = user_message_text
 
             start_time = time.time()
+            bot_response_text = None
             
             # Tentar com o provedor principal (Gemini por padrão)
             try:
@@ -163,92 +164,35 @@ class SendMessageAPIView(APIView):
             except Exception as primary_error:
                 error_str = str(primary_error).lower()
                 is_quota_error = 'quota' in error_str or '429' in error_str or 'exceeded' in error_str or 'rate limit' in error_str
-                
-                # Se for erro de quota do Gemini, fazer fallback para Groq
-                if ai_provider == 'gemini' and is_quota_error:
-                    logger.warning(f"⚠️ Quota Gemini excedida, fazendo fallback para Groq...")
+                logger.warning(f"⚠️ Provedor principal ({ai_provider}) falhou: {primary_error}")
+
+                # 1. Tentar Groq como contingência
+                if ai_provider != 'groq' and getattr(settings, 'GROQ_API_KEY', ''):
                     try:
+                        logger.info("Tentando contingência com Groq...")
                         from .groq_service import get_groq_chatbot_service
                         groq_service = get_groq_chatbot_service()
-
-                        # Converter histórico para formato Groq (OpenAI)
                         groq_history = []
                         for msg in previous_messages:
+                            content_to_send = msg.corrected_content if msg.has_correction and msg.corrected_content else msg.content
                             groq_history.append({
                                 "role": msg.role if msg.role == "user" else "assistant",
-                                "content": msg.content
+                                "content": content_to_send
                             })
-
                         bot_response_text = groq_service.get_response(
                             message=message_with_context,
                             conversation_history=groq_history
                         )
                         logger.info("✅ Fallback para Groq bem-sucedido!")
-                    except Exception as fallback_error:
-                        # Tentar OpenRouter como contingência final antes de desistir
-                        if getattr(settings, 'OPENROUTER_API_KEY', ''):
-                            logger.warning("⚠️ Fallback para Groq falhou. Tentando OpenRouter como contingência final...")
-                            try:
-                                from core.services.ai_provider_service import AIProviderFactory
-                                openrouter = AIProviderFactory.get_provider('openrouter')
-                                prompt_parts = []
-                                for msg in previous_messages:
-                                    role = "Usuário" if msg.role == "user" else "Assistente"
-                                    prompt_parts.append(f"{role}: {msg.content}")
-                                prompt_parts.append(f"Usuário: {message_with_context}")
-                                prompt = "\n".join(prompt_parts)
-                                
-                                bot_response_text = openrouter.generate_text(
-                                    prompt=prompt,
-                                    system_instruction=getattr(chatbot_service, 'SYSTEM_PROMPT', 'Você é um assistente literário.'),
-                                    feature_name="chatbot",
-                                    temperature=0.7
-                                )
-                                logger.info("✅ Fallback final para OpenRouter bem-sucedido!")
-                            except Exception as openrouter_err:
-                                logger.error(f"❌ Fallback final para OpenRouter também falhou: {openrouter_err}")
-                                try:
-                                    from monitoring.models import AIResponseAlert
-                                    from monitoring.tasks import dispatch_whatsapp_alert
-                                    alert = AIResponseAlert.objects.create(
-                                        session=session,
-                                        user=request.user,
-                                        alert_type='api_error',
-                                        severity='critical',
-                                        provider='gemini',
-                                        error_message=f"Gemini+Groq+OpenRouter falharam: {openrouter_err}",
-                                        ai_response_preview='',
-                                    )
-                                    dispatch_whatsapp_alert(ai_alert_id=alert.pk)
-                                except Exception as m_err:
-                                    logger.warning(f"Erro ao registrar alerta de IA: {m_err}")
-                                raise openrouter_err
-                        else:
-                            logger.error(f"❌ Fallback para Groq também falhou: {fallback_error}")
-                            try:
-                                from monitoring.models import AIResponseAlert
-                                from monitoring.tasks import dispatch_whatsapp_alert
-                                alert = AIResponseAlert.objects.create(
-                                    session=session,
-                                    user=request.user,
-                                    alert_type='api_error',
-                                    severity='critical',
-                                    provider='gemini',
-                                    error_message=f"Gemini quota + Groq fallback falhou: {fallback_error}",
-                                    ai_response_preview='',
-                                )
-                                dispatch_whatsapp_alert(ai_alert_id=alert.pk)
-                            except Exception as m_err:
-                                logger.warning(f"Erro ao registrar alerta de IA: {m_err}")
-                            raise fallback_error
-                # Se for erro de quota do Groq, fazer fallback para Gemini
-                elif ai_provider == 'groq' and is_quota_error:
-                    logger.warning(f"⚠️ Quota Groq excedida, fazendo fallback para Gemini...")
+                    except Exception as groq_err:
+                        logger.warning(f"⚠️ Fallback para Groq falhou: {groq_err}")
+
+                # 2. Tentar Gemini como contingência (se o principal era Groq)
+                if not bot_response_text and ai_provider != 'gemini' and getattr(settings, 'GEMINI_API_KEY', ''):
                     try:
+                        logger.info("Tentando contingência com Gemini...")
                         from .gemini_service import get_gemini_service
                         gemini_service = get_gemini_service()
-
-                        # Converter histórico para formato Gemini
                         gemini_history = []
                         for msg in previous_messages:
                             content_to_send = msg.corrected_content if msg.has_correction and msg.corrected_content else msg.content
@@ -256,89 +200,62 @@ class SendMessageAPIView(APIView):
                                 "role": msg.role if msg.role == "user" else "model",
                                 "parts": [content_to_send]
                             })
-
                         bot_response_text = gemini_service.get_response(
                             message=message_with_context,
                             conversation_history=gemini_history
                         )
                         logger.info("✅ Fallback para Gemini bem-sucedido!")
-                    except Exception as fallback_error:
-                        # Tentar OpenRouter como contingência final antes de desistir
-                        if getattr(settings, 'OPENROUTER_API_KEY', ''):
-                            logger.warning("⚠️ Fallback para Gemini falhou. Tentando OpenRouter como contingência final...")
-                            try:
-                                from core.services.ai_provider_service import AIProviderFactory
-                                openrouter = AIProviderFactory.get_provider('openrouter')
-                                prompt_parts = []
-                                for msg in previous_messages:
-                                    role = "Usuário" if msg.role == "user" else "Assistente"
-                                    prompt_parts.append(f"{role}: {msg.content}")
-                                prompt_parts.append(f"Usuário: {message_with_context}")
-                                prompt = "\n".join(prompt_parts)
-                                
-                                bot_response_text = openrouter.generate_text(
-                                    prompt=prompt,
-                                    system_instruction=getattr(chatbot_service, 'SYSTEM_PROMPT', 'Você é um assistente literário.'),
-                                    feature_name="chatbot",
-                                    temperature=0.7
-                                )
-                                logger.info("✅ Fallback final para OpenRouter bem-sucedido!")
-                            except Exception as openrouter_err:
-                                logger.error(f"❌ Fallback para OpenRouter também falhou: {openrouter_err}")
-                                try:
-                                    from monitoring.models import AIResponseAlert
-                                    from monitoring.tasks import dispatch_whatsapp_alert
-                                    alert = AIResponseAlert.objects.create(
-                                        session=session,
-                                        user=request.user,
-                                        alert_type='api_error',
-                                        severity='critical',
-                                        provider='groq',
-                                        error_message=f"Groq+Gemini+OpenRouter falharam: {openrouter_err}",
-                                        ai_response_preview='',
-                                    )
-                                    dispatch_whatsapp_alert(ai_alert_id=alert.pk)
-                                except Exception as m_err:
-                                    logger.warning(f"Erro ao registrar alerta de IA: {m_err}")
-                                raise openrouter_err
-                        else:
-                            logger.error(f"❌ Fallback para Gemini também falhou: {fallback_error}")
-                            try:
-                                from monitoring.models import AIResponseAlert
-                                from monitoring.tasks import dispatch_whatsapp_alert
-                                alert = AIResponseAlert.objects.create(
-                                    session=session,
-                                    user=request.user,
-                                    alert_type='api_error',
-                                    severity='critical',
-                                    provider='groq',
-                                    error_message=f"Groq quota + Gemini fallback falhou: {fallback_error}",
-                                    ai_response_preview='',
-                                )
-                                dispatch_whatsapp_alert(ai_alert_id=alert.pk)
-                            except Exception as m_err:
-                                logger.warning(f"Erro ao registrar alerta de IA: {m_err}")
-                            raise fallback_error
-                else:
-                    # [MONITORAMENTO] Registrar erro genérico da IA
+                    except Exception as gemini_err:
+                        logger.warning(f"⚠️ Fallback para Gemini falhou: {gemini_err}")
+
+                # 3. Tentar OpenRouter como contingência
+                if not bot_response_text and getattr(settings, 'OPENROUTER_API_KEY', ''):
+                    try:
+                        logger.info("Tentando contingência com OpenRouter...")
+                        from core.services.ai_provider_service import AIProviderFactory
+                        openrouter = AIProviderFactory.get_provider('openrouter')
+                        prompt_parts = []
+                        for msg in previous_messages:
+                            content_to_send = msg.corrected_content if msg.has_correction and msg.corrected_content else msg.content
+                            role = "Usuário" if msg.role == "user" else "Assistente"
+                            prompt_parts.append(f"{role}: {content_to_send}")
+                        prompt_parts.append(f"Usuário: {message_with_context}")
+                        prompt = "\n".join(prompt_parts)
+                        
+                        bot_response_text = openrouter.generate_text(
+                            prompt=prompt,
+                            system_instruction=getattr(chatbot_service, 'SYSTEM_PROMPT', 'Você é um assistente literário.'),
+                            feature_name="chatbot",
+                            temperature=0.7
+                        )
+                        logger.info("✅ Fallback para OpenRouter bem-sucedido!")
+                    except Exception as openrouter_err:
+                        logger.warning(f"⚠️ Fallback para OpenRouter falhou: {openrouter_err}")
+
+                # 4. Resposta graciosa se todos os provedores externos falharem momentaneamente
+                if not bot_response_text:
+                    logger.error(f"❌ Todos os provedores de IA falharam para o chatbot: {primary_error}")
                     try:
                         from monitoring.models import AIResponseAlert
                         from monitoring.tasks import dispatch_whatsapp_alert
-                        alert_type = 'quota_exceeded' if is_quota_error else 'api_error'
                         alert = AIResponseAlert.objects.create(
                             session=session,
                             user=request.user,
-                            alert_type=alert_type,
-                            severity='high',
+                            alert_type='quota_exceeded' if is_quota_error else 'api_error',
+                            severity='medium',
                             provider=ai_provider,
-                            error_message=str(primary_error)[:500],
+                            error_message=f"Todos os provedores (Gemini/Groq/OpenRouter) indisponíveis: {primary_error}",
                             ai_response_preview='',
                         )
                         dispatch_whatsapp_alert(ai_alert_id=alert.pk)
                     except Exception as m_err:
                         logger.warning(f"Erro ao registrar alerta de IA: {m_err}")
-                    # Não é erro de quota ou não é Gemini/Groq, propagar erro
-                    raise primary_error
+
+                    bot_response_text = (
+                        "Estou recebendo muitas mensagens de leitores neste momento! 📚✨ "
+                        "Por favor, aguarde alguns segundos e tente me perguntar novamente. "
+                        "Enquanto isso, você pode explorar nosso catálogo na loja ou pesquisar títulos na barra de busca acima!"
+                    )
             
             # Validação Cruzada (Anti-Alucinação)
             was_corrected = False
