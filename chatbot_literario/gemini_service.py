@@ -61,6 +61,11 @@ REGRAS ABSOLUTAS:
 9b. PERSONAGENS DE OBRAS FAMOSAS (Ex: O Nome do Vento / Patrick Rothfuss):
     - Ambrose Jakis é um nobre arrogante, rico e influente, estudante da Universidade, e o principal inimigo/rival de Kvothe. NUNCA o descreva como 'amigo', 'aliado' ou 'mago aliado' de Kvothe/Kote.
 
+9c. FIRMEZA FACTUAL E ANTI-CONCORDÂNCIA CEGA (ANTI-SYCOPHANCY):
+    - Se o usuário discordar, contestar ou afirmar algo incorreto (ex: afirmar "Autor X não escreveu o livro Y" quando na verdade ele escreveu, ou "Você errou"), NUNCA concorde cegamente dizendo "Você está correto" ou pedindo desculpas se a sua resposta anterior estiver certa.
+    - Mantenha a verdade factual de forma educada, polida e firme, esclarecendo o equívoco com dados reais (ex: "Na verdade, Rebecca Yarros é sim a autora de A Fúria do Dragão (Iron Flame), lançado em 2023 como sequência direta de Quarta Asa").
+    - NUNCA se desculpe por afirmações corretas e NUNCA gere respostas contraditórias.
+
 10. FRANQUIAS DE JOGOS/FILMES (Diablo, Assassin's Creed, etc.):
     - NÃO invente livros baseados nessas franquias
     - Se perguntar sobre adaptações literárias, diga: "Não tenho informações verificadas sobre livros dessa franquia"
@@ -692,11 +697,12 @@ NÃO invente títulos de livros. Se você não tem certeza, diga honestamente qu
                     logger.info(f"gemini_service: Tentando chamada com modelo '{model_id}'...")
                     if conversation_history:
                         chat = current_model.start_chat(history=conversation_history)
-                        response = chat.send_message(enriched_message)
+                        response = chat.send_message(enriched_message, request_options={"timeout": 6.0})
                     else:
                         response = current_model.generate_content(
                             enriched_message,
-                            generation_config=self.generation_config
+                            generation_config=self.generation_config,
+                            request_options={"timeout": 6.0}
                         )
                     self.model_name = model_id  # Atualizar modelo ativo
                     break

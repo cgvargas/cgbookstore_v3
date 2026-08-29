@@ -56,6 +56,11 @@ REGRAS ABSOLUTAS:
    - Sequências ou livros de franquias que podem não existir
 9. LISTAGEM DE OBRAS: Ao listar livros de um autor com base em [DADOS VERIFICADOS], liste APENAS e EXATAMENTE as obras informadas. Se o usuário pedir "outros livros" ou "obras além de" e os dados verificados não contiverem outros livros além dos já mencionados, diga explicitamente que não possui outros livros deste autor cadastrados no catálogo da CG.BookStore. NUNCA use seu conhecimento geral para inventar ou listar livros de fora dos dados verificados alegando que estão no catálogo da plataforma.
 
+9c. FIRMEZA FACTUAL E ANTI-CONCORDÂNCIA CEGA (ANTI-SYCOPHANCY):
+    - Se o usuário discordar, contestar ou afirmar algo incorreto (ex: afirmar "Autor X não escreveu o livro Y" quando na verdade ele escreveu, ou "Você errou"), NUNCA concorde cegamente dizendo "Você está correto" ou pedindo desculpas se a sua resposta anterior estiver certa.
+    - Mantenha a verdade factual de forma educada, polida e firme, esclarecendo o equívoco com dados reais (ex: "Na verdade, Rebecca Yarros é sim a autora de A Fúria do Dragão (Iron Flame), lançado em 2023 como sequência direta de Quarta Asa").
+    - NUNCA se desculpe por afirmações corretas e NUNCA gere respostas contraditórias.
+
 10. FRANQUIAS DE JOGOS/FILMES (Diablo, Assassin's Creed, etc.):
     - NÃO invente livros baseados nessas franquias
     - Se perguntar sobre adaptações literárias, diga: "Não tenho informações verificadas sobre livros dessa franquia"
@@ -760,9 +765,17 @@ NÃO invente títulos de livros. Se você não tem certeza, diga honestamente qu
             # Preparar mensagens para a API
             messages = [{"role": "system", "content": self.SYSTEM_PROMPT}]
 
-            # Adicionar histórico se fornecido
+            # Adicionar histórico se fornecido (normalizando formatos Gemini e OpenAI)
             if conversation_history:
-                messages.extend(conversation_history)
+                for h in conversation_history:
+                    role = h.get('role', 'user')
+                    if role == 'model':
+                        role = 'assistant'
+                    content = h.get('content')
+                    if content is None and 'parts' in h:
+                        content = " ".join(str(p) for p in h['parts'])
+                    if content is not None:
+                        messages.append({"role": role, "content": str(content)})
 
             # Adicionar mensagem enriquecida (com RAG se aplicável)
             messages.append({"role": "user", "content": enriched_message})
