@@ -157,6 +157,7 @@ ESCOPO:
             "temperature": 0.1,  # Reduzido de 0.3 para 0.1 - máxima consistência
             "max_tokens": 4096,  # Limite de tokens na resposta (aumentado para evitar cortes de listas)
             "top_p": 0.7,  # Reduzido de 0.8 para maior foco
+            "reasoning_effort": "none",  # Desativar thinking/chain-of-thought do Qwen3
         }
 
         # RAG - Knowledge Retrieval Service
@@ -209,7 +210,7 @@ ESCOPO:
             'category_search': r'(ficção|romance|fantasia|terror|suspense|policial|biografia)',
             'adaptation_info': r'(adaptação|adaptaç|filme|série|netflix|hbo|amazon prime|disney)',
             'franchise_info': r'(franquia|universo|mundo de)',
-            'follow_up_author': r'(el[ae]\s+escreveu|outros?\s+livros?|outras?\s+obras?|mais\s+livros?|tem\s+mais|escreveu\s+mais|publicou\s+mais)',
+            'follow_up_author': r'(el[ae]\s+escreveu|outros?\s+livros?|outras?\s+obras?|outros?\s+t[ií]tulos?|mais\s+livros?|tem\s+mais|escreveu\s+mais|publicou\s+mais|ess[ae]\s+autor|est[ae]\s+autor|mesm[oa]\s+autor)',
         }
 
         for intent, pattern in patterns.items():
@@ -304,9 +305,27 @@ Se o FAQ responder completamente, NÃO adicione informações extras."""
         try:
             # INTENT 0.5: Pergunta de follow-up sobre autor anterior (ex: "ela escreveu outros livros?")
             if intent_type == 'follow_up_author':
+                # Tentar primeiro do contexto em memória
                 last_author_data = self.knowledge_service.get_conversation_reference('last_author')
-                if last_author_data and last_author_data.get('name'):
-                    author_name = last_author_data['name']
+                author_name = last_author_data.get('name') if last_author_data else None
+                
+                # Se não tem contexto em memória, extrair do histórico de conversa
+                if not author_name and hasattr(self, '_current_conversation_history'):
+                    for hist_msg in reversed(self._current_conversation_history or []):
+                        content = hist_msg.get('content', '')
+                        if not content and 'parts' in hist_msg:
+                            content = ' '.join(str(p) for p in hist_msg['parts'])
+                        # Buscar padrões como "escrito por Rebecca Yarros" ou "Autor: Rebecca Yarros"
+                        author_match = re.search(
+                            r'(?:escrit[oa] por|autora?(?:\s+é)?[:\s]+)\s*\*{0,2}([A-Z][a-záéíóúàãõâêôç.\s]+(?:\s+[A-Z][a-záéíóúàãõâêôç.\s]+)*)\*{0,2}',
+                            content
+                        )
+                        if author_match:
+                            author_name = author_match.group(1).strip().strip('*').strip()
+                            logger.info(f"RAG: Autor extraído do histórico de conversa: '{author_name}'")
+                            break
+                
+                if author_name:
                     logger.info(f"RAG: Follow-up detectado. Buscando livros do autor em contexto: {author_name}")
                     books = self.knowledge_service.search_books_by_author(author_name, limit=10)
                     if books:
@@ -319,6 +338,8 @@ Se o FAQ responder completamente, NÃO adicione informações extras."""
                         return f"{message}\n\n{verified_data}"
                     else:
                         logger.warning(f"RAG: Nenhum livro encontrado para o autor '{author_name}'")
+                else:
+                    logger.warning("RAG: Follow-up detectado mas nenhum autor em contexto ou histórico")
 
             # INTENT 1: Recomendação por categoria
             elif intent_type == 'book_recommendation':
@@ -725,6 +746,9 @@ NÃO invente títulos de livros. Se você não tem certeza, diga honestamente qu
         """
         try:
             logger.info(f"Enviando mensagem ao Groq: {message[:100]}...")
+            
+            # Salvar histórico para que _apply_rag_knowledge possa extrair contexto (ex: nome do autor)
+            self._current_conversation_history = conversation_history or []
 
             if bypass_rag:
                 logger.info("groq_service: RAG ignorado por solicitação (bypass_rag=True)")
@@ -808,8 +832,10 @@ NÃO invente títulos de livros. Se você não tem certeza, diga honestamente qu
             if not chat_completion:
                 raise last_error or Exception("Nenhum modelo do Groq disponível")
 
-            # Extrair resposta
-            bot_response = chat_completion.choices[0].message.content.strip()
+            # Extrair resposta e limpar tokens de raciocínio residuais
+            bot_response = self._strip_thinking_tokens(
+                chat_completion.choices[0].message.content.strip()
+            )
 
             # === RAG STEP 3: Armazenar referências de livros mencionados ===
             if rag_intent.get('intent_type') in ['book_recommendation', 'author_search', 'category_search', 'series_info']:
@@ -846,6 +872,17 @@ NÃO invente títulos de livros. Se você não tem certeza, diga honestamente qu
         except Exception as e:
             logger.error(f"Erro ao gerar resposta com Groq: {e}")
             raise Exception(f"Erro ao processar mensagem com Groq: {e}")
+
+    @staticmethod
+    def _strip_thinking_tokens(text: str) -> str:
+        """Remove blocos <think>...</think> que modelos 'thinking' (Qwen3) podem vazar."""
+        if not text:
+            return text
+        # Remover blocos <think>...</think> (incluindo multiline)
+        cleaned = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
+        # Remover tags orphãs de abertura/fechamento
+        cleaned = re.sub(r'</?think>', '', cleaned).strip()
+        return cleaned if cleaned else text
 
     def _store_book_references(self, enriched_message: str):
         """

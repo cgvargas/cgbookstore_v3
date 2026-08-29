@@ -84,8 +84,13 @@ class GeminiNewsService:
                         model=m,
                         temperature=temperature,
                         max_tokens=max_tokens,
+                        reasoning_effort="none",
                     )
-                    return response.choices[0].message.content
+                    import re as _re
+                    content = response.choices[0].message.content
+                    content = _re.sub(r'<think>.*?</think>', '', content, flags=_re.DOTALL).strip()
+                    content = _re.sub(r'</?think>', '', content).strip()
+                    return content
                 except Exception as e:
                     last_err = e
                     continue

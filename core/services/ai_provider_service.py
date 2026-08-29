@@ -231,13 +231,19 @@ class GroqAIProvider(BaseAIProvider):
                     model=model_id,
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    timeout=15.0
+                    timeout=15.0,
+                    reasoning_effort="none",
                 )
                 response_time = time.time() - start_time
                 self.model_name = model_id
                 
+                raw_content = response.choices[0].message.content
+                # Strip thinking tokens from Qwen3 reasoning models
+                clean_content = re.sub(r'<think>.*?</think>', '', raw_content, flags=re.DOTALL).strip()
+                clean_content = re.sub(r'</?think>', '', clean_content).strip()
+                
                 prompt_tokens = response.usage.prompt_tokens if hasattr(response, 'usage') else len(prompt) // 4
-                completion_tokens = response.usage.completion_tokens if hasattr(response, 'usage') else len(response.choices[0].message.content) // 4
+                completion_tokens = response.usage.completion_tokens if hasattr(response, 'usage') else len(clean_content) // 4
                 
                 log_ai_usage(
                     user=user,
@@ -249,7 +255,7 @@ class GroqAIProvider(BaseAIProvider):
                     response_time=response_time,
                     status="success"
                 )
-                return response.choices[0].message.content
+                return clean_content
             except Exception as e:
                 err_str = str(e).lower()
                 last_error = e
