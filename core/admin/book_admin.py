@@ -179,6 +179,9 @@ class BookAdmin(admin.ModelAdmin):
     # Autocomplete para Author e Category
     autocomplete_fields = ['author', 'category']
 
+    # Gerar slug automaticamente a partir do título
+    prepopulated_fields = {'slug': ('title',)}
+
     # Campos somente leitura (necessário para listar auto_now_add/auto_now em fieldsets)
     readonly_fields = ('created_at', 'updated_at')
 

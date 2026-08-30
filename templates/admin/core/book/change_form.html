@@ -627,6 +627,7 @@
             const field = $('#id_' + fieldName);
             if (field.length && value !== undefined && value !== null) {
                 field.val(value);
+                field.trigger('input').trigger('change').trigger('keyup');
                 field.addClass('is-ai-filled');
                 
                 // Adicionar tag visual sutil "IA" se não existir
