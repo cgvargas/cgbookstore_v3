@@ -41,7 +41,7 @@ class ImageRightsRecord(models.Model):
     ]
 
     LEGAL_BASIS_CHOICES = [
-        ('fair_use_art46', '⚖️ Limitação aos Direitos Autorais (Art. 46 Lei 9.610/98 / Fair Use)'),
+        ('fair_use_art46', '⚖️ Limitação aos Direitos Autorais — Art. 46 da Lei nº 9.610/98'),
         ('express_consent', '📜 Autorização Expressa da Editora/Autor'),
         ('amazon_affiliate_terms', '🛒 Termos do Programa de Afiliados Amazon'),
         ('public_domain', '🌐 Domínio Público'),
@@ -101,7 +101,7 @@ class ImageRightsRecord(models.Model):
         default='',
         db_index=True,
         verbose_name="Fundamento Jurídico",
-        help_text="Enquadramento legal para proteção do uso (ex: Art. 46 LDA / Fair Use, Afiliados Amazon)."
+        help_text="Enquadramento legal para proteção do uso (ex: Art. 46 da Lei nº 9.610/98, Afiliados Amazon)."
     )
 
     # Dimensões e Especificações Técnicas (Resolução Proporcional)

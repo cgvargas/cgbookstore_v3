@@ -34,7 +34,8 @@ class ImageRightsRecordTestCase(TestCase):
         self.book = Book.objects.create(
             title="O Senhor dos Anéis",
             author=self.author,
-            price=99.90
+            price=99.90,
+            publication_date="1954-07-29"
         )
         self.book_ct = ContentType.objects.get_for_model(Book)
 
@@ -132,7 +133,10 @@ class ImageRightsRecordTestCase(TestCase):
         self.assertEqual(status, 'no_image')
 
     def test_usage_purpose_and_legal_basis_fields(self):
-        """Verifica se os campos de finalidade e enquadramento jurídico salvam corretamente."""
+        """Verifica se os campos de finalidade e enquadramento jurídico salvam corretamente e usam o label atualizado."""
+        expected_label = '⚖️ Limitação aos Direitos Autorais — Art. 46 da Lei nº 9.610/98'
+
+        # 1. Criação de novo registro
         record = ImageRightsRecord.objects.create(
             content_type=self.book_ct,
             object_id=self.book.id,
@@ -143,7 +147,60 @@ class ImageRightsRecordTestCase(TestCase):
         )
         self.assertEqual(record.usage_purpose, 'review_debate')
         self.assertEqual(record.legal_basis, 'fair_use_art46')
+        self.assertEqual(record.get_legal_basis_display(), expected_label)
         self.assertEqual(record.display_dimensions, '400x600px (120 KB)')
+
+        # 2. Edição de registro existente
+        record.legal_basis = 'express_consent'
+        record.save()
+        record.refresh_from_db()
+        self.assertEqual(record.legal_basis, 'express_consent')
+        self.assertEqual(record.get_legal_basis_display(), '📜 Autorização Expressa da Editora/Autor')
+
+        # Retornar para o enquadramento do Art. 46
+        record.legal_basis = 'fair_use_art46'
+        record.save()
+        record.refresh_from_db()
+        self.assertEqual(record.legal_basis, 'fair_use_art46')
+        self.assertEqual(record.get_legal_basis_display(), expected_label)
+
+    def test_form_legal_basis_choices_and_submission(self):
+        """Verifica se o formulário do admin renderiza e valida a opção com o label atualizado."""
+        expected_label = '⚖️ Limitação aos Direitos Autorais — Art. 46 da Lei nº 9.610/98'
+
+        # Verificar se a escolha está presente nos choices do formulário
+        form = ImageRightsRecordForm()
+        choices_dict = dict(form.fields['legal_basis'].choices)
+        self.assertIn('fair_use_art46', choices_dict)
+        self.assertEqual(choices_dict['fair_use_art46'], expected_label)
+
+        # Submissão via formulário para novo registro
+        form_data = {
+            'content_type': self.book_ct.id,
+            'object_id': self.book.id,
+            'image_field_name': 'cover_image',
+            'legal_basis': 'fair_use_art46',
+            'credit_name': 'Artista de Teste',
+        }
+        form_valid = ImageRightsRecordForm(data=form_data)
+        self.assertTrue(form_valid.is_valid())
+        new_record = form_valid.save()
+        self.assertEqual(new_record.legal_basis, 'fair_use_art46')
+        self.assertEqual(new_record.get_legal_basis_display(), expected_label)
+
+        # Edição via formulário
+        edit_form_data = {
+            'content_type': self.book_ct.id,
+            'object_id': self.book.id,
+            'image_field_name': 'cover_image',
+            'legal_basis': 'fair_use_art46',
+            'credit_name': 'Artista Atualizado',
+        }
+        edit_form = ImageRightsRecordForm(data=edit_form_data, instance=new_record)
+        self.assertTrue(edit_form.is_valid())
+        updated_record = edit_form.save()
+        self.assertEqual(updated_record.credit_name, 'Artista Atualizado')
+        self.assertEqual(updated_record.get_legal_basis_display(), expected_label)
 
     def test_audit_image_rights_management_command(self):
         """Verifica a execução do comando de gerenciamento audit_image_rights sem erros."""
