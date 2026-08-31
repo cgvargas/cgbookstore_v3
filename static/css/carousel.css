@@ -161,6 +161,18 @@
     margin: 0;
 }
 
+.publisher-tag-compact {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 65%;
+    display: inline-flex;
+    align-items: center;
+}
+
 /* Avaliação com Estrelas */
 .book-rating {
     display: flex;
@@ -297,6 +309,11 @@
 
     .price-tag-compact {
         font-size: 0.75rem;
+    }
+
+    .publisher-tag-compact {
+        font-size: 0.7rem;
+        max-width: 65%;
     }
 
     .stars-small-home i {

@@ -350,6 +350,18 @@
         white-space: nowrap;
     }
 
+    .publisher-tag-compact {
+        font-weight: 500;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 65%;
+        display: inline-flex;
+        align-items: center;
+    }
+
     .rating-compact-home {
         display: flex;
         align-items: center;
@@ -1103,18 +1115,18 @@
                                                     <p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>
                                                 {% endif %}
                                                 <div class="d-flex justify-content-between align-items-center book-info-compact">
-                                                    {% if section.show_price %}
-                                                    <span class="price-tag-compact">
-                                                        {% if obj.price %}R$ {{ obj.price|floatformat:2 }}{% else %}<span class="text-muted small">Consulte</span>{% endif %}
+                                                    {% if obj.publisher %}
+                                                    <span class="publisher-tag-compact" title="{{ obj.publisher }}">
+                                                        <i class="fas fa-building me-1 opacity-75"></i>{{ obj.publisher }}
                                                     </span>
                                                     {% endif %}
                                                     {% if section.show_rating %}
                                                         {% if obj.average_rating %}
-                                                        <div class="rating-compact-home">
+                                                        <div class="rating-compact-home ms-auto">
                                                             <i class="fas fa-star text-warning"></i>
                                                             <span class="rating-number">({{ obj.average_rating|floatformat:1 }})</span>
                                                         </div>
-                                                        {% else %}<span class="text-muted small">Sem avaliações</span>{% endif %}
+                                                        {% else %}<span class="text-muted small ms-auto">Sem avaliações</span>{% endif %}
                                                     {% endif %}
                                                 </div>
                                             </div>
@@ -1126,6 +1138,11 @@
                                         <div class="card-body">
                                             <h5 class="card-title mb-1">{{ display_title|truncatewords:8 }}</h5>
                                             {% if section.show_author and obj.author %}<p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>{% endif %}
+                                            {% if obj.publisher %}
+                                            <div class="d-flex justify-content-between align-items-center book-info-compact">
+                                                <span class="publisher-tag-compact" title="{{ obj.publisher }}"><i class="fas fa-building me-1 opacity-75"></i>{{ obj.publisher }}</span>
+                                            </div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                     {% endif %}
@@ -1222,11 +1239,11 @@
                                             <h5 class="card-title mb-1">{{ display_title }}</h5>
                                             {% if section.show_author and obj.author %}<p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>{% endif %}
                                             <div class="d-flex justify-content-between align-items-center book-info-compact">
-                                                {% if section.show_price %}<span class="price-tag-compact">{% if obj.price %}R$ {{ obj.price|floatformat:2 }}{% else %}<span class="text-muted small">Consulte</span>{% endif %}</span>{% endif %}
+                                                {% if obj.publisher %}<span class="publisher-tag-compact" title="{{ obj.publisher }}"><i class="fas fa-building me-1 opacity-75"></i>{{ obj.publisher }}</span>{% endif %}
                                                 {% if section.show_rating %}
                                                     {% if obj.average_rating %}
-                                                    <div class="rating-compact-home"><i class="fas fa-star text-warning"></i> <span>{{ obj.average_rating|floatformat:1 }}</span></div>
-                                                    {% else %}<span class="text-muted small">Sem avaliações</span>{% endif %}
+                                                    <div class="rating-compact-home ms-auto"><i class="fas fa-star text-warning"></i> <span>{{ obj.average_rating|floatformat:1 }}</span></div>
+                                                    {% else %}<span class="text-muted small ms-auto">Sem avaliações</span>{% endif %}
                                                 {% endif %}
                                             </div>
                                         </div>
@@ -1238,6 +1255,11 @@
                                     <div class="card-body">
                                         <h5 class="card-title mb-1">{{ display_title }}</h5>
                                         {% if section.show_author and obj.author %}<p class="card-text text-muted small mb-1">{{ obj.author.name }}</p>{% endif %}
+                                        {% if obj.publisher %}
+                                        <div class="d-flex justify-content-between align-items-center book-info-compact">
+                                            <span class="publisher-tag-compact" title="{{ obj.publisher }}"><i class="fas fa-building me-1 opacity-75"></i>{{ obj.publisher }}</span>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 {% endif %}
@@ -1296,7 +1318,7 @@
                                             {% if section.show_author and obj.author %}<p class="mb-1 text-muted small">{{ obj.author.name }}</p>{% endif %}
                                         </div>
                                     </div>
-                                    {% if section.show_price %}<span class="badge bg-primary rounded-pill">R$ {{ obj.price|default:"--" }}</span>{% endif %}
+                                    {% if obj.publisher %}<span class="badge bg-secondary rounded-pill text-truncate" style="max-width: 160px;" title="{{ obj.publisher }}"><i class="fas fa-building me-1"></i>{{ obj.publisher }}</span>{% endif %}
                                 </div>
                             {% if obj.slug %}</a>{% else %}</div>{% endif %}
                         {% elif section.content_type == 'news' %}
@@ -1367,11 +1389,11 @@
                                         <p class="card-text text-muted">{{ obj.description|truncatewords:40 }}</p>
                                         {% endif %}
                                         <div class="d-flex justify-content-between align-items-center mt-3">
-                                            {% if section.show_price and obj.price %}
-                                            <span class="h5 text-primary mb-0">R$ {{ obj.price|floatformat:2 }}</span>
+                                            {% if obj.publisher %}
+                                            <span class="text-muted small"><i class="fas fa-building me-1 opacity-75"></i>Editora: <strong>{{ obj.publisher }}</strong></span>
                                             {% endif %}
                                             {% if section.show_rating and obj.average_rating %}
-                                            <span><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1 }}</span>
+                                            <span class="ms-auto"><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1 }}</span>
                                             {% endif %}
                                         </div>
                                     </div>
@@ -1390,7 +1412,8 @@
                                     {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">{% else %}<img src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover" alt="Sem capa">{% endif %}
                                     <div class="card-body p-2">
                                         <h6 class="card-title mb-1">{{ display_title|truncatewords:5 }}</h6>
-                                        {% if section.show_author and obj.author %}<small class="text-muted">{{ obj.author.name }}</small>{% endif %}
+                                        {% if section.show_author and obj.author %}<small class="text-muted d-block mb-1">{{ obj.author.name }}</small>{% endif %}
+                                        {% if obj.publisher %}<small class="publisher-tag-compact d-block text-truncate" title="{{ obj.publisher }}"><i class="fas fa-building me-1 opacity-75"></i>{{ obj.publisher }}</small>{% endif %}
                                     </div>
                                 </div>
                             {% if section.content_type == 'books' and obj.slug %}</a>{% endif %}
@@ -1424,8 +1447,8 @@
                                                 {% if section.show_author and obj.author %}<p class="card-text text-muted small">{{ obj.author.name }}</p>{% endif %}
                                                 {% if obj.description %}<p class="card-text small">{{ obj.description|truncatewords:25 }}</p>{% endif %}
                                                 <div class="d-flex justify-content-between align-items-center mt-2">
-                                                    {% if section.show_price and obj.price %}<span class="text-primary fw-bold">R$ {{ obj.price|floatformat:2 }}</span>{% endif %}
-                                                    {% if section.show_rating and obj.average_rating %}<span class="small"><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1 }}</span>{% endif %}
+                                                    {% if obj.publisher %}<span class="text-muted small text-truncate" title="{{ obj.publisher }}"><i class="fas fa-building me-1 opacity-75"></i>{{ obj.publisher }}</span>{% endif %}
+                                                    {% if section.show_rating and obj.average_rating %}<span class="small ms-auto"><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1 }}</span>{% endif %}
                                                 </div>
                                             </div>
                                         </div>
@@ -1449,8 +1472,8 @@
                                 <div class="card book-card-small h-100 text-center">
                                     {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="card-img-top" style="height: 150px; object-fit: cover;" alt="{{ obj.title }}">{% else %}<div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 150px;"><i class="fas fa-book fa-2x text-muted"></i></div>{% endif %}
                                     <div class="card-body p-2">
-                                        <p class="card-title small mb-0" style="font-size: 0.75rem;">{{ display_title|truncatewords:4 }}</p>
-                                        {% if section.show_price and obj.price %}<small class="text-primary">R$ {{ obj.price|floatformat:0 }}</small>{% endif %}
+                                        <p class="card-title small mb-1" style="font-size: 0.75rem;">{{ display_title|truncatewords:4 }}</p>
+                                        {% if obj.publisher %}<small class="text-muted text-truncate d-block" style="font-size: 0.7rem;" title="{{ obj.publisher }}"><i class="fas fa-building me-1 opacity-75"></i>{{ obj.publisher }}</small>{% endif %}
                                     </div>
                                 </div>
                             {% if section.content_type == 'books' and obj.slug %}</a>{% endif %}
@@ -1493,8 +1516,8 @@
                                             <p class="text-white-50 mb-3" style="font-size: 0.9rem;">{{ obj.description|truncatewords:30 }}</p>
                                             {% endif %}
                                             <div class="d-flex align-items-center gap-3">
-                                                {% if section.show_price and obj.price %}
-                                                <span class="h4 text-warning mb-0">R$ {{ obj.price|floatformat:2 }}</span>
+                                                {% if obj.publisher %}
+                                                <span class="text-white-50"><i class="fas fa-building me-1"></i>Editora: <strong>{{ obj.publisher }}</strong></span>
                                                 {% endif %}
                                                 {% if section.show_rating and obj.average_rating %}
                                                 <span><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1 }}</span>
@@ -1556,8 +1579,8 @@
                                         {% if obj.cover_image %}<img src="{{ obj.cover_image.url }}" class="book-cover" alt="{{ obj.title }}">{% else %}<img src="{% static 'images/no-cover-placeholder.svg' %}" class="book-cover" alt="Sem capa">{% endif %}
                                         <div class="card-body p-2">
                                             <h6 class="card-title mb-1">{{ display_title|truncatewords:5 }}</h6>
-                                            {% if section.show_author and obj.author %}<small class="text-muted d-block">{{ obj.author.name }}</small>{% endif %}
-                                            {% if section.show_price and obj.price %}<span class="small text-primary">R$ {{ obj.price|floatformat:2 }}</span>{% endif %}
+                                            {% if section.show_author and obj.author %}<small class="text-muted d-block mb-1">{{ obj.author.name }}</small>{% endif %}
+                                            {% if obj.publisher %}<small class="publisher-tag-compact d-block text-truncate" title="{{ obj.publisher }}"><i class="fas fa-building me-1 opacity-75"></i>{{ obj.publisher }}</small>{% endif %}
                                         </div>
                                     </div>
                                 {% if section.content_type == 'books' and obj.slug %}</a>{% endif %}
@@ -1582,8 +1605,8 @@
                                         <h5 class="text-white mb-1">{{ display_title|truncatewords:6 }}</h5>
                                         {% if section.show_author and obj.author %}<p class="text-white-50 small mb-1">{{ obj.author.name }}</p>{% endif %}
                                         <div class="d-flex justify-content-between align-items-center">
-                                            {% if section.show_price and obj.price %}<span class="text-warning fw-bold">R$ {{ obj.price|floatformat:2 }}</span>{% endif %}
-                                            {% if section.show_rating and obj.average_rating %}<span class="text-white small"><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1 }}</span>{% endif %}
+                                            {% if obj.publisher %}<span class="text-white-50 small text-truncate" title="{{ obj.publisher }}"><i class="fas fa-building me-1 opacity-75"></i>{{ obj.publisher }}</span>{% endif %}
+                                            {% if section.show_rating and obj.average_rating %}<span class="text-white small ms-auto"><i class="fas fa-star text-warning"></i> {{ obj.average_rating|floatformat:1 }}</span>{% endif %}
                                         </div>
                                     </div>
                                 </div>

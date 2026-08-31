@@ -192,9 +192,8 @@ class HomeView(TemplateView):
 
         if book_ids:
             # Otimização: usar only() para carregar apenas campos necessários
-            # REMOVIDO 'cover' e 'discount_price' da lista
             books = Book.objects.filter(id__in=book_ids).select_related('category', 'author').only(
-                'id', 'title', 'slug', 'price', 
+                'id', 'title', 'slug', 'publisher', 'description', 'cover_image', 'average_rating',
                 'category__name', 'author__name', 'author__slug'
             )
             books_map = {book.id: book for book in books}
