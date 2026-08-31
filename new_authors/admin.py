@@ -6,6 +6,8 @@ from django.utils.html import format_html
 from django.utils import timezone
 from django.contrib import messages
 from django import forms
+from core.admin.image_rights_admin import ImageRightsRecordInline
+from core.services.image_rights_service import ImageRightsAuditService
 from .models import (
     AuthorTermsOfService,
     EmergingAuthor,
@@ -94,6 +96,11 @@ class EmergingAuthorAdminForm(forms.ModelForm):
 @admin.register(EmergingAuthor)
 class EmergingAuthorAdmin(admin.ModelAdmin):
     form = EmergingAuthorAdminForm  # Usa o formulário customizado
+    inlines = [ImageRightsRecordInline]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
 
     list_display = [
         'user',
@@ -230,6 +237,12 @@ class ChapterInline(admin.TabularInline):
 
 @admin.register(AuthorBook)
 class AuthorBookAdmin(admin.ModelAdmin):
+    inlines = [ChapterInline, ImageRightsRecordInline]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
+
     list_display = [
         'title',
         'author',
@@ -433,6 +446,7 @@ class BookLikeAdmin(admin.ModelAdmin):
 
 @admin.register(PublisherProfile)
 class PublisherProfileAdmin(admin.ModelAdmin):
+    inlines = [ImageRightsRecordInline]
     list_display = [
         'company_name',
         'cnpj',
@@ -518,6 +532,7 @@ class PublisherProfileAdmin(admin.ModelAdmin):
             )
 
         super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
 
     actions = ['verify_publishers', 'unverify_publishers']
 

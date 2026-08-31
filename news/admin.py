@@ -300,7 +300,11 @@ class QuizAdmin(admin.ModelAdmin):
     search_fields = ['title', 'description']
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ['times_completed', 'created_at', 'updated_at']
-    inlines = [QuizQuestionInline]
+    inlines = [QuizQuestionInline, ImageRightsRecordInline]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
 
     fieldsets = (
         ('Informações Básicas', {

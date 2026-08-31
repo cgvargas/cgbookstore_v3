@@ -9,6 +9,8 @@ from django.utils.html import format_html
 from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
 from core.models import Section, SectionItem, Book, Author, Video
+from core.admin.image_rights_admin import ImageRightsRecordInline
+from core.services.image_rights_service import ImageRightsAuditService
 
 
 class AutocompleteSearchWidget(forms.TextInput):
@@ -217,7 +219,7 @@ class SectionAdmin(admin.ModelAdmin):
     search_fields = ['title', 'subtitle']
     list_editable = ['carousel_autoplay', 'active', 'order']
     date_hierarchy = 'created_at'
-    inlines = [SectionItemInline]
+    inlines = [SectionItemInline, ImageRightsRecordInline]
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name in ['banner_text_color', 'background_color']:
@@ -375,6 +377,7 @@ class SectionAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
         from django.core.cache import cache
         cache.delete('home_full_context')
 

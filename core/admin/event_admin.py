@@ -4,11 +4,19 @@ Admin para Event
 from django.contrib import admin
 from django.utils.html import format_html
 from core.models import Event
+from core.admin.image_rights_admin import ImageRightsRecordInline
+from core.services.image_rights_service import ImageRightsAuditService
 
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
     """Administração de Eventos Literários."""
+
+    inlines = [ImageRightsRecordInline]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
 
     list_display = [
         'title',

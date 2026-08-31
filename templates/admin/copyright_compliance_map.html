@@ -66,10 +66,16 @@
                 <span>🟢 Regularizadas: <strong style="color: #27ae60;">{{ item.regularized }}</strong></span>
             </div>
 
-            <div class="compliance-subtitle" style="font-size: 0.8rem; margin-top: 10px; display: flex; gap: 12px; flex-wrap: wrap;">
+            <div class="compliance-subtitle" style="font-size: 0.8rem; margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <span>⚪ Não Auditadas: <strong style="color: #7f8c8d;">{{ item.not_audited }}</strong></span>
                 <span>🟡 Pendentes: <strong style="color: #f39c12;">{{ item.pending }}</strong></span>
                 <span>🔴 Sem Registro: <strong style="color: #e74c3c;">{{ item.missing }}</strong></span>
+                {% if item.contested > 0 %}
+                <span>🔴 Contestadas: <strong style="color: #c0392b;">{{ item.contested }}</strong></span>
+                {% endif %}
+                {% if item.divergent > 0 %}
                 <span>⚠️ Divergentes: <strong style="color: #e67e22;">{{ item.divergent }}</strong></span>
+                {% endif %}
             </div>
         </div>
         {% endfor %}

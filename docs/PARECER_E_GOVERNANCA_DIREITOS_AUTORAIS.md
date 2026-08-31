@@ -2,7 +2,9 @@
 
 ## 1. Contexto e Enquadramento Legal da CG.BookStore
 
-A plataforma **CG.BookStore** opera como uma comunidade literária interativa, portal de notícias, acervo de resenhas e espaço para debate de leitores. A utilização de ativos visuais (capas de livros, logos de editoras, fotografias de autores, banners de eventos e artes de adaptações literárias) obedece rigorosamente às diretrizes de proteção e conformidade jurídica previstas na legislação brasileira e nos padrões internacionais de *Fair Use*.
+A plataforma **CG.BookStore** opera como uma comunidade literária interativa, portal de notícias, acervo de resenhas e espaço para debate de leitores. A utilização de ativos visuais (capas de livros, logos de editoras, fotografias de autores, banners de eventos e artes de adaptações literárias) obedece a uma governança corporativa prudente de conformidade jurídica, pautada na legislação brasileira de direitos autorais (Lei nº 9.610/1998), na distinção clara entre regimes de licenciamento e na avaliação caso a caso da procedência dos ativos.
+
+> **Nota Doutrinária**: O conceito de *Fair Use* pertence estritamente ao direito norte-americano (*Copyright Act of 1976*) e não possui aplicação direta como fundamento autônomo no ordenamento jurídico brasileiro. No Brasil, eventuais utilizações sem autorização prévia devem se fundamentar estritamente nas hipóteses taxativas e restritivas de **Limitações aos Direitos Autorais** (Artigos 46 a 48 da Lei nº 9.610/1998) ou em regimes próprios de licenciamento (Creative Commons, Domínio Público, Autorizações Expressas e Termos Contratuais de Parceiros).
 
 ---
 
@@ -22,12 +24,12 @@ A plataforma **CG.BookStore** opera como uma comunidade literária interativa, p
 
 ### 2.3 Promoção Gratuita e Direcionamento via Afiliados (Amazon)
 - Editoras, autores, livrarias e organizadores de eventos beneficiam-se de **divulgação e publicidade 100% gratuita** dentro da plataforma.
-- A indicação de compra é realizada por meio de links do **Programa de Afiliados Amazon**, direcionando os leitores diretamente às páginas oficiais de venda. A remuneração recebida é uma comissão por indicação de tráfego concedida pela varejista parceira.
+- A indicação de compra é realizada por meio de links do **Programa de Afiliados Amazon**, direcionando os leitores diretamente às páginas oficiais de venda. A remuneração recebida é uma comissão por indicação de tráfego concedida pela varejista parceira em conformidade com seus termos de operação.
 
-### 2.4 Fundamentação na Lei de Direitos Autorais (Lei nº 9.610/1998)
-A reprodução de imagens e capas na plataforma enquadra-se nas **Limitações aos Direitos Autorais** estipuladas no **Artigo 46 da Lei nº 9.610/1998**:
-- **Art. 46, III**: É livre a citação em livros, jornais, revistas ou qualquer outro meio de comunicação, de passagens de qualquer obra, para fins de estudo, crítica ou debate, na medida justificada para o fim a atingir, indicando-se o nome do autor e a origem da obra.
-- **Art. 46, VIII**: É livre a reprodução, em quaisquer obras, de pequenos trechos de obras preexistentes, de artes plásticas ou fotográficas, sempre que a reprodução em si não seja o objeto principal da obra nova e que não prejudique a exploração normal da obra reproduzida nem cause um prejuízo injustificado aos legítimos interesses dos autores.
+### 2.4 Análise Criteriosa das Limitações da Lei de Direitos Autorais (Lei nº 9.610/1998)
+O enquadramento no **Artigo 46 da Lei nº 9.610/1998** não é tratado pela CG.BookStore como uma autorização ampla ou automática para reprodução irrestrita de imagens, mas sim como uma **justificativa jurídica de limitação legal analisada**, exigindo conformidade rigorosa com seus requisitos legais:
+- **Art. 46, III (Citação e Debate)**: Aplicado estritamente na medida justificada para fins de estudo, crítica ou debate literário em resenhas e fóruns da comunidade, sempre indicando-se o nome do autor e a origem da obra. Não constitui autorização automática de reprodução integral desvinculada de contexto crítico ou informativo.
+- **Art. 46, VIII (Pequenos Trechos e Proporcionalidade)**: Aplicado a pequenos trechos e elementos visuais preexistentes quando a reprodução em si não seja o objeto principal da obra nova e não cause prejuízo injustificado aos legítimos interesses dos autores e titulares.
 
 ### 2.5 Princípio da Proporcionalidade e Limitação de Resolução
 - Todas as imagens exibidas na interface do usuário passam por um processo de otimização e thumbnailing, mantendo as **dimensões e resolução adequadas exclusivamente para pré-visualização** (*preview/card*).
@@ -39,17 +41,17 @@ A reprodução de imagens e capas na plataforma enquadra-se nas **Limitações a
 
 | Categoria do Ativo | Finalidade do Uso (`usage_purpose`) | Fundamento Jurídico (`legal_basis`) | Beneficiários Principais |
 | :--- | :--- | :--- | :--- |
-| **Capa de Livro** | Resenha & Debate Literário (`review_debate`) / Indicação Afiliada (`affiliate_promotion`) | Art. 46 LDA / Termos de Afiliados (`fair_use_art46`) | Editoras e Autores (Vendas via Amazon) |
-| **Foto do Autor** | Biografia & Perfil de Autor (`author_bio`) | Citação Informativa / Art. 46 LDA (`fair_use_art46`) | Autor (Divulgação de Carreira) |
-| **Banner de Evento** | Divulgação Gratuita de Eventos (`event_publicity`) | Divulgação Institucional / Autorização (`express_consent`) | Organizadores do Evento |
-| **Adaptação Literária** | Informação Cultural (`adaptation_info`) | Citação / Divulgação Cultural (`fair_use_art46`) | Estúdios e Produtoras |
-| **Banner da Plataforma** | Identidade & Layout (`institutional`) | Produção Própria / Licenciada (`own_production`) | CG.BookStore |
+| **Capa de Livro** | Resenha & Debate Literário (`review_debate`) / Indicação Afiliada (`affiliate_promotion`) | Limitação Legal Analisada (Art. 46 LDA) / Termos de Afiliados (`fair_use_art46` / `amazon_affiliate_terms`) | Editoras e Autores (Divulgação e Vendas) |
+| **Foto do Autor** | Biografia & Perfil de Autor (`author_bio`) | Divulgação Informativa / Limitação Legal Analisada (Art. 46 LDA) (`fair_use_art46`) | Autor (Divulgação de Carreira) |
+| **Banner de Evento** | Divulgação Gratuita de Eventos (`event_publicity`) | Divulgação Institucional / Autorização Expressa (`express_consent`) | Organizadores do Evento |
+| **Adaptação Literária** | Informação Cultural (`adaptation_info`) | Divulgação Cultural / Limitação Legal Analisada (`fair_use_art46`) | Estúdios e Produtoras |
+| **Banner da Plataforma** | Identidade & Layout (`institutional`) | Produção Própria / Licença Adquirida (`own_production` / `licensed`) | CG.BookStore |
 
 ---
 
-## 4. Política de Notice & Takedown (Notificação e Remoção)
+## 4. Política de Notice & Takedown (Notificação e Retirada de Boa-Fé)
 
-Em conformidade com o **Artigo 19 do Marco Civil da Internet (Lei nº 12.965/2014)** e os padrões internacionais (DMCA), a plataforma disponibiliza um canal direto para que titulares de direitos autorais solicitem a atualização de créditos ou a remoção imediata de qualquer ativo visual, através dos Termos de Uso e do e-mail oficial de contato da equipe.
+Como prática ativa de integridade, boa-fé e governança corporativa, a plataforma disponibiliza canal permanente e direto para que titulares de direitos autorais solicitem atualização de créditos, complementação de informações ou a **remoção imediata de qualquer ativo visual**, através do e-mail oficial de contato (`suporte@cgbookstore.com.br`) e do procedimento detalhado na Seção 11 dos Termos de Uso.
 
 ---
 
@@ -60,3 +62,4 @@ A governança corporativa de imagens é mantida através do modelo `ImageRightsR
 2. Verificação de integridade via **SHA-256 Checksum** do arquivo para detectar trocas não auditadas.
 3. Rastreamento da finalidade do uso, enquadramento legal, dimensões físicas e créditos TASL (*Title, Author, Source, License*).
 4. Monitoramento percentual das taxas de conformidade da aplicação através do Mapa de Conformidade e Dashboard de Auditoria em `/admin/audit/image-copyright/`.
+

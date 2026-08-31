@@ -2,11 +2,19 @@ from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 from core.models import FeaturedAuthorSettings
+from core.admin.image_rights_admin import ImageRightsRecordInline
+from core.services.image_rights_service import ImageRightsAuditService
 
 
 @admin.register(FeaturedAuthorSettings)
 class FeaturedAuthorSettingsAdmin(admin.ModelAdmin):
     """Admin para FeaturedAuthorSettings com preview e organização por fieldsets."""
+    
+    inlines = [ImageRightsRecordInline]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
     
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name == 'home_text_color':

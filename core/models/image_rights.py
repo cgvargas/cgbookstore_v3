@@ -17,17 +17,26 @@ class ImageRightsRecord(models.Model):
     Relaciona-se individualmente com qualquer campo de imagem de qualquer modelo via GenericForeignKey.
     """
 
+    AUDIT_STATUS_CHOICES = [
+        ('not_audited', '⚪ Não auditada'),
+        ('under_review', '🔵 Em análise'),
+        ('regularized', '🟢 Regularizada'),
+        ('pending', '🟡 Pendente de documentação'),
+        ('contested', '🔴 Contestada'),
+        ('restricted', '⛔ Uso Restrito / Suspenso'),
+    ]
+
     LICENSE_CHOICES = [
-        ('own', '🏠 Própria / CG.BookStore'),
-        ('licensed', '📄 Licenciada / Comprada (Banco de Imagens/Estúdio)'),
-        ('cc', '🔀 Creative Commons'),
-        ('public_domain', '🌐 Domínio Público'),
-        ('publisher', '📚 Cortesia da Editora / Divulgação'),
-        ('amazon', '🛒 Amazon Brasil'),
-        ('google_books', '🔍 Google Books'),
-        ('open_library', '📖 Open Library'),
-        ('wikimedia', '🏛️ Wikimedia Commons'),
-        ('other', '📌 Outra'),
+        ('own', '🏠 Própria / CG.BookStore (Criação Interna)'),
+        ('licensed', '📄 Licenciada / Comprada (Banco de Imagens / Contrato)'),
+        ('cc', '🔀 Creative Commons (Licença Aberta)'),
+        ('public_domain', '🌐 Domínio Público (Obra Livre)'),
+        ('publisher', '📚 Origem: Editora / Divulgação (Procedência Histórica)'),
+        ('amazon', '🛒 Origem: Amazon Brasil (Procedência Técnica)'),
+        ('google_books', '🔍 Origem: Google Books (Procedência Técnica)'),
+        ('open_library', '📖 Origem: Open Library (Procedência Técnica)'),
+        ('wikimedia', '🏛️ Origem: Wikimedia Commons (Procedência Técnica)'),
+        ('other', '📌 Outra Licença / Procedência'),
     ]
 
     PURPOSE_CHOICES = [
@@ -41,7 +50,7 @@ class ImageRightsRecord(models.Model):
     ]
 
     LEGAL_BASIS_CHOICES = [
-        ('fair_use_art46', '⚖️ Limitação aos Direitos Autorais — Art. 46 da Lei nº 9.610/98'),
+        ('fair_use_art46', '⚖️ Limitação legal analisada — Lei nº 9.610/98, Art. 46'),
         ('express_consent', '📜 Autorização Expressa da Editora/Autor'),
         ('amazon_affiliate_terms', '🛒 Termos do Programa de Afiliados Amazon'),
         ('public_domain', '🌐 Domínio Público'),
@@ -101,7 +110,7 @@ class ImageRightsRecord(models.Model):
         default='',
         db_index=True,
         verbose_name="Fundamento Jurídico",
-        help_text="Enquadramento legal para proteção do uso (ex: Art. 46 da Lei nº 9.610/98, Afiliados Amazon)."
+        help_text="Enquadramento legal para registro de conformidade (ex: Lei nº 9.610/98, Art. 46, Termos de Afiliados)."
     )
 
     # Dimensões e Especificações Técnicas (Resolução Proporcional)
@@ -128,7 +137,7 @@ class ImageRightsRecord(models.Model):
         verbose_name="Tamanho do Arquivo (KB)"
     )
 
-    # Atribuição TASL (Title, Author, Source, License)
+    # Atribuição Estruturada, Autoria e Titularidade de Direitos
     work_title = models.CharField(
         max_length=200,
         blank=True,
@@ -136,19 +145,54 @@ class ImageRightsRecord(models.Model):
         verbose_name="Título da Obra Visual",
         help_text="Título original ou nome dado à ilustração/foto (necessário para atribuição TASL)."
     )
-    credit_name = models.CharField(
-        max_length=200,
+    creator_name = models.CharField(
+        max_length=255,
         blank=True,
         default='',
-        verbose_name="Autor / Criador / Detentor dos Direitos",
-        help_text="Nome do artista, fotógrafo, ilustrador ou empresa responsável."
+        verbose_name="Criador / Autor da Imagem",
+        help_text="Nome da pessoa física ou artista que efetivamente produziu a obra visual (ex: fotógrafo, ilustrador, designer)."
+    )
+    rights_holder_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        verbose_name="Titular dos Direitos",
+        help_text="Pessoa física ou jurídica detentora dos direitos patrimoniais da imagem, quando confirmada."
+    )
+    licensor_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        verbose_name="Licenciante / Entidade Administradora",
+        help_text="Entidade, banco de imagens, agência ou distribuidora que concede ou administra a licença de uso da imagem."
+    )
+    credit_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        verbose_name="Crédito Legado / Atribuição Geral",
+        help_text="Campo de compatibilidade histórica para créditos gerais não estruturados."
     )
     source_url = models.URLField(
         max_length=500,
         blank=True,
         default='',
-        verbose_name="URL da Fonte Original",
-        help_text="Link oficial da publicação ou portfólio de onde a imagem foi extraída."
+        verbose_name="Fonte Original da Imagem",
+        help_text="Indica onde a imagem foi encontrada ou obtida. A existência de uma fonte não representa, por si só, autorização de uso."
+    )
+
+    # Estado de Auditoria e Governança Administrativa
+    audit_status = models.CharField(
+        max_length=30,
+        choices=AUDIT_STATUS_CHOICES,
+        default='not_audited',
+        blank=True,
+        db_index=True,
+        verbose_name="Status de Auditoria e Governança",
+        help_text=(
+            "Conclusão administrativa da auditoria documental do ativo visual. "
+            "Registros novos ou não revisados iniciam como '⚪ Não auditada'."
+        )
     )
 
     # Regime Jurídico e Origem (Independentes)
@@ -158,8 +202,12 @@ class ImageRightsRecord(models.Model):
         blank=True,
         default='',
         db_index=True,
-        verbose_name="Regime de Licença",
-        help_text="Tipo de licença jurídica. Deixe em branco se a licença ainda não foi auditada."
+        verbose_name="Regime de Licença / Procedência Histórica",
+        help_text=(
+            "Regime jurídico de utilização da imagem. "
+            "Atenção: opções de catálogo/plataforma (Amazon, Google Books, etc.) indicam apenas "
+            "procedência técnica histórica e não autorizam o uso de forma automática."
+        )
     )
     license_url = models.URLField(
         max_length=500,
@@ -215,7 +263,18 @@ class ImageRightsRecord(models.Model):
             models.Index(fields=['content_type', 'object_id']),
             models.Index(fields=['license_type', 'is_ai_generated']),
             models.Index(fields=['usage_purpose', 'legal_basis']),
+            models.Index(fields=['audit_status']),
         ]
+
+    @property
+    def display_author(self):
+        """Retorna o criador/autor preferencial ou o crédito legado como fallback."""
+        return self.creator_name.strip() if self.creator_name else self.credit_name.strip()
+
+    def save(self, *args, **kwargs):
+        if not self.audit_status:
+            self.audit_status = 'not_audited'
+        super().save(*args, **kwargs)
 
     def __str__(self):
         license_label = dict(self.LICENSE_CHOICES).get(self.license_type, 'Sem licença informada')

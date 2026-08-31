@@ -2,10 +2,18 @@ from django.contrib import admin
 from django.db.models import Count
 from django.db.models.functions import TruncDay, TruncMonth
 from .models import AffiliatePartner, AffiliatePartnerClick
+from core.admin.image_rights_admin import ImageRightsRecordInline
+from core.services.image_rights_service import ImageRightsAuditService
 
 
 @admin.register(AffiliatePartner)
 class AffiliatePartnerAdmin(admin.ModelAdmin):
+    inlines = [ImageRightsRecordInline]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
+
     list_display = (
         'nome',
         'slug',

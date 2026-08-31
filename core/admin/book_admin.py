@@ -126,10 +126,6 @@ class BookAdmin(admin.ModelAdmin):
     form = BookAdminForm
     inlines = [VideoInline, ImageRightsRecordInline]
 
-    def save_model(self, request, obj, form, change):
-        super().save_model(request, obj, form, change)
-        ImageRightsAuditService.audit_model_admin_save(request, obj)
-
     # Otimização: Evitar N+1 queries ao listar livros
     list_select_related = ['author', 'category']
 
@@ -335,6 +331,7 @@ class BookAdmin(admin.ModelAdmin):
                 logger.warning("ADMIN SAVE MODEL - Arquivo temporário de capa não existe no storage: %s", temp_cover_image)
         
         super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
 
         # Automação de inserção/rotação em Seção da Home
         target_section = form.cleaned_data.get('target_section')

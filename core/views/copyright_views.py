@@ -12,8 +12,6 @@ from django.shortcuts import render, get_object_or_404
 from django.db import models
 
 from core.models.image_rights import ImageRightsRecord
-from core.models import Book, Author, LiteraryUniverse, Banner, Section, Event
-from news.models import Article, Quiz
 from core.services.image_rights_service import ImageRightsAuditService
 
 
@@ -28,13 +26,27 @@ def copyright_audit_dashboard(request):
     """
     total_records = ImageRightsRecord.objects.count()
 
-    # 1. Filtros e Indicadores
+    # 1. Filtros e Indicadores de Estado de Auditoria
+    not_audited_count = ImageRightsRecord.objects.filter(audit_status='not_audited').count()
+    under_review_count = ImageRightsRecord.objects.filter(audit_status='under_review').count()
+    regularized_count = ImageRightsRecord.objects.filter(audit_status='regularized').count()
+    pending_audit_count = ImageRightsRecord.objects.filter(audit_status='pending').count()
+    contested_count = ImageRightsRecord.objects.filter(audit_status='contested').count()
+    restricted_count = ImageRightsRecord.objects.filter(audit_status='restricted').count()
+
+    # Distribuição por Estado de Auditoria
+    audit_status_distribution = []
+    for code, label in ImageRightsRecord.AUDIT_STATUS_CHOICES:
+        count = ImageRightsRecord.objects.filter(audit_status=code).count()
+        if count > 0:
+            audit_status_distribution.append({'code': code, 'label': label, 'count': count})
+
     records_with_license = ImageRightsRecord.objects.exclude(license_type='')
     unlicensed_records = ImageRightsRecord.objects.filter(license_type='')
     ai_generated_records = ImageRightsRecord.objects.filter(is_ai_generated=True)
     records_with_doc = ImageRightsRecord.objects.exclude(permission_document='')
 
-    # Distribuição por Licença
+    # Distribuição por Licença / Procedência
     license_distribution = []
     for code, label in ImageRightsRecord.LICENSE_CHOICES:
         count = ImageRightsRecord.objects.filter(license_type=code).count()
@@ -62,7 +74,7 @@ def copyright_audit_dashboard(request):
     # Registros com Especificações de Dimensão / Resolução Auditadas
     records_with_specs_count = ImageRightsRecord.objects.exclude(display_dimensions='').count()
 
-    # 2. Cálculo da Taxa de Atribuição e Procedência (%)
+    # 2. Cálculo da Taxa de Atribuição e Procedência (%) e Comprovação Jurídica
     valid_attribution_count = 0
     valid_legal_proof_count = 0
 
@@ -74,45 +86,96 @@ def copyright_audit_dashboard(request):
         has_legal_proof = False
         issues = []
 
-        # Regra de Atribuição
+        # Regra de Atribuição e Procedência (TASL)
+        author_identifier = rec.creator_name or rec.credit_name
         if rec.license_type or rec.legal_basis:
             if rec.license_type == 'cc':
-                if rec.credit_name and rec.source_url and rec.license_url:
+                if author_identifier and rec.source_url and rec.license_url:
                     has_attribution = True
                 else:
                     if not rec.license_url:
-                        issues.append("CC sem URL da Licença")
+                        issues.append("CC sem URL oficial da Licença")
                     if not rec.source_url:
-                        issues.append("CC sem URL da Fonte")
-            elif rec.credit_name or rec.source_url or rec.license_type in ['own', 'publisher', 'amazon', 'google_books'] or rec.legal_basis:
+                        issues.append("CC sem URL da Fonte original")
+                    if not author_identifier:
+                        issues.append("CC sem indicação do Criador/Autor")
+            elif author_identifier or rec.source_url or rec.license_type == 'own' or rec.legal_basis == 'own_production':
                 has_attribution = True
+            elif rec.license_type in ['publisher', 'amazon', 'google_books', 'open_library', 'wikimedia', 'licensed', 'public_domain', 'other']:
+                if rec.source_url or author_identifier:
+                    has_attribution = True
+                else:
+                    issues.append("Origem informada sem criador/crédito ou URL da fonte")
+            elif rec.legal_basis:
+                if author_identifier or rec.source_url:
+                    has_attribution = True
+                else:
+                    issues.append("Fundamento registrado sem indicação de criador/autor ou fonte")
         else:
-            issues.append("Licença/Fundamento não informado")
+            issues.append("Licença ou fundamento legal não informado")
 
         if has_attribution:
             valid_attribution_count += 1
 
-        # Regra de Comprovação Jurídica
-        if rec.legal_basis == 'fair_use_art46' or rec.license_type == 'own' or rec.legal_basis == 'own_production':
-            has_legal_proof = True
-        elif rec.license_type in ['licensed', 'other']:
-            if rec.permission_document or rec.usage_notes:
+        # Regra de Governança: Comprovação Jurídica Formal / Autorização de Uso
+        # Imagens contestadas, restritas, não auditadas ou em análise NÃO são comprovadas
+        if rec.audit_status == 'contested':
+            has_legal_proof = False
+            issues.append("Ativo visual contestado por terceiro ou sob questionamento jurídico")
+        elif rec.audit_status == 'restricted':
+            has_legal_proof = False
+            issues.append("Ativo com uso restrito/suspenso administrativamente")
+        elif rec.audit_status == 'not_audited':
+            has_legal_proof = False
+            issues.append("Registro cadastrado mas ainda não auditado administrativamente")
+        elif rec.audit_status == 'under_review':
+            has_legal_proof = False
+            issues.append("Registro em análise documental/jurídica")
+        elif rec.audit_status == 'pending':
+            has_legal_proof = False
+            issues.append("Pendente de documentação de suporte")
+        elif rec.audit_status == 'regularized':
+            # Avaliar conformidade documental do registro regularizado
+            if rec.license_type == 'own' or rec.legal_basis == 'own_production':
                 has_legal_proof = True
-            else:
-                issues.append("Licenciada sem Documento ou Observação Interna")
-        elif rec.license_type in ['publisher', 'amazon', 'google_books', 'open_library', 'wikimedia'] or rec.legal_basis == 'amazon_affiliate_terms':
-            has_legal_proof = True
-        elif rec.license_type in ['cc', 'public_domain']:
-            if rec.source_url or rec.license_url:
+            elif rec.legal_basis == 'express_consent':
+                if rec.permission_document or rec.usage_notes:
+                    has_legal_proof = True
+                else:
+                    issues.append("Autorização expressa sem documento ou observação interna comprobatória")
+            elif rec.license_type == 'licensed':
+                if rec.permission_document or rec.usage_notes:
+                    has_legal_proof = True
+                else:
+                    issues.append("Licença comercial sem documento comprobatório ou observação interna")
+            elif rec.license_type == 'cc' or rec.legal_basis == 'creative_commons':
+                if rec.license_url and rec.source_url:
+                    has_legal_proof = True
+                else:
+                    issues.append("Creative Commons com pendência de URL da licença ou fonte")
+            elif rec.license_type == 'public_domain' or rec.legal_basis == 'public_domain':
+                if rec.source_url or rec.usage_notes:
+                    has_legal_proof = True
+                else:
+                    issues.append("Domínio público sem indicação de fonte ou fundamentação")
+            elif rec.legal_basis == 'amazon_affiliate_terms':
                 has_legal_proof = True
-            else:
-                issues.append("CC/Domínio Público sem Fonte/URL")
+            elif rec.legal_basis == 'fair_use_art46':
+                # Limitação legal analisada (Art. 46): justificativa jurídica registrada pelo administrador
+                if not rec.usage_purpose:
+                    issues.append("Limitação legal (Art. 46) sem finalidade de uso especificada")
+                if not author_identifier and not rec.source_url:
+                    issues.append("Limitação legal (Art. 46) sem indicação de criador/autor ou origem")
+                if rec.usage_purpose and (author_identifier or rec.source_url):
+                    has_legal_proof = True
+            elif rec.license_type in ['publisher', 'amazon', 'google_books', 'open_library', 'wikimedia']:
+                issues.append("Procedência de catálogo/plataforma registrada sem documento de licença ou fundamento jurídico complementar")
 
         if has_legal_proof:
             valid_legal_proof_count += 1
 
         # Adicionar à fila de pendências
-        if issues or (not rec.license_type and not rec.legal_basis):
+        if issues or (not rec.license_type and not rec.legal_basis) or rec.audit_status in ['contested', 'restricted', 'not_audited', 'pending', 'under_review']:
             obj_name = f"ID #{rec.object_id}"
             if rec.content_object:
                 obj_name = str(rec.content_object)
@@ -128,12 +191,19 @@ def copyright_audit_dashboard(request):
 
     context = {
         'total_records': total_records,
+        'not_audited_count': not_audited_count,
+        'under_review_count': under_review_count,
+        'regularized_count': regularized_count,
+        'pending_audit_count': pending_audit_count,
+        'contested_count': contested_count,
+        'restricted_count': restricted_count,
         'unlicensed_count': unlicensed_records.count(),
         'ai_generated_count': ai_generated_records.count(),
         'with_doc_count': records_with_doc.count(),
         'records_with_specs_count': records_with_specs_count,
         'attribution_rate': attribution_rate,
         'legal_proof_rate': legal_proof_rate,
+        'audit_status_distribution': audit_status_distribution,
         'license_distribution': license_distribution,
         'purpose_distribution': purpose_distribution,
         'legal_basis_distribution': legal_basis_distribution,
@@ -150,8 +220,9 @@ def copyright_compliance_map(request):
     """
     Página do Mapa de Conformidade de Ativos Visuais.
     Calcula o percentual de conformidade de cada modelo da aplicação.
+    Usa ImageRightsAuditService.get_auditable_models() como fonte centralizada.
     """
-    models_to_audit = [Book, Author, LiteraryUniverse, Article, Quiz, Event, Banner, Section]
+    models_to_audit = ImageRightsAuditService.get_auditable_models()
     compliance_map = []
 
     for m in models_to_audit:

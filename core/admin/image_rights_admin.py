@@ -87,10 +87,13 @@ class ImageRightsRecordInline(GenericStackedInline):
     verbose_name_plural = "🛡️ Direitos Autorais e Procedência das Imagens"
     fields = [
         'image_field_name',
-        ('usage_purpose', 'legal_basis'),
-        ('work_title', 'credit_name'),
-        ('license_type', 'is_ai_generated'),
-        ('source_url', 'license_url'),
+        'audit_status',
+        'work_title',
+        ('creator_name', 'rights_holder_name'),
+        ('licensor_name', 'credit_name'),
+        ('source_url', 'license_type'),
+        ('license_url', 'legal_basis'),
+        ('usage_purpose', 'is_ai_generated'),
         'display_dimensions',
         'permission_document',
         'usage_notes',
@@ -113,16 +116,18 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
         'content_type',
         'object_id',
         'image_field_name',
+        'audit_status_badge',
         'purpose_badge',
         'legal_basis_badge',
         'license_badge',
         'display_dimensions',
-        'credit_name',
+        'creator_or_credit_display',
         'is_ai_badge',
         'has_doc_badge',
         'created_at',
     ]
     list_filter = [
+        'audit_status',
         'usage_purpose',
         'legal_basis',
         'license_type',
@@ -131,6 +136,9 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
         'created_at',
     ]
     search_fields = [
+        'creator_name',
+        'rights_holder_name',
+        'licensor_name',
         'credit_name',
         'work_title',
         'source_url',
@@ -144,14 +152,39 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
         ('📌 Vínculo do Ativo Visual', {
             'fields': ('content_type', 'object_id', 'image_field_name', 'image_file_name', 'image_checksum')
         }),
-        ('⚖️ Enquadramento Jurídico e Finalidade do Uso', {
-            'fields': ('usage_purpose', 'legal_basis', 'display_dimensions', ('image_width_px', 'image_height_px', 'file_size_kb'))
+        ('🛡️ Auditoria, Conformidade e Governança', {
+            'description': (
+                'A presença de uma imagem em site de editora, Amazon, Google Books, Open Library, '
+                'Wikimedia, rede social ou outro serviço não constitui, isoladamente, licença ou autorização de uso. '
+                'Registre a fonte em "Fonte Original da Imagem" e documente separadamente a licença, autorização ou fundamento jurídico aplicável.'
+            ),
+            'fields': ('audit_status',)
         }),
-        ('🎨 Atribuição e Fonte (TASL)', {
-            'fields': ('work_title', 'credit_name', 'source_url', 'is_ai_generated')
+        ('🎨 Autoria, Criação e Titularidade dos Direitos', {
+            'description': 'Identifique separadamente o criador da obra visual, o titular dos direitos patrimoniais e a entidade licenciante.',
+            'fields': (
+                'work_title',
+                'creator_name',
+                'rights_holder_name',
+                'licensor_name',
+                'credit_name',
+                'is_ai_generated',
+            )
         }),
-        ('📄 Licença e Governança Jurídica', {
-            'fields': ('license_type', 'license_url', 'permission_document', 'usage_notes')
+        ('📄 Procedência, Licenciamento e Fundamento Jurídico', {
+            'description': 'A indicação da fonte representa apenas a origem técnica do arquivo e não presume autorização de uso.',
+            'fields': (
+                'source_url',
+                'license_type',
+                'license_url',
+                'legal_basis',
+                'usage_purpose',
+                'permission_document',
+                'usage_notes',
+            )
+        }),
+        ('📐 Dimensões e Resolução Técnica', {
+            'fields': ('display_dimensions', ('image_width_px', 'image_height_px', 'file_size_kb'))
         }),
         ('🕒 Auditoria e Responsabilidade', {
             'fields': ('created_by', 'created_at', 'updated_at'),
@@ -159,13 +192,48 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
         }),
     )
 
+    def audit_status_badge(self, obj):
+        colors = {
+            'not_audited': '#7f8c8d',
+            'under_review': '#2980b9',
+            'regularized': '#27ae60',
+            'pending': '#f39c12',
+            'contested': '#c0392b',
+            'restricted': '#d63031',
+        }
+        color = colors.get(obj.audit_status, '#7f8c8d')
+        return format_html(
+            '<span style="background:{}; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">{}</span>',
+            color,
+            obj.get_audit_status_display()
+        )
+    audit_status_badge.short_description = "Status Auditoria"
+
+    def creator_or_credit_display(self, obj):
+        if obj.creator_name:
+            return format_html('<span style="font-weight:600;">{}</span>', obj.creator_name)
+        elif obj.credit_name:
+            return format_html('<span style="color:#7f8c8d; font-style:italic;">{} (legado)</span>', obj.credit_name)
+        return "—"
+    creator_or_credit_display.short_description = "Criador / Crédito"
+
     def save_model(self, request, obj, form, change):
         if not obj.created_by:
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
 
         # Validações não-bloqueantes com mensagens orientadoras para o administrador
-        if not obj.license_type and not obj.legal_basis:
+        if obj.audit_status == 'regularized' and not obj.license_type and not obj.legal_basis:
+            messages.warning(
+                request,
+                f"⚠️ Atenção: O registro [{obj.image_field_name}] foi marcado como 'Regularizada', mas não possui regime de licença ou fundamento jurídico registrado."
+            )
+        elif obj.audit_status == 'contested':
+            messages.error(
+                request,
+                f"🔴 Registro Contestada: O ativo visual [{obj.image_field_name}] foi marcado sob contestação ou disputa jurídica."
+            )
+        elif not obj.license_type and not obj.legal_basis:
             messages.warning(
                 request,
                 f"⚠️ Aviso: O registro de imagem [{obj.image_field_name}] foi salvo sem regime de licença ou enquadramento jurídico definido."
@@ -176,10 +244,11 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
                 f"⚠️ Aviso Creative Commons: A imagem [{obj.image_field_name}] está marcada como Creative Commons mas não possui a 'URL Oficial da Licença' cadastrada."
             )
         
-        if obj.credit_name and not obj.source_url:
+        author_name = obj.creator_name or obj.credit_name
+        if author_name and not obj.source_url:
             messages.info(
                 request,
-                f"💡 Recomendação: O crédito '{obj.credit_name}' foi informado. Se possível, cadastre também a URL da fonte original."
+                f"💡 Recomendação: O criador/crédito '{author_name}' foi informado. Se possível, cadastre também a URL da fonte original."
             )
 
         if obj.license_type in ['licensed', 'other'] and not obj.permission_document and not obj.usage_notes:
@@ -202,7 +271,9 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
         }
         color = colors.get(obj.usage_purpose, '#7f8c8d')
         return format_html(
-            f'<span style="background:{color}; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">{obj.get_usage_purpose_display()}</span>'
+            '<span style="background:{}; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">{}</span>',
+            color,
+            obj.get_usage_purpose_display()
         )
     purpose_badge.short_description = "Finalidade"
 
@@ -219,13 +290,15 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
         }
         color = colors.get(obj.legal_basis, '#7f8c8d')
         return format_html(
-            f'<span style="background:{color}; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">{obj.get_legal_basis_display()}</span>'
+            '<span style="background:{}; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">{}</span>',
+            color,
+            obj.get_legal_basis_display()
         )
     legal_basis_badge.short_description = "Fundamento Legal"
 
     def license_badge(self, obj):
         if not obj.license_type:
-            return format_html('<span style="background:#e74c3c; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">⚠️ Sem Licença</span>')
+            return format_html('<span style="background:#e74c3c; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">{}</span>', '⚠️ Sem Licença')
         colors = {
             'own': '#27ae60',
             'licensed': '#2980b9',
@@ -237,19 +310,21 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
         }
         color = colors.get(obj.license_type, '#7f8c8d')
         return format_html(
-            f'<span style="background:{color}; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">{obj.get_license_type_display()}</span>'
+            '<span style="background:{}; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">{}</span>',
+            color,
+            obj.get_license_type_display()
         )
     license_badge.short_description = "Licença"
 
     def is_ai_badge(self, obj):
         if obj.is_ai_generated:
-            return format_html('<span style="background:#6c5ce7; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.75rem;">🤖 IA</span>')
+            return format_html('<span style="background:#6c5ce7; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.75rem;">{}</span>', '🤖 IA')
         return "—"
     is_ai_badge.short_description = "Origem IA"
 
     def has_doc_badge(self, obj):
         if obj.permission_document:
-            return format_html('<span style="background:#20bf6b; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.75rem;">📜 Com Doc</span>')
+            return format_html('<span style="background:#20bf6b; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.75rem;">{}</span>', '📜 Com Doc')
         return "—"
     has_doc_badge.short_description = "Documento"
 

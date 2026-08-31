@@ -9,8 +9,6 @@ from django.core.management.base import BaseCommand
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-from core.models import Book, Author, LiteraryUniverse, Banner, Section, Event
-from news.models import Article, Quiz
 from core.models.image_rights import ImageRightsRecord
 from core.services.image_rights_service import ImageRightsAuditService
 
@@ -27,7 +25,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         auto_create = options.get('auto_create', False)
-        models_to_audit = [Book, Author, LiteraryUniverse, Article, Quiz, Event, Banner, Section]
+        models_to_audit = ImageRightsAuditService.get_auditable_models()
 
         self.stdout.write(self.style.SUCCESS("[INFO] Iniciando Auditoria e Rastreamento Corporativo de Imagens...\n"))
 
@@ -40,9 +38,10 @@ class Command(BaseCommand):
             model_name = model_cls._meta.verbose_name_plural.title()
             ct = ContentType.objects.get_for_model(model_cls)
 
+            image_field_names = ImageRightsAuditService.get_image_fields_for_model(model_cls)
             image_fields = [
                 f for f in model_cls._meta.get_fields()
-                if isinstance(f, (models.ImageField, models.FileField))
+                if hasattr(f, 'name') and f.name in image_field_names
             ]
 
             if not image_fields:
@@ -62,9 +61,6 @@ class Command(BaseCommand):
                     if status == 'missing':
                         total_missing += 1
                         if auto_create:
-                            default_purpose, default_legal = ImageRightsAuditService.get_default_purpose_and_legal_basis(
-                                model_cls._meta.model_name
-                            )
                             meta = ImageRightsRecord.extract_file_metadata(file_attr)
                             
                             record = ImageRightsRecord.objects.create(
@@ -77,10 +73,8 @@ class Command(BaseCommand):
                                 image_height_px=meta['height'],
                                 file_size_kb=meta['size_kb'],
                                 display_dimensions=f"{meta['width']}x{meta['height']}px ({meta['size_kb']} KB)" if meta['width'] else '',
-                                usage_purpose=default_purpose,
-                                legal_basis=default_legal,
-                                work_title=str(obj)[:200],
-                                usage_notes=f"Gerado automaticamente via audit_image_rights no modelo {model_cls._meta.model_name}."
+                                audit_status='not_audited',
+                                usage_notes=f"Gerado automaticamente via audit_image_rights no modelo {model_cls._meta.model_name}. Preencha finalidade e fundamentação jurídica."
                             )
                             total_created += 1
                             safe_obj_str = str(obj).encode('ascii', 'replace').decode('ascii')

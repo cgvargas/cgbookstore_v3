@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load copyright_tags %}
 
 {% block title %}{% if chronicle %}{{ chronicle.title }}{% else %}Crônica Semanal{% endif %} - CG.BookStore{% endblock %}
 
@@ -343,6 +344,7 @@
                 {% if chronicle.featured_image %}
                 <div class="article-image">
                     <img src="{% if chronicle.featured_image.name %}{{ chronicle.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ chronicle.title }}">
+                    <small class="text-muted d-block mt-1">{% render_image_rights chronicle 'featured_image' %}</small>
                 </div>
                 {% endif %}
 
@@ -399,6 +401,7 @@
             {% if chronicle.secondary_image %}
             <div class="article-image">
                 <img src="{{ chronicle.secondary_image.url }}" alt="{{ chronicle.section_home_title }}">
+                <small class="text-muted d-block mt-1">{% render_image_rights chronicle 'secondary_image' %}</small>
             </div>
             {% endif %}
         </article>

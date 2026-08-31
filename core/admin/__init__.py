@@ -11,6 +11,8 @@ from .section_admin import SectionAdmin
 from .event_admin import EventAdmin
 from .banner_admin import BannerAdmin
 from .featured_author_settings_admin import FeaturedAuthorSettingsAdmin
+from .weekly_chronicle_admin import WeeklyChronicleAdmin
+from .image_rights_admin import ImageRightsRecordAdmin, ImageRightsRecordInline
 from .literary_universe_admin import (
     LiteraryUniverseAdmin,
     UniverseContentItemAdmin,
@@ -31,6 +33,9 @@ __all__ = [
     'EventAdmin',
     'BannerAdmin',
     'FeaturedAuthorSettingsAdmin',
+    'WeeklyChronicleAdmin',
+    'ImageRightsRecordAdmin',
+    'ImageRightsRecordInline',
     'LiteraryUniverseAdmin',
     'UniverseContentItemAdmin',
     'UniverseBannerAdmin',

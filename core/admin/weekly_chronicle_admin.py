@@ -6,6 +6,8 @@ Interface intuitiva para edição de conteúdo e imagens no estilo jornal.
 from django.contrib import admin
 from django.utils.html import format_html
 from core.models import WeeklyChronicle
+from core.admin.image_rights_admin import ImageRightsRecordInline
+from core.services.image_rights_service import ImageRightsAuditService
 
 
 @admin.register(WeeklyChronicle)
@@ -13,6 +15,8 @@ class WeeklyChronicleAdmin(admin.ModelAdmin):
     """
     Admin personalizado para gerenciar a Crônica Semanal no estilo jornal tradicional.
     """
+
+    inlines = [ImageRightsRecordInline]
 
     list_display = [
         'title',
@@ -236,3 +240,4 @@ class WeeklyChronicleAdmin(admin.ModelAdmin):
             obj.meta_description = obj.introduction[:157] + '...' if len(obj.introduction) > 157 else obj.introduction
 
         super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)

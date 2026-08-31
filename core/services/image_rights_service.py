@@ -17,25 +17,93 @@ class ImageRightsAuditService:
     Serviço central de auxílio e auditoria de direitos de imagens para admins e mapa de conformidade.
     """
 
+    # Mapeamento de modelos auditáveis e seus campos visuais.
+    # Lista centralizada: edite aqui para adicionar/remover modelos da auditoria.
+    AUDITABLE_MODELS_CONFIG = [
+        # (app_label, model_name, [campos_visuais])
+        ('core', 'Book', ['cover_image']),
+        ('core', 'Author', ['photo']),
+        ('core', 'Video', ['thumbnail_image', 'video_file']),
+        ('core', 'Banner', ['image', 'video_file']),
+        ('core', 'LiteraryUniverse', ['logo', 'hero_banner_image', 'og_image']),
+        ('core', 'Event', ['banner_image', 'thumbnail_image']),
+        ('core', 'Section', ['banner_image', 'container_background_image']),
+        ('core', 'FeaturedAuthorSettings', ['home_banner_image', 'page_banner_image']),
+        ('core', 'WeeklyChronicle', ['featured_image', 'secondary_image', 'gallery_image_1', 'gallery_image_2', 'gallery_image_3']),
+        ('core', 'UniverseContentItem', ['thumbnail']),
+        ('core', 'UniverseBanner', ['image', 'image_mobile']),
+        ('core', 'UniverseTimelineEvent', ['image']),
+        ('core', 'UniverseCharacter', ['image']),
+        ('core', 'UniverseCollection', ['cover_image']),
+        ('news', 'Article', ['featured_image']),
+        ('news', 'Quiz', ['featured_image']),
+        ('new_authors', 'EmergingAuthor', ['photo']),
+        ('new_authors', 'AuthorBook', ['cover_image']),
+        ('new_authors', 'PublisherProfile', ['logo']),
+        ('partners', 'AffiliatePartner', ['logo']),
+    ]
+
     DEFAULT_MODEL_PURPOSES = {
         'book': ('review_debate', 'fair_use_art46'),
         'author': ('author_bio', 'fair_use_art46'),
-        ('literaryuniverse', 'universecharacter', 'universelocation'): ('adaptation_info', 'fair_use_art46'),
+        'video': ('review_debate', 'fair_use_art46'),
+        'banner': ('institutional', 'own_production'),
+        'section': ('institutional', 'own_production'),
+        'featuredauthorsettings': ('institutional', 'own_production'),
+        'literaryuniverse': ('adaptation_info', 'fair_use_art46'),
         'event': ('event_publicity', 'express_consent'),
-        ('banner', 'section'): ('institutional', 'own_production'),
-        ('article', 'quiz'): ('review_debate', 'fair_use_art46'),
+        'weeklychronicle': ('review_debate', 'fair_use_art46'),
+        'universecontentitem': ('adaptation_info', 'fair_use_art46'),
+        'universebanner': ('adaptation_info', 'fair_use_art46'),
+        'universetimelineevent': ('adaptation_info', 'fair_use_art46'),
+        'universecharacter': ('adaptation_info', 'fair_use_art46'),
+        'universecollection': ('adaptation_info', 'fair_use_art46'),
+        'article': ('review_debate', 'fair_use_art46'),
+        'quiz': ('review_debate', 'fair_use_art46'),
+        'emergingauthor': ('author_bio', 'express_consent'),
+        'authorbook': ('review_debate', 'express_consent'),
+        'publisherprofile': ('institutional', 'express_consent'),
+        'affiliatepartner': ('partner_ad', 'express_consent'),
     }
+
+    @classmethod
+    def get_auditable_models(cls):
+        """
+        Retorna a lista de modelos auditáveis como classes Django.
+        Usa AUDITABLE_MODELS_CONFIG como fonte centralizada.
+        """
+        from django.apps import apps
+        result = []
+        for app_label, model_name, _fields in cls.AUDITABLE_MODELS_CONFIG:
+            try:
+                model_cls = apps.get_model(app_label, model_name)
+                result.append(model_cls)
+            except LookupError:
+                pass
+        return result
+
+    @classmethod
+    def get_image_fields_for_model(cls, model_cls):
+        """
+        Retorna a lista de nomes de campos visuais configurados para um dado model.
+        Se não há configuração explícita, usa introspecção via _meta.
+        """
+        app_label = model_cls._meta.app_label
+        model_name = model_cls.__name__
+        for cfg_app, cfg_model, fields in cls.AUDITABLE_MODELS_CONFIG:
+            if cfg_app == app_label and cfg_model == model_name:
+                return fields
+        # Fallback via introspecção
+        return [
+            f.name for f in model_cls._meta.get_fields()
+            if isinstance(f, (models.ImageField, models.FileField))
+        ]
 
     @classmethod
     def get_default_purpose_and_legal_basis(cls, model_name):
         """Retorna sugestões padrão de finalidade do uso e suporte jurídico com base no nome do modelo."""
         model_name = model_name.lower()
-        for key, value in cls.DEFAULT_MODEL_PURPOSES.items():
-            if isinstance(key, tuple) and model_name in key:
-                return value
-            elif isinstance(key, str) and model_name == key:
-                return value
-        return ('other', 'fair_use_art46')
+        return cls.DEFAULT_MODEL_PURPOSES.get(model_name, ('other', 'fair_use_art46'))
 
     @classmethod
     def sync_file_metadata(cls, rights_record, file_attr):
@@ -73,12 +141,24 @@ class ImageRightsAuditService:
     @classmethod
     def get_field_audit_status(cls, obj, field_name):
         """
-        Retorna o estado da auditoria de um determinado campo de imagem em um objeto.
-        - 'regularized': 🟢 Registro completo e consistente
-        - 'pending': 🟡 Registro existente, mas com informações incompletas
-        - 'missing': 🔴 Existe imagem, porém nenhum ImageRightsRecord correspondente
-        - 'divergent': ⚠️ Checksum diferente da imagem cadastrada originalmente
-        - 'no_image': None (sem imagem enviada no campo)
+        Avalia o estado da auditoria de um determinado campo de imagem em um objeto.
+
+        DISTINÇÃO ARQUITETURAL:
+        1. Diagnóstico Técnico de Integridade: verifica a existência do arquivo, do registro
+           correspondente, divergência de Checksum (SHA-256) e consistência documental.
+        2. Decisão Administrativa de Governança (audit_status): estado registrado pelo administrador
+           (not_audited, under_review, regularized, pending, contested, restricted).
+
+        Retornos possíveis:
+        - 'no_image': Sem arquivo enviado no campo
+        - 'missing': Imagem enviada sem nenhum ImageRightsRecord associado
+        - 'divergent': Checksum atual diferente do SHA-256 original cadastrado
+        - 'contested': 🔴 Ativo formalmente contestado ou sob disputa
+        - 'restricted': ⛔ Uso restrito ou suspenso administrativamente
+        - 'not_audited': ⚪ Registro existente, porém ainda não auditado administrativamente
+        - 'under_review': 🔵 Registro sob análise de conformidade
+        - 'pending': 🟡 Informações incompletas ou pendência documental detectada
+        - 'regularized': 🟢 Regularizado administrativamente e tecnicamente consistente
         """
         if not obj or not getattr(obj, 'pk', None):
             return 'no_image', None
@@ -101,19 +181,55 @@ class ImageRightsAuditService:
         if file_attr:
             cls.sync_file_metadata(rights_record, file_attr)
 
-        # Verificar se o checksum do arquivo mudou
+        # 1. Checagem técnica de integridade: Checksum SHA-256
         if rights_record.image_checksum:
             current_checksum = ImageRightsRecord.calculate_file_checksum(file_attr)
             if current_checksum and current_checksum != rights_record.image_checksum:
                 return 'divergent', rights_record
 
-        # Verificar completude da licença e enquadramento
-        if not rights_record.license_type:
-            return 'pending', rights_record
+        # 2. Respeito às decisões administrativas restritivas / contestadas
+        if rights_record.audit_status == 'contested':
+            return 'contested', rights_record
+
+        if rights_record.audit_status == 'restricted':
+            return 'restricted', rights_record
+
+        if rights_record.audit_status == 'under_review':
+            return 'under_review', rights_record
+
+        if rights_record.audit_status == 'not_audited':
+            return 'not_audited', rights_record
+
+        # 3. Verificação de completude técnica da licença e enquadramento jurídico
+        has_technical_pending = False
+
+        if not rights_record.license_type and not rights_record.legal_basis:
+            has_technical_pending = True
+
+        # Creative Commons exige URL oficial da licença e URL da fonte
         if rights_record.license_type == 'cc' and (not rights_record.license_url or not rights_record.source_url):
+            has_technical_pending = True
+
+        # Licenciada ou Autorização Expressa exige documento anexado ou notas internas
+        if rights_record.license_type == 'licensed' and not rights_record.permission_document and not rights_record.usage_notes:
+            has_technical_pending = True
+        if rights_record.legal_basis == 'express_consent' and not rights_record.permission_document and not rights_record.usage_notes:
+            has_technical_pending = True
+
+        # Enquadramento em Limitação Legal (Art. 46) exige finalidade e atribuição (criador/autor ou fonte)
+        if rights_record.legal_basis == 'fair_use_art46':
+            has_author_or_source = bool(rights_record.creator_name or rights_record.credit_name or rights_record.source_url)
+            if not rights_record.usage_purpose or not has_author_or_source:
+                has_technical_pending = True
+
+        if has_technical_pending or rights_record.audit_status == 'pending':
             return 'pending', rights_record
 
-        return 'regularized', rights_record
+        # Se audit_status for 'regularized' e não houver pendência técnica
+        if rights_record.audit_status == 'regularized':
+            return 'regularized', rights_record
+
+        return 'pending', rights_record
 
     @classmethod
     def get_field_audit_badge_html(cls, obj, field_name):
@@ -123,8 +239,16 @@ class ImageRightsAuditService:
             return ''
         elif status == 'regularized':
             return format_html('<span style="background:#27ae60; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">🟢 Regularizada</span>')
+        elif status == 'under_review':
+            return format_html('<span style="background:#2980b9; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">🔵 Em Análise</span>')
         elif status == 'pending':
             return format_html('<span style="background:#f39c12; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">🟡 Pendente</span>')
+        elif status == 'not_audited':
+            return format_html('<span style="background:#7f8c8d; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">⚪ Não Auditada</span>')
+        elif status == 'contested':
+            return format_html('<span style="background:#c0392b; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">🔴 Contestada</span>')
+        elif status == 'restricted':
+            return format_html('<span style="background:#d63031; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">⛔ Uso Restrito</span>')
         elif status == 'divergent':
             return format_html('<span style="background:#e67e22; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">⚠️ Checksum Divergente</span>')
         else:
@@ -154,6 +278,11 @@ class ImageRightsAuditService:
                         request,
                         f"⚠️ Alerta Checksum: O arquivo do campo '{field.verbose_name}' foi alterado no disco. Atualize os direitos autorais deste ativo visual!"
                     )
+                elif status == 'contested':
+                    messages.error(
+                        request,
+                        f"🔴 Alerta Jurídico: O ativo visual do campo '{field.verbose_name}' está marcado como CONTESTADO. Revise a legitimidade do uso."
+                    )
 
     @classmethod
     def get_model_compliance_stats(cls, model_cls):
@@ -167,11 +296,27 @@ class ImageRightsAuditService:
         ]
 
         if not image_field_names:
-            return {'total_images': 0, 'regularized': 0, 'pending': 0, 'missing': 0, 'divergent': 0, 'rate': 100.0}
+            return {
+                'model_name': model_cls._meta.verbose_name_plural.title(),
+                'total_images': 0,
+                'regularized': 0,
+                'under_review': 0,
+                'not_audited': 0,
+                'pending': 0,
+                'contested': 0,
+                'restricted': 0,
+                'missing': 0,
+                'divergent': 0,
+                'rate': 100.0
+            }
 
         total_images = 0
         regularized = 0
+        under_review = 0
+        not_audited = 0
         pending = 0
+        contested = 0
+        restricted = 0
         missing = 0
         divergent = 0
 
@@ -183,8 +328,16 @@ class ImageRightsAuditService:
                     total_images += 1
                     if status == 'regularized':
                         regularized += 1
+                    elif status == 'under_review':
+                        under_review += 1
+                    elif status == 'not_audited':
+                        not_audited += 1
                     elif status == 'pending':
                         pending += 1
+                    elif status == 'contested':
+                        contested += 1
+                    elif status == 'restricted':
+                        restricted += 1
                     elif status == 'divergent':
                         divergent += 1
                     elif status == 'missing':
@@ -195,7 +348,11 @@ class ImageRightsAuditService:
             'model_name': model_cls._meta.verbose_name_plural.title(),
             'total_images': total_images,
             'regularized': regularized,
+            'under_review': under_review,
+            'not_audited': not_audited,
             'pending': pending,
+            'contested': contested,
+            'restricted': restricted,
             'missing': missing,
             'divergent': divergent,
             'rate': rate

@@ -148,10 +148,6 @@ class LiteraryUniverseAdmin(admin.ModelAdmin):
         ImageRightsRecordInline,
     ]
     
-    def save_model(self, request, obj, form, change):
-        super().save_model(request, obj, form, change)
-        ImageRightsAuditService.audit_model_admin_save(request, obj)
-    
     fieldsets = (
         ('📋 Informações Gerais', {
             'fields': (
@@ -427,6 +423,7 @@ class LiteraryUniverseAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         """Salva e invalida cache do universo."""
         super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
         # Invalidar cache do universo
         from django.core.cache import cache
         cache.delete(f'literary_universe_{obj.slug}')
@@ -439,6 +436,7 @@ class LiteraryUniverseAdmin(admin.ModelAdmin):
 @admin.register(UniverseContentItem)
 class UniverseContentItemAdmin(admin.ModelAdmin):
     """Admin standalone para itens de conteúdo."""
+    inlines = [ImageRightsRecordInline]
     list_display = [
         'title', 'universe', 'content_type', 'year',
         'media_status', 'is_active', 'display_order'
@@ -448,10 +446,15 @@ class UniverseContentItemAdmin(admin.ModelAdmin):
     list_editable = ['is_active', 'display_order']
     autocomplete_fields = ['universe']
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
+
 
 @admin.register(UniverseBanner)
 class UniverseBannerAdmin(admin.ModelAdmin):
     """Admin standalone para banners."""
+    inlines = [ImageRightsRecordInline]
     list_display = [
         'title', 
         'universe', 
@@ -502,6 +505,10 @@ class UniverseBannerAdmin(admin.ModelAdmin):
         return format_html('<span style="color: red;">✗ Oculto</span>')
     visibility_status.short_description = 'Status'
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
+
 
 @admin.register(UniverseReadingOrder)
 class UniverseReadingOrderAdmin(admin.ModelAdmin):
@@ -518,11 +525,16 @@ class UniverseReadingOrderAdmin(admin.ModelAdmin):
 @admin.register(UniverseTimelineEvent)
 class UniverseTimelineEventAdmin(admin.ModelAdmin):
     """Admin standalone para eventos da cronologia."""
+    inlines = [ImageRightsRecordInline]
     list_display = ['title', 'universe', 'era', 'importance', 'chronological_position', 'is_active']
     list_filter = ['universe', 'importance', 'is_active']
     search_fields = ['title', 'description', 'era']
     list_editable = ['chronological_position', 'is_active']
     autocomplete_fields = ['universe']
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
 
 
 @admin.register(UniverseFAQ)
@@ -542,16 +554,22 @@ class UniverseFAQAdmin(admin.ModelAdmin):
 @admin.register(UniverseCharacter)
 class UniverseCharacterAdmin(admin.ModelAdmin):
     """Admin standalone para personagens."""
+    inlines = [ImageRightsRecordInline]
     list_display = ['name', 'universe', 'role', 'display_order', 'is_active']
     list_filter = ['universe', 'role', 'is_active']
     search_fields = ['name', 'description']
     list_editable = ['display_order', 'is_active']
     autocomplete_fields = ['universe']
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
+
 
 @admin.register(UniverseCollection)
 class UniverseCollectionAdmin(admin.ModelAdmin):
     """Admin para coleções de universos."""
+    inlines = [ImageRightsRecordInline]
     list_display = ['name', 'universes_count', 'display_order', 'is_active']
     list_filter = ['is_active']
     search_fields = ['name', 'description']
@@ -565,3 +583,7 @@ class UniverseCollectionAdmin(admin.ModelAdmin):
             count, 's' if count != 1 else ''
         )
     universes_count.short_description = 'Universos'
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        ImageRightsAuditService.audit_model_admin_save(request, obj)
