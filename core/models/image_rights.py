@@ -195,6 +195,18 @@ class ImageRightsRecord(models.Model):
         )
     )
 
+    # Controle de Exibição Pública e Suspensão Preventiva (Independente do audit_status)
+    public_display_allowed = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name="Exibição Pública Permitida?",
+        help_text=(
+            "Determina administrativamente se a imagem pode ser exibida publicamente na plataforma. "
+            "É independente de audit_status: caso desmarcado ou em suspensão preventiva por contestação, "
+            "a exibição pública é bloqueada sem apagar o arquivo original nem o histórico."
+        )
+    )
+
     # Regime Jurídico e Origem (Independentes)
     license_type = models.CharField(
         max_length=30,
@@ -264,7 +276,29 @@ class ImageRightsRecord(models.Model):
             models.Index(fields=['license_type', 'is_ai_generated']),
             models.Index(fields=['usage_purpose', 'legal_basis']),
             models.Index(fields=['audit_status']),
+            models.Index(fields=['public_display_allowed']),
         ]
+
+    @property
+    def can_display_publicly(self):
+        """
+        Determina de forma centralizada e segura se o ativo visual pode ser exibido publicamente.
+        Critérios cumulativos:
+        1. public_display_allowed deve ser True.
+        2. audit_status não pode ser 'restricted'.
+        3. Não pode haver ocorrência de contestação ativa que imponha bloqueio ('temporarily_suspended' ou 'resolved_removed').
+        """
+        if not self.public_display_allowed:
+            return False
+        if self.audit_status == 'restricted':
+            return False
+        if self.pk:
+            has_blocking_takedown = self.takedown_requests.filter(
+                status__in=['temporarily_suspended', 'resolved_removed']
+            ).exists()
+            if has_blocking_takedown:
+                return False
+        return True
 
     @property
     def display_author(self):

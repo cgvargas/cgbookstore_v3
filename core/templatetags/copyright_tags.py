@@ -39,6 +39,15 @@ def render_image_rights(obj, field_name, show_info_icon=True):
     if not record:
         return ''
 
+    # Se a exibição pública estiver suspensa ou restrita administrativamente
+    if not record.can_display_publicly:
+        return mark_safe(
+            '<div class="image-rights-credit text-muted fst-italic mt-1 d-inline-flex align-items-center" style="font-size: 0.73rem;">'
+            '<i class="fas fa-eye-slash me-1 opacity-75"></i>'
+            '<span>Imagem temporariamente indisponível.</span>'
+            '</div>'
+        )
+
     # Identificação autoral preferencial (creator_name > fallback credit_name)
     author_name = record.creator_name.strip() if record.creator_name else record.credit_name.strip()
 
@@ -147,3 +156,26 @@ def render_image_rights(obj, field_name, show_info_icon=True):
     </div>
     '''
     return mark_safe(html)
+
+
+@register.simple_tag
+def can_display_image(obj, field_name):
+    """
+    Retorna True se o ativo visual puder ser exibido publicamente.
+    Útil para condicionais em templates: {% can_display_image book 'cover_image' as can_show %}
+    """
+    if not obj or not getattr(obj, 'pk', None):
+        return True
+    try:
+        ct = ContentType.objects.get_for_model(obj)
+        record = ImageRightsRecord.objects.filter(
+            content_type=ct,
+            object_id=obj.pk,
+            image_field_name=field_name
+        ).first()
+        if not record:
+            return True
+        return record.can_display_publicly
+    except Exception:
+        return True
+

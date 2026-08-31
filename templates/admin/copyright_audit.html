@@ -199,6 +199,97 @@
 
     </div>
 
+    <!-- Painel Especial: Gestão de Contestações, Notificações e Takedowns -->
+    <div class="audit-card" style="margin-bottom: 35px; border-left: 5px solid #e74c3c;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #c0392b;">
+                    ⚠️ Contestações, Notificações e Suspensão Preventiva ({{ open_takedowns_count }} ativas / {{ total_takedowns }} total)
+                </h3>
+                <p class="audit-desc" style="margin: 4px 0 0 0; font-size: 0.88rem;">
+                    Registro formal de questionamentos jurídicos de titulares, suspensão temporária e histórico de procedimentos.
+                </p>
+            </div>
+            <a href="{% url 'admin:core_copyrighttakedownrequest_changelist' %}" class="button" style="background: #c0392b; color: #fff; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;">
+                📥 Gerenciar Todas as Contestações
+            </a>
+        </div>
+
+        <!-- Mini-KPIs de Contestações -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;">
+            <div class="audit-item" style="text-align: center;">
+                <div style="font-size: 0.75rem; color: #8e44ad; font-weight: 600;">🔍 Em Análise</div>
+                <div style="font-size: 1.4rem; font-weight: 800; color: #8e44ad;">{{ takedown_under_review_count }}</div>
+            </div>
+            <div class="audit-item" style="text-align: center;">
+                <div style="font-size: 0.75rem; color: #f39c12; font-weight: 600;">🟡 Aguardando Info</div>
+                <div style="font-size: 1.4rem; font-weight: 800; color: #f39c12;">{{ takedown_awaiting_info_count }}</div>
+            </div>
+            <div class="audit-item" style="text-align: center; border-color: #c0392b;">
+                <div style="font-size: 0.75rem; color: #c0392b; font-weight: 600;">⛔ Suspensas Prev.</div>
+                <div style="font-size: 1.4rem; font-weight: 800; color: #c0392b;">{{ takedown_suspended_count }}</div>
+            </div>
+            <div class="audit-item" style="text-align: center;">
+                <div style="font-size: 0.75rem; color: #27ae60; font-weight: 600;">🟢 Resolvidas (Mantidas)</div>
+                <div style="font-size: 1.4rem; font-weight: 800; color: #27ae60;">{{ takedown_resolved_keep_count }}</div>
+            </div>
+            <div class="audit-item" style="text-align: center;">
+                <div style="font-size: 0.75rem; color: #d63031; font-weight: 600;">🔴 Resolvidas (Retiradas)</div>
+                <div style="font-size: 1.4rem; font-weight: 800; color: #d63031;">{{ takedown_resolved_removed_count }}</div>
+            </div>
+        </div>
+
+        {% if active_takedowns %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; background: var(--table-bg);">
+                <thead>
+                    <tr style="background: var(--table-header-bg); border-bottom: 2px solid var(--table-border); text-align: left; font-size: 0.82rem;">
+                        <th style="padding: 10px;" class="audit-title">ID / Data</th>
+                        <th style="padding: 10px;" class="audit-title">Status</th>
+                        <th style="padding: 10px;" class="audit-title">Ativo Contestado</th>
+                        <th style="padding: 10px;" class="audit-title">Reclamante</th>
+                        <th style="padding: 10px;" class="audit-title">Fundamento Alegado</th>
+                        <th style="padding: 10px; text-align: center;" class="audit-title">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tk in active_takedowns %}
+                    <tr style="border-bottom: 1px solid var(--table-border); font-size: 0.85rem;">
+                        <td style="padding: 10px; font-weight: 600;" class="audit-title">
+                            #{{ tk.id }}<br>
+                            <small class="audit-desc">{{ tk.received_at|date:"d/m/Y H:i" }}</small>
+                        </td>
+                        <td style="padding: 10px;">
+                            <span style="font-weight: 600;">{{ tk.get_status_display }}</span>
+                        </td>
+                        <td style="padding: 10px;" class="audit-title">
+                            <strong>{{ tk.image_rights_record.content_type.model|title }} #{{ tk.image_rights_record.object_id }}</strong><br>
+                            <small style="color: #7f8c8d;">Campo: <code>{{ tk.image_rights_record.image_field_name }}</code></small>
+                        </td>
+                        <td style="padding: 10px;" class="audit-title">
+                            {{ tk.claimant_name|default:"Anônimo" }}
+                            {% if tk.claimant_organization %}<small style="color: #7f8c8d;">({{ tk.claimant_organization }})</small>{% endif %}
+                        </td>
+                        <td style="padding: 10px; font-size: 0.8rem; color: var(--text-primary);">
+                            {{ tk.claim_description|truncatechars:70 }}
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            <a href="{% url 'admin:core_copyrighttakedownrequest_change' tk.id %}" class="button" style="background: #34495e; color: #fff; text-decoration: none; padding: 4px 10px; border-radius: 4px; font-size: 0.78rem;">
+                                🔍 Tratar Caso
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="padding: 15px; text-align: center; color: #27ae60; font-size: 0.9rem; font-weight: 500;">
+            ✨ Nenhuma contestação ou procedimento de takedown em aberto no momento.
+        </div>
+        {% endif %}
+    </div>
+
 
     <!-- Fila de Pendências / Registros para Revisão -->
     <div class="audit-card">

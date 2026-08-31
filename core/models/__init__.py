@@ -14,6 +14,7 @@ from .event import Event
 from .banner import Banner
 from .featured_author_settings import FeaturedAuthorSettings
 from .image_rights import ImageRightsRecord
+from .copyright_takedown import CopyrightTakedownRequest
 from .weekly_chronicle import WeeklyChronicle
 from .literary_universe import (
     LiteraryUniverse,
@@ -38,6 +39,7 @@ __all__ = [
     'Banner',
     'FeaturedAuthorSettings',
     'ImageRightsRecord',
+    'CopyrightTakedownRequest',
     'WeeklyChronicle',
     'LiteraryUniverse',
     'UniverseContentItem',

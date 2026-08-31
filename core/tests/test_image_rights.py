@@ -531,5 +531,274 @@ class ImageRightsRecordTestCase(TestCase):
             # Deve validar choices sem erro
             rec.full_clean()
 
+    # =========================================================================
+    # TESTES DO FLUXO DE CONTESTAÇÃO, NOTIFICAÇÃO, TAKEDOWN E SUSPENSÃO PREVENTIVA
+    # =========================================================================
+
+    def test_create_takedown_request_linked_to_image_rights_record(self):
+        """Verifica criação de ocorrência de contestação vinculada ao ImageRightsRecord sem apagar o arquivo."""
+        from core.models.copyright_takedown import CopyrightTakedownRequest
+
+        dummy_img = SimpleUploadedFile("capa_original.jpg", b"conteudo_da_capa_original_123")
+        self.book.cover_image.save("capa_original.jpg", dummy_img)
+
+        record = ImageRightsRecord.objects.create(
+            content_type=self.book_ct,
+            object_id=self.book.id,
+            image_field_name='cover_image',
+            audit_status='regularized',
+            creator_name='Artista Original',
+            image_checksum='checksum123456'
+        )
+
+        takedown = CopyrightTakedownRequest.objects.create(
+            image_rights_record=record,
+            status='received',
+            claimant_name='Dra. Advogada da Silva',
+            claimant_email='advogada@autoria.com',
+            claimant_organization='Editora Exemplo Ltda.',
+            claimant_role='authorized_representative',
+            claim_description='A capa foi utilizada sem autorização prévia por escrito.',
+            claimed_rights_basis='Titularidade exclusiva dos direitos patrimoniais nos termos do Art. 29 da Lei 9.610/98.',
+            created_by=self.user
+        )
+
+        self.assertIsNotNone(takedown.pk)
+        self.assertEqual(takedown.status, 'received')
+        self.assertEqual(takedown.image_rights_record, record)
+        # O arquivo no model Book NÃO é apagado
+        self.book.refresh_from_db()
+        self.assertTrue(bool(self.book.cover_image))
+        # O ImageRightsRecord permanece intacto
+        record.refresh_from_db()
+        self.assertEqual(record.image_checksum, 'checksum123456')
+        self.assertEqual(record.creator_name, 'Artista Original')
+
+    def test_takedown_temporary_suspension_blocks_public_display(self):
+        """Verifica que a suspensão preventiva altera public_display_allowed e bloqueia a exibição pública."""
+        from core.models.copyright_takedown import CopyrightTakedownRequest
+
+        record = ImageRightsRecord.objects.create(
+            content_type=self.book_ct,
+            object_id=self.book.id,
+            image_field_name='cover_image',
+            audit_status='regularized',
+            public_display_allowed=True
+        )
+        self.assertTrue(record.can_display_publicly)
+
+        takedown = CopyrightTakedownRequest.objects.create(
+            image_rights_record=record,
+            status='temporarily_suspended',
+            claim_description='Suspensão cautelar solicitada pelo titular.'
+        )
+
+        # A propriedade can_display_publicly deve retornar False por ter takedown com status temporarily_suspended
+        record.refresh_from_db()
+        self.assertFalse(record.can_display_publicly)
+        self.assertFalse(ImageRightsAuditService.can_display_publicly(self.book, 'cover_image'))
+
+    def test_suspended_image_renders_safe_neutral_message(self):
+        """Verifica que imagem suspensa não exibe dados de reclamante, notas ou links e sim mensagem neutra."""
+        from core.models.copyright_takedown import CopyrightTakedownRequest
+        from core.templatetags.copyright_tags import render_image_rights
+
+        record = ImageRightsRecord.objects.create(
+            content_type=self.book_ct,
+            object_id=self.book.id,
+            image_field_name='cover_image',
+            audit_status='restricted',
+            public_display_allowed=False,
+            creator_name='Fotógrafo Secreto',
+            source_url='https://origem.com/foto.jpg',
+            usage_notes='Nota jurídica confidencial'
+        )
+
+        CopyrightTakedownRequest.objects.create(
+            image_rights_record=record,
+            status='temporarily_suspended',
+            claimant_name='Empresa Notificante Confidencial',
+            claimant_email='segredo@notificante.com',
+            claim_description='Reclamação sigilosa em apuração'
+        )
+
+        html = render_image_rights(self.book, 'cover_image')
+        # Deve exibir aviso neutro de indisponibilidade
+        self.assertIn('Imagem temporariamente indisponível.', html)
+        # NUNCA deve expor dados do reclamante, e-mails, notas ou links de origem
+        self.assertNotIn('Empresa Notificante Confidencial', html)
+        self.assertNotIn('segredo@notificante.com', html)
+        self.assertNotIn('Reclamação sigilosa', html)
+        self.assertNotIn('Fotógrafo Secreto', html)
+        self.assertNotIn('https://origem.com/foto.jpg', html)
+        self.assertNotIn('Nota jurídica confidencial', html)
+
+    def test_restore_public_display_works_when_authorized(self):
+        """Verifica que a exibição pública pode ser restaurada após resolução ou arquivamento."""
+        from core.models.copyright_takedown import CopyrightTakedownRequest
+
+        record = ImageRightsRecord.objects.create(
+            content_type=self.book_ct,
+            object_id=self.book.id,
+            image_field_name='cover_image',
+            audit_status='restricted',
+            public_display_allowed=False
+        )
+
+        takedown = CopyrightTakedownRequest.objects.create(
+            image_rights_record=record,
+            status='resolved_keep',
+            resolution_notes='Uso amparado por licença comprovada pelo editor.'
+        )
+
+        # Restaurar exibição pública
+        record.public_display_allowed = True
+        record.audit_status = 'regularized'
+        record.save()
+
+        self.assertTrue(record.can_display_publicly)
+        self.assertTrue(ImageRightsAuditService.can_display_publicly(self.book, 'cover_image'))
+
+    def test_resolved_removed_blocks_public_display_and_keeps_record(self):
+        """Verifica que uma ocorrência resolvida com retirada impede exibição pública mantendo registro histórico."""
+        from core.models.copyright_takedown import CopyrightTakedownRequest
+
+        record = ImageRightsRecord.objects.create(
+            content_type=self.book_ct,
+            object_id=self.book.id,
+            image_field_name='cover_image',
+            audit_status='restricted',
+            public_display_allowed=False,
+            creator_name='Ilustrador Notificante'
+        )
+
+        takedown = CopyrightTakedownRequest.objects.create(
+            image_rights_record=record,
+            status='resolved_removed',
+            resolution_notes='Acordo amigável: imagem retirada do site.',
+            resolved_by=self.user
+        )
+
+        self.assertFalse(record.can_display_publicly)
+        # O registro e a contestação permanecem no banco
+        self.assertEqual(ImageRightsRecord.objects.filter(pk=record.pk).count(), 1)
+        self.assertEqual(CopyrightTakedownRequest.objects.filter(pk=takedown.pk).count(), 1)
+
+    def test_resolved_keep_does_not_auto_regularize_without_audit(self):
+        """Verifica que resolver mantendo a imagem NÃO altera automaticamente um registro incompleto para regularized."""
+        from core.models.copyright_takedown import CopyrightTakedownRequest
+
+        record = ImageRightsRecord.objects.create(
+            content_type=self.book_ct,
+            object_id=self.book.id,
+            image_field_name='cover_image',
+            audit_status='pending', # Incompleto
+            public_display_allowed=True
+        )
+
+        takedown = CopyrightTakedownRequest.objects.create(
+            image_rights_record=record,
+            status='resolved_keep',
+            resolution_notes='Reclamação improcedente.'
+        )
+
+        record.refresh_from_db()
+        # Permanece com status pendente de governança (não vira regularized automaticamente)
+        self.assertEqual(record.audit_status, 'pending')
+
+    def test_non_staff_cannot_download_takedown_document(self):
+        """Verifica que usuário não staff não consegue baixar documento de contestação."""
+        from core.models.copyright_takedown import CopyrightTakedownRequest
+
+        dummy_doc = SimpleUploadedFile("notificacao_privada.pdf", b"conteudo_estritamente_confidencial")
+        record = ImageRightsRecord.objects.create(
+            content_type=self.book_ct,
+            object_id=self.book.id,
+            image_field_name='cover_image'
+        )
+        takedown = CopyrightTakedownRequest.objects.create(
+            image_rights_record=record,
+            status='under_review',
+            evidence_document=dummy_doc
+        )
+
+        client = Client()
+        url = reverse('core:protected_takedown_document_download', args=[takedown.pk])
+
+        # Anônimo é redirecionado para login
+        resp_anon = client.get(url)
+        self.assertEqual(resp_anon.status_code, 302)
+
+        # Usuário comum (não staff) também não acessa
+        normal_user = User.objects.create_user(username='reader_user', password='password123')
+        client.login(username='reader_user', password='password123')
+        resp_normal = client.get(url)
+        self.assertEqual(resp_normal.status_code, 302)
+
+        # Staff tem acesso
+        client.login(username='admin_test', password='password123')
+        resp_staff = client.get(url)
+        self.assertEqual(resp_staff.status_code, 200)
+
+    def test_dashboard_displays_takedown_metrics(self):
+        """Verifica que o Dashboard de Direitos Autorais contabiliza e apresenta contestações em aberto."""
+        from core.models.copyright_takedown import CopyrightTakedownRequest
+
+        record = ImageRightsRecord.objects.create(
+            content_type=self.book_ct,
+            object_id=self.book.id,
+            image_field_name='cover_image'
+        )
+        CopyrightTakedownRequest.objects.create(
+            image_rights_record=record,
+            status='under_review',
+            claimant_name='Agência Teste',
+            claim_description='Disputa de autoria de imagem'
+        )
+
+        client = Client()
+        client.login(username='admin_test', password='password123')
+        response = client.get(reverse('copyright_audit_dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['open_takedowns_count'], 1)
+        self.assertEqual(response.context['takedown_under_review_count'], 1)
+        self.assertContains(response, 'Agência Teste')
+        self.assertContains(response, 'Contestações, Notificações e Suspensão Preventiva')
+
+    def test_compliance_map_highlights_restricted_and_contested(self):
+        """Verifica se o Mapa de Conformidade contabiliza ativos suspensos e contestados."""
+        from core.models.copyright_takedown import CopyrightTakedownRequest
+
+        dummy_img = SimpleUploadedFile("capa_mapa.jpg", b"bytes_capa_mapa")
+        self.book.cover_image.save("capa_mapa.jpg", dummy_img)
+
+        record = ImageRightsRecord.objects.create(
+            content_type=self.book_ct,
+            object_id=self.book.id,
+            image_field_name='cover_image',
+            audit_status='restricted',
+            public_display_allowed=False
+        )
+
+        stats = ImageRightsAuditService.get_model_compliance_stats(Book)
+        self.assertEqual(stats['restricted'], 1)
+
+    def test_contact_form_categorizes_copyright_takedown(self):
+        """Verifica que o formulário de contato público aceita e processa a categoria de Direitos Autorais."""
+        from core.views.contact_view import ContactForm
+
+        form_data = {
+            'name': 'Notificante Direitos',
+            'email': 'notificante@direitos.com',
+            'category': 'copyright_takedown',
+            'subject': 'Notificação extrajudicial de imagem de capa',
+            'message': 'Solicito esclarecimento sobre a autorização da imagem de capa do livro X.'
+        }
+        form = ContactForm(data=form_data)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['category'], 'copyright_takedown')
+
+
 
 

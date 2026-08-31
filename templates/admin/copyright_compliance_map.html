@@ -71,7 +71,10 @@
                 <span>🟡 Pendentes: <strong style="color: #f39c12;">{{ item.pending }}</strong></span>
                 <span>🔴 Sem Registro: <strong style="color: #e74c3c;">{{ item.missing }}</strong></span>
                 {% if item.contested > 0 %}
-                <span>🔴 Contestadas: <strong style="color: #c0392b;">{{ item.contested }}</strong></span>
+                <span style="background: rgba(192, 57, 43, 0.1); padding: 2px 6px; border-radius: 4px;">🔴 Contestadas: <strong style="color: #c0392b;">{{ item.contested }}</strong></span>
+                {% endif %}
+                {% if item.restricted > 0 %}
+                <span style="background: rgba(214, 48, 49, 0.15); padding: 2px 6px; border-radius: 4px;">⛔ Suspensas / Restritas: <strong style="color: #d63031;">{{ item.restricted }}</strong></span>
                 {% endif %}
                 {% if item.divergent > 0 %}
                 <span>⚠️ Divergentes: <strong style="color: #e67e22;">{{ item.divergent }}</strong></span>

@@ -10,8 +10,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponse, Http404, FileResponse
 from django.shortcuts import render, get_object_or_404
 from django.db import models
-
 from core.models.image_rights import ImageRightsRecord
+from core.models.copyright_takedown import CopyrightTakedownRequest
 from core.services.image_rights_service import ImageRightsAuditService
 
 
@@ -23,6 +23,7 @@ def copyright_audit_dashboard(request):
     1. Taxa de Atribuição e Procedência (%)
     2. Taxa de Comprovação Jurídica (%)
     3. Fila de Pendências e Tabela de Registros com links diretos para correção.
+    4. Painel de Contestações, Notificações e Procedimentos de Takedown.
     """
     total_records = ImageRightsRecord.objects.count()
 
@@ -33,6 +34,22 @@ def copyright_audit_dashboard(request):
     pending_audit_count = ImageRightsRecord.objects.filter(audit_status='pending').count()
     contested_count = ImageRightsRecord.objects.filter(audit_status='contested').count()
     restricted_count = ImageRightsRecord.objects.filter(audit_status='restricted').count()
+
+    # 2. Métricas e Painel de Contestações e Notificações (Takedowns)
+    total_takedowns = CopyrightTakedownRequest.objects.count()
+    open_takedowns_count = CopyrightTakedownRequest.objects.filter(
+        status__in=['received', 'under_review', 'awaiting_information', 'temporarily_suspended']
+    ).count()
+    takedown_under_review_count = CopyrightTakedownRequest.objects.filter(status='under_review').count()
+    takedown_awaiting_info_count = CopyrightTakedownRequest.objects.filter(status='awaiting_information').count()
+    takedown_suspended_count = CopyrightTakedownRequest.objects.filter(status='temporarily_suspended').count()
+    takedown_resolved_keep_count = CopyrightTakedownRequest.objects.filter(status='resolved_keep').count()
+    takedown_resolved_removed_count = CopyrightTakedownRequest.objects.filter(status='resolved_removed').count()
+    takedown_rejected_count = CopyrightTakedownRequest.objects.filter(status='rejected').count()
+
+    active_takedowns = CopyrightTakedownRequest.objects.filter(
+        status__in=['received', 'under_review', 'awaiting_information', 'temporarily_suspended']
+    ).select_related('image_rights_record', 'image_rights_record__content_type').order_by('-received_at')[:15]
 
     # Distribuição por Estado de Auditoria
     audit_status_distribution = []
@@ -74,7 +91,7 @@ def copyright_audit_dashboard(request):
     # Registros com Especificações de Dimensão / Resolução Auditadas
     records_with_specs_count = ImageRightsRecord.objects.exclude(display_dimensions='').count()
 
-    # 2. Cálculo da Taxa de Atribuição e Procedência (%) e Comprovação Jurídica
+    # 3. Cálculo da Taxa de Atribuição e Procedência (%) e Comprovação Jurídica
     valid_attribution_count = 0
     valid_legal_proof_count = 0
 
@@ -98,33 +115,42 @@ def copyright_audit_dashboard(request):
                     if not rec.source_url:
                         issues.append("CC sem URL da Fonte original")
                     if not author_identifier:
-                        issues.append("CC sem indicação do Criador/Autor")
-            elif author_identifier or rec.source_url or rec.license_type == 'own' or rec.legal_basis == 'own_production':
+                        issues.append("CC sem indicação de criador/autor")
+            elif rec.license_type == 'own' or rec.legal_basis == 'own_production':
                 has_attribution = True
-            elif rec.license_type in ['publisher', 'amazon', 'google_books', 'open_library', 'wikimedia', 'licensed', 'public_domain', 'other']:
-                if rec.source_url or author_identifier:
+            elif rec.license_type == 'licensed' or rec.legal_basis == 'express_consent':
+                if author_identifier or rec.rights_holder_name or rec.licensor_name:
                     has_attribution = True
                 else:
-                    issues.append("Origem informada sem criador/crédito ou URL da fonte")
-            elif rec.legal_basis:
+                    issues.append("Licença/Autorização sem titular, licenciante ou criador identificado")
+            elif rec.license_type == 'public_domain' or rec.legal_basis == 'public_domain':
                 if author_identifier or rec.source_url:
                     has_attribution = True
                 else:
-                    issues.append("Fundamento registrado sem indicação de criador/autor ou fonte")
-        else:
-            issues.append("Licença ou fundamento legal não informado")
+                    issues.append("Domínio Público sem autor ou fonte")
+            elif rec.legal_basis == 'fair_use_art46':
+                if author_identifier or rec.source_url:
+                    has_attribution = True
+                else:
+                    issues.append("Limitação legal (Art. 46) sem indicação de criador/autor ou fonte")
+            elif rec.license_type in ['publisher', 'amazon', 'google_books', 'open_library', 'wikimedia']:
+                if author_identifier or rec.source_url:
+                    has_attribution = True
+                else:
+                    issues.append("Origem de catálogo/plataforma sem criador ou fonte")
+            elif author_identifier or rec.source_url:
+                has_attribution = True
 
         if has_attribution:
             valid_attribution_count += 1
 
-        # Regra de Governança: Comprovação Jurídica Formal / Autorização de Uso
-        # Imagens contestadas, restritas, não auditadas ou em análise NÃO são comprovadas
+        # Regra de Comprovação Jurídica / Governança
         if rec.audit_status == 'contested':
             has_legal_proof = False
-            issues.append("Ativo visual contestado por terceiro ou sob questionamento jurídico")
+            issues.append("Ativo formalmente contestado ou sob disputa de direitos autorais")
         elif rec.audit_status == 'restricted':
             has_legal_proof = False
-            issues.append("Ativo com uso restrito/suspenso administrativamente")
+            issues.append("Uso suspenso ou restrito administrativamente")
         elif rec.audit_status == 'not_audited':
             has_legal_proof = False
             issues.append("Registro cadastrado mas ainda não auditado administrativamente")
@@ -209,10 +235,19 @@ def copyright_audit_dashboard(request):
         'legal_basis_distribution': legal_basis_distribution,
         'pending_records': pending_records[:100],
         'pending_total': len(pending_records),
+        # Dados de Contestações / Takedown
+        'total_takedowns': total_takedowns,
+        'open_takedowns_count': open_takedowns_count,
+        'takedown_under_review_count': takedown_under_review_count,
+        'takedown_awaiting_info_count': takedown_awaiting_info_count,
+        'takedown_suspended_count': takedown_suspended_count,
+        'takedown_resolved_keep_count': takedown_resolved_keep_count,
+        'takedown_resolved_removed_count': takedown_resolved_removed_count,
+        'takedown_rejected_count': takedown_rejected_count,
+        'active_takedowns': active_takedowns,
     }
 
     return render(request, 'admin/copyright_audit.html', context)
-
 
 
 @staff_member_required
@@ -253,3 +288,23 @@ def protected_copyright_document_download(request, record_id):
         return response
     except Exception as e:
         raise Http404(f"Erro ao abrir arquivo de autorização: {e}")
+
+
+@staff_member_required
+def protected_takedown_document_download(request, takedown_id):
+    """
+    View de Acesso Privado aos Documentos Probatórios de Contestações e Notificações de Takedown.
+    Requer autenticação de staff. Não expõe o arquivo publicamente.
+    """
+    takedown = get_object_or_404(CopyrightTakedownRequest, pk=takedown_id)
+
+    if not takedown.evidence_document:
+        raise Http404("Documento comprobatório não cadastrado para esta ocorrência.")
+
+    file_handle = takedown.evidence_document
+    try:
+        response = FileResponse(file_handle.open('rb'))
+        response['Content-Disposition'] = f'inline; filename="{file_handle.name.split("/")[-1]}"'
+        return response
+    except Exception as e:
+        raise Http404(f"Erro ao abrir documento comprobatório de contestação: {e}")

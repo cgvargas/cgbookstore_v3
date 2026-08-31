@@ -13,6 +13,30 @@ from django.db import models
 from django.utils.html import format_html
 
 from core.models.image_rights import ImageRightsRecord
+from core.models.copyright_takedown import CopyrightTakedownRequest
+
+
+class CopyrightTakedownRequestInline(admin.StackedInline):
+    """
+    Inline de Contestações e Notificações de Takedown diretamente dentro do ImageRightsRecord.
+    """
+    model = CopyrightTakedownRequest
+    extra = 0
+    classes = ['collapse']
+    verbose_name = "⚠️ Ocorrência de Contestação / Takedown"
+    verbose_name_plural = "⚠️ Ocorrências de Contestação / Takedown Vinculadas"
+    fields = [
+        ('status', 'received_at'),
+        ('claimant_name', 'claimant_email', 'claimant_organization', 'claimant_role'),
+        'claim_description',
+        'claimed_rights_basis',
+        'source_notice_url',
+        'evidence_document',
+        'internal_notes',
+        'resolution_notes',
+        ('resolved_at', 'resolved_by'),
+    ]
+    readonly_fields = ['created_at', 'updated_at']
 
 
 class ImageRightsRecordForm(forms.ModelForm):
@@ -111,12 +135,15 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
     Admin central para auditoria direta de ImageRightsRecord.
     """
     form = ImageRightsRecordForm
+    inlines = [CopyrightTakedownRequestInline]
     list_display = [
         'id',
         'content_type',
         'object_id',
         'image_field_name',
         'audit_status_badge',
+        'public_display_badge',
+        'disputes_count_badge',
         'purpose_badge',
         'legal_basis_badge',
         'license_badge',
@@ -128,6 +155,7 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
     ]
     list_filter = [
         'audit_status',
+        'public_display_allowed',
         'usage_purpose',
         'legal_basis',
         'license_type',
@@ -147,6 +175,10 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
         'display_dimensions',
     ]
     readonly_fields = ['created_at', 'updated_at', 'image_checksum', 'image_width_px', 'image_height_px', 'file_size_kb']
+    actions = [
+        'action_suspend_public_display',
+        'action_restore_public_display',
+    ]
 
     fieldsets = (
         ('📌 Vínculo do Ativo Visual', {
@@ -158,7 +190,10 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
                 'Wikimedia, rede social ou outro serviço não constitui, isoladamente, licença ou autorização de uso. '
                 'Registre a fonte em "Fonte Original da Imagem" e documente separadamente a licença, autorização ou fundamento jurídico aplicável.'
             ),
-            'fields': ('audit_status',)
+            'fields': (
+                'audit_status',
+                'public_display_allowed',
+            )
         }),
         ('🎨 Autoria, Criação e Titularidade dos Direitos', {
             'description': 'Identifique separadamente o criador da obra visual, o titular dos direitos patrimoniais e a entidade licenciante.',
@@ -191,6 +226,40 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    def public_display_badge(self, obj):
+        if obj.can_display_publicly:
+            return format_html('<span style="color:{}; font-weight:600;">{}</span>', '#27ae60', '🟢 Permitida')
+        return format_html('<span style="color:{}; font-weight:600;">{}</span>', '#c0392b', '⛔ Bloqueada')
+    public_display_badge.short_description = "Exibição Pública"
+
+    def disputes_count_badge(self, obj):
+        active_count = obj.takedown_requests.filter(
+            status__in=['received', 'under_review', 'awaiting_information', 'temporarily_suspended']
+        ).count()
+        total_count = obj.takedown_requests.count()
+        if active_count > 0:
+            return format_html('<span style="background:#c0392b; color:#fff; padding:2px 7px; border-radius:10px; font-size:0.72rem; font-weight:700;">⚠️ {} ativa(s)</span>', active_count)
+        elif total_count > 0:
+            return format_html('<span style="color:#7f8c8d; font-size:0.75rem;">{} hist.</span>', total_count)
+        return "—"
+    disputes_count_badge.short_description = "Contestações"
+
+    @admin.action(description="⛔ Suspender exibição pública (public_display_allowed=False, audit_status='restricted')")
+    def action_suspend_public_display(self, request, queryset):
+        updated = queryset.update(public_display_allowed=False, audit_status='restricted')
+        self.message_user(request, f"{updated} ativo(s) suspenso(s) preventivamente da exibição pública.", messages.WARNING)
+
+    @admin.action(description="🟢 Restaurar exibição pública (public_display_allowed=True)")
+    def action_restore_public_display(self, request, queryset):
+        count = 0
+        for record in queryset:
+            record.public_display_allowed = True
+            if record.audit_status == 'restricted':
+                record.audit_status = 'under_review'
+            record.save(update_fields=['public_display_allowed', 'audit_status'])
+            count += 1
+        self.message_user(request, f"Exibição pública restaurada para {count} ativo(s).", messages.SUCCESS)
 
     def audit_status_badge(self, obj):
         colors = {

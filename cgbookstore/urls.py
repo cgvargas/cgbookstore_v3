@@ -46,6 +46,7 @@ urlpatterns = [
     path('admin/audit/image-copyright/', copyright_views.copyright_audit_dashboard, name='copyright_audit_dashboard'),
     path('admin/audit/image-copyright/compliance-map/', copyright_views.copyright_compliance_map, name='copyright_compliance_map'),
     path('admin/copyright-doc/<int:record_id>/', copyright_views.protected_copyright_document_download, name='protected_copyright_document'),
+    path('admin/takedown-doc/<int:takedown_id>/', copyright_views.protected_takedown_document_download, name='protected_takedown_document'),
     path('admin/', admin.site.urls),
 
     # Ferramentas administrativas (sem necessidade de Shell)

@@ -187,12 +187,22 @@ class ImageRightsAuditService:
             if current_checksum and current_checksum != rights_record.image_checksum:
                 return 'divergent', rights_record
 
-        # 2. Respeito às decisões administrativas restritivas / contestadas
-        if rights_record.audit_status == 'contested':
-            return 'contested', rights_record
-
-        if rights_record.audit_status == 'restricted':
+        # 2. Respeito às decisões administrativas restritivas / contestações e suspensão preventiva
+        if not rights_record.public_display_allowed or rights_record.audit_status == 'restricted':
             return 'restricted', rights_record
+
+        # Verificar se existe takedown ativo bloqueando o ativo
+        has_blocking_takedown = rights_record.takedown_requests.filter(
+            status__in=['temporarily_suspended', 'resolved_removed']
+        ).exists()
+        if has_blocking_takedown:
+            return 'restricted', rights_record
+
+        has_active_takedown = rights_record.takedown_requests.filter(
+            status__in=['received', 'under_review', 'awaiting_information']
+        ).exists()
+        if rights_record.audit_status == 'contested' or has_active_takedown:
+            return 'contested', rights_record
 
         if rights_record.audit_status == 'under_review':
             return 'under_review', rights_record
@@ -248,11 +258,35 @@ class ImageRightsAuditService:
         elif status == 'contested':
             return format_html('<span style="background:#c0392b; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">🔴 Contestada</span>')
         elif status == 'restricted':
-            return format_html('<span style="background:#d63031; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">⛔ Uso Restrito</span>')
+            return format_html('<span style="background:#d63031; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">⛔ Uso Restrito / Suspenso</span>')
         elif status == 'divergent':
             return format_html('<span style="background:#e67e22; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">⚠️ Checksum Divergente</span>')
         else:
             return format_html('<span style="background:#c0392b; color:#fff; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:600;">🔴 Sem Registro</span>')
+
+    @classmethod
+    def can_display_publicly(cls, obj, field_name=None):
+        """
+        Verifica de forma centralizada e segura se um ativo visual pode ser exibido publicamente.
+        Se obj não possuir registro associado, retorna True por compatibilidade.
+        Se possuir registro, consulta a propriedade can_display_publicly do ImageRightsRecord.
+        """
+        if not obj or not getattr(obj, 'pk', None):
+            return True
+        if not field_name:
+            return True
+        try:
+            ct = ContentType.objects.get_for_model(obj)
+            record = ImageRightsRecord.objects.filter(
+                content_type=ct,
+                object_id=obj.pk,
+                image_field_name=field_name
+            ).first()
+            if not record:
+                return True
+            return record.can_display_publicly
+        except Exception:
+            return True
 
     @classmethod
     def audit_model_admin_save(cls, request, obj):
