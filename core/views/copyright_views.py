@@ -204,10 +204,7 @@ def copyright_audit_dashboard(request):
 
         # Adicionar à fila de pendências
         if issues or (not rec.license_type and not rec.legal_basis) or rec.audit_status in ['contested', 'restricted', 'not_audited', 'pending', 'under_review']:
-            obj_name = f"ID #{rec.object_id}"
-            if rec.content_object:
-                obj_name = str(rec.content_object)
-            
+            obj_name = rec.work_title or f"{rec.content_type.model.title()} #{rec.object_id}"
             pending_records.append({
                 'record': rec,
                 'obj_name': obj_name,

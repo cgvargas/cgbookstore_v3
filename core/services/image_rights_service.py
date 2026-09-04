@@ -483,6 +483,7 @@ class ImageRightsAuditService:
     def get_model_compliance_stats(cls, model_cls):
         """
         Calcula as estatísticas e a taxa percentual de conformidade de mídias para um modelo específico.
+        Executa agregações diretas e eficientes no banco de dados para evitar overhead e N+1.
         """
         ct = ContentType.objects.get_for_model(model_cls)
         image_field_names = [
@@ -505,40 +506,36 @@ class ImageRightsAuditService:
                 'rate': 100.0
             }
 
-        total_images = 0
-        regularized = 0
-        under_review = 0
-        not_audited = 0
-        pending = 0
-        contested = 0
-        restricted = 0
-        missing = 0
-        divergent = 0
+        # Contagem de instâncias com imagem preenchida
+        total_model_images = 0
+        for f_name in image_field_names:
+            try:
+                total_model_images += model_cls.objects.exclude(
+                    **{f_name: ''}
+                ).exclude(
+                    **{f"{f_name}__isnull": True}
+                ).count()
+            except Exception:
+                pass
 
-        # Iterar sobre as instâncias do modelo que possuem arquivo
-        for obj in model_cls.objects.all():
-            for field_name in image_field_names:
-                status, record = cls.get_field_audit_status(obj, field_name)
-                if status != 'no_image':
-                    total_images += 1
-                    if status == 'regularized':
-                        regularized += 1
-                    elif status == 'under_review':
-                        under_review += 1
-                    elif status == 'not_audited':
-                        not_audited += 1
-                    elif status == 'pending':
-                        pending += 1
-                    elif status == 'contested':
-                        contested += 1
-                    elif status == 'restricted':
-                        restricted += 1
-                    elif status == 'divergent':
-                        divergent += 1
-                    elif status == 'missing':
-                        missing += 1
+        # Agregações diretas em ImageRightsRecord
+        records_qs = ImageRightsRecord.objects.filter(content_type=ct, image_field_name__in=image_field_names)
+        status_counts = dict(records_qs.values_list('audit_status').annotate(c=models.Count('id')))
 
+        regularized = status_counts.get('regularized', 0)
+        under_review = status_counts.get('under_review', 0)
+        not_audited = status_counts.get('not_audited', 0)
+        pending = status_counts.get('pending', 0)
+        contested = status_counts.get('contested', 0)
+        restricted = status_counts.get('restricted', 0)
+
+        divergent = records_qs.filter(audit_logs__event_type='integrity_divergence_detected').distinct().count()
+        total_recorded = sum(status_counts.values())
+        missing = max(0, total_model_images - total_recorded)
+
+        total_images = max(total_model_images, total_recorded)
         rate = round((regularized / total_images * 100), 1) if total_images > 0 else 100.0
+
         return {
             'model_name': model_cls._meta.verbose_name_plural.title(),
             'total_images': total_images,

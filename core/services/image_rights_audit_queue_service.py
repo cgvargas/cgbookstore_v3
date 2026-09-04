@@ -106,26 +106,13 @@ class ImageRightsAuditQueueService:
             suggested_action = cls.ACTION_REVIEW_TAKEDOWN
 
         # 2. Avaliar Divergência Técnica de Integridade
-        # Verifica se há divergência no log ou no arquivo atual
+        # Verifica se há divergência registrada em log ou sinalizada
         if hasattr(record, 'has_logged_divergence') and record.has_logged_divergence:
             has_integrity_divergence = True
             score += 35
             reasons.append("Divergência de integridade registrada em histórico técnico.")
             if not active_takedowns:
                 suggested_action = cls.ACTION_REVIEW_DIVERGENCE
-        elif record.image_checksum and record.content_object:
-            file_attr = getattr(record.content_object, record.image_field_name, None)
-            if file_attr and hasattr(file_attr, 'name') and file_attr.name:
-                try:
-                    current_chk = ImageRightsRecord.calculate_file_checksum(file_attr)
-                    if current_chk and current_chk != record.image_checksum:
-                        has_integrity_divergence = True
-                        score += 35
-                        reasons.append("Divergência de integridade: o arquivo físico foi alterado após o cadastro.")
-                        if not active_takedowns:
-                            suggested_action = cls.ACTION_REVIEW_DIVERGENCE
-                except Exception:
-                    pass
 
         # 3. Avaliar Estado de Governança (audit_status) e Exposição Pública
         if record.audit_status == 'not_audited':
@@ -271,16 +258,21 @@ class ImageRightsAuditQueueService:
             needs_review = False
 
         # Título do objeto relacionado
-        related_title = ""
-        related_admin_url = ""
-        if record.content_object:
-            related_title = str(record.content_object)
+        related_title = record.work_title
+        if not related_title and record.content_object:
             try:
-                app_label = record.content_type.app_label
-                model_name = record.content_type.model
-                related_admin_url = reverse(f'admin:{app_label}_{model_name}_change', args=[record.object_id])
+                related_title = str(record.content_object)
             except Exception:
-                related_admin_url = ""
+                related_title = ""
+        if not related_title:
+            related_title = f"{record.content_type.model.title()} #{record.object_id}"
+        related_admin_url = ""
+        try:
+            app_label = record.content_type.app_label
+            model_name = record.content_type.model
+            related_admin_url = reverse(f'admin:{app_label}_{model_name}_change', args=[record.object_id])
+        except Exception:
+            related_admin_url = ""
 
         edit_record_url = ""
         try:
@@ -463,26 +455,39 @@ class ImageRightsAuditQueueService:
     def get_queue_summary_kpis(cls) -> Dict[str, int]:
         """
         Retorna as métricas e contadores consolidados da fila operacional para o Dashboard.
+        Utiliza consultas diretas e agregações para garantir resposta imediata sem overhead.
         """
-        all_items = cls.get_queue_queryset(filters={'show_all': True})
-        
-        needs_review_items = [it for it in all_items if it.needs_review]
-        critical_count = sum(1 for it in needs_review_items if it.priority_level == cls.PRIORITY_CRITICAL)
-        high_count = sum(1 for it in needs_review_items if it.priority_level == cls.PRIORITY_HIGH)
-        medium_count = sum(1 for it in needs_review_items if it.priority_level == cls.PRIORITY_MEDIUM)
-        low_count = sum(1 for it in needs_review_items if it.priority_level == cls.PRIORITY_LOW)
+        public_not_audited_count = ImageRightsRecord.objects.filter(
+            audit_status='not_audited',
+            public_display_allowed=True
+        ).count()
 
-        public_not_audited_count = sum(
-            1 for it in all_items 
-            if it.record.audit_status == 'not_audited' and it.record.public_display_allowed
+        pending_doc_count = ImageRightsRecord.objects.filter(audit_status='pending').count()
+        contested_count = ImageRightsRecord.objects.filter(audit_status='contested').count()
+
+        active_takedowns_count = CopyrightTakedownRequest.objects.filter(
+            status__in=['received', 'under_review', 'awaiting_information', 'temporarily_suspended']
+        ).count()
+
+        divergent_count = ImageRightsRecord.objects.filter(
+            audit_logs__event_type='integrity_divergence_detected'
+        ).distinct().count()
+
+        needs_review_count = ImageRightsRecord.objects.filter(
+            Q(audit_status__in=['not_audited', 'pending', 'contested']) |
+            Q(takedown_requests__status__in=['received', 'under_review', 'awaiting_information', 'temporarily_suspended']) |
+            Q(audit_logs__event_type='integrity_divergence_detected')
+        ).distinct().count()
+
+        critical_count = (
+            active_takedowns_count + divergent_count
         )
-
-        active_takedowns_count = sum(1 for it in all_items if it.has_active_takedown)
-        pending_doc_count = sum(1 for it in all_items if it.record.audit_status == 'pending')
-        divergent_count = sum(1 for it in all_items if it.has_integrity_divergence)
+        high_count = max(0, public_not_audited_count + contested_count)
+        medium_count = max(0, pending_doc_count)
+        low_count = max(0, needs_review_count - (critical_count + high_count + medium_count))
 
         return {
-            'total_needs_review': len(needs_review_items),
+            'total_needs_review': needs_review_count,
             'critical_priority_count': critical_count,
             'high_priority_count': high_count,
             'medium_priority_count': medium_count,
