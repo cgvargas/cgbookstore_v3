@@ -55,9 +55,29 @@
     .governance-alert { background: rgba(52, 152, 219, 0.08); border-left: 4px solid #3498db; padding: 14px 18px; border-radius: 6px; margin-bottom: 25px; font-size: 0.9rem; color: var(--text-primary); line-height: 1.5; }
     
     .filter-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-    .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
-    .filter-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--card-desc); margin-bottom: 5px; }
-    .filter-group select, .filter-group input { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-primary); font-size: 0.85rem; }
+    .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 18px; }
+    .filter-group { display: flex; flex-direction: column; min-width: 0; }
+    .filter-group label { display: block; font-size: 0.82rem; font-weight: 700; color: var(--card-desc); margin-bottom: 6px; }
+    .filter-group select, .filter-group input { 
+        width: 100%; 
+        min-width: 0;
+        height: 42px; 
+        padding: 8px 12px; 
+        border-radius: 8px; 
+        border: 1px solid var(--card-border); 
+        background: var(--card-bg); 
+        color: var(--text-primary); 
+        font-size: 0.88rem; 
+        box-sizing: border-box;
+        cursor: pointer;
+        line-height: 1.4;
+    }
+    .filter-group select option {
+        padding: 8px 12px;
+        background: var(--card-bg);
+        color: var(--text-primary);
+        font-size: 0.88rem;
+    }
     
     .queue-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--table-bg); border: 1px solid var(--table-border); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
     .queue-table th { background: var(--table-header-bg); padding: 12px 14px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--card-desc); text-align: left; border-bottom: 1px solid var(--table-border); }
