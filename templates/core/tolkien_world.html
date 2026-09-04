@@ -399,8 +399,8 @@
         {% for book in tolkien_books %}
         <a href="{% url 'core:book_detail' book.slug %}" class="tolkien-book-card">
             <div class="tolkien-book-cover">
-                {% if book.cover_image %}
-                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" loading="lazy">
+                {% if book.cover_image_url %}
+                <img src="{{ book.cover_image_url }}" alt="{{ book.title }}" loading="lazy">
                 {% else %}
                 <div class="tolkien-book-cover-placeholder">
                     <i class="fas fa-book"></i>

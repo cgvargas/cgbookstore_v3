@@ -87,6 +87,19 @@ class AffiliatePartner(models.Model):
     def __str__(self):
         return self.nome
 
+    @property
+    def has_valid_logo(self):
+        """Verifica se o logo do parceiro pode ser exibido publicamente."""
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.logo and self.logo.name and ImageRightsAuditService.can_display_publicly(self, 'logo'))
+
+    @property
+    def logo_url(self):
+        """Retorna a URL do logo se permitida, ou None."""
+        if self.has_valid_logo:
+            return self.logo.url
+        return None
+
 
 class AffiliatePartnerClick(models.Model):
     """

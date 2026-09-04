@@ -81,15 +81,39 @@
         <h1 class="audit-title" style="margin: 0; font-size: 1.8rem; font-weight: 700;">
             🛡️ Governança e Auditoria de Direitos Autorais de Imagens
         </h1>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="{% url 'copyright_audit_queue' %}" class="button" style="background: #e74c3c; color: #fff; text-decoration: none; padding: 10px 18px; border-radius: 6px; font-weight: 700; box-shadow: 0 2px 6px rgba(231,76,60,0.3);">
+                📋 Abrir Fila de Auditoria ({% if queue_kpis %}{{ queue_kpis.total_needs_review }}{% else %}0{% endif %})
+            </a>
             <a href="{% url 'copyright_compliance_map' %}" class="button" style="background: #2980b9; color: #fff; text-decoration: none; padding: 10px 15px; border-radius: 6px;">
                 🗺️ Mapa de Conformidade
             </a>
             <a href="{% url 'admin:core_imagerightsrecord_changelist' %}" class="button" style="background: #34495e; color: #fff; text-decoration: none; padding: 10px 15px; border-radius: 6px;">
-                📋 Ver Todos os Registros
+                📁 Todos os Registros
             </a>
         </div>
     </div>
+
+    <!-- Banner da Fila Operacional Inteligente (Fase 2) -->
+    {% if queue_kpis and queue_kpis.total_needs_review > 0 %}
+    <div style="background: var(--card-bg); border: 1px solid #f87171; border-radius: 12px; padding: 18px 22px; margin-bottom: 25px; box-shadow: 0 3px 10px rgba(239,68,68,0.08); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.2rem;">🔥</span>
+                <strong style="font-size: 1.05rem; color: #dc2626;">Fila de Auditoria Priorizada: {{ queue_kpis.total_needs_review }} ativos aguardando revisão</strong>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--card-desc); margin-top: 4px;">
+                🔴 <strong>{{ queue_kpis.critical_priority_count }}</strong> Críticos &bull; 
+                🟠 <strong>{{ queue_kpis.high_priority_count }}</strong> Alta Prioridade &bull; 
+                🟡 <strong>{{ queue_kpis.public_not_audited_count }}</strong> Públicas Não Auditadas &bull; 
+                ⚠️ <strong>{{ queue_kpis.active_takedowns_count }}</strong> Contestações Ativas
+            </div>
+        </div>
+        <a href="{% url 'copyright_audit_queue' %}" class="button" style="background: #dc2626; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 0.88rem;">
+            Acessar Fila Operacional →
+        </a>
+    </div>
+    {% endif %}
 
     <!-- Aviso Interno de Governança Administrativa -->
     <div style="background: rgba(41, 128, 185, 0.1); border-left: 4px solid #2980b9; padding: 14px 18px; border-radius: 8px; margin-bottom: 25px; font-size: 0.9rem; color: var(--text-primary); line-height: 1.5;">
@@ -128,7 +152,14 @@
             <div style="font-size: 0.75rem;" class="audit-desc">Cadastros sem revisão documental</div>
         </div>
 
-        <!-- KPI 5: Contestadas / Restritas -->
+        <!-- KPI 5: Importadas Automaticamente -->
+        <div class="audit-card" style="border-left: 5px solid #3498db;">
+            <div style="font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" class="audit-desc">⚡ Proveniência Externa</div>
+            <div style="font-size: 2rem; font-weight: 800; color: #3498db; margin: 6px 0;">{{ auto_imported_count }}</div>
+            <div style="font-size: 0.75rem;" class="audit-desc">{{ auto_imported_not_audited }} pendentes / {{ auto_imported_regularized }} regularizadas</div>
+        </div>
+
+        <!-- KPI 6: Contestadas / Restritas -->
         <div class="audit-card" style="border-left: 5px solid #e74c3c;">
             <div style="font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" class="audit-desc">🔴 Contestadas / Alertas</div>
             <div style="font-size: 2rem; font-weight: 800; color: #e74c3c; margin: 6px 0;">{{ contested_count }}</div>
@@ -366,6 +397,98 @@
         {% else %}
         <div style="padding: 20px; text-align: center; color: #27ae60; font-weight: 600;">
             ✅ Parabéns! Todos os registros de imagens estão 100% regulares e em conformidade!
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 5. Painel da Trilha Histórica de Auditoria e Decisões Administrativas Recentes -->
+    <div class="audit-card" style="margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <h3 class="audit-title" style="margin: 0; font-size: 1.25rem;">
+                    📜 Trilha Histórica de Auditoria e Governança Recente
+                </h3>
+                <p class="audit-desc" style="margin: 4px 0 0; font-size: 0.88rem;">
+                    Registro imutável das últimas 20 alterações jurídicas, suspensões, restaurações, contestações e decisões administrativas.
+                </p>
+            </div>
+            <a href="{% url 'admin:core_imagerightsauditlog_changelist' %}" class="button" style="background: #2c3e50; color: #fff; text-decoration: none; padding: 6px 14px; border-radius: 6px; font-size: 0.85rem;">
+                📜 Ver Trilha de Auditoria Completa ({{ total_audit_logs }} eventos)
+            </a>
+        </div>
+
+        {% if recent_audit_logs %}
+        <div style="overflow-x: auto; margin-top: 10px;">
+            <table style="width: 100%; border-collapse: collapse; background: var(--table-bg);">
+                <thead>
+                    <tr style="background: var(--table-header-bg); border-bottom: 2px solid var(--table-border); text-align: left; font-size: 0.85rem;">
+                        <th style="padding: 10px;" class="audit-title">Data/Hora</th>
+                        <th style="padding: 10px;" class="audit-title">Tipo do Evento</th>
+                        <th style="padding: 10px;" class="audit-title">Ativo Visual Auditado</th>
+                        <th style="padding: 10px;" class="audit-title">Descrição da Ação</th>
+                        <th style="padding: 10px;" class="audit-title">Responsável / Origem</th>
+                        <th style="padding: 10px; text-align: center;" class="audit-title">Contestação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in recent_audit_logs %}
+                    <tr style="border-bottom: 1px solid var(--table-border); font-size: 0.86rem;">
+                        <td style="padding: 10px; font-family: monospace; white-space: nowrap;" class="audit-desc">
+                            {{ log.created_at|date:"d/m/Y H:i:s" }}
+                        </td>
+                        <td style="padding: 10px;">
+                            {% if log.event_type == 'image_suspended' or log.event_type == 'takedown_resolved_removed' or log.event_type == 'integrity_divergence_detected' %}
+                                <span style="background: #c0392b; color: #fff; padding: 2px 7px; border-radius: 8px; font-size: 0.72rem; font-weight: 600;">{{ log.get_event_type_display }}</span>
+                            {% elif log.event_type == 'image_restored' or log.event_type == 'takedown_resolved_keep' or log.event_type == 'record_created' %}
+                                <span style="background: #27ae60; color: #fff; padding: 2px 7px; border-radius: 8px; font-size: 0.72rem; font-weight: 600;">{{ log.get_event_type_display }}</span>
+                            {% elif log.event_type == 'takedown_received' %}
+                                <span style="background: #e74c3c; color: #fff; padding: 2px 7px; border-radius: 8px; font-size: 0.72rem; font-weight: 600;">{{ log.get_event_type_display }}</span>
+                            {% elif log.event_type == 'audit_status_changed' or log.event_type == 'public_display_changed' %}
+                                <span style="background: #f39c12; color: #fff; padding: 2px 7px; border-radius: 8px; font-size: 0.72rem; font-weight: 600;">{{ log.get_event_type_display }}</span>
+                            {% else %}
+                                <span style="background: #2980b9; color: #fff; padding: 2px 7px; border-radius: 8px; font-size: 0.72rem; font-weight: 600;">{{ log.get_event_type_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 10px;" class="audit-title">
+                            {% if log.image_rights_record %}
+                                <a href="{% url 'admin:core_imagerightsrecord_change' log.image_rights_record.id %}" style="text-decoration: underline; font-weight: 600;">
+                                    #{{ log.image_rights_record.id }} &bull; {{ log.image_rights_record.content_type.model|title }}
+                                </a>
+                                <br><small style="color: #7f8c8d; font-family: monospace;">Campo: {{ log.image_rights_record.image_field_name }}</small>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td style="padding: 10px;" class="audit-desc">
+                            {{ log.description }}
+                            {% if log.old_value or log.new_value %}
+                                <div style="font-size: 0.75rem; margin-top: 3px;">
+                                    {% if log.old_value %}<span style="color: #c0392b; text-decoration: line-through;">{{ log.old_value }}</span> &rarr; {% endif %}
+                                    {% if log.new_value %}<strong style="color: #27ae60;">{{ log.new_value }}</strong>{% endif %}
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 10px; font-size: 0.8rem;" class="audit-desc">
+                            <strong>{{ log.performed_by.username|default:"Sistema" }}</strong>
+                            <br><small style="color: #7f8c8d;">via {{ log.get_source_display }}</small>
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            {% if log.takedown_request_id %}
+                                <a href="{% url 'admin:core_copyrighttakedownrequest_change' log.takedown_request_id %}" style="background: #c0392b; color: #fff; text-decoration: none; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                                    ⚠️ #{{ log.takedown_request_id }}
+                                </a>
+                            {% else %}
+                                <span style="color: #95a5a6;">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="padding: 15px; text-align: center; color: #7f8c8d; font-size: 0.88rem;">
+            Nenhum evento registrado na trilha de auditoria até o momento.
         </div>
         {% endif %}
     </div>

@@ -312,18 +312,21 @@ class Book(models.Model):
     @property
     def has_valid_cover(self):
         """
-        Verifica se o livro possui uma capa válida (não genérica).
-        Retorna True se houver uma imagem de capa carregada.
+        Verifica se o livro possui uma capa válida (não genérica) e permitida para exibição pública.
+        Retorna True se houver uma imagem de capa carregada e liberada pela governança de direitos autorais.
         """
-        return bool(self.cover_image and self.cover_image.name)
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.cover_image and self.cover_image.name and ImageRightsAuditService.can_display_publicly(self, 'cover_image'))
 
     @property
     def cover_image_url(self):
         """
         Retorna a URL da capa com cache-buster baseado no updated_at.
-        Isso força o navegador a recarregar a imagem quando ela é atualizada.
+        Se a imagem estiver suspensa administrativamente ou contestada,
+        retorna None para garantir o fallback visual automático.
         """
-        if self.cover_image:
+        from core.services.image_rights_service import ImageRightsAuditService
+        if self.cover_image and ImageRightsAuditService.can_display_publicly(self, 'cover_image'):
             # Usar timestamp do updated_at como versão
             version = int(self.updated_at.timestamp())
             return f"{self.cover_image.url}?v={version}"

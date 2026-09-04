@@ -99,8 +99,8 @@
                 <div class="col-md-4 col-lg-3">
                     <div class="card author-card h-100 shadow-sm" onclick="window.location='{% url 'new_authors:author_profile' author.user.username %}'" style="cursor: pointer; transition: transform 0.2s;">
                         <div class="card-body text-center">
-                            {% if author.photo %}
-                                <img src="{{ author.photo.url }}" class="rounded-circle mb-3" alt="{{ author }}" style="width: 120px; height: 120px; object-fit: cover;">
+                            {% if author.photo_url %}
+                                <img src="{{ author.photo_url }}" class="rounded-circle mb-3" alt="{{ author }}" style="width: 120px; height: 120px; object-fit: cover;">
                             {% else %}
                                 <div class="bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
                                      style="width: 120px; height: 120px;">

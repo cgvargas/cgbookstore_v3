@@ -47,6 +47,10 @@ filtered_restore.txt
 /media/
 /static_root/
 /staticfiles/
+authors/
+books/covers/
+private_copyright_docs/
+private_takedown_docs/
 
 # =========================
 # Logs

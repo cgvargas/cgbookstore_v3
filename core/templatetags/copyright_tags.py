@@ -164,18 +164,30 @@ def can_display_image(obj, field_name):
     Retorna True se o ativo visual puder ser exibido publicamente.
     Útil para condicionais em templates: {% can_display_image book 'cover_image' as can_show %}
     """
+    from core.services.image_rights_service import ImageRightsAuditService
+    return ImageRightsAuditService.can_display_publicly(obj, field_name)
+
+
+@register.simple_tag
+def get_safe_image_url(obj, field_name, default_placeholder=''):
+    """
+    Retorna a URL segura do arquivo se permitido para exibição pública;
+    caso contrário, retorna default_placeholder ou string vazia.
+    """
+    from core.services.image_rights_service import ImageRightsAuditService
     if not obj or not getattr(obj, 'pk', None):
-        return True
+        return default_placeholder
+
+    if not ImageRightsAuditService.can_display_publicly(obj, field_name):
+        return default_placeholder
+
     try:
-        ct = ContentType.objects.get_for_model(obj)
-        record = ImageRightsRecord.objects.filter(
-            content_type=ct,
-            object_id=obj.pk,
-            image_field_name=field_name
-        ).first()
-        if not record:
-            return True
-        return record.can_display_publicly
+        val = getattr(obj, field_name, None)
+        if val and hasattr(val, 'url'):
+            return val.url
+        elif isinstance(val, str) and val:
+            return val
     except Exception:
-        return True
+        pass
+    return default_placeholder
 

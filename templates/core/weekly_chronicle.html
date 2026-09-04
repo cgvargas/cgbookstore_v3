@@ -4,6 +4,9 @@
 
 {% block title %}{% if chronicle %}{{ chronicle.title }}{% else %}Crônica Semanal{% endif %} - CG.BookStore{% endblock %}
 
+{% block og_image %}{% if chronicle.featured_image_url %}{{ chronicle.featured_image_url }}{% else %}{{ SEO_DEFAULT_OG_IMAGE }}{% endif %}{% endblock %}
+{% block twitter_image %}{% if chronicle.featured_image_url %}{{ chronicle.featured_image_url }}{% else %}{{ SEO_DEFAULT_OG_IMAGE }}{% endif %}{% endblock %}
+
 {% block extra_css %}
 <style>
     /* Traditional newspaper styling */
@@ -341,9 +344,10 @@
 
                 <p class="article-text">{{ chronicle.introduction }}</p>
 
-                {% if chronicle.featured_image %}
+                {% can_display_image chronicle 'featured_image' as can_show_featured %}
+                {% if chronicle.featured_image and can_show_featured %}
                 <div class="article-image">
-                    <img src="{% if chronicle.featured_image.name %}{{ chronicle.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ chronicle.title }}">
+                    <img src="{{ chronicle.featured_image_url }}" alt="{{ chronicle.title }}">
                     <small class="text-muted d-block mt-1">{% render_image_rights chronicle 'featured_image' %}</small>
                 </div>
                 {% endif %}
@@ -398,9 +402,10 @@
             <h3 class="subheading">{{ chronicle.section_home_title }}</h3>
             <p class="article-text">{{ chronicle.section_home_content }}</p>
 
-            {% if chronicle.secondary_image %}
+            {% can_display_image chronicle 'secondary_image' as can_show_secondary %}
+            {% if chronicle.secondary_image and can_show_secondary %}
             <div class="article-image">
-                <img src="{{ chronicle.secondary_image.url }}" alt="{{ chronicle.section_home_title }}">
+                <img src="{{ chronicle.secondary_image_url }}" alt="{{ chronicle.section_home_title }}">
                 <small class="text-muted d-block mt-1">{% render_image_rights chronicle 'secondary_image' %}</small>
             </div>
             {% endif %}
@@ -425,9 +430,11 @@
             </div>
             {% endif %}
 
-            {% if chronicle.gallery_image_1 %}
+            {% can_display_image chronicle 'gallery_image_1' as can_show_gallery_1 %}
+            {% if chronicle.gallery_image_1 and can_show_gallery_1 %}
             <div class="article-image">
                 <img src="{{ chronicle.gallery_image_1.url }}" alt="Galeria">
+                <small class="text-muted d-block mt-1">{% render_image_rights chronicle 'gallery_image_1' %}</small>
             </div>
             {% endif %}
         </article>
@@ -443,18 +450,22 @@
                 <p class="article-text">{{ chronicle.section_entertainment_content }}</p>
             </article>
 
-            {% if chronicle.gallery_image_2 %}
+            {% can_display_image chronicle 'gallery_image_2' as can_show_gallery_2 %}
+            {% if chronicle.gallery_image_2 and can_show_gallery_2 %}
             <article class="article">
                 <div class="article-image">
                     <img src="{{ chronicle.gallery_image_2.url }}" alt="Galeria 2">
+                    <small class="text-muted d-block mt-1">{% render_image_rights chronicle 'gallery_image_2' %}</small>
                 </div>
             </article>
             {% endif %}
 
-            {% if chronicle.gallery_image_3 %}
+            {% can_display_image chronicle 'gallery_image_3' as can_show_gallery_3 %}
+            {% if chronicle.gallery_image_3 and can_show_gallery_3 %}
             <article class="article">
                 <div class="article-image">
                     <img src="{{ chronicle.gallery_image_3.url }}" alt="Galeria 3">
+                    <small class="text-muted d-block mt-1">{% render_image_rights chronicle 'gallery_image_3' %}</small>
                 </div>
             </article>
             {% endif %}

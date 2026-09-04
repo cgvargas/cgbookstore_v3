@@ -507,6 +507,31 @@ class ImportBookAPI(APIView):
             subjects=book_data.get('subjects', []),
             is_public_domain=True,
         )
+
+        # Registro de Proveniência Técnica se houver capa
+        if ebook.cover_image:
+            from core.services.image_rights_provenance_service import ImageRightsProvenanceService
+            if source == 'openlibrary':
+                prov_provider = ImageRightsProvenanceService.PROVIDER_OPEN_LIBRARY
+            elif source == 'gutenberg':
+                prov_provider = ImageRightsProvenanceService.PROVIDER_PROJECT_GUTENBERG
+            else:
+                prov_provider = ImageRightsProvenanceService.PROVIDER_OTHER
+
+            # Regra de Governança: Procedência técnica não é licença.
+            # Mesmo obras do Project Gutenberg NÃO recebem 'public_domain' automaticamente para seus ativos visuais.
+            ImageRightsProvenanceService.register_external_provenance(
+                target_obj=ebook,
+                image_field_name='cover_image',
+                provider=prov_provider,
+                source_url=book_data.get('cover_image', ''),
+                provider_asset_id=str(external_id),
+                license_type='',  # NENHUMA licença presumida
+                provenance_method='api_reference',
+                safe_metadata={'external_id': external_id, 'source': source, 'subjects': book_data.get('subjects', [])[:5]},
+                performed_by=request.user,
+                source='integration'
+            )
         
         return Response({
             'id': ebook.id,

@@ -4,6 +4,9 @@
 
 {% block title %}{{ event.title }} - CG.BookStore{% endblock %}
 
+{% block og_image %}{% if event.banner_image_url %}{{ event.banner_image_url }}{% elif event.thumbnail_image_url %}{{ event.thumbnail_image_url }}{% else %}{{ SEO_DEFAULT_OG_IMAGE }}{% endif %}{% endblock %}
+{% block twitter_image %}{% if event.banner_image_url %}{{ event.banner_image_url }}{% elif event.thumbnail_image_url %}{{ event.thumbnail_image_url }}{% else %}{{ SEO_DEFAULT_OG_IMAGE }}{% endif %}{% endblock %}
+
 {% block content %}
 <div class="container my-5">
     
@@ -19,8 +22,8 @@
     <!-- Hero Banner -->
     <section class="event-hero mb-5">
         <div class="position-relative rounded-4 overflow-hidden shadow-lg">
-            {% if event.banner_image %}
-                <img src="{{ event.banner_image.url }}" 
+            {% if event.banner_image_url %}
+                <img src="{{ event.banner_image_url }}" 
                      class="w-100" 
                      style="height: 400px; object-fit: cover;"
                      alt="{{ event.title }}">
@@ -92,8 +95,8 @@
                         <div class="col-6 col-md-4 col-lg-3">
                             <a href="{% url 'core:book_detail' slug=book.slug %}" class="text-decoration-none">
                                 <div class="card h-100 book-card">
-                                    {% if book.cover_image %}
-                                        <img src="{{ book.cover_image.url }}" 
+                                    {% if book.cover_image_url %}
+                                        <img src="{{ book.cover_image_url }}" 
                                              class="card-img-top" 
                                              style="height: 180px; object-fit: cover;"
                                              alt="{{ book.title }}">

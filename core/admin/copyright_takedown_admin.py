@@ -9,6 +9,8 @@ from django.urls import reverse
 from django.utils import timezone
 
 from core.models.copyright_takedown import CopyrightTakedownRequest
+from core.services.image_rights_service import ImageRightsAuditService
+from core.services.image_rights_history_service import ImageRightsHistoryService
 
 
 @admin.register(CopyrightTakedownRequest)
@@ -57,6 +59,19 @@ class CopyrightTakedownRequestAdmin(admin.ModelAdmin):
         'action_resolve_keep',
         'action_resolve_remove',
     ]
+
+    def has_delete_permission(self, request, obj=None):
+        """
+        Governança: Contestações e ocorrências de takedown fazem parte do registro jurídico
+        e administrativo da CG.BookStore e não podem ser excluídas normalmente.
+        """
+        return False
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
 
     fieldsets = (
         ('Ativo Visual Contestado', {
@@ -107,6 +122,13 @@ class CopyrightTakedownRequestAdmin(admin.ModelAdmin):
     )
 
     def save_model(self, request, obj, form, change):
+        is_new = not obj.pk
+        old_status = None
+        if not is_new:
+            old_obj = CopyrightTakedownRequest.objects.filter(pk=obj.pk).first()
+            if old_obj:
+                old_status = old_obj.status
+
         if not change and not obj.created_by:
             obj.created_by = request.user
 
@@ -117,6 +139,22 @@ class CopyrightTakedownRequestAdmin(admin.ModelAdmin):
                 obj.resolved_by = request.user
 
         super().save_model(request, obj, form, change)
+
+        # Trilha Histórica de Auditoria
+        if is_new:
+            ImageRightsHistoryService.log_takedown_received(
+                takedown=obj,
+                performed_by=request.user,
+                source='admin'
+            )
+        elif old_status and old_status != obj.status:
+            ImageRightsHistoryService.log_takedown_status_changed(
+                takedown=obj,
+                old_status=old_status,
+                new_status=obj.status,
+                performed_by=request.user,
+                source='admin'
+            )
 
         # Sincronização segura de governança com o ImageRightsRecord
         record = obj.image_rights_record
@@ -267,48 +305,59 @@ class CopyrightTakedownRequestAdmin(admin.ModelAdmin):
             takedown.save(update_fields=['status', 'updated_at'])
             record = takedown.image_rights_record
             if record:
-                record.public_display_allowed = False
-                record.audit_status = 'restricted'
-                record.save(update_fields=['public_display_allowed', 'audit_status'])
+                ImageRightsAuditService.suspend_image_asset(
+                    record,
+                    request_user=request.user,
+                    notes=f"Suspensão via contestação #{takedown.pk}",
+                    takedown_request=takedown,
+                    source='admin'
+                )
             count += 1
         self.message_user(request, f"{count} ativo(s) suspenso(s) preventivamente da exibição pública com preservação total de evidências.", messages.WARNING)
 
     @admin.action(description="🟢 Restaurar exibição pública da imagem")
     def action_restore_public_display(self, request, queryset):
-        count = 0
+        success_count = 0
+        failed_msgs = []
         for takedown in queryset:
             record = takedown.image_rights_record
             if record:
-                record.public_display_allowed = True
-                if record.audit_status == 'restricted':
-                    record.audit_status = 'under_review'
-                record.save(update_fields=['public_display_allowed', 'audit_status'])
-            count += 1
-        self.message_user(request, f"Exibição pública restaurada para {count} ativo(s).", messages.SUCCESS)
+                success, msg = ImageRightsAuditService.restore_image_asset(
+                    record,
+                    request_user=request.user,
+                    takedown_request=takedown,
+                    source='admin'
+                )
+                if success:
+                    success_count += 1
+                else:
+                    failed_msgs.append(f"#{takedown.pk}: {msg}")
+        if success_count:
+            self.message_user(request, f"Exibição pública restaurada para {success_count} ativo(s).", messages.SUCCESS)
+        if failed_msgs:
+            self.message_user(request, f"Atenção: Não foi possível restaurar {len(failed_msgs)} ativo(s): " + " | ".join(failed_msgs), messages.ERROR)
 
     @admin.action(description="🟢 Resolver ocorrência MANTENDO a imagem (uso legítimo confirmado)")
     def action_resolve_keep(self, request, queryset):
         count = 0
+        notes = []
         for takedown in queryset:
-            takedown.status = 'resolved_keep'
-            takedown.resolved_at = timezone.now()
-            takedown.resolved_by = request.user
-            takedown.save(update_fields=['status', 'resolved_at', 'resolved_by', 'updated_at'])
+            _success, msg = ImageRightsAuditService.resolve_takedown_atomic(
+                takedown, resolution_type='keep', request_user=request.user
+            )
             count += 1
-        self.message_user(request, f"{count} contestação(ões) resolvida(s) mantendo o uso da imagem. O audit_status não foi alterado automaticamente para garantir conformidade documental.", messages.SUCCESS)
+            if "permanece SUSPENSO" in msg:
+                notes.append(f"Contestação #{takedown.pk}: mantida, mas ativo continua suspenso por haver outra contestação pendente.")
+        self.message_user(request, f"{count} contestação(ões) resolvida(s) mantendo o uso da imagem.", messages.SUCCESS)
+        if notes:
+            self.message_user(request, " ".join(notes), messages.WARNING)
 
     @admin.action(description="🔴 Resolver ocorrência RETIRANDO a imagem (bloqueio definitivo preservando registro)")
     def action_resolve_remove(self, request, queryset):
         count = 0
         for takedown in queryset:
-            takedown.status = 'resolved_removed'
-            takedown.resolved_at = timezone.now()
-            takedown.resolved_by = request.user
-            takedown.save(update_fields=['status', 'resolved_at', 'resolved_by', 'updated_at'])
-            record = takedown.image_rights_record
-            if record:
-                record.public_display_allowed = False
-                record.audit_status = 'restricted'
-                record.save(update_fields=['public_display_allowed', 'audit_status'])
+            ImageRightsAuditService.resolve_takedown_atomic(
+                takedown, resolution_type='remove', request_user=request.user
+            )
             count += 1
-        self.message_user(request, f"{count} ocorrência(s) resolvida(s) com retirada da imagem. O registro histórico e evidências foram integralmente preservados.", messages.WARNING)
+        self.message_user(request, f"{count} ocorrência(s) resolvida(s) com RETIRADA DA IMAGEM. Exibição pública bloqueada e histórico/evidências preservados.", messages.WARNING)

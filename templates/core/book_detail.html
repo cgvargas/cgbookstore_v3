@@ -8,7 +8,8 @@
 {% block meta_description %}{% if book.description %}{{ book.description|striptags|truncatewords:30 }}{% else %}Compre ou descubra o livro {{ book.title }} de {{ book.author.name|default:"Autor Desconhecido" }} na CG.BookStore.{% endif %}{% endblock %}
 
 {% block og_type %}book{% endblock %}
-{% block og_image %}{% if book.cover_image %}{{ book.cover_image.url }}{% else %}{{ SEO_DEFAULT_OG_IMAGE }}{% endif %}{% endblock %}
+{% block og_image %}{% if book.cover_image_url %}{{ book.cover_image_url }}{% else %}{{ SEO_DEFAULT_OG_IMAGE }}{% endif %}{% endblock %}
+{% block twitter_image %}{% if book.cover_image_url %}{{ book.cover_image_url }}{% else %}{{ SEO_DEFAULT_OG_IMAGE }}{% endif %}{% endblock %}
 
 {% block schema_json_ld %}
 <script type="application/ld+json">
@@ -28,7 +29,7 @@
   },{% endif %}
   {% if book.publication_date %}"datePublished": "{{ book.publication_date|date:'Y-m-d' }}",{% endif %}
   "inLanguage": "{{ book.language|default:'pt-BR' }}",
-  {% if book.cover_image %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}",{% endif %}
+  {% if book.cover_image_url %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image_url }}",{% endif %}
   "description": "{{ book.description|striptags|truncatewords:40|escapejs }}",
   "workExample": {
     "@type": "Book",
@@ -1856,8 +1857,8 @@
                                 {% endif %}
                                 <div class="mt-3 p-3 rounded-3 d-flex align-items-center gap-3"
                                      style="background: rgba(255,255,255,0.05);">
-                                    {% if book.cover_image %}
-                                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}"
+                                    {% if book.cover_image_url %}
+                                    <img src="{{ book.cover_image_url }}" alt="{{ book.title }}"
                                          class="rounded-2 shadow-sm flex-shrink-0"
                                          style="width:52px; height:72px; object-fit:cover;">
                                     {% endif %}

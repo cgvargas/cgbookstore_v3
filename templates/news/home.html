@@ -28,7 +28,7 @@
             <div class="col-12">
                 <div class="featured-main-card">
                     <a href="{% url 'news:article_detail' featured_main.slug %}">
-                        <img src="{% if featured_main.featured_image.name %}{{ featured_main.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ featured_main.title }}">
+                        <img src="{% if featured_main.featured_image_url %}{{ featured_main.featured_image_url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ featured_main.title }}">
                         <div class="featured-main-overlay">
                             <span class="featured-badge">⭐ DESTAQUE</span>
                             <h2>{{ featured_main.title }}</h2>
@@ -57,7 +57,7 @@
                     {% for article in sidebar_highlights %}
                     <a href="{% url 'news:article_detail' article.slug %}" class="highlight-item">
                         <div class="highlight-image">
-                            <img src="{% if article.featured_image.name %}{{ article.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ article.title }}">
+                            <img src="{% if article.featured_image_url %}{{ article.featured_image_url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ article.title }}">
                         </div>
                         <div class="highlight-info">
                             <span class="highlight-type">{{ article.get_content_type_display }}</span>
@@ -79,7 +79,7 @@
                     {% for article in latest_news %}
                     <div class="news-card">
                         <a href="{% url 'news:article_detail' article.slug %}">
-                            <img src="{% if article.featured_image.name %}{{ article.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ article.title }}">
+                            <img src="{% if article.featured_image_url %}{{ article.featured_image_url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ article.title }}">
                             <div class="news-card-body">
                                 <span class="news-category">{{ article.get_content_type_display }}</span>
                                 <h4>{{ article.title }}</h4>
@@ -102,7 +102,7 @@
                     {% for interview in interviews %}
                     <div class="interview-card">
                         <a href="{% url 'news:article_detail' interview.slug %}">
-                            <img src="{% if interview.featured_image.name %}{{ interview.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ interview.title }}">
+                            <img src="{% if interview.featured_image_url %}{{ interview.featured_image_url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ interview.title }}">
                             <div class="interview-content">
                                 <h4>{{ interview.title }}</h4>
                                 <p>{{ interview.subtitle }}</p>

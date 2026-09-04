@@ -14,6 +14,7 @@ from .featured_author_settings_admin import FeaturedAuthorSettingsAdmin
 from .weekly_chronicle_admin import WeeklyChronicleAdmin
 from .image_rights_admin import ImageRightsRecordAdmin, ImageRightsRecordInline
 from .copyright_takedown_admin import CopyrightTakedownRequestAdmin
+from .image_rights_audit_log_admin import ImageRightsAuditLogAdmin, ImageRightsAuditLogInline
 from .literary_universe_admin import (
     LiteraryUniverseAdmin,
     UniverseContentItemAdmin,
@@ -38,6 +39,8 @@ __all__ = [
     'ImageRightsRecordAdmin',
     'ImageRightsRecordInline',
     'CopyrightTakedownRequestAdmin',
+    'ImageRightsAuditLogAdmin',
+    'ImageRightsAuditLogInline',
     'LiteraryUniverseAdmin',
     'UniverseContentItemAdmin',
     'UniverseBannerAdmin',

@@ -61,6 +61,8 @@ class Command(BaseCommand):
                     if status == 'missing':
                         total_missing += 1
                         if auto_create:
+                            from core.services.image_rights_history_service import ImageRightsHistoryService
+
                             meta = ImageRightsRecord.extract_file_metadata(file_attr)
                             
                             record = ImageRightsRecord.objects.create(
@@ -76,6 +78,11 @@ class Command(BaseCommand):
                                 audit_status='not_audited',
                                 usage_notes=f"Gerado automaticamente via audit_image_rights no modelo {model_cls._meta.model_name}. Preencha finalidade e fundamentação jurídica."
                             )
+                            ImageRightsHistoryService.log_record_created(
+                                record=record,
+                                performed_by=None,
+                                source='command'
+                            )
                             total_created += 1
                             safe_obj_str = str(obj).encode('ascii', 'replace').decode('ascii')
                             self.stdout.write(self.style.SUCCESS(f"  [+] Criado registro para {safe_obj_str} [{f.name}]"))
@@ -84,7 +91,7 @@ class Command(BaseCommand):
                             self.stdout.write(self.style.WARNING(f"  [!] Sem registro: {safe_obj_str} [{f.name}]"))
 
                     elif record:
-                        synced = ImageRightsAuditService.sync_file_metadata(record, file_attr)
+                        synced = ImageRightsAuditService.sync_file_metadata(record, file_attr, performed_by=None, source='command')
                         if synced:
                             total_updated += 1
                             safe_rec_str = str(record).encode('ascii', 'replace').decode('ascii')

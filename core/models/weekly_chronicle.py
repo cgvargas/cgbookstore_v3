@@ -327,26 +327,56 @@ class WeeklyChronicle(models.Model):
         return ratio_classes.get(self.featured_image_ratio, 'ratio-16x9')
 
     @property
+    def has_valid_featured_image(self):
+        """Verifica se a imagem principal pode ser exibida publicamente."""
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.featured_image and self.featured_image.name and ImageRightsAuditService.can_display_publicly(self, 'featured_image'))
+
+    @property
+    def featured_image_url(self):
+        """Retorna a URL da imagem principal se permitida, ou None."""
+        if self.has_valid_featured_image:
+            return self.featured_image.url
+        return None
+
+    @property
+    def has_valid_secondary_image(self):
+        """Verifica se a imagem secundária pode ser exibida publicamente."""
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.secondary_image and self.secondary_image.name and ImageRightsAuditService.can_display_publicly(self, 'secondary_image'))
+
+    @property
+    def secondary_image_url(self):
+        """Retorna a URL da imagem secundária se permitida, ou None."""
+        if self.has_valid_secondary_image:
+            return self.secondary_image.url
+        return None
+
+    @property
     def get_gallery_images(self):
-        """Retorna lista de imagens da galeria com suas proporções."""
+        """Retorna lista de imagens da galeria com suas proporções, respeitando a governança."""
+        from core.services.image_rights_service import ImageRightsAuditService
         gallery = []
 
-        if self.gallery_image_1:
+        if self.gallery_image_1 and ImageRightsAuditService.can_display_publicly(self, 'gallery_image_1'):
             gallery.append({
                 'image': self.gallery_image_1,
                 'ratio': self.gallery_image_1_ratio,
+                'field_name': 'gallery_image_1',
             })
 
-        if self.gallery_image_2:
+        if self.gallery_image_2 and ImageRightsAuditService.can_display_publicly(self, 'gallery_image_2'):
             gallery.append({
                 'image': self.gallery_image_2,
                 'ratio': self.gallery_image_2_ratio,
+                'field_name': 'gallery_image_2',
             })
 
-        if self.gallery_image_3:
+        if self.gallery_image_3 and ImageRightsAuditService.can_display_publicly(self, 'gallery_image_3'):
             gallery.append({
                 'image': self.gallery_image_3,
                 'ratio': self.gallery_image_3_ratio,
+                'field_name': 'gallery_image_3',
             })
 
         return gallery

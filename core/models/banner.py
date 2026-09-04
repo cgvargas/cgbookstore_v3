@@ -58,6 +58,19 @@ class Banner(models.Model):
         help_text="URL para onde o usuário será direcionado ao clicar. Ex: /novos-autores/ ou https://site.com"
     )
 
+    @property
+    def can_display_image(self):
+        """Verifica se a imagem do banner pode ser exibida publicamente."""
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.image and self.image.name and ImageRightsAuditService.can_display_publicly(self, 'image'))
+
+    @property
+    def image_url(self):
+        """Retorna a URL da imagem do banner se permitida, ou None."""
+        if self.can_display_image:
+            return self.image.url
+        return None
+
     link_text = models.CharField(
         max_length=50,
         blank=True,

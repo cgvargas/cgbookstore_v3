@@ -76,6 +76,32 @@ class Event(models.Model):
         help_text="Imagem pequena para cards (recomendado: 400x300px)"
     )
 
+    @property
+    def has_valid_banner_image(self):
+        """Verifica se o banner do evento pode ser exibido publicamente."""
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.banner_image and self.banner_image.name and ImageRightsAuditService.can_display_publicly(self, 'banner_image'))
+
+    @property
+    def banner_image_url(self):
+        """Retorna a URL do banner se permitida, ou None."""
+        if self.has_valid_banner_image:
+            return self.banner_image.url
+        return None
+
+    @property
+    def has_valid_thumbnail(self):
+        """Verifica se o thumbnail do evento pode ser exibido publicamente."""
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.thumbnail_image and self.thumbnail_image.name and ImageRightsAuditService.can_display_publicly(self, 'thumbnail_image'))
+
+    @property
+    def thumbnail_image_url(self):
+        """Retorna a URL do thumbnail se permitida, ou None."""
+        if self.has_valid_thumbnail:
+            return self.thumbnail_image.url
+        return None
+
     # Data e Local
     start_date = models.DateTimeField(
         verbose_name="Data/Hora de Início"

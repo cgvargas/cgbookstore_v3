@@ -11,9 +11,12 @@ from django.contrib.contenttypes.admin import GenericStackedInline
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from core.models.image_rights import ImageRightsRecord
 from core.models.copyright_takedown import CopyrightTakedownRequest
+from core.admin.image_rights_audit_log_admin import ImageRightsAuditLogInline
+from core.services.image_rights_history_service import ImageRightsHistoryService
 
 
 class CopyrightTakedownRequestInline(admin.StackedInline):
@@ -135,13 +138,14 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
     Admin central para auditoria direta de ImageRightsRecord.
     """
     form = ImageRightsRecordForm
-    inlines = [CopyrightTakedownRequestInline]
+    inlines = [CopyrightTakedownRequestInline, ImageRightsAuditLogInline]
     list_display = [
         'id',
         'content_type',
         'object_id',
         'image_field_name',
         'audit_status_badge',
+        'provenance_badge',
         'public_display_badge',
         'disputes_count_badge',
         'purpose_badge',
@@ -155,6 +159,8 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
     ]
     list_filter = [
         'audit_status',
+        'provenance_provider',
+        'is_auto_imported',
         'public_display_allowed',
         'usage_purpose',
         'legal_basis',
@@ -170,15 +176,33 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
         'credit_name',
         'work_title',
         'source_url',
+        'provenance_provider',
+        'provider_asset_id',
         'usage_notes',
         'image_field_name',
         'display_dimensions',
     ]
-    readonly_fields = ['created_at', 'updated_at', 'image_checksum', 'image_width_px', 'image_height_px', 'file_size_kb']
+    readonly_fields = ['created_at', 'updated_at', 'image_checksum', 'image_width_px', 'image_height_px', 'file_size_kb', 'provenance_imported_at']
     actions = [
         'action_suspend_public_display',
         'action_restore_public_display',
     ]
+
+    def has_delete_permission(self, request, obj=None):
+        """
+        Governança: Impede a exclusão administrativa de registros que possuam
+        histórico de auditoria ou contestações vinculadas.
+        """
+        if obj:
+            if obj.audit_logs.exists() or obj.takedown_requests.exists():
+                return False
+        return super().has_delete_permission(request, obj)
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
 
     fieldsets = (
         ('📌 Vínculo do Ativo Visual', {
@@ -193,6 +217,18 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
             'fields': (
                 'audit_status',
                 'public_display_allowed',
+            )
+        }),
+        ('🔗 Procedência Técnica e Rastreabilidade Externa', {
+            'description': (
+                '⚠️ AVISO DE GOVERNANÇA: A procedência técnica identifica de onde o arquivo ou referência '
+                'foi obtido. Ela NÃO representa, por si só, licença, autorização, titularidade ou regularização jurídica.'
+            ),
+            'fields': (
+                ('provenance_provider', 'is_auto_imported'),
+                ('provenance_method', 'provider_asset_id'),
+                'provenance_imported_at',
+                'provenance_metadata',
             )
         }),
         ('🎨 Autoria, Criação e Titularidade dos Direitos', {
@@ -227,6 +263,30 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
         }),
     )
 
+    def provenance_badge(self, obj):
+        if not obj.provenance_provider:
+            if obj.is_ai_generated:
+                return mark_safe('<span style="background:#6c5ce7; color:#fff; padding:2px 7px; border-radius:8px; font-size:0.75rem;">🤖 IA Interna</span>')
+            return mark_safe('<span style="color:#7f8c8d; font-size:0.75rem;">—</span>')
+        
+        provider_styles = {
+            'google_books': ('#4285F4', '🔍 Google Books'),
+            'open_library': ('#e67e22', '📖 Open Library'),
+            'project_gutenberg': ('#8e44ad', '📜 Project Gutenberg'),
+            'unsplash': ('#000000', '📷 Unsplash'),
+            'wikimedia': ('#2c3e50', '🏛️ Wikimedia'),
+            'amazon': ('#f39c12', '🛒 Amazon'),
+            'publisher': ('#d35400', '📚 Editora'),
+        }
+        color, label = provider_styles.get(obj.provenance_provider, ('#34495e', f'🌐 {obj.provenance_provider}'))
+        auto_tag = ' ⚡' if obj.is_auto_imported else ''
+        return format_html(
+            '<span style="background:{}; color:#fff; padding:2px 7px; border-radius:8px; font-size:0.73rem; font-weight:600;">{}{}</span>',
+            color, label, auto_tag
+        )
+    provenance_badge.short_description = "Procedência Técnica"
+    provenance_badge.admin_order_field = 'provenance_provider'
+
     def public_display_badge(self, obj):
         if obj.can_display_publicly:
             return format_html('<span style="color:{}; font-weight:600;">{}</span>', '#27ae60', '🟢 Permitida')
@@ -247,19 +307,26 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
 
     @admin.action(description="⛔ Suspender exibição pública (public_display_allowed=False, audit_status='restricted')")
     def action_suspend_public_display(self, request, queryset):
-        updated = queryset.update(public_display_allowed=False, audit_status='restricted')
-        self.message_user(request, f"{updated} ativo(s) suspenso(s) preventivamente da exibição pública.", messages.WARNING)
+        count = 0
+        for record in queryset:
+            ImageRightsAuditService.suspend_image_asset(record, request_user=request.user)
+            count += 1
+        self.message_user(request, f"{count} ativo(s) suspenso(s) preventivamente da exibição pública.", messages.WARNING)
 
     @admin.action(description="🟢 Restaurar exibição pública (public_display_allowed=True)")
     def action_restore_public_display(self, request, queryset):
-        count = 0
+        success_count = 0
+        failed_msgs = []
         for record in queryset:
-            record.public_display_allowed = True
-            if record.audit_status == 'restricted':
-                record.audit_status = 'under_review'
-            record.save(update_fields=['public_display_allowed', 'audit_status'])
-            count += 1
-        self.message_user(request, f"Exibição pública restaurada para {count} ativo(s).", messages.SUCCESS)
+            success, msg = ImageRightsAuditService.restore_image_asset(record, request_user=request.user)
+            if success:
+                success_count += 1
+            else:
+                failed_msgs.append(f"Ativo #{record.pk}: {msg}")
+        if success_count:
+            self.message_user(request, f"Exibição pública restaurada para {success_count} ativo(s).", messages.SUCCESS)
+        if failed_msgs:
+            self.message_user(request, f"Atenção: Não foi possível restaurar {len(failed_msgs)} ativo(s): " + " | ".join(failed_msgs), messages.ERROR)
 
     def audit_status_badge(self, obj):
         colors = {
@@ -287,9 +354,29 @@ class ImageRightsRecordAdmin(admin.ModelAdmin):
     creator_or_credit_display.short_description = "Criador / Crédito"
 
     def save_model(self, request, obj, form, change):
+        is_new = not obj.pk
+        old_instance = None
+        if not is_new:
+            old_instance = ImageRightsRecord.objects.filter(pk=obj.pk).first()
+
         if not obj.created_by:
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
+
+        # Trilha Histórica de Auditoria
+        if is_new:
+            ImageRightsHistoryService.log_record_created(
+                record=obj,
+                performed_by=request.user,
+                source='admin'
+            )
+        elif old_instance:
+            ImageRightsHistoryService.log_record_changes(
+                record=obj,
+                old_instance=old_instance,
+                performed_by=request.user,
+                source='admin'
+            )
 
         # Validações não-bloqueantes com mensagens orientadoras para o administrador
         if obj.audit_status == 'regularized' and not obj.license_type and not obj.legal_basis:

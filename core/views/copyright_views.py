@@ -12,7 +12,9 @@ from django.shortcuts import render, get_object_or_404
 from django.db import models
 from core.models.image_rights import ImageRightsRecord
 from core.models.copyright_takedown import CopyrightTakedownRequest
+from core.models.image_rights_audit_log import ImageRightsAuditLog
 from core.services.image_rights_service import ImageRightsAuditService
+from core.services.image_rights_audit_queue_service import ImageRightsAuditQueueService
 
 
 @staff_member_required
@@ -215,6 +217,24 @@ def copyright_audit_dashboard(request):
     attribution_rate = round((valid_attribution_count / total_records * 100), 1) if total_records > 0 else 100.0
     legal_proof_rate = round((valid_legal_proof_count / total_records * 100), 1) if total_records > 0 else 100.0
 
+    # 4. Métricas de Procedência Técnica e Rastreabilidade Externa
+    auto_imported_count = ImageRightsRecord.objects.filter(is_auto_imported=True).count()
+    auto_imported_not_audited = ImageRightsRecord.objects.filter(is_auto_imported=True, audit_status='not_audited').count()
+    auto_imported_regularized = ImageRightsRecord.objects.filter(is_auto_imported=True, audit_status='regularized').count()
+    
+    provenance_google_count = ImageRightsRecord.objects.filter(provenance_provider='google_books').count()
+    provenance_openlibrary_count = ImageRightsRecord.objects.filter(provenance_provider='open_library').count()
+    provenance_unsplash_count = ImageRightsRecord.objects.filter(provenance_provider='unsplash').count()
+    provenance_wikimedia_count = ImageRightsRecord.objects.filter(provenance_provider='wikimedia').count()
+    provenance_other_count = ImageRightsRecord.objects.exclude(
+        provenance_provider__in=['', 'google_books', 'open_library', 'unsplash', 'wikimedia']
+    ).count()
+
+    # 5. Trilha Histórica de Auditoria Recente
+    recent_audit_logs = ImageRightsAuditLog.objects.select_related(
+        'image_rights_record', 'image_rights_record__content_type', 'performed_by', 'takedown_request'
+    ).order_by('-created_at', '-id')[:20]
+
     context = {
         'total_records': total_records,
         'not_audited_count': not_audited_count,
@@ -245,9 +265,128 @@ def copyright_audit_dashboard(request):
         'takedown_resolved_removed_count': takedown_resolved_removed_count,
         'takedown_rejected_count': takedown_rejected_count,
         'active_takedowns': active_takedowns,
+        # Trilha Histórica de Auditoria
+        'recent_audit_logs': recent_audit_logs,
+        'total_audit_logs': ImageRightsAuditLog.objects.count(),
+        # Métricas de Procedência Técnica
+        'auto_imported_count': auto_imported_count,
+        'auto_imported_not_audited': auto_imported_not_audited,
+        'auto_imported_regularized': auto_imported_regularized,
+        'provenance_google_count': provenance_google_count,
+        'provenance_openlibrary_count': provenance_openlibrary_count,
+        'provenance_unsplash_count': provenance_unsplash_count,
+        'provenance_wikimedia_count': provenance_wikimedia_count,
+        'provenance_other_count': provenance_other_count,
+        # KPIs da Fila Operacional Inteligente (Fase 2)
+        'queue_kpis': ImageRightsAuditQueueService.get_queue_summary_kpis(),
     }
 
     return render(request, 'admin/copyright_audit.html', context)
+
+
+@staff_member_required
+def copyright_audit_queue(request):
+    """
+    Fila Inteligente e Priorizada de Auditoria de Direitos Autorais de Imagens (Fase 2).
+    Permite aos administradores auditar eficientemente ativos visuais organizados por score e prioridade.
+    """
+    from core.services.image_rights_audit_queue_service import ImageRightsAuditQueueService
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+    filters = {
+        'priority': request.GET.get('priority', ''),
+        'audit_status': request.GET.get('audit_status', ''),
+        'public_display': request.GET.get('public_display', ''),
+        'provider': request.GET.get('provider', ''),
+        'is_auto_imported': request.GET.get('is_auto_imported', ''),
+        'has_document': request.GET.get('has_document', ''),
+        'has_takedown': request.GET.get('has_takedown', ''),
+        'has_creator': request.GET.get('has_creator', ''),
+        'has_rights_holder': request.GET.get('has_rights_holder', ''),
+        'has_license': request.GET.get('has_license', ''),
+        'has_divergence': request.GET.get('has_divergence', ''),
+        'content_type_id': request.GET.get('content_type', ''),
+        'image_field_name': request.GET.get('image_field', ''),
+        'show_all': request.GET.get('show_all', ''),
+    }
+    search_query = request.GET.get('q', '').strip()
+    order_by = request.GET.get('order_by', '-priority')
+    page_num = request.GET.get('page', 1)
+
+    all_evaluated_items = ImageRightsAuditQueueService.get_queue_queryset(
+        filters=filters,
+        search_query=search_query,
+        order_by=order_by
+    )
+
+    paginator = Paginator(all_evaluated_items, 25)
+
+    try:
+        page_obj = paginator.page(page_num)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+    # Opções para Dropdowns de Filtro
+    content_types = ContentType.objects.filter(
+        id__in=ImageRightsRecord.objects.values_list('content_type_id', flat=True).distinct()
+    ).order_by('model')
+
+    distinct_fields = ImageRightsRecord.objects.values_list('image_field_name', flat=True).distinct().order_by('image_field_name')
+    queue_kpis = ImageRightsAuditQueueService.get_queue_summary_kpis()
+
+    context = {
+        'page_obj': page_obj,
+        'queue_items': page_obj.object_list,
+        'total_items': len(all_evaluated_items),
+        'filters': filters,
+        'search_query': search_query,
+        'order_by': order_by,
+        'queue_kpis': queue_kpis,
+        'content_types': content_types,
+        'distinct_fields': distinct_fields,
+        'priority_choices': [
+            ('critical', '🔴 Crítica'),
+            ('high', '🟠 Alta'),
+            ('medium', '🟡 Média'),
+            ('low', '🟢 Baixa'),
+        ],
+        'audit_status_choices': ImageRightsRecord.AUDIT_STATUS_CHOICES,
+        'provider_choices': ImageRightsRecord.PROVENANCE_PROVIDER_CHOICES,
+    }
+    return render(request, 'admin/copyright_audit_queue.html', context)
+
+
+@staff_member_required
+def copyright_assisted_audit(request, record_id):
+    """
+    Auditoria Assistida Simples de Direitos Autorais de Imagens (Fase 2 - Prompt 2).
+    Apresenta de forma limpa, direta e descomplicada a procedência, o status,
+    a pendência principal e a próxima ação sugerida para orientar a decisão humana.
+    """
+    from django.http import Http404
+    from core.services.image_rights_audit_queue_service import ImageRightsAuditQueueService
+
+    audit_data = ImageRightsAuditQueueService.get_assisted_audit_data(record_id)
+    if not audit_data:
+        raise Http404("Registro de direitos autorais de imagem não encontrado.")
+
+    context = {
+        'data': audit_data,
+        'record': audit_data['record'],
+        'item': audit_data['item'],
+        'primary_reason': audit_data['primary_reason'],
+        'other_reasons': audit_data['other_reasons'],
+        'image_url': audit_data['image_url'],
+        'has_safe_image': audit_data['has_safe_image'],
+        'active_takedown': audit_data['active_takedown'],
+        'is_info_complete': audit_data['is_info_complete'],
+        'prev_id': audit_data['prev_id'],
+        'next_id': audit_data['next_id'],
+        'sanitized_metadata': audit_data['sanitized_metadata'],
+    }
+    return render(request, 'admin/copyright_assisted_audit.html', context)
 
 
 @staff_member_required

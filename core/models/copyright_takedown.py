@@ -38,7 +38,7 @@ class CopyrightTakedownRequest(models.Model):
     # Vínculo com o registro de direitos autorais contestado
     image_rights_record = models.ForeignKey(
         'core.ImageRightsRecord',
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name='takedown_requests',
         verbose_name="Registro de Direitos Autorais Contestado",
         help_text="Ativo visual objeto da notificação ou contestação."

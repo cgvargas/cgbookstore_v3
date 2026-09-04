@@ -264,6 +264,19 @@ class Article(models.Model):
     def get_absolute_url(self):
         return reverse('news:article_detail', kwargs={'slug': self.slug})
 
+    @property
+    def has_valid_featured_image(self):
+        """Verifica se a imagem do artigo pode ser exibida publicamente."""
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.featured_image and self.featured_image.name and ImageRightsAuditService.can_display_publicly(self, 'featured_image'))
+
+    @property
+    def featured_image_url(self):
+        """Retorna a URL da imagem se permitida, ou None."""
+        if self.has_valid_featured_image:
+            return self.featured_image.url
+        return None
+
     def increment_views(self):
         """Incrementa contador de visualizações"""
         self.views_count += 1
@@ -278,8 +291,22 @@ class Quiz(models.Model):
     featured_image = models.ImageField(
         upload_to='news/quizzes/',
         blank=True,
-        verbose_name="Imagem de Destaque"
+        null=True,
+        verbose_name="Imagem de Capa do Quiz"
     )
+
+    @property
+    def has_valid_featured_image(self):
+        """Verifica se a imagem do quiz pode ser exibida publicamente."""
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.featured_image and self.featured_image.name and ImageRightsAuditService.can_display_publicly(self, 'featured_image'))
+
+    @property
+    def featured_image_url(self):
+        """Retorna a URL da imagem se permitida, ou None."""
+        if self.has_valid_featured_image:
+            return self.featured_image.url
+        return None
 
     # Relacionamentos
     category = models.ForeignKey(

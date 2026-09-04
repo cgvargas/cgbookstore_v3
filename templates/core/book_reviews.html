@@ -36,8 +36,8 @@
         <!-- Coluna Esquerda: Cópia parcial do detalhe (Conforme Layout Anexo) -->
         <div class="col-md-3 mb-4">
             <div class="card bg-dark border-secondary shadow-lg overflow-hidden position-sticky" style="top: 20px;">
-                {% if book.cover_image %}
-                    <img src="{{ book.cover_image.url }}" class="card-img-top" alt="Capa de {{ book.title }}">
+                {% if book.cover_image_url %}
+                    <img src="{{ book.cover_image_url }}" class="card-img-top" alt="Capa de {{ book.title }}">
                 {% else %}
                     <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 380px;">
                         <i class="fas fa-book fa-5x text-dark opacity-50"></i>

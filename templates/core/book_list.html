@@ -257,8 +257,8 @@
                 {% for book in books %}
                 <div class="col">
                     <div class="card h-100 book-card">
-                        {% if book.cover_image %}
-                            <img src="{{ book.cover_image.url }}" class="card-img-top book-cover" alt="{{ book.title }}">
+                        {% if book.cover_image_url %}
+                            <img src="{{ book.cover_image_url }}" class="card-img-top book-cover" alt="{{ book.title }}">
                         {% else %}
                             <img src="{% static 'images/no-cover-placeholder.svg' %}" class="card-img-top book-cover" alt="Capa indisponível">
                         {% endif %}

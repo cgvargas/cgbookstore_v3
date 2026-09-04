@@ -106,13 +106,16 @@ class ImageRightsAuditService:
         return cls.DEFAULT_MODEL_PURPOSES.get(model_name, ('other', 'fair_use_art46'))
 
     @classmethod
-    def sync_file_metadata(cls, rights_record, file_attr):
-        """Sincroniza automaticamente dimensões, peso em KB e checksum do arquivo no registro."""
+    def sync_file_metadata(cls, rights_record, file_attr, performed_by=None, source='command'):
+        """Sincroniza automaticamente dimensões, peso em KB e checksum do arquivo no registro e gera log de auditoria."""
         if not rights_record or not file_attr:
             return False
 
+        from core.services.image_rights_history_service import ImageRightsHistoryService
+
         meta = ImageRightsRecord.extract_file_metadata(file_attr)
         updated = False
+        old_checksum = rights_record.image_checksum
 
         if meta['checksum'] and rights_record.image_checksum != meta['checksum']:
             rights_record.image_checksum = meta['checksum']
@@ -135,6 +138,14 @@ class ImageRightsAuditService:
 
         if updated:
             rights_record.save()
+            if old_checksum != rights_record.image_checksum:
+                ImageRightsHistoryService.log_checksum_updated(
+                    record=rights_record,
+                    old_checksum=old_checksum,
+                    new_checksum=rights_record.image_checksum,
+                    performed_by=performed_by,
+                    source=source
+                )
 
         return updated
 
@@ -163,6 +174,8 @@ class ImageRightsAuditService:
         if not obj or not getattr(obj, 'pk', None):
             return 'no_image', None
 
+        from core.services.image_rights_history_service import ImageRightsHistoryService
+
         file_attr = getattr(obj, field_name, None)
         if not file_attr or not hasattr(file_attr, 'name') or not file_attr.name:
             return 'no_image', None
@@ -185,6 +198,13 @@ class ImageRightsAuditService:
         if rights_record.image_checksum:
             current_checksum = ImageRightsRecord.calculate_file_checksum(file_attr)
             if current_checksum and current_checksum != rights_record.image_checksum:
+                # Registrar evento na trilha de auditoria com proteção anti-duplicação
+                ImageRightsHistoryService.log_integrity_divergence(
+                    record=rights_record,
+                    expected_checksum=rights_record.image_checksum,
+                    detected_checksum=current_checksum,
+                    source='system'
+                )
                 return 'divergent', rights_record
 
         # 2. Respeito às decisões administrativas restritivas / contestações e suspensão preventiva
@@ -268,13 +288,20 @@ class ImageRightsAuditService:
     def can_display_publicly(cls, obj, field_name=None):
         """
         Verifica de forma centralizada e segura se um ativo visual pode ser exibido publicamente.
-        Se obj não possuir registro associado, retorna True por compatibilidade.
-        Se possuir registro, consulta a propriedade can_display_publicly do ImageRightsRecord.
+        Se obj for uma instância de ImageRightsRecord, consulta diretamente sua property.
+        Se obj for um model de conteúdo, localiza o ImageRightsRecord associado e verifica can_display_publicly.
+        Retorna True caso não haja restrições ou contestações impeditivas.
         """
-        if not obj or not getattr(obj, 'pk', None):
+        if not obj:
             return True
-        if not field_name:
+
+        # Se o objeto já é o ImageRightsRecord
+        if isinstance(obj, ImageRightsRecord):
+            return obj.can_display_publicly
+
+        if not getattr(obj, 'pk', None) or not field_name:
             return True
+
         try:
             ct = ContentType.objects.get_for_model(obj)
             record = ImageRightsRecord.objects.filter(
@@ -287,6 +314,140 @@ class ImageRightsAuditService:
             return record.can_display_publicly
         except Exception:
             return True
+
+    @classmethod
+    def suspend_image_asset(cls, record, request_user=None, notes=None, takedown_request=None, source='service'):
+        """
+        Executa a suspensão preventiva de exibição pública de forma atômica e coordenada.
+        Define public_display_allowed=False e audit_status='restricted', registrando evento na trilha de auditoria.
+        """
+        from django.db import transaction
+        from core.services.image_rights_history_service import ImageRightsHistoryService
+
+        with transaction.atomic():
+            record.public_display_allowed = False
+            record.audit_status = 'restricted'
+            if notes:
+                record.usage_notes = f"{record.usage_notes}\n[SUSPENSÃO PREVENTIVA]: {notes}".strip()
+            record.save()
+
+            # Registrar na trilha histórica de auditoria de forma atômica
+            ImageRightsHistoryService.log_suspension(
+                record=record,
+                performed_by=request_user,
+                source=source,
+                notes=notes,
+                takedown_request=takedown_request
+            )
+            return True, "Exibição pública suspensa preventivamente."
+
+    @classmethod
+    def restore_image_asset(cls, record, request_user=None, takedown_request=None, source='service'):
+        """
+        Restaura a exibição pública de um ativo visual de forma atômica.
+        Impede a restauração se houver qualquer contestação com status impeditivo ativo.
+        Registra o evento na trilha de auditoria.
+        """
+        from django.db import transaction
+        from core.services.image_rights_history_service import ImageRightsHistoryService
+
+        with transaction.atomic():
+            # Verificação de segurança: não permite restaurar se houver contestação suspensa ou removida
+            blocking_takedowns = record.takedown_requests.filter(
+                status__in=['temporarily_suspended', 'resolved_removed']
+            )
+            if blocking_takedowns.exists():
+                count = blocking_takedowns.count()
+                return False, f"Impossível restaurar exibição: existe(m) {count} contestação(ões) com suspensão preventiva ativa ou remoção definitiva vinculada(s) a este ativo."
+
+            record.public_display_allowed = True
+            # Se estava com status restrito, ajusta para under_review ou pending (não regulariza automaticamente)
+            if record.audit_status == 'restricted':
+                record.audit_status = 'under_review' if record.takedown_requests.filter(status='under_review').exists() else 'pending'
+            record.save()
+
+            # Registrar na trilha histórica de auditoria de forma atômica
+            ImageRightsHistoryService.log_restoration(
+                record=record,
+                performed_by=request_user,
+                source=source,
+                takedown_request=takedown_request
+            )
+            return True, "Exibição pública restaurada com sucesso."
+
+    @classmethod
+    def resolve_takedown_atomic(cls, takedown, resolution_type, request_user=None, resolution_notes='', source='service'):
+        """
+        Resolve uma ocorrência de contestação/takedown de forma coordenada e atômica.
+        Suporta:
+        - 'keep': resolve mantendo a imagem (se não houver outra contestação impeditiva, permite restauração de public_display_allowed).
+        - 'remove': resolve retirando a imagem (força public_display_allowed=False e audit_status='restricted').
+        Gera eventos na trilha histórica de auditoria dentro da mesma transação.
+        """
+        from django.db import transaction
+        from django.utils import timezone
+        from core.services.image_rights_history_service import ImageRightsHistoryService
+
+        with transaction.atomic():
+            record = takedown.image_rights_record
+            takedown.resolved_at = timezone.now()
+            takedown.resolved_by = request_user
+            if resolution_notes:
+                takedown.resolution_notes = resolution_notes
+
+            if resolution_type == 'remove':
+                takedown.status = 'resolved_removed'
+                takedown.save()
+                if record:
+                    record.public_display_allowed = False
+                    record.audit_status = 'restricted'
+                    record.save(update_fields=['public_display_allowed', 'audit_status'])
+                    ImageRightsHistoryService.log_takedown_resolution(
+                        takedown=takedown,
+                        resolution_type='remove',
+                        performed_by=request_user,
+                        source=source,
+                        notes=resolution_notes
+                    )
+                return True, "Contestação resolvida com RETIRADA DA IMAGEM. Exibição pública bloqueada e histórico preservado."
+
+            elif resolution_type == 'keep':
+                takedown.status = 'resolved_keep'
+                takedown.save()
+                if record:
+                    # Verificar se há OUTRA contestação com suspensão impeditiva
+                    other_blocking = record.takedown_requests.exclude(pk=takedown.pk).filter(
+                        status__in=['temporarily_suspended', 'resolved_removed']
+                    ).exists()
+                    if other_blocking:
+                        # Mantém suspenso devido à outra ocorrência pendente
+                        record.public_display_allowed = False
+                        record.audit_status = 'restricted'
+                        record.save(update_fields=['public_display_allowed', 'audit_status'])
+                        ImageRightsHistoryService.log_takedown_resolution(
+                            takedown=takedown,
+                            resolution_type='keep',
+                            performed_by=request_user,
+                            source=source,
+                            notes=resolution_notes
+                        )
+                        return True, "Contestação resolvida mantendo uso. NOTA: O ativo visual permanece SUSPENSO porque há outra contestação impeditiva ativa associada."
+                    else:
+                        # Nenhuma outra ocorrência impede a exibição
+                        record.public_display_allowed = True
+                        if record.audit_status == 'restricted':
+                            record.audit_status = 'under_review' if record.takedown_requests.filter(status='under_review').exists() else 'pending'
+                        record.save(update_fields=['public_display_allowed', 'audit_status'])
+                        ImageRightsHistoryService.log_takedown_resolution(
+                            takedown=takedown,
+                            resolution_type='keep',
+                            performed_by=request_user,
+                            source=source,
+                            notes=resolution_notes
+                        )
+                return True, "Contestação resolvida com MANUTENÇÃO DA IMAGEM. Exibição pública restaurada."
+
+            return False, "Tipo de resolução não reconhecido."
 
     @classmethod
     def audit_model_admin_save(cls, request, obj):

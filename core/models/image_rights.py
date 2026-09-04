@@ -35,8 +35,23 @@ class ImageRightsRecord(models.Model):
         ('amazon', '🛒 Origem: Amazon Brasil (Procedência Técnica)'),
         ('google_books', '🔍 Origem: Google Books (Procedência Técnica)'),
         ('open_library', '📖 Origem: Open Library (Procedência Técnica)'),
+        ('project_gutenberg', '📜 Origem: Project Gutenberg (Procedência Técnica)'),
         ('wikimedia', '🏛️ Origem: Wikimedia Commons (Procedência Técnica)'),
         ('other', '📌 Outra Licença / Procedência'),
+    ]
+
+    PROVENANCE_PROVIDER_CHOICES = [
+        ('google_books', '🔍 Google Books API'),
+        ('open_library', '📖 Open Library'),
+        ('project_gutenberg', '📜 Project Gutenberg'),
+        ('unsplash', '📷 Unsplash API'),
+        ('wikimedia', '🏛️ Wikimedia Commons'),
+        ('publisher', '📚 Editora / Material de Divulgação'),
+        ('amazon', '🛒 Amazon (Afiliados / Referência Técnica)'),
+        ('external_api', '🌐 Outra API Externa'),
+        ('internal_ai', '🤖 IA Interna (Geração Própria)'),
+        ('partner', '🤝 Parceiro Institucional'),
+        ('other', '📌 Outro Provedor Técnico'),
     ]
 
     PURPOSE_CHOICES = [
@@ -235,6 +250,50 @@ class ImageRightsRecord(models.Model):
         help_text="Marque se a imagem foi sintetizada por ferramenta de IA (Midjourney, DALL-E, etc.)."
     )
 
+    # Proveniência e Rastreabilidade Técnica (Independentes de Licença e Fundamento Jurídico)
+    provenance_provider = models.CharField(
+        max_length=50,
+        choices=PROVENANCE_PROVIDER_CHOICES,
+        blank=True,
+        default='',
+        db_index=True,
+        verbose_name="Provedor Técnico de Proveniência",
+        help_text="Identifica a fonte/serviço externo de onde o arquivo ou referência foi obtido (ex: google_books, open_library, project_gutenberg, unsplash, wikimedia)."
+    )
+    provenance_method = models.CharField(
+        max_length=50,
+        blank=True,
+        default='',
+        verbose_name="Método de Importação",
+        help_text="Canal técnico de aquisição (ex: api_download, api_reference, rss_sync, manual_import)."
+    )
+    provenance_imported_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Data/Hora da Importação Técnica",
+        help_text="Momento em que o ativo visual foi importado do provedor externo."
+    )
+    provider_asset_id = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        db_index=True,
+        verbose_name="Identificador Externo do Ativo",
+        help_text="ID do ativo no catálogo da fonte externa (ex: Google Book ID, OpenLibrary Work ID, Unsplash Photo ID)."
+    )
+    is_auto_imported = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name="Importado Automaticamente?",
+        help_text="Indica se os dados visuais e de proveniência nasceram através de rotinas e integrações automáticas."
+    )
+    provenance_metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Metadados Seguros de Proveniência",
+        help_text="Snapshot estruturado de metadados técnicos seguros fornecidos pela API/fonte (sem tokens, dados pessoais ou headers)."
+    )
+
     # Documentação Privada e Observações Internas
     usage_notes = models.TextField(
         blank=True,
@@ -277,6 +336,7 @@ class ImageRightsRecord(models.Model):
             models.Index(fields=['usage_purpose', 'legal_basis']),
             models.Index(fields=['audit_status']),
             models.Index(fields=['public_display_allowed']),
+            models.Index(fields=['provenance_provider', 'is_auto_imported']),
         ]
 
     @property
@@ -316,42 +376,92 @@ class ImageRightsRecord(models.Model):
 
     @staticmethod
     def calculate_file_checksum(file_field):
-        """Gera SHA-256 de um campo FileField / ImageField se o arquivo existir."""
-        if not file_field:
+        """
+        Gera SHA-256 de um campo FileField / ImageField utilizando a abstração de storage do Django.
+        Lê em blocos (chunks) e garante o fechamento do stream em try...finally.
+        Funciona de forma independente do filesystem local (S3, GCS, Supabase, FileSystemStorage).
+        """
+        if not file_field or not getattr(file_field, 'name', None):
             return ''
+        
+        file_handle = None
         try:
             hasher = hashlib.sha256()
-            file_field.open('rb')
-            for chunk in file_field.chunks():
-                hasher.update(chunk)
-            file_field.close()
+            file_handle = file_field.open('rb')
+            if hasattr(file_field, 'chunks'):
+                for chunk in file_field.chunks(chunk_size=64 * 1024):
+                    hasher.update(chunk)
+            else:
+                while True:
+                    chunk = file_handle.read(64 * 1024)
+                    if not chunk:
+                        break
+                    hasher.update(chunk)
             return hasher.hexdigest()
         except Exception:
             return ''
+        finally:
+            if file_handle and hasattr(file_handle, 'close'):
+                try:
+                    file_handle.close()
+                except Exception:
+                    pass
+            elif hasattr(file_field, 'close'):
+                try:
+                    file_field.close()
+                except Exception:
+                    pass
 
     @staticmethod
     def extract_file_metadata(file_field):
-        """Extrai checksum, largura, altura e tamanho em KB do arquivo de imagem se existir."""
-        if not file_field:
+        """
+        Extrai checksum, largura, altura e tamanho em KB do arquivo de imagem.
+        Utiliza puramente a abstração de streams de storage do Django sem supor a existência de .path físico.
+        Garante o fechamento de streams e tratamento seguro de exceções de I/O e decodificação.
+        """
+        if not file_field or not getattr(file_field, 'name', None):
             return {'checksum': '', 'width': None, 'height': None, 'size_kb': None}
         
         checksum = ImageRightsRecord.calculate_file_checksum(file_field)
         width, height, size_kb = None, None, None
         
+        # 1. Tamanho do arquivo via API do storage/FieldFile
         try:
-            if hasattr(file_field, 'size') and file_field.size:
+            if hasattr(file_field, 'size') and isinstance(file_field.size, (int, float)):
                 size_kb = round(file_field.size / 1024.0, 2)
+            elif hasattr(file_field, 'storage') and hasattr(file_field.storage, 'size'):
+                size_bytes = file_field.storage.size(file_field.name)
+                if size_bytes and isinstance(size_bytes, (int, float)):
+                    size_kb = round(size_bytes / 1024.0, 2)
         except Exception:
             pass
 
+        # 2. Dimensões da imagem via Pillow através do stream de bytes
+        file_handle = None
+        img = None
         try:
             from PIL import Image
-            file_field.open('rb')
-            img = Image.open(file_field)
+            file_handle = file_field.open('rb')
+            img = Image.open(file_handle)
             width, height = img.size
-            file_field.close()
         except Exception:
             pass
+        finally:
+            if img and hasattr(img, 'close'):
+                try:
+                    img.close()
+                except Exception:
+                    pass
+            if file_handle and hasattr(file_handle, 'close'):
+                try:
+                    file_handle.close()
+                except Exception:
+                    pass
+            elif hasattr(file_field, 'close'):
+                try:
+                    file_field.close()
+                except Exception:
+                    pass
 
         return {
             'checksum': checksum,

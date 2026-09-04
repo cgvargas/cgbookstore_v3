@@ -299,6 +299,19 @@ class EmergingAuthor(models.Model):
         age = today.year - self.birth_date.year - ((today.month, today.day) < (self.birth_date.month, self.birth_date.day))
         return age >= 18
 
+    @property
+    def has_valid_photo(self):
+        """Verifica se a foto do autor pode ser exibida publicamente."""
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.photo and self.photo.name and ImageRightsAuditService.can_display_publicly(self, 'photo'))
+
+    @property
+    def photo_url(self):
+        """Retorna a URL da foto do autor se permitida, ou None."""
+        if self.has_valid_photo:
+            return self.photo.url
+        return None
+
     def validate_cpf(self):
         """Validação básica de CPF (apenas formato)"""
         import re
@@ -446,6 +459,19 @@ class AuthorBook(models.Model):
             self.rating_average = 0.00
             self.rating_count = 0
         self.save()
+
+    @property
+    def has_valid_cover(self):
+        """Verifica se a capa do livro pode ser exibida publicamente."""
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.cover_image and self.cover_image.name and ImageRightsAuditService.can_display_publicly(self, 'cover_image'))
+
+    @property
+    def cover_image_url(self):
+        """Retorna a URL da capa do livro se permitida, ou None."""
+        if self.has_valid_cover:
+            return self.cover_image.url
+        return None
 
     def increment_views(self):
         """Incrementa contador de visualizações"""
@@ -754,6 +780,19 @@ class PublisherProfile(models.Model):
 
     def __str__(self):
         return self.company_name
+
+    @property
+    def has_valid_logo(self):
+        """Verifica se o logo da editora pode ser exibido publicamente."""
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.logo and self.logo.name and ImageRightsAuditService.can_display_publicly(self, 'logo'))
+
+    @property
+    def logo_url(self):
+        """Retorna a URL do logo se permitida, ou None."""
+        if self.has_valid_logo:
+            return self.logo.url
+        return None
 
     def save(self, *args, **kwargs):
         """Formata CNPJ antes de salvar"""

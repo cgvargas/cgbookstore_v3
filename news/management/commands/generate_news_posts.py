@@ -294,6 +294,29 @@ class Command(BaseCommand):
                                 save=True
                             )
                             self.stdout.write(self.style.SUCCESS('      ✓ Imagem anexada ao artigo'))
+
+                            # Registro automático de Procedência Técnica (Unsplash)
+                            try:
+                                from core.services.image_rights_provenance_service import ImageRightsProvenanceService
+                                ImageRightsProvenanceService.register_external_provenance(
+                                    target_obj=article,
+                                    image_field_name='featured_image',
+                                    provider=ImageRightsProvenanceService.PROVIDER_UNSPLASH,
+                                    source_url=image_data.get('url_regular', '') if image_data else '',
+                                    creator_name=image_data.get('photographer', '') if image_data else '',
+                                    provider_asset_id=str(image_data.get('id', '')) if image_data else '',
+                                    license_type='licensed',  # Unsplash License
+                                    license_url='https://unsplash.com/license',
+                                    provenance_method='api_download',
+                                    safe_metadata={
+                                        'unsplash_id': image_data.get('id') if image_data else None,
+                                        'photographer_username': image_data.get('photographer_username') if image_data else None,
+                                    },
+                                    performed_by=None,
+                                    source='command'
+                                )
+                            except Exception as pe:
+                                logger.warning(f"Erro ao registrar proveniência Unsplash: {pe}")
                         
                         # Adicionar tags
                         if tags_objects:

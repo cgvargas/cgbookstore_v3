@@ -8,7 +8,8 @@
 {% block meta_description %}{% if article.excerpt %}{{ article.excerpt|striptags }}{% else %}{{ article.title }} - Leia a notícia completa na CG.Fandom News.{% endif %}{% endblock %}
 
 {% block og_type %}article{% endblock %}
-{% block og_image %}{% if article.featured_image %}{{ article.featured_image.url }}{% else %}{{ SEO_DEFAULT_OG_IMAGE }}{% endif %}{% endblock %}
+{% block og_image %}{% if article.featured_image_url %}{{ article.featured_image_url }}{% else %}{{ SEO_DEFAULT_OG_IMAGE }}{% endif %}{% endblock %}
+{% block twitter_image %}{% if article.featured_image_url %}{{ article.featured_image_url }}{% else %}{{ SEO_DEFAULT_OG_IMAGE }}{% endif %}{% endblock %}
 
 {% block schema_json_ld %}
 <script type="application/ld+json">
@@ -17,7 +18,7 @@
   "@type": "NewsArticle",
   "headline": "{{ article.title|escapejs }}",
   "description": "{{ article.excerpt|default:article.title|striptags|escapejs }}",
-  {% if article.featured_image %}"image": ["{{ request.scheme }}://{{ request.get_host }}{{ article.featured_image.url }}"],{% endif %}
+  {% if article.featured_image_url %}"image": ["{{ request.scheme }}://{{ request.get_host }}{{ article.featured_image_url }}"],{% endif %}
   "datePublished": "{{ article.published_at|date:'c' }}",
   "dateModified": "{{ article.updated_at|default:article.published_at|date:'c' }}",
   "author": {
@@ -111,8 +112,10 @@
         </header>
 
         <!-- Imagem Destaque -->
+        {% can_display_image article 'featured_image' as can_show_img %}
+        {% if article.featured_image and can_show_img %}
         <figure class="article-featured-image">
-            <img src="{% if article.featured_image.name %}{{ article.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" alt="{{ article.title }}">
+            <img src="{{ article.featured_image_url }}" alt="{{ article.title }}">
             {% if article.image_caption %}
             <figcaption>{{ article.image_caption }}</figcaption>
             {% endif %}
@@ -120,6 +123,7 @@
                 {% render_image_rights article 'featured_image' %}
             </div>
         </figure>
+        {% endif %}
 
         <!-- Conteúdo -->
         <div class="article-content">
@@ -184,8 +188,8 @@
                 <div class="related-book-box h-100">
                     <h3>📚 Livro Relacionado</h3>
                     <div class="d-flex align-items-start gap-3">
-                        {% if rel_book.cover_image %}
-                        <img src="{{ rel_book.cover_image.url }}" alt="{{ rel_book.title }}"
+                        {% if rel_book.cover_image_url %}
+                        <img src="{{ rel_book.cover_image_url }}" alt="{{ rel_book.title }}"
                             style="width: 100px; height: 150px; object-fit: cover; border-radius: 8px;">
                         {% endif %}
                         <div class="flex-grow-1">

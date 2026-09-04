@@ -4,6 +4,9 @@
 
 {% block title %}{{ quiz.title }} - CG.Fandom News Quiz{% endblock %}
 
+{% block og_image %}{% if quiz.featured_image_url %}{{ quiz.featured_image_url }}{% else %}{{ SEO_DEFAULT_OG_IMAGE }}{% endif %}{% endblock %}
+{% block twitter_image %}{% if quiz.featured_image_url %}{{ quiz.featured_image_url }}{% else %}{{ SEO_DEFAULT_OG_IMAGE }}{% endif %}{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/news.css' %}">
 {% endblock %}
@@ -24,8 +27,9 @@
                     <h1 class="card-title">🎯 {{ quiz.title }}</h1>
                     <p class="lead">{{ quiz.description }}</p>
 
-                    {% if quiz.featured_image %}
-                    <img src="{% if quiz.featured_image.name %}{{ quiz.featured_image.url }}{% else %}{% static 'images/no-cover-placeholder.svg' %}{% endif %}" class="img-fluid rounded mb-2" alt="{{ quiz.title }}">
+                    {% can_display_image quiz 'featured_image' as can_show_quiz_img %}
+                    {% if quiz.featured_image and can_show_quiz_img %}
+                    <img src="{{ quiz.featured_image_url }}" class="img-fluid rounded mb-2" alt="{{ quiz.title }}">
                     <div class="mb-3 text-center">
                         {% render_image_rights quiz 'featured_image' %}
                     </div>
@@ -38,7 +42,8 @@
                         <div class="mb-4 p-3 bg-light rounded">
                             <h5>{{ forloop.counter }}. {{ question.question_text }}</h5>
 
-                            {% if question.question_image %}
+                            {% can_display_image question 'question_image' as can_show_q_img %}
+                            {% if question.question_image and can_show_q_img %}
                             <img src="{{ question.question_image.url }}" class="img-fluid rounded my-2" style="max-height: 300px;">
                             <div class="text-center">
                                 {% render_image_rights question 'question_image' %}

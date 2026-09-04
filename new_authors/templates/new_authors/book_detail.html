@@ -41,8 +41,8 @@
 <div class="container my-5">
     <div class="row">
         <div class="col-md-4">
-            {% if book.cover_image %}
-                <img src="{{ book.cover_image.url }}" class="img-fluid rounded shadow" alt="{{ book.title }}">
+            {% if book.cover_image_url %}
+                <img src="{{ book.cover_image_url }}" class="img-fluid rounded shadow" alt="{{ book.title }}">
             {% else %}
                 <div class="ratio ratio-3x4 book-cover-placeholder rounded shadow d-flex align-items-center justify-content-center text-white">
                     <i class="bi bi-book" style="font-size: 6rem;"></i>

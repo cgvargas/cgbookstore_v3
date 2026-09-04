@@ -382,6 +382,45 @@ class LiteraryUniverse(models.Model):
     
     def get_absolute_url(self):
         return reverse('core:literary_universe', kwargs={'slug': self.slug})
+
+    @property
+    def can_display_logo(self):
+        """Verifica se o logo pode ser exibido publicamente."""
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.logo and self.logo.name and ImageRightsAuditService.can_display_publicly(self, 'logo'))
+
+    @property
+    def logo_url(self):
+        """Retorna a URL do logo se permitida, ou None."""
+        if self.can_display_logo:
+            return self.logo.url
+        return None
+
+    @property
+    def can_display_hero_banner(self):
+        """Verifica se o banner do hero pode ser exibido publicamente."""
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.hero_banner_image and self.hero_banner_image.name and ImageRightsAuditService.can_display_publicly(self, 'hero_banner_image'))
+
+    @property
+    def hero_banner_image_url(self):
+        """Retorna a URL do banner do hero se permitida, ou None."""
+        if self.can_display_hero_banner:
+            return self.hero_banner_image.url
+        return None
+
+    @property
+    def can_display_og_image(self):
+        """Verifica se a imagem Open Graph pode ser exibida publicamente."""
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.og_image and self.og_image.name and ImageRightsAuditService.can_display_publicly(self, 'og_image'))
+
+    @property
+    def og_image_url(self):
+        """Retorna a URL da imagem Open Graph se permitida, ou None."""
+        if self.can_display_og_image:
+            return self.og_image.url
+        return None
     
     # === MÉTODOS DE CONTEÚDO ===
     

@@ -19,16 +19,23 @@
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
 <meta property="og:title" content="{% if universe.og_title %}{{ universe.og_title }}{% elif universe.meta_title %}{{ universe.meta_title }}{% else %}{{ universe.page_title }}{% endif %}">
 <meta property="og:description" content="{% if universe.og_description %}{{ universe.og_description }}{% elif universe.meta_description %}{{ universe.meta_description }}{% else %}{{ universe.page_description|truncatewords:30 }}{% endif %}">
-{% if universe.og_image %}
-<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ universe.og_image.url }}">
-{% elif universe.hero_banner_image %}
-<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ universe.hero_banner_image.url }}">
+{% if universe.og_image_url %}
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ universe.og_image_url }}">
+{% elif universe.hero_banner_image_url %}
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ universe.hero_banner_image_url }}">
+{% else %}
+<meta property="og:image" content="{{ SEO_DEFAULT_OG_IMAGE }}">
 {% endif %}
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{% if universe.og_title %}{{ universe.og_title }}{% else %}{{ universe.page_title }}{% endif %}">
 <meta name="twitter:description" content="{% if universe.og_description %}{{ universe.og_description }}{% else %}{{ universe.page_description|truncatewords:30 }}{% endif %}">
+{% if universe.og_image_url %}
+<meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ universe.og_image_url }}">
+{% elif universe.hero_banner_image_url %}
+<meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ universe.hero_banner_image_url }}">
+{% endif %}
 
 <!-- FAQ Schema JSON-LD -->
 {% if faq_schema_json %}
@@ -594,8 +601,8 @@
 <!-- Hero Banner -->
 <section class="universe-hero">
     <!-- Imagem de fundo dinâmica -->
-    {% if universe.hero_banner_image %}
-    <img src="{{ universe.hero_banner_image.url }}" 
+    {% if universe.hero_banner_image_url %}
+    <img src="{{ universe.hero_banner_image_url }}" 
          alt="{{ universe.page_title }}"
          class="universe-hero-bg"
          style="object-position: {{ universe.hero_banner_position_horizontal|default:'center' }} {{ universe.hero_banner_position_vertical|default:'center' }};"
@@ -607,8 +614,8 @@
          style="background: rgba(0, 0, 0, {{ universe.hero_banner_overlay_opacity|default:0.5 }});"></div>
     
     <div class="universe-hero-content">
-        {% if universe.logo %}
-        <img src="{{ universe.logo.url }}" alt="{{ universe.title }}" class="universe-logo-img">
+        {% if universe.logo_url %}
+        <img src="{{ universe.logo_url }}" alt="{{ universe.title }}" class="universe-logo-img">
         {% elif universe.hero_icon %}
         <div class="universe-icon">
             <i class="fas {{ universe.hero_icon }}"></i>
@@ -671,8 +678,8 @@
     <div class="universe-author-bio mb-4">
         <div class="row align-items-center">
             <div class="col-md-3 text-center mb-3 mb-md-0">
-                {% if author_obj.photo %}
-                <img src="{{ author_obj.photo.url }}" alt="{{ author_obj.name }}" class="rounded-circle" style="width: 140px; height: 140px; object-fit: cover; border: 4px solid var(--universe-secondary);">
+                {% if author_obj.photo_url %}
+                <img src="{{ author_obj.photo_url }}" alt="{{ author_obj.name }}" class="rounded-circle" style="width: 140px; height: 140px; object-fit: cover; border: 4px solid var(--universe-secondary);">
                 {% else %}
                 <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 140px; height: 140px; background: linear-gradient(135deg, #1a1a2e, #16213e); border: 4px solid var(--universe-secondary);">
                     <i class="fas fa-user fa-3x" style="color: var(--universe-secondary);"></i>
@@ -768,8 +775,8 @@
         {% for book in author_books %}
         <a href="{% url 'core:book_detail' book.slug %}" class="universe-book-card">
             <div class="universe-book-cover">
-                {% if book.cover_image %}
-                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" loading="lazy">
+                {% if book.cover_image_url %}
+                <img src="{{ book.cover_image_url }}" alt="{{ book.title }}" loading="lazy">
                 {% else %}
                 <div class="universe-book-cover-placeholder">
                     <i class="fas fa-book"></i>

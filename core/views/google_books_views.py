@@ -185,6 +185,25 @@ def google_books_import(request, google_book_id):
                 book.cover_image = cover_path
                 book.save()
 
+                # Registro automático de Procedência Técnica (SEM presunção de licença)
+                from core.services.image_rights_provenance_service import ImageRightsProvenanceService
+                ImageRightsProvenanceService.register_external_provenance(
+                    target_obj=book,
+                    image_field_name='cover_image',
+                    provider=ImageRightsProvenanceService.PROVIDER_GOOGLE_BOOKS,
+                    source_url=thumbnail,
+                    provider_asset_id=book_data.get('google_book_id', ''),
+                    license_type='google_books',
+                    provenance_method='api_download',
+                    safe_metadata={
+                        'google_book_id': book_data.get('google_book_id'),
+                        'publisher_declared': book_data.get('publisher'),
+                        'published_date': book_data.get('published_date'),
+                    },
+                    performed_by=request.user,
+                    source='admin'
+                )
+
         messages.success(
             request,
             f'Livro "{book.title}" importado com sucesso! '

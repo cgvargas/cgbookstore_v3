@@ -1,0 +1,611 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Auditoria da Imagem: {{ record.content_object|default:record.work_title|default:"Ativo Visual" }} | {{ site_title|default:"CG.BookStore Admin" }}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    :root, [data-theme="light"] {
+        --card-bg: #ffffff;
+        --card-border: #e2e8f0;
+        --card-title: #1e293b;
+        --card-desc: #64748b;
+        --item-bg: #f8fafc;
+        --item-border: #e2e8f0;
+        --text-primary: #0f172a;
+        --accent-blue: #3b82f6;
+        --accent-purple: #8b5cf6;
+    }
+    [data-theme="dark"], [data-theme="auto"] {
+        --card-bg: var(--darkened-bg, #1e1e1e);
+        --card-border: var(--border-color, #333333);
+        --card-title: var(--body-loud-color, #f1f2f6);
+        --card-desc: var(--body-quiet-color, #a4b0be);
+        --item-bg: var(--darkened-bg, #262626);
+        --item-border: var(--border-color, #383838);
+        --text-primary: var(--body-fg, #e0e0e0);
+        --accent-blue: #60a5fa;
+        --accent-purple: #a78bfa;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+            --card-bg: var(--darkened-bg, #1e1e1e);
+            --card-border: var(--border-color, #333333);
+            --card-title: var(--body-loud-color, #f1f2f6);
+            --card-desc: var(--body-quiet-color, #a4b0be);
+            --item-bg: var(--darkened-bg, #262626);
+            --item-border: var(--border-color, #383838);
+            --text-primary: var(--body-fg, #e0e0e0);
+            --accent-blue: #60a5fa;
+            --accent-purple: #a78bfa;
+        }
+    }
+    .assisted-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 24px 16px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: var(--text-primary);
+    }
+    .nav-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .nav-link-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        color: var(--text-primary);
+        transition: background 0.15s ease;
+    }
+    .nav-link-btn:hover {
+        background: var(--item-bg);
+    }
+    
+    .card-box {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        padding: 22px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    }
+    .card-box-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 16px 0;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--card-title);
+        border-bottom: 1px solid var(--item-border);
+        padding-bottom: 10px;
+    }
+    
+    /* Bloco Principal */
+    .hero-grid {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+    @media (max-width: 600px) {
+        .hero-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    .thumb-wrapper {
+        width: 160px;
+        height: 200px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--card-border);
+        background: var(--item-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: relative;
+    }
+    .thumb-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+    .thumb-blocked {
+        padding: 12px;
+        font-size: 0.75rem;
+        color: #ef4444;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+    
+    .hero-info h1 {
+        margin: 0 0 6px 0;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--card-title);
+    }
+    .hero-subtitle {
+        color: var(--card-desc);
+        font-size: 0.9rem;
+        margin-bottom: 14px;
+    }
+    
+    .badges-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+    }
+    .badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .badge-priority-critical { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+    .badge-priority-high { background: #ffedd5; color: #9a3412; border: 1px solid #fb923c; }
+    .badge-priority-medium { background: #fef9c3; color: #854d0e; border: 1px solid #facc15; }
+    .badge-priority-low { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    
+    .badge-status-neutral { background: var(--item-bg); color: var(--text-primary); border: 1px solid var(--card-border); }
+    .badge-complete { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; font-size: 0.75rem; font-weight: 600; }
+    .badge-incomplete { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; font-size: 0.75rem; font-weight: 600; }
+    
+    .editorial-context {
+        font-size: 0.85rem;
+        color: var(--card-desc);
+        background: var(--item-bg);
+        border: 1px solid var(--item-border);
+        border-radius: 6px;
+        padding: 8px 12px;
+        margin-top: 10px;
+    }
+    
+    /* Grelha de Informações Simples */
+    .info-list {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        row-gap: 10px;
+        column-gap: 14px;
+        font-size: 0.9rem;
+    }
+    .info-label {
+        font-weight: 600;
+        color: var(--card-desc);
+    }
+    .info-val {
+        color: var(--text-primary);
+        word-break: break-word;
+    }
+    
+    /* Destaque de Próxima Ação */
+    .action-highlight-box {
+        background: rgba(139, 92, 246, 0.08);
+        border: 1.5px solid var(--accent-purple);
+        border-radius: 10px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .action-highlight-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--accent-purple);
+        margin-bottom: 2px;
+    }
+    .action-highlight-text {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--card-title);
+    }
+    
+    /* Alerta de Contestação */
+    .takedown-alert-box {
+        background: #fef2f2;
+        border: 1.5px solid #ef4444;
+        color: #991b1b;
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin-bottom: 20px;
+        font-size: 0.92rem;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    /* Barra de Ações Administrativas */
+    .action-btn-bar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+    }
+    .btn-admin {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 18px;
+        border-radius: 8px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: opacity 0.15s ease;
+    }
+    .btn-admin:hover {
+        opacity: 0.9;
+    }
+    .btn-primary-edit { background: #3b82f6; color: #ffffff !important; }
+    .btn-sec-source { background: #0ea5e9; color: #ffffff !important; }
+    .btn-sec-doc { background: #10b981; color: #ffffff !important; }
+    .btn-sec-hist { background: #64748b; color: #ffffff !important; }
+    .btn-takedown-act { background: #ef4444; color: #ffffff !important; }
+    
+    /* Detalhes Técnicos */
+    .tech-details-box {
+        background: var(--item-bg);
+        border: 1px solid var(--item-border);
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin-top: 10px;
+        font-size: 0.85rem;
+    }
+    .tech-details-box summary {
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--card-title);
+        outline: none;
+        padding: 4px 0;
+    }
+    .tech-grid {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        row-gap: 8px;
+        column-gap: 12px;
+        margin-top: 14px;
+        font-size: 0.82rem;
+    }
+    .tech-label {
+        color: var(--card-desc);
+        font-weight: 600;
+    }
+    .tech-val {
+        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        word-break: break-all;
+    }
+    
+    .other-reasons-list {
+        margin: 8px 0 0 0;
+        padding-left: 20px;
+        font-size: 0.85rem;
+        color: var(--card-desc);
+        line-height: 1.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="assisted-container">
+    
+    <!-- Barra de Navegação -->
+    <div class="nav-bar">
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <a href="{% url 'copyright_audit_queue' %}" class="nav-link-btn">← Voltar para a Fila</a>
+            <a href="{% url 'copyright_audit_dashboard' %}" class="nav-link-btn">📊 Dashboard</a>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            {% if prev_id %}
+                <a href="{% url 'copyright_assisted_audit' prev_id %}" class="nav-link-btn" title="Registro Anterior">← Anterior</a>
+            {% endif %}
+            {% if next_id %}
+                <a href="{% url 'copyright_assisted_audit' next_id %}" class="nav-link-btn" title="Próximo Registro">Próximo →</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Alerta de Contestação Ativa (quando existente) -->
+    {% if active_takedown %}
+    <div class="takedown-alert-box">
+        <div>
+            ⚠️ <strong>Contestação formal em análise</strong> (Status: {{ active_takedown.get_status_display }})
+        </div>
+        {% if item.takedown_url %}
+            <a href="{{ item.takedown_url }}" class="btn-admin btn-takedown-act" style="padding: 6px 14px; font-size: 0.8rem;" target="_blank">
+                Revisar contestação
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- 1. BLOCO PRINCIPAL (Topo) -->
+    <div class="card-box">
+        <div class="hero-grid">
+            <!-- Miniatura Segura -->
+            <div class="thumb-wrapper">
+                {% if has_safe_image and image_url %}
+                    <img src="{{ image_url }}" alt="{{ record.work_title|default:'Imagem' }}" class="thumb-img">
+                {% else %}
+                    <div class="thumb-blocked">
+                        <div style="font-size: 1.6rem; margin-bottom: 4px;">⛔</div>
+                        Exibição pública bloqueada ou suspensa preventivamente
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Identificação do Ativo -->
+            <div class="hero-info">
+                <h1>{{ record.content_object|default:record.work_title|default:"Ativo Visual Sem Título" }}</h1>
+                <div class="hero-subtitle">
+                    {{ record.content_type.model|capfirst }} • Campo: <code>{{ record.image_field_name }}</code>
+                </div>
+
+                <div class="badges-row">
+                    <!-- Status de Auditoria -->
+                    <span class="badge-pill badge-status-neutral">
+                        🏷️ {{ record.get_audit_status_display }}
+                    </span>
+
+                    <!-- Prioridade Operacional -->
+                    {% if item.priority_level == 'critical' %}
+                        <span class="badge-pill badge-priority-critical">🔴 Crítica</span>
+                    {% elif item.priority_level == 'high' %}
+                        <span class="badge-pill badge-priority-high">🟠 Alta</span>
+                    {% elif item.priority_level == 'medium' %}
+                        <span class="badge-pill badge-priority-medium">🟡 Média</span>
+                    {% else %}
+                        <span class="badge-pill badge-priority-low">🟢 Baixa</span>
+                    {% endif %}
+
+                    <!-- Indicador de Completude Administrativa -->
+                    {% if is_info_complete %}
+                        <span class="badge-pill badge-complete">✓ Informações principais completas</span>
+                    {% else %}
+                        <span class="badge-pill badge-incomplete">⚠️ Existem informações pendentes</span>
+                    {% endif %}
+                </div>
+
+                <!-- Contexto Editorial Discreto -->
+                {% if record.usage_purpose %}
+                <div class="editorial-context">
+                    📖 <strong>Uso registrado na plataforma:</strong> {{ record.get_usage_purpose_display }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. DESTAQUE DA PRÓXIMA AÇÃO SUGERIDA -->
+    <div class="action-highlight-box">
+        <div style="font-size: 1.8rem;">👉</div>
+        <div>
+            <div class="action-highlight-title">Próxima Ação Sugerida</div>
+            <div class="action-highlight-text">{{ item.suggested_action }}</div>
+        </div>
+    </div>
+
+    <!-- 3. BARRA DE AÇÕES ADMINISTRATIVAS (Mínima intervenção) -->
+    <div class="action-btn-bar">
+        {% if item.edit_record_url %}
+            <a href="{{ item.edit_record_url }}" class="btn-admin btn-primary-edit" target="_blank">
+                ✏️ Editar registro
+            </a>
+        {% endif %}
+
+        {% if record.source_url %}
+            <a href="{{ record.source_url }}" class="btn-admin btn-sec-source" target="_blank" rel="noopener noreferrer">
+                🌐 Abrir fonte original
+            </a>
+        {% endif %}
+
+        {% if record.permission_document %}
+            <a href="{% url 'protected_copyright_document' record.pk %}" class="btn-admin btn-sec-doc" target="_blank">
+                📄 Ver documento
+            </a>
+        {% endif %}
+
+        <a href="{% url 'admin:core_imagerightsauditlog_changelist' %}?image_rights_record__id__exact={{ record.pk }}" class="btn-admin btn-sec-hist" target="_blank">
+            🕒 Ver histórico
+        </a>
+
+        {% if active_takedown and item.takedown_url %}
+            <a href="{{ item.takedown_url }}" class="btn-admin btn-takedown-act" target="_blank">
+                ⚠️ Revisar contestação
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- 4. RESUMO DA PROCEDÊNCIA -->
+    <div class="card-box">
+        <div class="card-box-header">
+            🌐 Procedência
+        </div>
+        <div class="info-list">
+            <div class="info-label">Fonte:</div>
+            <div class="info-val">
+                <strong>{{ record.get_provenance_provider_display|default:"Não informada" }}</strong>
+                {% if record.is_auto_imported %}
+                    <span style="font-size: 0.78rem; color: var(--card-desc); margin-left: 6px;">⚡ (Importação automática)</span>
+                {% endif %}
+            </div>
+
+            <div class="info-label">Criador / Autor:</div>
+            <div class="info-val">
+                {{ record.creator_name|default:"Não informado" }}
+            </div>
+
+            <div class="info-label">Titular dos Direitos:</div>
+            <div class="info-val">
+                {{ record.rights_holder_name|default:"Não informado" }}
+            </div>
+
+            {% if record.licensor_name %}
+            <div class="info-label">Licenciante:</div>
+            <div class="info-val">
+                {{ record.licensor_name }}
+            </div>
+            {% endif %}
+
+            <div class="info-label">Origem:</div>
+            <div class="info-val">
+                {% if record.source_url %}
+                    <a href="{{ record.source_url }}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-blue); text-decoration: none;">
+                        {{ record.source_url|truncatechars:60 }} ↗
+                    </a>
+                {% else %}
+                    <span style="color: var(--card-desc);">— Não informada</span>
+                {% endif %}
+            </div>
+
+            <div class="info-label">Licença / Base:</div>
+            <div class="info-val">
+                {% if record.license_type %}
+                    <strong>{{ record.get_license_type_display }}</strong>
+                {% else %}
+                    <span style="color: var(--card-desc);">Não informada</span>
+                {% endif %}
+                {% if record.legal_basis %}
+                    <div style="font-size: 0.8rem; color: var(--card-desc); margin-top: 2px;">
+                        Fundamento: {{ record.get_legal_basis_display }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. SITUAÇÃO DA AUDITORIA -->
+    <div class="card-box">
+        <div class="card-box-header">
+            ⚖️ Situação da Auditoria
+        </div>
+        <div class="info-list">
+            <div class="info-label">Status Atual:</div>
+            <div class="info-val">
+                <strong>{{ record.get_audit_status_display }}</strong>
+            </div>
+
+            <div class="info-label">Exibição Pública:</div>
+            <div class="info-val">
+                {% if record.public_display_allowed %}
+                    <span style="color: #16a34a; font-weight: 600;">🟢 Permitida</span>
+                {% else %}
+                    <span style="color: #dc2626; font-weight: 600;">🔴 Bloqueada / Suspensa</span>
+                {% endif %}
+            </div>
+
+            <div class="info-label">Documento:</div>
+            <div class="info-val">
+                {% if record.permission_document %}
+                    <a href="{% url 'protected_copyright_document' record.pk %}" target="_blank" style="color: #10b981; font-weight: 600; text-decoration: none;">
+                        📄 Documento disponível ↗
+                    </a>
+                {% else %}
+                    <span style="color: var(--card-desc);">— Não informado</span>
+                {% endif %}
+            </div>
+
+            <div class="info-label">Contestação:</div>
+            <div class="info-val">
+                {% if active_takedown %}
+                    <span style="color: #ef4444; font-weight: 700;">⚠️ Contestação ativa em andamento</span>
+                {% else %}
+                    <span style="color: var(--card-desc);">Nenhuma contestação ativa</span>
+                {% endif %}
+            </div>
+
+            <div class="info-label">Pendência Principal:</div>
+            <div class="info-val">
+                <strong style="color: var(--card-title);">{{ primary_reason }}</strong>
+                {% if other_reasons %}
+                <details style="margin-top: 8px;">
+                    <summary style="font-size: 0.82rem; color: var(--accent-blue); cursor: pointer;">
+                        Ver outras pendências ({{ other_reasons|length }})
+                    </summary>
+                    <ul class="other-reasons-list">
+                        {% for r in other_reasons %}
+                            <li>{{ r }}</li>
+                        {% endfor %}
+                    </ul>
+                </details>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. DETALHES TÉCNICOS RECOLHIDOS -->
+    <details class="tech-details-box">
+        <summary>⚙️ Detalhes Técnicos e Rastreabilidade (Clique para expandir)</summary>
+        <div class="tech-grid">
+            <div class="tech-label">Checksum SHA-256:</div>
+            <div class="tech-val">{{ record.image_checksum|default:"Não calculado" }}</div>
+
+            <div class="tech-label">Dimensões Auditadas:</div>
+            <div class="tech-val">
+                {% if record.image_width_px and record.image_height_px %}
+                    {{ record.image_width_px }} × {{ record.image_height_px }} px
+                {% else %}
+                    {{ record.display_dimensions|default:"—" }}
+                {% endif %}
+            </div>
+
+            <div class="tech-label">Tamanho do Arquivo:</div>
+            <div class="tech-val">{% if record.file_size_kb %}{{ record.file_size_kb }} KB{% else %}—{% endif %}</div>
+
+            <div class="tech-label">ID Externo do Ativo:</div>
+            <div class="tech-val">{{ record.provider_asset_id|default:"—" }}</div>
+
+            <div class="tech-label">Método de Importação:</div>
+            <div class="tech-val">{{ record.provenance_method|default:"—" }}</div>
+
+            <div class="tech-label">Data da Importação:</div>
+            <div class="tech-val">{{ record.provenance_imported_at|date:"d/m/Y H:i:s"|default:"—" }}</div>
+
+            <div class="tech-label">Tipo de Cadastro:</div>
+            <div class="tech-val">{% if record.is_auto_imported %}⚡ Automático (API/Feed){% else %}👤 Manual{% endif %}</div>
+
+            <div class="tech-label">Campo Técnico:</div>
+            <div class="tech-val"><code>{{ record.image_field_name }}</code></div>
+
+            <div class="tech-label">Referência do Objeto:</div>
+            <div class="tech-val">{{ record.content_type.app_label }}.{{ record.content_type.model }} #{{ record.object_id }}</div>
+
+            <div class="tech-label">Última Atualização:</div>
+            <div class="tech-val">{{ record.updated_at|date:"d/m/Y H:i" }} (Criado em: {{ record.created_at|date:"d/m/Y H:i" }})</div>
+
+            {% if sanitized_metadata %}
+            <div class="tech-label">Metadados Técnicos:</div>
+            <div class="tech-val">
+                <pre style="margin: 0; background: rgba(0,0,0,0.03); padding: 8px; border-radius: 4px; font-size: 0.75rem; max-height: 140px; overflow: auto;">{{ sanitized_metadata|pprint }}</pre>
+            </div>
+            {% endif %}
+        </div>
+    </details>
+
+</div>
+{% endblock %}

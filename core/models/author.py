@@ -87,3 +87,20 @@ class Author(models.Model):
         return self.books.count()
 
     get_books_count.short_description = "Livros"
+
+    @property
+    def has_valid_photo(self):
+        """
+        Verifica se a foto do autor pode ser exibida publicamente.
+        """
+        from core.services.image_rights_service import ImageRightsAuditService
+        return bool(self.photo and self.photo.name and ImageRightsAuditService.can_display_publicly(self, 'photo'))
+
+    @property
+    def photo_url(self):
+        """
+        Retorna a URL da foto do autor se permitido o uso público, ou None.
+        """
+        if self.has_valid_photo:
+            return self.photo.url
+        return None
