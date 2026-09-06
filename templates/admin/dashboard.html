@@ -232,6 +232,11 @@
         background: #ffffff !important;
     }
 
+    .action-btn:active {
+        transform: translateY(-1px) scale(0.98) !important;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4) !important;
+    }
+
     .action-btn.success {
         background: var(--success-color) !important;
     }
@@ -613,6 +618,15 @@
             <a href="{% url 'product_analytics:dashboard' %}" class="action-btn" style="background: linear-gradient(135deg, #6366f1, #a855f7);">
                 📈 Product Analytics
             </a>
+            <a href="{% url 'copyright_batch_review_groups' %}" class="action-btn" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">
+                📦 Revisão em Lote
+            </a>
+            <a href="{% url 'copyright_audit_dashboard' %}" class="action-btn" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);">
+                🛡️ Auditoria de Imagens
+            </a>
+            <a href="{% url 'copyright_audit_queue' %}" class="action-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);">
+                📋 Fila de Auditoria
+            </a>
         </div>
     </div>
 
@@ -653,6 +667,18 @@
                 🤖 Chatbot
             </a>
             {% endif %}
+            <a href="{% url 'admin:core_imagerightsrecord_changelist' %}" class="action-btn" style="background: #0d9488; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);">
+                🛡️ Direitos de Imagem
+            </a>
+            <a href="{% url 'copyright_batch_review_groups' %}" class="action-btn" style="background: #059669; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);">
+                📦 Revisão em Lote
+            </a>
+            <a href="{% url 'copyright_compliance_map' %}" class="action-btn" style="background: #2563eb; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">
+                🗺️ Mapa Conformidade
+            </a>
+            <a href="{% url 'admin:core_imagerightsauditlog_changelist' %}" class="action-btn" style="background: #475569; box-shadow: 0 4px 12px rgba(71, 85, 105, 0.25);">
+                📜 Logs Auditoria
+            </a>
         </div>
     </div>
 </div>

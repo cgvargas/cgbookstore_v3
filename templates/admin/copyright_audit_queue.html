@@ -80,18 +80,18 @@
     }
     
     .queue-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--table-bg); border: 1px solid var(--table-border); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-    .queue-table th { background: var(--table-header-bg); padding: 12px 14px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--card-desc); text-align: left; border-bottom: 1px solid var(--table-border); }
-    .queue-table td { padding: 14px; font-size: 0.88rem; vertical-align: top; border-bottom: 1px solid var(--table-border); color: var(--text-primary); }
+    .queue-table th { background: var(--table-header-bg); padding: 12px 14px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--card-desc); text-align: left; border-bottom: 1px solid var(--table-border); white-space: nowrap; }
+    .queue-table td { padding: 12px 14px; font-size: 0.88rem; vertical-align: middle; border-bottom: 1px solid var(--table-border); color: var(--text-primary); line-height: 1.4; }
     .queue-table tr:last-child td { border-bottom: none; }
     .queue-table tr:hover td { background: rgba(0,0,0,0.02); }
     
-    .badge-priority { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-priority { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
     .badge-critical { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
     .badge-high { background: #ffedd5; color: #9a3412; border: 1px solid #fb923c; }
     .badge-medium { background: #fef9c3; color: #854d0e; border: 1px solid #facc15; }
     .badge-low { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
     
-    .score-meter { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .score-meter { display: flex; align-items: center; gap: 8px; margin-top: 6px; white-space: nowrap; }
     .score-bar-bg { width: 60px; height: 6px; background: rgba(0,0,0,0.1); border-radius: 3px; overflow: hidden; }
     .score-bar-fill { height: 100%; border-radius: 3px; }
     
@@ -99,12 +99,6 @@
     .reason-list li { margin-bottom: 3px; }
     
     .action-tag { display: inline-block; padding: 3px 8px; border-radius: 6px; background: rgba(108, 92, 231, 0.1); color: #6c5ce7; font-weight: 600; font-size: 0.78rem; margin-top: 4px; border: 1px solid rgba(108, 92, 231, 0.2); }
-    
-    .btn-action { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.2s; }
-    .btn-audit { background: #3498db; color: #fff; }
-    .btn-audit:hover { background: #2980b9; color: #fff; }
-    .btn-takedown { background: #e74c3c; color: #fff; }
-    .btn-takedown:hover { background: #c0392b; color: #fff; }
     
     .pagination-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 10px; }
     .page-link-btn { padding: 6px 12px; border: 1px solid var(--card-border); border-radius: 6px; text-decoration: none; color: var(--text-primary); font-size: 0.85rem; background: var(--card-bg); }
@@ -292,139 +286,165 @@
     </div>
 
     <!-- Tabela da Fila -->
-    <table class="queue-table">
-        <thead>
-            <tr>
-                <th style="width: 140px;">Prioridade</th>
-                <th>Objeto & Campo</th>
-                <th style="width: 130px;">Status / Exibição</th>
-                <th style="width: 140px;">Procedência</th>
-                <th>Motivos da Urgência Operacional</th>
-                <th>Próxima Ação Recomendada</th>
-                <th style="width: 120px; text-align: center;">Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in queue_items %}
-            <tr>
-                <!-- Prioridade & Score -->
-                <td>
-                    {% if item.priority_level == 'critical' %}
-                        <span class="badge-priority badge-critical">🔴 Crítica</span>
-                    {% elif item.priority_level == 'high' %}
-                        <span class="badge-priority badge-high">🟠 Alta</span>
-                    {% elif item.priority_level == 'medium' %}
-                        <span class="badge-priority badge-medium">🟡 Média</span>
-                    {% else %}
-                        <span class="badge-priority badge-low">🟢 Baixa</span>
-                    {% endif %}
-                    
-                    <div class="score-meter">
-                        <div class="score-bar-bg">
-                            <div class="score-bar-fill" style="width: {{ item.priority_score }}%; background: {% if item.priority_level == 'critical' %}#ef4444{% elif item.priority_level == 'high' %}#f97316{% elif item.priority_level == 'medium' %}#eab308{% else %}#22c55e{% endif %};"></div>
-                        </div>
-                        <span style="font-size: 0.75rem; font-weight: 700; color: var(--card-desc);">{{ item.priority_score }} pts</span>
-                    </div>
-                </td>
-
-                <!-- Objeto & Campo -->
-                <td>
-                    <div style="font-weight: 700; font-size: 0.92rem;">
-                        {% if item.related_object_admin_url %}
-                            <a href="{{ item.related_object_admin_url }}" target="_blank" style="color: #3498db; text-decoration: none;">{{ item.related_object_title|default:"Objeto Sem Título" }}</a>
+    <div style="overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px; border: 1px solid var(--table-border); margin-bottom: 25px;">
+        <table class="queue-table" style="min-width: 1100px; margin: 0; border: none; box-shadow: none;">
+            <thead>
+                <tr>
+                    <th style="width: 140px; min-width: 130px;">Prioridade</th>
+                    <th style="min-width: 220px;">Objeto & Campo</th>
+                    <th style="width: 150px; min-width: 140px;">Status / Exibição</th>
+                    <th style="width: 150px; min-width: 140px;">Procedência</th>
+                    <th style="min-width: 200px;">Motivos da Urgência Operacional</th>
+                    <th style="min-width: 170px;">Próxima Ação Recomendada</th>
+                    <th style="width: 130px; min-width: 120px; text-align: center;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in queue_items %}
+                <tr>
+                    <!-- Prioridade & Score -->
+                    <td style="vertical-align: middle;">
+                        {% if item.priority_level == 'critical' %}
+                            <span class="badge-priority badge-critical">🔴 Crítica</span>
+                        {% elif item.priority_level == 'high' %}
+                            <span class="badge-priority badge-high">🟠 Alta</span>
+                        {% elif item.priority_level == 'medium' %}
+                            <span class="badge-priority badge-medium">🟡 Média</span>
                         {% else %}
-                            {{ item.related_object_title|default:"Objeto Sem Título" }}
+                            <span class="badge-priority badge-low">🟢 Baixa</span>
                         {% endif %}
-                    </div>
-                    <div style="font-size: 0.78rem; color: var(--card-desc); margin-top: 2px;">
-                        {{ item.record.content_type.model }} • Campo: <code>{{ item.record.image_field_name }}</code>
-                    </div>
-                    {% if item.record.creator_name %}
-                        <div style="font-size: 0.75rem; color: var(--card-desc); margin-top: 2px;">
-                            👤 Criador: <strong>{{ item.record.creator_name }}</strong>
+                        
+                        <div class="score-meter">
+                            <div class="score-bar-bg">
+                                <div class="score-bar-fill" style="width: {{ item.priority_score }}%; background: {% if item.priority_level == 'critical' %}#ef4444{% elif item.priority_level == 'high' %}#f97316{% elif item.priority_level == 'medium' %}#eab308{% else %}#22c55e{% endif %};"></div>
+                            </div>
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--card-desc);">{{ item.priority_score }} pts</span>
                         </div>
-                    {% endif %}
-                </td>
+                    </td>
 
-                <!-- Status / Exibição -->
-                <td>
-                    <div style="font-weight: 600; font-size: 0.8rem;">
-                        {{ item.record.get_audit_status_display }}
-                    </div>
-                    <div style="margin-top: 4px;">
-                        {% if item.can_display_publicly %}
-                            <span style="background: rgba(39, 174, 96, 0.15); color: #27ae60; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 600;">🟢 Pública</span>
-                        {% else %}
-                            <span style="background: rgba(231, 76, 60, 0.15); color: #e74c3c; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 600;">⛔ Suspensa</span>
-                        {% endif %}
-                    </div>
-                </td>
-
-                <!-- Procedência -->
-                <td>
-                    {% if item.record.provenance_provider %}
-                        <div style="font-size: 0.8rem; font-weight: 600;">
-                            {{ item.record.get_provenance_provider_display }}
-                            {% if item.record.is_auto_imported %}
-                                <span title="Importado Automaticamente" style="font-size: 0.7rem;">⚡</span>
+                    <!-- Objeto & Campo -->
+                    <td style="vertical-align: middle; line-height: 1.4;">
+                        <div style="font-weight: 700; font-size: 0.92rem;">
+                            {% if item.related_object_admin_url %}
+                                <a href="{{ item.related_object_admin_url }}" target="_blank" style="color: #3498db; text-decoration: none;">{{ item.related_object_title|default:"Objeto Sem Título" }}</a>
+                            {% else %}
+                                {{ item.related_object_title|default:"Objeto Sem Título" }}
                             {% endif %}
                         </div>
-                    {% else %}
-                        <span style="color: var(--card-desc); font-size: 0.75rem;">— Não informada</span>
-                    {% endif %}
-                    {% if item.record.provider_asset_id %}
-                        <div style="font-size: 0.7rem; color: var(--card-desc); font-family: monospace;">
-                            ID: {{ item.record.provider_asset_id|truncatechars:18 }}
+                        <div style="font-size: 0.78rem; color: var(--card-desc); margin-top: 3px;">
+                            {{ item.record.content_type.model }} • Campo: <code>{{ item.record.image_field_name }}</code>
                         </div>
-                    {% endif %}
-                </td>
-
-                <!-- Motivos da Prioridade -->
-                <td>
-                    <ul class="reason-list">
-                        {% for r in item.reasons %}
-                            <li>{{ r }}</li>
-                        {% empty %}
-                            <li>Sem pendências urgentes identificadas.</li>
-                        {% endfor %}
-                    </ul>
-                </td>
-
-                <!-- Ação Sugerida -->
-                <td>
-                    <div class="action-tag">
-                        👉 {{ item.suggested_action }}
-                    </div>
-                </td>
-
-                <!-- Ações -->
-                <td style="text-align: center;">
-                    <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
-                        <a href="{% url 'copyright_assisted_audit' item.record.pk %}" class="btn-action btn-audit" title="Abrir Auditoria Assistida">
-                            👁️ Auditoria
-                        </a>
-                        <a href="{{ item.edit_record_url }}" class="page-link-btn" style="font-size: 0.72rem; padding: 2px 6px;" title="Editar no Django Admin" target="_blank">
-                            ✏️ Editar
-                        </a>
-                        {% if item.has_active_takedown and item.takedown_url %}
-                            <a href="{{ item.takedown_url }}" class="btn-action btn-takedown" style="font-size: 0.72rem; padding: 3px 8px;" target="_blank">
-                                ⚠️ Contestação
-                            </a>
+                        {% if item.record.creator_name %}
+                            <div style="font-size: 0.75rem; color: var(--card-desc); margin-top: 2px;">
+                                👤 Criador: <strong>{{ item.record.creator_name }}</strong>
+                            </div>
                         {% endif %}
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="7" style="text-align: center; padding: 40px; color: var(--card-desc);">
-                    <div style="font-size: 1.5rem; margin-bottom: 8px;">🎉</div>
-                    <strong style="font-size: 1.1rem; color: var(--card-title);">Nenhum ativo aguardando revisão com os filtros selecionados.</strong>
-                    <p style="margin: 5px 0 0 0; font-size: 0.85rem;">Todos os registros correspondentes estão em dia com a governança da plataforma.</p>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    </td>
+
+                    <!-- Status / Exibição -->
+                    <td style="white-space: nowrap; vertical-align: middle;">
+                        <div style="font-weight: 700; font-size: 0.88rem; margin-bottom: 4px;">
+                            {% if item.record.audit_status == 'regularized' %}
+                                <span style="color: #10b981;">🟢 Regularizada</span>
+                            {% elif item.record.audit_status == 'under_review' %}
+                                <span style="color: #3b82f6;">🔵 Em Análise</span>
+                            {% elif item.record.audit_status == 'pending' %}
+                                <span style="color: #f59e0b;">🟡 Pendente</span>
+                            {% elif item.record.audit_status == 'contested' %}
+                                <span style="color: #ef4444;">🔴 Contestada</span>
+                            {% elif item.record.audit_status == 'restricted' %}
+                                <span style="color: #dc2626;">⛔ Restrito</span>
+                            {% else %}
+                                <span style="color: #94a3b8;">⚪ Não Auditada</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if item.can_display_publicly %}
+                                <span style="color: #10b981; font-size: 0.78rem; font-weight: 600;">✓ Pública</span>
+                            {% else %}
+                                <span style="color: #ef4444; font-size: 0.78rem; font-weight: 600;">⛔ Suspensa</span>
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <!-- Procedência -->
+                    <td style="vertical-align: middle;">
+                        {% if item.record.provenance_provider %}
+                            <div style="font-size: 0.82rem; font-weight: 600;">
+                                {{ item.record.get_provenance_provider_display }}
+                                {% if item.record.is_auto_imported %}
+                                    <span title="Importado Automaticamente" style="font-size: 0.7rem;">⚡</span>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <span style="color: var(--card-desc); font-size: 0.78rem;">— Não informada</span>
+                        {% endif %}
+                        {% if item.record.provider_asset_id %}
+                            <div style="font-size: 0.7rem; color: var(--card-desc); font-family: monospace; margin-top: 2px;">
+                                ID: {{ item.record.provider_asset_id|truncatechars:18 }}
+                            </div>
+                        {% endif %}
+                    </td>
+
+                    <!-- Motivos da Prioridade -->
+                    <td style="vertical-align: middle;">
+                        <ul class="reason-list">
+                            {% for r in item.reasons %}
+                                <li>{{ r }}</li>
+                            {% empty %}
+                                <li>Sem pendências urgentes identificadas.</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+
+                    <!-- Ação Sugerida -->
+                    <td style="vertical-align: middle;">
+                        <div class="action-tag">
+                            👉 {{ item.suggested_action }}
+                        </div>
+                    </td>
+
+                    <!-- Ações -->
+                    <td style="text-align: center; vertical-align: middle; white-space: nowrap;">
+                        <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
+                            <a href="{% url 'copyright_assisted_audit' item.record.pk %}" 
+                               style="color: #0ea5e9; font-weight: 700; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.2s;"
+                               onmouseover="this.style.textDecoration='underline'; this.style.color='#0284c7';"
+                               onmouseout="this.style.textDecoration='none'; this.style.color='#0ea5e9';"
+                               title="Abrir Auditoria Assistida">
+                                👁️ Auditoria
+                            </a>
+                            <a href="{{ item.edit_record_url }}" 
+                               style="color: #10b981; font-weight: 700; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.2s;"
+                               onmouseover="this.style.textDecoration='underline'; this.style.color='#059669';"
+                               onmouseout="this.style.textDecoration='none'; this.style.color='#10b981';"
+                               title="Editar no Django Admin" target="_blank">
+                                ✏️ Editar
+                            </a>
+                            {% if item.has_active_takedown and item.takedown_url %}
+                                <a href="{{ item.takedown_url }}" 
+                                   style="color: #ef4444; font-weight: 700; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.2s;"
+                                   onmouseover="this.style.textDecoration='underline'; this.style.color='#dc2626';"
+                                   onmouseout="this.style.textDecoration='none'; this.style.color='#ef4444';"
+                                   target="_blank">
+                                    ⚠️ Contestação
+                                </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--card-desc);">
+                        <div style="font-size: 1.5rem; margin-bottom: 8px;">🎉</div>
+                        <strong style="font-size: 1.1rem; color: var(--card-title);">Nenhum ativo aguardando revisão com os filtros selecionados.</strong>
+                        <p style="margin: 5px 0 0 0; font-size: 0.85rem;">Todos os registros correspondentes estão em dia com a governança da plataforma.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     <!-- Paginação -->
     {% if page_obj.has_other_pages %}
