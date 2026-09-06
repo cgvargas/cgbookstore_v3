@@ -1,0 +1,220 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Confirmação de Alterações em Lote | {{ site_title|default:"CG.BookStore Admin" }}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    :root, [data-theme="light"] {
+        --card-bg: #ffffff;
+        --card-border: #e9ecef;
+        --card-title: #2c3e50;
+        --card-desc: #7f8c8d;
+        --item-bg: #f8f9fa;
+        --item-border: #e9ecef;
+        --table-bg: #ffffff;
+        --table-header-bg: #f8f9fa;
+        --table-border: #e9ecef;
+        --text-primary: #2c3e50;
+    }
+    [data-theme="dark"], [data-theme="auto"] {
+        --card-bg: var(--darkened-bg, #1e1e1e);
+        --card-border: var(--border-color, #333333);
+        --card-title: var(--body-loud-color, #f1f2f6);
+        --card-desc: var(--body-quiet-color, #a4b0be);
+        --item-bg: var(--darkened-bg, #2b2b2b);
+        --item-border: var(--border-color, #383838);
+        --table-bg: var(--darkened-bg, #1e1e1e);
+        --table-header-bg: var(--darkened-bg, #252525);
+        --table-border: var(--border-color, #333333);
+        --text-primary: var(--body-fg, #e0e0e0);
+    }
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+            --card-bg: var(--darkened-bg, #1e1e1e);
+            --card-border: var(--border-color, #333333);
+            --card-title: var(--body-loud-color, #f1f2f6);
+            --card-desc: var(--body-quiet-color, #a4b0be);
+            --item-bg: var(--darkened-bg, #2b2b2b);
+            --item-border: var(--border-color, #383838);
+            --table-bg: var(--darkened-bg, #1e1e1e);
+            --table-header-bg: var(--darkened-bg, #252525);
+            --table-border: var(--border-color, #333333);
+            --text-primary: var(--body-fg, #e0e0e0);
+        }
+    }
+    .batch-container { max-width: 1200px; margin: 0 auto; padding: 20px 10px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .batch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+    .batch-title { margin: 0; font-size: 1.6rem; font-weight: 700; color: var(--card-title); display: flex; align-items: center; gap: 10px; }
+    
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 22px; }
+    .kpi-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); text-align: center; }
+    .kpi-num { font-size: 1.8rem; font-weight: 800; line-height: 1.1; margin-bottom: 5px; }
+    .kpi-label { font-size: 0.78rem; color: var(--card-desc); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    
+    .panel-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; margin-bottom: 22px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .panel-title { font-size: 1.15rem; font-weight: 700; color: var(--card-title); margin: 0 0 14px 0; display: flex; align-items: center; gap: 8px; }
+    
+    .preview-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--table-bg); border: 1px solid var(--table-border); border-radius: 10px; overflow: hidden; }
+    .preview-table th { background: var(--table-header-bg); padding: 10px 14px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--card-desc); text-align: left; border-bottom: 1px solid var(--table-border); }
+    .preview-table td { padding: 12px 14px; font-size: 0.88rem; vertical-align: top; border-bottom: 1px solid var(--table-border); color: var(--text-primary); }
+    .preview-table tr:last-child td { border-bottom: none; }
+    
+    .diff-old { color: #dc2626; text-decoration: line-through; font-size: 0.82rem; }
+    .diff-new { color: #16a34a; font-weight: 600; font-size: 0.88rem; }
+    
+    .badge-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 16px; font-size: 0.75rem; font-weight: 600; }
+    .badge-danger { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+    
+    .btn-action { display: inline-flex; align-items: center; gap: 6px; padding: 12px 24px; border-radius: 8px; font-size: 0.95rem; font-weight: 700; text-decoration: none; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-confirm { background: #10b981; color: #fff; }
+    .btn-confirm:hover { background: #059669; }
+    .page-link-btn { padding: 10px 18px; border: 1px solid var(--card-border); border-radius: 8px; text-decoration: none; color: var(--text-primary); font-size: 0.9rem; background: var(--card-bg); font-weight: 600; }
+    .page-link-btn:hover { background: var(--item-bg); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="batch-container">
+    <!-- Header -->
+    <div class="batch-header">
+        <div>
+            <h1 class="batch-title">
+                🔍 Proposta de Alterações em Lote
+            </h1>
+            <p style="margin: 4px 0 0 0; color: var(--card-desc); font-size: 0.92rem;">
+                Confirmação das alterações factuais que serão persistidas no grupo <strong>{{ group_info.title }}</strong>.
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'copyright_batch_review_detail' group_key %}" class="page-link-btn">← Cancelar e Voltar</a>
+        </div>
+    </div>
+
+    <!-- KPIs do Preview -->
+    <div class="kpi-grid">
+        <div class="kpi-card" style="border-top: 4px solid #3498db;">
+            <div class="kpi-num" style="color: #3498db;">{{ preview.total_selected }}</div>
+            <div class="kpi-label">Selecionados</div>
+        </div>
+        <div class="kpi-card" style="border-top: 4px solid #10b981;">
+            <div class="kpi-num" style="color: #10b981;">{{ preview.eligible_for_update_count }}</div>
+            <div class="kpi-label">Serão Atualizados</div>
+        </div>
+        <div class="kpi-card" style="border-top: 4px solid #f59e0b;">
+            <div class="kpi-num" style="color: #f59e0b;">{{ preview.ignored_count }}</div>
+            <div class="kpi-label">Ignorados por Segurança</div>
+        </div>
+        <div class="kpi-card" style="border-top: 4px solid #6c5ce7;">
+            <div class="kpi-num" style="color: #6c5ce7;">{{ preview.no_change_count }}</div>
+            <div class="kpi-label">Sem Alteração Necessária</div>
+        </div>
+    </div>
+
+    <!-- Alterações Propostas -->
+    {% if preview.proposed_updates %}
+    <div class="panel-card" style="border-top: 4px solid #10b981;">
+        <h2 class="panel-title">
+            ✓ Alterações que Serão Aplicadas ({{ preview.eligible_for_update_count }})
+        </h2>
+
+        <table class="preview-table">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">ID</th>
+                    <th>Obra / Ativo</th>
+                    <th>Campos e Valores Alterados</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in preview.proposed_updates %}
+                <tr>
+                    <td><strong>#{{ item.id }}</strong></td>
+                    <td><strong>{{ item.work_title }}</strong></td>
+                    <td>
+                        {% for field, diff in item.changes.items %}
+                            <div style="margin-bottom: 6px;">
+                                <span style="font-weight: 700; font-size: 0.8rem; color: var(--card-desc);">{{ diff.field_label }}:</span><br>
+                                <span class="diff-old">{{ diff.old_value }}</span> → 
+                                <span class="diff-new">{{ diff.new_value }}</span>
+                            </div>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Registros Ignorados por Exceção / Proteção -->
+    {% if preview.ignored_records %}
+    <div class="panel-card" style="border-top: 4px solid #f59e0b;">
+        <h2 class="panel-title" style="color: #b45309;">
+            ⚠ Registros Ignorados por Proteção ({{ preview.ignored_count }})
+        </h2>
+        <p style="font-size: 0.88rem; color: var(--card-desc); margin: 0 0 12px 0;">
+            Estes registros contêm exceções factuais ou proteções jurídicas e não serão alterados pela ação em lote.
+        </p>
+
+        <table class="preview-table">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">ID</th>
+                    <th>Obra / Ativo</th>
+                    <th>Motivo da Proteção / Exclusão</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in preview.ignored_records %}
+                <tr>
+                    <td>#{{ item.id }}</td>
+                    <td>{{ item.work_title }}</td>
+                    <td>
+                        {% for reason in item.reasons %}
+                            <div class="badge-tag badge-danger" style="margin-bottom: 4px;">{{ reason }}</div>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Formulário de Confirmação Final -->
+    <div class="panel-card" style="text-align: center; padding: 30px;">
+        {% if preview.eligible_for_update_count > 0 %}
+            <h3 style="margin: 0 0 10px 0; font-size: 1.2rem; color: var(--card-title);">
+                Deseja confirmar e aplicar estas alterações em lote?
+            </h3>
+            <p style="font-size: 0.9rem; color: var(--card-desc); margin: 0 0 20px 0;">
+                A operação será executada dentro de transação atômica e gerará histórico individual de auditoria para cada registro atualizado.
+            </p>
+
+            <form method="POST" action="{% url 'copyright_batch_review_apply' group_key %}" style="display: inline-block;">
+                {% csrf_token %}
+                <input type="hidden" name="selected_ids_csv" value="{{ selected_ids_csv }}">
+                <input type="hidden" name="fields_to_apply_csv" value="{{ fields_to_apply_csv }}">
+
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <button type="submit" class="btn-action btn-confirm">
+                        ✓ Confirmar e Aplicar Alterações ({{ preview.eligible_for_update_count }})
+                    </button>
+                    <a href="{% url 'copyright_batch_review_detail' group_key %}" class="page-link-btn">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        {% else %}
+            <p style="font-size: 1rem; color: var(--card-desc); margin: 0 0 15px 0;">
+                Nenhum registro selecionado requer alterações com os campos escolhidos.
+            </p>
+            <a href="{% url 'copyright_batch_review_detail' group_key %}" class="page-link-btn">
+                ← Voltar para Revisão do Grupo
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

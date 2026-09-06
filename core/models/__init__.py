@@ -16,6 +16,8 @@ from .featured_author_settings import FeaturedAuthorSettings
 from .image_rights import ImageRightsRecord
 from .copyright_takedown import CopyrightTakedownRequest
 from .image_rights_audit_log import ImageRightsAuditLog
+from .image_rights_research import ImageRightsResearchResult
+from .institutional_source import InstitutionalSource
 from .weekly_chronicle import WeeklyChronicle
 from .literary_universe import (
     LiteraryUniverse,
@@ -42,6 +44,8 @@ __all__ = [
     'ImageRightsRecord',
     'CopyrightTakedownRequest',
     'ImageRightsAuditLog',
+    'ImageRightsResearchResult',
+    'InstitutionalSource',
     'WeeklyChronicle',
     'LiteraryUniverse',
     'UniverseContentItem',

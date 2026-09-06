@@ -1,13 +1,14 @@
 # core/views/copyright_views.py
 """
 Views para a Dashboard Administrativa de Auditoria de Direitos Autorais de Imagens,
-Mapa de Conformidade de Ativos Visuais por Modelo
+Mapa de Conformidade de Ativos Visuais por Modelo,
+Pesquisa Assistida e Pré-preenchimento (Fase 3A)
 e para o Acesso Seguro/Protegido aos Documentos de Autorização.
 """
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.contenttypes.models import ContentType
-from django.http import HttpResponse, Http404, FileResponse
+from django.http import HttpResponse, Http404, FileResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.db import models
 from core.models.image_rights import ImageRightsRecord
@@ -361,13 +362,21 @@ def copyright_assisted_audit(request, record_id):
     Auditoria Assistida Simples de Direitos Autorais de Imagens (Fase 2 - Prompt 2).
     Apresenta de forma limpa, direta e descomplicada a procedência, o status,
     a pendência principal e a próxima ação sugerida para orientar a decisão humana.
+    Inclui integração com Pesquisa Assistida (Fase 3A).
     """
     from django.http import Http404
     from core.services.image_rights_audit_queue_service import ImageRightsAuditQueueService
+    from core.models.image_rights_research import ImageRightsResearchResult
 
     audit_data = ImageRightsAuditQueueService.get_assisted_audit_data(record_id)
     if not audit_data:
         raise Http404("Registro de direitos autorais de imagem não encontrado.")
+
+    # Pesquisa Assistida (Fase 3A): carregar último resultado reutilizável
+    latest_research = ImageRightsResearchResult.objects.filter(
+        image_rights_record_id=record_id,
+        status__in=['completed', 'partial'],
+    ).order_by('-researched_at').first()
 
     context = {
         'data': audit_data,
@@ -382,6 +391,8 @@ def copyright_assisted_audit(request, record_id):
         'prev_id': audit_data['prev_id'],
         'next_id': audit_data['next_id'],
         'sanitized_metadata': audit_data['sanitized_metadata'],
+        # Fase 3A
+        'latest_research': latest_research,
     }
     return render(request, 'admin/copyright_assisted_audit.html', context)
 
@@ -444,3 +455,279 @@ def protected_takedown_document_download(request, takedown_id):
         return response
     except Exception as e:
         raise Http404(f"Erro ao abrir documento comprobatório de contestação: {e}")
+
+
+# ================================================================
+# FASE 3A — PESQUISA ASSISTIDA E PRÉ-PREENCHIMENTO
+# ================================================================
+
+@staff_member_required
+def copyright_research_start(request, record_id):
+    """
+    Dispara pesquisa assistida para um ImageRightsRecord (POST).
+    Redireciona de volta para a Auditoria Assistida com o resultado.
+
+    NÃO altera audit_status, public_display_allowed ou legal_basis.
+    NÃO cria ImageRightsAuditLog.
+    """
+    from django.shortcuts import redirect
+    from core.services.image_rights_research_service import ImageRightsResearchService
+
+    if request.method != 'POST':
+        raise Http404("Método não permitido.")
+
+    record = get_object_or_404(ImageRightsRecord, pk=record_id)
+
+    # Verificar se deve forçar nova pesquisa ou reutilizar
+    force_new = request.POST.get('force_new', '') == '1'
+
+    if force_new:
+        research = ImageRightsResearchService.perform_research(record_id, request.user)
+    else:
+        research = ImageRightsResearchService.get_or_create_research(record_id, request.user)
+
+    return redirect('copyright_assisted_audit', record_id=record_id)
+
+
+@staff_member_required
+def copyright_research_apply(request, record_id):
+    """
+    Aplica uma sugestão individual confirmada pelo administrador (POST).
+
+    NUNCA altera audit_status, public_display_allowed ou legal_basis.
+    Registra a alteração no histórico via ImageRightsHistoryService.
+    """
+    from core.services.image_rights_research_service import ImageRightsResearchService
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método não permitido.'}, status=405)
+
+    field_name = request.POST.get('field_name', '').strip()
+    value = request.POST.get('value', '').strip()
+
+    if not field_name or not value:
+        return JsonResponse({'success': False, 'message': 'Campo ou valor não informados.'}, status=400)
+
+    result = ImageRightsResearchService.apply_suggestion(
+        record_id=record_id,
+        field_name=field_name,
+        value=value,
+        performed_by=request.user,
+    )
+
+    status_code = 200 if result['success'] else 400
+    return JsonResponse(result, status=status_code)
+
+
+@staff_member_required
+def copyright_research_data(request, record_id):
+    """
+    Retorna dados do último resultado de pesquisa para renderização dinâmica (GET/AJAX).
+    """
+    from core.models.image_rights_research import ImageRightsResearchResult
+
+    record = get_object_or_404(ImageRightsRecord, pk=record_id)
+
+    latest_research = ImageRightsResearchResult.objects.filter(
+        image_rights_record=record,
+        status__in=['completed', 'partial'],
+    ).order_by('-researched_at').first()
+
+    if not latest_research:
+        return JsonResponse({
+            'has_research': False,
+            'message': 'Nenhuma pesquisa realizada ainda.',
+        })
+
+    return JsonResponse({
+        'has_research': True,
+        'research_id': latest_research.pk,
+        'status': latest_research.status,
+        'status_display': latest_research.get_status_display(),
+        'researched_at': latest_research.researched_at.isoformat() if latest_research.researched_at else None,
+        'is_reusable': latest_research.is_reusable,
+        'found_count': latest_research.found_count,
+        'not_found_count': latest_research.not_found_count,
+        'divergent_count': latest_research.divergent_count,
+        'conflict_count': latest_research.conflict_count,
+        'suggestions': latest_research.suggestions or [],
+        'conflicts': latest_research.conflicts or [],
+        'errors': latest_research.errors or [],
+        'sources_consulted': latest_research.sources_consulted or [],
+    })
+
+
+# ================================================================
+# FASE 3B — REUTILIZAÇÃO INTELIGENTE E AUDITORIA EM LOTE
+# ================================================================
+
+@staff_member_required
+def copyright_batch_review_groups(request):
+    """
+    Lista administrativa limpa de grupos de revisão assistida semelhantes (Fase 3B).
+    Identifica grupos determinísticos por editora ou por provedor técnico.
+    """
+    from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+    all_groups = ImageRightsBatchReviewService.get_review_groups()
+    page_num = request.GET.get('page', 1)
+
+    paginator = Paginator(all_groups, 15)
+    try:
+        page_obj = paginator.page(page_num)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+    total_records_in_groups = sum(g['total_records'] for g in all_groups)
+    total_eligible_in_groups = sum(g['eligible_count'] for g in all_groups)
+    total_exceptions_in_groups = sum(g['exceptions_count'] for g in all_groups)
+
+    context = {
+        'page_obj': page_obj,
+        'groups': page_obj.object_list,
+        'total_groups': len(all_groups),
+        'total_records_in_groups': total_records_in_groups,
+        'total_eligible_in_groups': total_eligible_in_groups,
+        'total_exceptions_in_groups': total_exceptions_in_groups,
+    }
+    return render(request, 'admin/copyright_batch_groups.html', context)
+
+
+@staff_member_required
+def copyright_batch_review_detail(request, group_key):
+    """
+    Tela de revisão detalhada de um grupo de ativos visuais semelhantes (Fase 3B).
+    Apresenta informações comuns, tabela de registros com exceções destacadas e seleção de ações.
+    """
+    from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+    group_detail = ImageRightsBatchReviewService.get_group_detail(group_key)
+    if not group_detail:
+        raise Http404("Grupo de revisão em lote não encontrado.")
+
+    context = {
+        'detail': group_detail,
+        'group_key': group_key,
+        'group_info': group_detail['group_info'],
+        'institutional_evidence': group_detail['institutional_evidence'],
+        'records': group_detail['records'],
+        'total_records': group_detail['total_records'],
+        'eligible_count': group_detail['eligible_count'],
+        'exceptions_count': group_detail['exceptions_count'],
+    }
+    return render(request, 'admin/copyright_batch_detail.html', context)
+
+
+@staff_member_required
+def copyright_batch_review_preview(request, group_key):
+    """
+    Simula e apresenta o resumo das alterações propostas antes de qualquer persistência (POST).
+    """
+    from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+    if request.method != 'POST':
+        raise Http404("Método não permitido.")
+
+    selected_ids_raw = request.POST.getlist('selected_records')
+    fields_to_apply = request.POST.getlist('fields_to_apply')
+
+    selected_record_ids = []
+    for raw_id in selected_ids_raw:
+        try:
+            selected_record_ids.append(int(raw_id))
+        except (ValueError, TypeError):
+            pass
+
+    preview_result = ImageRightsBatchReviewService.preview_batch_update(
+        group_key=group_key,
+        selected_record_ids=selected_record_ids,
+        fields_to_apply=fields_to_apply,
+    )
+
+    detail = ImageRightsBatchReviewService.get_group_detail(group_key)
+
+    context = {
+        'preview': preview_result,
+        'group_key': group_key,
+        'group_info': detail['group_info'] if detail else None,
+        'selected_ids_csv': ",".join(str(i) for i in selected_record_ids),
+        'fields_to_apply_csv': ",".join(fields_to_apply),
+        'fields_to_apply': fields_to_apply,
+    }
+    return render(request, 'admin/copyright_batch_preview.html', context)
+
+
+@staff_member_required
+def copyright_batch_review_apply(request, group_key):
+    """
+    Aplica as alterações confirmadas de forma atômica e segura em lote (POST).
+    """
+    from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+    if request.method != 'POST':
+        raise Http404("Método não permitido.")
+
+    # Suporta tanto IDs individuais quanto lista CSV
+    selected_ids_raw = request.POST.getlist('selected_records')
+    if not selected_ids_raw and request.POST.get('selected_ids_csv'):
+        selected_ids_raw = request.POST.get('selected_ids_csv', '').split(',')
+
+    fields_to_apply = request.POST.getlist('fields_to_apply')
+    if not fields_to_apply and request.POST.get('fields_to_apply_csv'):
+        fields_to_apply = request.POST.get('fields_to_apply_csv', '').split(',')
+
+    selected_record_ids = []
+    for raw_id in selected_ids_raw:
+        try:
+            val = int(str(raw_id).strip())
+            selected_record_ids.append(val)
+        except (ValueError, TypeError):
+            pass
+
+    clean_fields = [f.strip() for f in fields_to_apply if f.strip()]
+
+    apply_result = ImageRightsBatchReviewService.apply_batch_update(
+        group_key=group_key,
+        selected_record_ids=selected_record_ids,
+        fields_to_apply=clean_fields,
+        performed_by=request.user,
+    )
+
+    detail = ImageRightsBatchReviewService.get_group_detail(group_key)
+
+    context = {
+        'result': apply_result,
+        'group_key': group_key,
+        'group_info': detail['group_info'] if detail else None,
+    }
+    return render(request, 'admin/copyright_batch_result.html', context)
+
+
+@staff_member_required
+def copyright_batch_review_research(request, group_key):
+    """
+    Executa pesquisa inteligente unificada para os registros do grupo que necessitam de dados (POST).
+    """
+    from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+    from django.shortcuts import redirect
+    from django.contrib import messages
+
+    if request.method != 'POST':
+        raise Http404("Método não permitido.")
+
+    research_result = ImageRightsBatchReviewService.research_group_records(
+        group_key=group_key,
+        performed_by=request.user,
+    )
+
+    if research_result.get('success'):
+        messages.success(request, research_result.get('message', 'Pesquisa do grupo concluída com sucesso.'))
+    else:
+        messages.error(request, research_result.get('message', 'Falha ao pesquisar grupo.'))
+
+    return redirect('copyright_batch_review_detail', group_key=group_key)
+
+

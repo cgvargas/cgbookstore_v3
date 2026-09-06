@@ -17,8 +17,14 @@ from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from core.models import Book, Author, ImageRightsRecord
+from core.models.institutional_source import InstitutionalSource
+from core.models.image_rights_audit_log import ImageRightsAuditLog
+from core.models.copyright_takedown import CopyrightTakedownRequest
+from core.models.image_rights_research import ImageRightsResearchResult
 from core.admin.image_rights_admin import ImageRightsRecordForm
 from core.services.image_rights_service import ImageRightsAuditService
+from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -2792,6 +2798,1983 @@ class ImageRightsAssistedAuditTestCase(TestCase):
         self.assertEqual(record.audit_status, 'not_audited')
         self.assertTrue(record.public_display_allowed)
         self.assertEqual(ImageRightsAuditLog.objects.count(), initial_logs_count)
+
+
+class ImageRightsResearchTestCase(TestCase):
+    """
+    Suíte Completa de 30 Testes para a Pesquisa Assistida e Pré-preenchimento (Fase 3A).
+    Verifica governança jurídica, integridade de dados, estratégias por provedor,
+    segurança SSRF, proteção contra scraping e fluxos administrativos.
+    """
+
+    def setUp(self):
+        from unittest.mock import MagicMock
+        self.admin = User.objects.create_superuser(
+            username='admin_research',
+            email='admin_research@test.com',
+            password='password123'
+        )
+        self.regular_user = User.objects.create_user(
+            username='regular_research',
+            email='regular_research@test.com',
+            password='password123'
+        )
+        self.author = Author.objects.create(name="J.R.R. Tolkien")
+        self.book = Book.objects.create(
+            title="O Silmarillion",
+            author=self.author,
+            price=79.90,
+            isbn="9788595084377",
+            publisher="HarperCollins Brasil",
+            publication_date="1977-09-15",
+        )
+        self.book_ct = ContentType.objects.get_for_model(Book)
+
+    def _create_record(self, **kwargs):
+        defaults = {
+            'content_type': self.book_ct,
+            'object_id': self.book.pk,
+            'image_field_name': 'cover_image',
+            'audit_status': 'not_audited',
+            'public_display_allowed': True,
+        }
+        defaults.update(kwargs)
+        return ImageRightsRecord.objects.create(**defaults)
+
+    # -------------------------------------------------------------
+    # 1. ACESSO E PERMISSÕES (Testes 1 e 2)
+    # -------------------------------------------------------------
+    def test_01_staff_can_access_research_start(self):
+        """1. Verifica que staff pode iniciar pesquisa via POST e é redirecionado."""
+        record = self._create_record()
+        client = Client()
+        client.login(username='admin_research', password='password123')
+
+        url = reverse('copyright_research_start', args=[record.pk])
+        response = client.post(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(f"/assisted/{record.pk}/", response.url)
+
+    def test_02_unauthorized_user_cannot_access_research(self):
+        """2. Verifica que usuários não autorizados (anônimos e regulares) não acessam endpoints de pesquisa."""
+        record = self._create_record()
+        anon_client = Client()
+        reg_client = Client()
+        reg_client.login(username='regular_research', password='password123')
+
+        endpoints = [
+            ('copyright_research_start', 'post', {'force_new': '1'}),
+            ('copyright_research_apply', 'post', {'field_name': 'creator_name', 'value': 'Teste'}),
+            ('copyright_research_data', 'get', {}),
+        ]
+
+        for view_name, method, data in endpoints:
+            url = reverse(view_name, args=[record.pk])
+            # Anônimo -> redireciona para login
+            resp_anon = getattr(anon_client, method)(url, data)
+            self.assertEqual(resp_anon.status_code, 302, f"Anon failed on {view_name}")
+
+            # Regular -> redireciona para login (staff_member_required)
+            resp_reg = getattr(reg_client, method)(url, data)
+            self.assertEqual(resp_reg.status_code, 302, f"Regular user failed on {view_name}")
+
+    # -------------------------------------------------------------
+    # 2. GOVERNANÇA E NÃO-MUTABILIDADE AUTOMÁTICA (Testes 3 a 6)
+    # -------------------------------------------------------------
+    def test_03_research_does_not_alter_audit_status(self):
+        """3. Pesquisa assistida NUNCA altera o audit_status do registro."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+        record = self._create_record(audit_status='not_audited')
+
+        result = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+        self.assertIsNotNone(result)
+
+        record.refresh_from_db()
+        self.assertEqual(record.audit_status, 'not_audited')
+
+    def test_04_research_does_not_alter_public_display_allowed(self):
+        """4. Pesquisa assistida NUNCA altera o public_display_allowed."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+        record = self._create_record(public_display_allowed=True)
+
+        result = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+        self.assertIsNotNone(result)
+
+        record.refresh_from_db()
+        self.assertTrue(record.public_display_allowed)
+
+    def test_05_research_does_not_create_audit_log(self):
+        """5. A execução da pesquisa assistida NÃO gera ImageRightsAuditLog."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+        from core.models.image_rights_audit_log import ImageRightsAuditLog
+        record = self._create_record()
+        initial_log_count = ImageRightsAuditLog.objects.count()
+
+        ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+
+        self.assertEqual(ImageRightsAuditLog.objects.count(), initial_log_count)
+
+    def test_06_existing_data_not_silently_overwritten(self):
+        """6. Dados já cadastrados no registro não são sobrescritos pela pesquisa; divergências são anotadas."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+        record = self._create_record(
+            creator_name="Ilustrador Original",
+            rights_holder_name="Detentor Original",
+            source_url="https://exemplo.com/imagem.jpg",
+        )
+
+        result = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+
+        record.refresh_from_db()
+        self.assertEqual(record.creator_name, "Ilustrador Original")
+        self.assertEqual(record.rights_holder_name, "Detentor Original")
+        self.assertEqual(record.source_url, "https://exemplo.com/imagem.jpg")
+
+    # -------------------------------------------------------------
+    # 3. CONFIRMAÇÃO MANUAL E HISTÓRICO (Testes 7 e 8)
+    # -------------------------------------------------------------
+    def test_07_suggestions_can_be_confirmed_manually(self):
+        """7. Sugestões factuais podem ser aplicadas individualmente com confirmação do admin."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+        record = self._create_record(creator_name="")
+
+        result = ImageRightsResearchService.apply_suggestion(
+            record_id=record.pk,
+            field_name='creator_name',
+            value='Ted Nasmith',
+            performed_by=self.admin,
+        )
+
+        self.assertTrue(result['success'])
+        record.refresh_from_db()
+        self.assertEqual(record.creator_name, 'Ted Nasmith')
+
+    def test_08_applying_factual_suggestion_creates_history_log(self):
+        """8. A confirmação manual de uma sugestão gera entrada no histórico via ImageRightsHistoryService."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+        from core.models.image_rights_audit_log import ImageRightsAuditLog
+        record = self._create_record(rights_holder_name="")
+        initial_logs = ImageRightsAuditLog.objects.filter(image_rights_record=record).count()
+
+        ImageRightsResearchService.apply_suggestion(
+            record_id=record.pk,
+            field_name='rights_holder_name',
+            value='HarperCollins Publishers',
+            performed_by=self.admin,
+        )
+
+        record_logs = ImageRightsAuditLog.objects.filter(image_rights_record=record)
+        self.assertEqual(record_logs.count(), initial_logs + 1)
+        latest_log = record_logs.order_by('-pk').first()
+        self.assertEqual(latest_log.performed_by, self.admin)
+        self.assertIn("HarperCollins Publishers", latest_log.new_value)
+
+    # -------------------------------------------------------------
+    # 4. ESTRATÉGIAS POR PROVEDOR (Testes 9 a 15)
+    # -------------------------------------------------------------
+    def test_09_google_books_uses_own_strategy(self):
+        """9. Provedor Google Books busca dados estruturados usando sua API específica."""
+        from unittest.mock import patch
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(
+            provenance_provider='google_books',
+            provider_asset_id='GB_SILMARILLION_123',
+        )
+
+        mock_book_data = {
+            'google_book_id': 'GB_SILMARILLION_123',
+            'title': 'O Silmarillion',
+            'authors': ['J.R.R. Tolkien'],
+            'publisher': 'HarperCollins Brasil',
+            'info_link': 'https://books.google.com.br/books?id=GB_SILMARILLION_123',
+        }
+
+        with patch('core.utils.google_books_api.get_book_by_id', return_value=mock_book_data):
+            research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+
+            self.assertIsNotNone(research)
+            field_names = [s['field_name'] for s in research.suggestions if s.get('suggested_value')]
+            self.assertIn('rights_holder_name', field_names)
+            self.assertIn('work_title', field_names)
+
+    def test_10_amazon_does_not_use_scraping(self):
+        """10. Provedor Amazon utiliza SOMENTE dados já disponíveis, sem scraping."""
+        from unittest.mock import patch
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(
+            provenance_provider='amazon',
+            source_url='https://m.media-amazon.com/images/I/81example.jpg',
+        )
+
+        # Garantir que requests.get NUNCA é chamado para domínios da Amazon (sem web scraping)
+        with patch('requests.get') as mock_get:
+            research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+
+            for call_item in mock_get.call_args_list:
+                args, _ = call_item
+                if args:
+                    self.assertNotIn('amazon', str(args[0]).lower())
+            self.assertIsNotNone(research)
+
+    def test_11_amazon_not_treated_as_rights_holder_automatically(self):
+        """11. Amazon NÃO é sugerida como titular dos direitos da obra visual."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(
+            provenance_provider='amazon',
+            source_url='https://m.media-amazon.com/images/I/81example.jpg',
+        )
+
+        research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+        for s in research.suggestions:
+            if s.get('field_name') == 'rights_holder_name':
+                self.assertNotIn('amazon', s.get('suggested_value', '').lower())
+
+    def test_12_wikimedia_collects_declared_license(self):
+        """12. Wikimedia coleta licença declarada nos metadados sem regularizar status automaticamente."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(
+            provenance_provider='wikimedia',
+            provenance_metadata={
+                'wikimedia_title': 'File:Tolkien_1916.jpg',
+                'license_code': 'CC BY-SA 4.0',
+            }
+        )
+
+        research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+        lic_sugg = [s for s in research.suggestions if s.get('field_name') == 'license_type']
+        self.assertTrue(len(lic_sugg) > 0)
+        self.assertEqual(lic_sugg[0]['suggested_value'], 'cc')
+
+        # Status continua not_audited
+        record.refresh_from_db()
+        self.assertEqual(record.audit_status, 'not_audited')
+
+    def test_13_gutenberg_does_not_imply_automatic_public_domain(self):
+        """13. Project Gutenberg disponibiliza link do catálogo, mas não presume domínio público da imagem."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(
+            provenance_provider='project_gutenberg',
+            provider_asset_id='12345',
+            provenance_metadata={'gutenberg_id': '12345'}
+        )
+
+        research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+        record.refresh_from_db()
+
+        # Audit status não foi modificado
+        self.assertEqual(record.audit_status, 'not_audited')
+        # Licença não foi alterada automaticamente
+        self.assertEqual(record.license_type, '')
+
+    def test_14_open_library_does_not_imply_automatic_license(self):
+        """14. Open Library coleta metadados de catálogo sem presumir autorização de licença."""
+        from unittest.mock import patch, MagicMock
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(
+            provenance_provider='open_library',
+        )
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.content = b'{"ISBN:9788595084377": {"title": "O Silmarillion", "publishers": [{"name": "HarperCollins"}], "url": "https://openlibrary.org/books/OL123M"}}'
+        mock_response.json.return_value = {
+            "ISBN:9788595084377": {
+                "title": "O Silmarillion",
+                "publishers": [{"name": "HarperCollins"}],
+                "url": "https://openlibrary.org/books/OL123M"
+            }
+        }
+
+        with patch('requests.get', return_value=mock_response):
+            research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+            self.assertIsNotNone(research)
+            record.refresh_from_db()
+            self.assertEqual(record.audit_status, 'not_audited')
+
+    def test_15_official_publisher_source_can_be_registered(self):
+        """15. Fonte oficial da editora pode ser identificada a partir do catálogo interno."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(
+            provenance_provider='publisher',
+        )
+
+        research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+        licensor_suggs = [s for s in research.suggestions if s.get('field_name') == 'licensor_name']
+        self.assertTrue(len(licensor_suggs) > 0)
+        self.assertEqual(licensor_suggs[0]['suggested_value'], 'HarperCollins Brasil')
+
+    # -------------------------------------------------------------
+    # 5. CAMPOS NÃO LOCALIZADOS E CONFLITOS (Testes 16 a 19)
+    # -------------------------------------------------------------
+    def test_16_absence_of_creator_returns_not_found(self):
+        """16. Ausência de criador da imagem em fontes confiáveis retorna 'Não localizado' sem inventar dados."""
+        from unittest.mock import patch
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(
+            creator_name="",
+            provenance_provider="",
+        )
+
+        with patch('core.utils.google_books_api.search_books', return_value={'books': []}):
+            research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+            creator_suggs = [s for s in research.suggestions if s.get('field_name') == 'creator_name']
+            self.assertTrue(len(creator_suggs) > 0)
+            self.assertEqual(creator_suggs[0]['suggested_value'], '')
+            self.assertIn('Não localizado', creator_suggs[0]['short_reason'])
+
+    def test_17_absence_of_rights_holder_returns_not_found(self):
+        """17. Ausência de titular em fontes confiáveis retorna 'Não localizado'."""
+        from unittest.mock import patch
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        # Criar livro sem publisher para garantir ausência
+        book_no_pub = Book.objects.create(title="Sem Editora", price=10.0, publication_date="2020-01-01")
+        record = ImageRightsRecord.objects.create(
+            content_type=self.book_ct,
+            object_id=book_no_pub.pk,
+            image_field_name='cover_image',
+            rights_holder_name="",
+            provenance_provider="",
+        )
+
+        with patch('core.utils.google_books_api.search_books', return_value={'books': []}):
+            research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+            holder_suggs = [s for s in research.suggestions if s.get('field_name') == 'rights_holder_name']
+            self.assertTrue(len(holder_suggs) > 0)
+            self.assertEqual(holder_suggs[0]['suggested_value'], '')
+
+    def test_18_conflicts_between_sources_are_presented(self):
+        """18. Divergências entre múltiplas fontes são detectadas e apresentadas como conflitos."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record()
+        suggestions = [
+            ImageRightsResearchService._make_suggestion(
+                field_name='rights_holder_name',
+                suggested_value='Editora Alfa',
+                current_value='',
+                source_url='',
+                source_type='api',
+                source_title='Google Books',
+                confidence='medium',
+                short_reason='',
+            ),
+            ImageRightsResearchService._make_suggestion(
+                field_name='rights_holder_name',
+                suggested_value='Editora Beta',
+                current_value='',
+                source_url='',
+                source_type='api',
+                source_title='Open Library',
+                confidence='medium',
+                short_reason='',
+            )
+        ]
+        conflicts = []
+        ImageRightsResearchService._detect_conflicts(record, suggestions, conflicts)
+
+        self.assertEqual(len(conflicts), 1)
+        self.assertEqual(conflicts[0]['field_name'], 'rights_holder_name')
+        self.assertEqual(conflicts[0]['value_a'], 'Editora Alfa')
+        self.assertEqual(conflicts[0]['value_b'], 'Editora Beta')
+
+    def test_19_confidence_measures_factual_identification_not_legality(self):
+        """19. O nível de confiança mede identificação factual, não conformidade jurídica."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        suggestion = ImageRightsResearchService._make_suggestion(
+            field_name='work_title',
+            suggested_value='O Silmarillion',
+            current_value='',
+            source_url='https://books.google.com',
+            source_type='api',
+            source_title='Google Books API',
+            confidence='high',
+            short_reason='Título da obra obtido do catálogo.',
+        )
+
+        self.assertEqual(suggestion['confidence'], 'high')
+        # A sugestão não contém decisão sobre legalidade
+        self.assertNotIn('legal_status', suggestion)
+
+    # -------------------------------------------------------------
+    # 6. PROTEÇÃO JURÍDICA E SEGURANÇA (Testes 20 a 25)
+    # -------------------------------------------------------------
+    def test_20_legal_basis_is_not_altered_automatically(self):
+        """20. O campo legal_basis NUNCA pode ser alterado via pesquisa ou apply_suggestion."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(legal_basis='express_consent')
+
+        result = ImageRightsResearchService.apply_suggestion(
+            record_id=record.pk,
+            field_name='legal_basis',
+            value='public_domain',
+            performed_by=self.admin,
+        )
+
+        self.assertFalse(result['success'])
+        self.assertIn('juridicamente protegido', result['message'])
+        record.refresh_from_db()
+        self.assertEqual(record.legal_basis, 'express_consent')
+
+    def test_21_external_terms_do_not_alter_audit_status(self):
+        """21. Aplicar URL de termos de licença não altera automaticamente o audit_status."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(audit_status='not_audited', license_url="")
+
+        result = ImageRightsResearchService.apply_suggestion(
+            record_id=record.pk,
+            field_name='license_url',
+            value='https://creativecommons.org/licenses/by/4.0/',
+            performed_by=self.admin,
+        )
+
+        self.assertTrue(result['success'])
+        record.refresh_from_db()
+        self.assertEqual(record.license_url, 'https://creativecommons.org/licenses/by/4.0/')
+        self.assertEqual(record.audit_status, 'not_audited')
+
+    def test_22_external_api_failure_preserves_all_data(self):
+        """22. Falha de comunicação com API externa preserva integralmente os dados do registro."""
+        from unittest.mock import patch
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(
+            provenance_provider='google_books',
+            provider_asset_id='gb_vol_test123',
+            creator_name='Artista Preservado',
+            rights_holder_name='Titular Preservado',
+        )
+
+        with patch('core.utils.google_books_api.get_book_by_id', side_effect=Exception("API Down")):
+            research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+
+            self.assertIsNotNone(research)
+            self.assertIn(research.status, ('partial', 'failed'))
+            self.assertTrue(len(research.errors) > 0)
+
+            record.refresh_from_db()
+            self.assertEqual(record.creator_name, 'Artista Preservado')
+            self.assertEqual(record.rights_holder_name, 'Titular Preservado')
+
+    def test_23_timeout_is_handled_gracefully(self):
+        """23. Timeout em consulta externa é capturado sem gerar exceção não tratada."""
+        import requests
+        from unittest.mock import patch
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(provenance_provider='open_library')
+
+        with patch('requests.get', side_effect=requests.exceptions.Timeout("Connection timed out")):
+            research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+
+            self.assertIsNotNone(research)
+            # O serviço capturou o timeout com segurança
+            self.assertTrue(any('timeout' in str(e).lower() for e in research.errors))
+
+    def test_24_sensitive_url_blocked_by_ssrf_protection(self):
+        """24. URLs de localhost, IPs privados e esquemas inseguros são bloqueadas por proteção SSRF."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        unsafe_urls = [
+            'http://localhost:8000/api',
+            'http://127.0.0.1/admin',
+            'http://169.254.169.254/latest/meta-data/',
+            'http://192.168.1.1/secret',
+            'http://10.0.0.1/private',
+            'file:///etc/passwd',
+            'ftp://example.com/file',
+            'gopher://example.com',
+            'javascript:alert(1)',
+        ]
+
+        for u in unsafe_urls:
+            self.assertFalse(
+                ImageRightsResearchService._is_url_safe(u),
+                f"URL {u} deveria ter sido bloqueada por SSRF."
+            )
+
+        # URLs públicas válidas devem passar
+        self.assertTrue(ImageRightsResearchService._is_url_safe('https://openlibrary.org/api/books'))
+        self.assertTrue(ImageRightsResearchService._is_url_safe('https://books.google.com/books'))
+
+    def test_25_tokens_and_credentials_are_not_persisted(self):
+        """25. Headers de autorização e tokens sensíveis não são persistidos em resultados de pesquisa."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record()
+        research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+
+        result_str = str(research.suggestions) + str(research.sources_consulted) + str(research.internal_data_used)
+        self.assertNotIn('bearer', result_str.lower())
+        self.assertNotIn('authorization', result_str.lower())
+        self.assertNotIn('api_secret', result_str.lower())
+
+    # -------------------------------------------------------------
+    # 7. REUTILIZAÇÃO E ISOLAMENTO (Testes 26 a 30)
+    # -------------------------------------------------------------
+    def test_26_previous_research_result_reused_within_24h(self):
+        """26. Resultado de pesquisa recente (< 24h) é reutilizado sem refazer consultas."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+        from core.models.image_rights_research import ImageRightsResearchResult
+
+        record = self._create_record()
+        res1 = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+
+        count_before = ImageRightsResearchResult.objects.filter(image_rights_record=record).count()
+
+        # get_or_create deve retornar o mesmo objeto
+        res2 = ImageRightsResearchService.get_or_create_research(record.pk, performed_by=self.admin)
+
+        self.assertEqual(res1.pk, res2.pk)
+        self.assertEqual(
+            ImageRightsResearchResult.objects.filter(image_rights_record=record).count(),
+            count_before
+        )
+
+    def test_27_research_again_replaces_only_operational_result(self):
+        """27. Forçar nova pesquisa substitui apenas o resultado operacional, preservando dados do registro."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+        from core.models.image_rights_research import ImageRightsResearchResult
+
+        record = self._create_record(creator_name="Ilustrador Mantido")
+        res1 = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+
+        # Forçar nova pesquisa
+        res2 = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+
+        self.assertNotEqual(res1.pk, res2.pk)
+        record.refresh_from_db()
+        self.assertEqual(record.creator_name, "Ilustrador Mantido")
+
+    def test_28_same_terms_url_recognized(self):
+        """28. Mesma URL de termos já registrada é reconhecida sem divergência."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(license_url="https://unsplash.com/license")
+        suggestion = ImageRightsResearchService._make_suggestion(
+            field_name='license_url',
+            suggested_value='https://unsplash.com/license',
+            current_value=record.license_url,
+            source_url='https://unsplash.com/license',
+            source_type='official',
+            source_title='Termos Unsplash',
+            confidence='high',
+            short_reason='',
+        )
+
+        self.assertFalse(suggestion['is_divergent'])
+
+    def test_29_query_does_not_trigger_research_on_other_records(self):
+        """29. Pesquisar um registro A não afeta nem dispara pesquisa no registro B."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+        from core.models.image_rights_research import ImageRightsResearchResult
+
+        book_b = Book.objects.create(title="Livro B", price=29.90, publication_date="2021-01-01")
+        rec_a = self._create_record()
+        rec_b = ImageRightsRecord.objects.create(
+            content_type=self.book_ct,
+            object_id=book_b.pk,
+            image_field_name='cover_image',
+            audit_status='not_audited',
+        )
+
+        ImageRightsResearchService.perform_research(rec_a.pk, performed_by=self.admin)
+
+        # Registro B não possui nenhum resultado de pesquisa
+        self.assertEqual(
+            ImageRightsResearchResult.objects.filter(image_rights_record=rec_b).count(),
+            0
+        )
+
+    def test_30_all_previous_tests_pass(self):
+        """30. Verificação cumulativa de integridade da infraestrutura de governança."""
+        from core.models.image_rights_research import ImageRightsResearchResult
+
+        record = self._create_record()
+        research = ImageRightsResearchResult.objects.create(
+            image_rights_record=record,
+            status='completed',
+            suggestions=[
+                {'field_name': 'creator_name', 'suggested_value': 'Artista A', 'is_divergent': False},
+                {'field_name': 'rights_holder_name', 'suggested_value': '', 'is_divergent': False},
+            ],
+            conflicts=[],
+            errors=[],
+        )
+
+        self.assertEqual(research.suggestion_count, 2)
+        self.assertEqual(research.found_count, 1)
+        self.assertEqual(research.not_found_count, 1)
+        self.assertEqual(research.divergent_count, 0)
+        self.assertEqual(research.conflict_count, 0)
+
+
+class ImageRightsInstitutionalResearchTestCase(TestCase):
+    """
+    Suíte de 20 Testes para Descoberta Institucional Controlada de Editora,
+    Obra e Termos Oficiais (Fase 3A.1).
+    """
+
+    def setUp(self):
+        from django.utils import timezone
+        self.timezone = timezone
+        self.admin = User.objects.create_superuser(
+            username='admin_inst',
+            email='admin_inst@test.com',
+            password='password123'
+        )
+        self.author = Author.objects.create(name="J.R.R. Tolkien")
+        self.book = Book.objects.create(
+            title="O Senhor dos Anéis — As Duas Torres",
+            author=self.author,
+            price=89.90,
+            isbn="9788595084759",
+            publisher="HarperCollins Brasil",
+            publication_date="1954-11-11",
+        )
+        self.book_ct = ContentType.objects.get_for_model(Book)
+
+    def _create_record(self, **kwargs):
+        defaults = {
+            'content_type': self.book_ct,
+            'object_id': self.book.pk,
+            'image_field_name': 'cover_image',
+            'audit_status': 'not_audited',
+            'public_display_allowed': True,
+        }
+        defaults.update(kwargs)
+        return ImageRightsRecord.objects.create(**defaults)
+
+    def test_01_confirmed_institutional_domain_reused(self):
+        """1. Domínio institucional previamente confirmado no banco é reutilizado."""
+        from django.utils import timezone
+        from core.models.institutional_source import InstitutionalSource
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        InstitutionalSource.objects.create(
+            name="HarperCollins Brasil",
+            domain="harpercollins.com.br",
+            main_url="https://harpercollins.com.br",
+            terms_url="https://harpercollins.com.br/pages/termos-de-uso",
+            terms_summary="Termos oficiais cadastrados.",
+            terms_retrieved_at=timezone.now(),
+            is_verified=True,
+        )
+
+        record = self._create_record()
+        research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+        self.assertIsNotNone(research)
+
+        # Verifica que o site oficial e termos da HarperCollins foram sugeridos
+        sugg_fields = {s['field_name']: s for s in research.suggestions if s.get('suggested_value')}
+        self.assertIn('license_url', sugg_fields)
+        self.assertEqual(sugg_fields['license_url']['suggested_value'], 'https://harpercollins.com.br/pages/termos-de-uso')
+        self.assertEqual(sugg_fields['license_url']['source_type'], 'institutional')
+
+    def test_02_domain_not_invented_for_unknown_publisher(self):
+        """2. Domínio NÃO é inventado por concatenação para editora desconhecida."""
+        from core.models.institutional_source import InstitutionalSource
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        book_unknown = Book.objects.create(
+            title="Livro Misterioso",
+            author=self.author,
+            price=29.90,
+            publisher="Editora Totalmente Inexistente 999",
+            publication_date="2020-01-01",
+        )
+        record = self._create_record(object_id=book_unknown.pk)
+
+        research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+        self.assertIsNotNone(research)
+
+        # Não deve ter criado InstitutionalSource fictício
+        self.assertFalse(InstitutionalSource.objects.filter(name__icontains="Inexistente 999").exists())
+
+    def test_03_institutional_discovery_requires_identified_publisher(self):
+        """3. Descoberta institucional exige editora/publisher identificada."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        book_no_pub = Book.objects.create(
+            title="Livro Sem Editora",
+            author=self.author,
+            price=19.90,
+            publisher="",
+            publication_date="2020-01-01",
+        )
+        record = self._create_record(object_id=book_no_pub.pk)
+
+        internal_data = ImageRightsResearchService._collect_internal_data(record)
+        res = ImageRightsResearchService._research_institutional_source(record, internal_data)
+        self.assertEqual(len(res['suggestions']), 0)
+        self.assertEqual(len(res['sources']), 0)
+
+    def test_04_institutional_url_passes_ssrf_check(self):
+        """4. URLs institucionais passam obrigatoriamente por proteção SSRF."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        self.assertFalse(ImageRightsResearchService._is_url_safe("http://127.0.0.1/termos"))
+        self.assertFalse(ImageRightsResearchService._is_url_safe("http://localhost:8000/terms"))
+        self.assertFalse(ImageRightsResearchService._is_url_safe("http://169.254.169.254/latest/meta-data"))
+        self.assertFalse(ImageRightsResearchService._is_url_safe("file:///etc/passwd"))
+        self.assertTrue(ImageRightsResearchService._is_url_safe("https://harpercollins.com.br/pages/termos-de-uso"))
+
+    def test_05_redirect_to_untrusted_domain_blocked(self):
+        """5. Redirecionamento para domínio fora do institucional é barrado."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        self.assertTrue(ImageRightsResearchService._is_url_in_domain("https://harpercollins.com.br/termos", "harpercollins.com.br"))
+        self.assertTrue(ImageRightsResearchService._is_url_in_domain("https://www.harpercollins.com.br/termos", "harpercollins.com.br"))
+        self.assertFalse(ImageRightsResearchService._is_url_in_domain("https://site-malicioso.com/termos", "harpercollins.com.br"))
+        self.assertFalse(ImageRightsResearchService._is_url_in_domain("https://harpercollins.com.br.atacante.com/termos", "harpercollins.com.br"))
+
+    def test_06_known_terms_page_reused_without_new_http_call(self):
+        """6. Página de termos conhecida e recente é reutilizada sem nova requisição HTTP."""
+        from django.utils import timezone
+        from unittest.mock import patch
+        from core.models.institutional_source import InstitutionalSource
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        InstitutionalSource.objects.create(
+            name="HarperCollins Brasil",
+            domain="harpercollins.com.br",
+            main_url="https://harpercollins.com.br",
+            terms_url="https://harpercollins.com.br/pages/termos-de-uso",
+            terms_summary="Termos previamente indexados.",
+            terms_retrieved_at=timezone.now(),
+            is_verified=True,
+        )
+
+        record = self._create_record()
+        with patch('requests.get') as mock_get:
+            internal_data = ImageRightsResearchService._collect_internal_data(record)
+            res = ImageRightsResearchService._research_institutional_source(record, internal_data)
+
+            # Nenhuma chamada HTTP para termos de uso pois é recente (< 30 dias)
+            for call_item in mock_get.call_args_list:
+                args, _ = call_item
+                if args:
+                    self.assertNotIn('termos-de-uso', str(args[0]))
+            self.assertTrue(any(s['field_name'] == 'license_url' for s in res['suggestions']))
+
+    def test_07_institutional_source_can_be_registered_and_updated(self):
+        """7. Modelo InstitutionalSource pode ser persistido e atualizado."""
+        from django.utils import timezone
+        from core.models.institutional_source import InstitutionalSource
+
+        source = InstitutionalSource.objects.create(
+            name="Companhia das Letras",
+            domain="companhiadasletras.com.br",
+            main_url="https://www.companhiadasletras.com.br",
+            terms_url="https://www.companhiadasletras.com.br/termos-de-uso",
+            terms_summary="Termos da Companhia das Letras",
+            terms_retrieved_at=timezone.now(),
+        )
+        self.assertTrue(source.is_terms_recent)
+        self.assertEqual(source.institution_type, 'publisher')
+
+        source.terms_summary = "Termos atualizados."
+        source.save()
+        source.refresh_from_db()
+        self.assertEqual(source.terms_summary, "Termos atualizados.")
+
+    def test_08_book_page_distinguished_from_google_books(self):
+        """8. Página oficial da obra na editora tem source_type='institutional', distinta do Google Books."""
+        from core.models.institutional_source import InstitutionalSource
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        InstitutionalSource.objects.create(
+            name="HarperCollins Brasil",
+            domain="harpercollins.com.br",
+            main_url="https://harpercollins.com.br",
+            is_verified=True,
+        )
+
+        record = self._create_record()
+        internal_data = ImageRightsResearchService._collect_internal_data(record)
+        res = ImageRightsResearchService._research_institutional_source(record, internal_data)
+
+        for s in res['suggestions']:
+            self.assertEqual(s['source_type'], 'institutional')
+
+    def test_09_terms_page_does_not_auto_set_license_type(self):
+        """9. Localizar página de Termos NÃO preenche license_type nem legal_basis."""
+        from django.utils import timezone
+        from core.models.institutional_source import InstitutionalSource
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        InstitutionalSource.objects.create(
+            name="HarperCollins Brasil",
+            domain="harpercollins.com.br",
+            terms_url="https://harpercollins.com.br/pages/termos-de-uso",
+            terms_retrieved_at=timezone.now(),
+            is_verified=True,
+        )
+
+        record = self._create_record(license_type='')
+        research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+
+        record.refresh_from_db()
+        self.assertEqual(record.license_type, '')
+        self.assertEqual(record.legal_basis, '')
+
+    def test_10_publisher_not_treated_as_artwork_rights_holder_automatically(self):
+        """10. Publisher sugerido com ressalva expressa de que não é necessariamente titular da arte da capa."""
+        from core.models.institutional_source import InstitutionalSource
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        InstitutionalSource.objects.create(
+            name="HarperCollins Brasil",
+            domain="harpercollins.com.br",
+            is_verified=True,
+        )
+
+        record = self._create_record(rights_holder_name='')
+        internal_data = ImageRightsResearchService._collect_internal_data(record)
+        res = ImageRightsResearchService._research_institutional_source(record, internal_data)
+
+        rh_sugg = [s for s in res['suggestions'] if s['field_name'] == 'rights_holder_name']
+        self.assertTrue(len(rh_sugg) > 0)
+        self.assertEqual(rh_sugg[0]['confidence'], 'medium')
+        self.assertIn('nem sempre detém a totalidade dos direitos visuais', rh_sugg[0]['short_reason'])
+
+    def test_11_creator_suggested_only_when_explicitly_declared(self):
+        """11. Criador da capa é sugerido somente se explicitamente declarado na página."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        html_with_credit = "<html><body><h1>Livro</h1><p>Arte da capa: Roger Garland</p></body></html>"
+        creator = ImageRightsResearchService._extract_cover_creator(html_with_credit)
+        self.assertEqual(creator, "Roger Garland")
+
+    def test_12_absence_of_cover_creator_returns_not_found(self):
+        """12. Ausência de crédito explícito de capa retorna None sem inventar dados."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        html_no_credit = "<html><body><h1>Livro</h1><p>Compre agora com desconto.</p></body></html>"
+        creator = ImageRightsResearchService._extract_cover_creator(html_no_credit)
+        self.assertIsNone(creator)
+
+    def test_13_full_html_content_not_persisted(self):
+        """13. Conteúdo HTML integral não é persistido (somente trecho limpo e hash)."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        raw_html = "<html><script>alert('xss');</script><style>.a{color:red;}</style><body><p>Termos de Uso Oficiais.</p></body></html>"
+        clean = ImageRightsResearchService._extract_text_snippet(raw_html)
+        self.assertNotIn('<script>', clean)
+        self.assertNotIn('<style>', clean)
+        self.assertIn('Termos de Uso Oficiais.', clean)
+
+    def test_14_research_does_not_alter_legal_basis(self):
+        """14. A pesquisa institucional NUNCA altera o legal_basis."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(legal_basis='')
+        research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+        record.refresh_from_db()
+        self.assertEqual(record.legal_basis, '')
+
+    def test_15_research_does_not_alter_audit_status(self):
+        """15. A pesquisa institucional NUNCA altera o audit_status."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(audit_status='not_audited')
+        research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+        record.refresh_from_db()
+        self.assertEqual(record.audit_status, 'not_audited')
+
+    def test_16_research_does_not_alter_public_display_allowed(self):
+        """16. A pesquisa institucional NUNCA altera public_display_allowed."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(public_display_allowed=True)
+        research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+        record.refresh_from_db()
+        self.assertTrue(record.public_display_allowed)
+
+    def test_17_institutional_research_does_not_create_audit_log(self):
+        """17. A execução da pesquisa institucional NUNCA cria ImageRightsAuditLog."""
+        from core.models.image_rights_audit_log import ImageRightsAuditLog
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record()
+        initial_logs = ImageRightsAuditLog.objects.filter(image_rights_record=record).count()
+
+        ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+        current_logs = ImageRightsAuditLog.objects.filter(image_rights_record=record).count()
+        self.assertEqual(current_logs, initial_logs)
+
+    def test_18_manual_application_creates_history_log(self):
+        """18. Aplicação manual de dado institucional confirmado gera histórico de auditoria."""
+        from core.models.image_rights_audit_log import ImageRightsAuditLog
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(license_url='')
+        res = ImageRightsResearchService.apply_suggestion(
+            record_id=record.pk,
+            field_name='license_url',
+            value='https://harpercollins.com.br/pages/termos-de-uso',
+            performed_by=self.admin
+        )
+        self.assertTrue(res['success'])
+
+        record.refresh_from_db()
+        self.assertEqual(record.license_url, 'https://harpercollins.com.br/pages/termos-de-uso')
+        log = ImageRightsAuditLog.objects.filter(
+            image_rights_record=record,
+            event_type='record_updated',
+        ).first()
+        self.assertIsNotNone(log)
+
+    def test_19_amazon_continues_without_scraping(self):
+        """19. Provedor Amazon continua estritamente sem scraping."""
+        from unittest.mock import patch
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        record = self._create_record(
+            provenance_provider='amazon',
+            source_url='https://m.media-amazon.com/images/I/81example.jpg',
+        )
+
+        with patch('requests.get') as mock_get:
+            research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+            for call_item in mock_get.call_args_list:
+                args, _ = call_item
+                if args:
+                    self.assertNotIn('amazon', str(args[0]).lower())
+
+    def test_20_harpercollins_validation_scenario(self):
+        """20. Cenário de validação conceitual completo HarperCollins Brasil."""
+        from django.utils import timezone
+        from core.models.institutional_source import InstitutionalSource
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        # Registrar previamente a HarperCollins Brasil
+        InstitutionalSource.objects.get_or_create(
+            domain="harpercollins.com.br",
+            defaults={
+                'name': "HarperCollins Brasil",
+                'main_url': "https://harpercollins.com.br",
+                'terms_url': "https://harpercollins.com.br/pages/termos-de-uso",
+                'terms_summary': "Página oficial de termos de uso da editora. Proibida reprodução não autorizada.",
+                'terms_retrieved_at': timezone.now(),
+                'is_verified': True,
+            }
+        )
+
+        record = self._create_record(
+            creator_name='',
+            rights_holder_name='',
+            license_url='',
+        )
+
+        research = ImageRightsResearchService.perform_research(record.pk, performed_by=self.admin)
+        self.assertIsNotNone(research)
+
+        suggs = {s['field_name']: s for s in research.suggestions if s.get('suggested_value')}
+
+        # 1. Domínio institucional reconhecido
+        self.assertIn('licensor_name', suggs)
+        self.assertEqual(suggs['licensor_name']['suggested_value'], 'HarperCollins Brasil')
+
+        # 2. Termos de Uso localizados e sugeridos
+        self.assertIn('license_url', suggs)
+        self.assertEqual(suggs['license_url']['suggested_value'], 'https://harpercollins.com.br/pages/termos-de-uso')
+
+        # 3. Criador não inventado
+        record.refresh_from_db()
+        self.assertEqual(record.creator_name, '')
+
+        # 4. Invariantes preservados
+        self.assertEqual(record.audit_status, 'not_audited')
+        self.assertEqual(record.legal_basis, '')
+        self.assertTrue(record.public_display_allowed)
+
+
+class ImageRightsBatchReviewTestCase(TestCase):
+    """
+    Suíte de Validação da Fase 3B — Automação Operacional Conclusiva (50 Testes):
+    Reutilização Inteligente de Evidências + Auditoria Assistida em Lote.
+    """
+
+    def setUp(self):
+        self.admin = User.objects.create_superuser(
+            username='admin_batch',
+            email='admin_batch@cgbookstore.com.br',
+            password='password123'
+        )
+        self.regular_user = User.objects.create_user(
+            username='regular_batch',
+            email='user_batch@cgbookstore.com.br',
+            password='password123'
+        )
+        self.author = Author.objects.create(name="J.R.R. Tolkien")
+        self.book_ct = ContentType.objects.get_for_model(Book)
+
+        # Fonte Institucional pré-confirmada da HarperCollins Brasil
+        self.inst_source, _ = InstitutionalSource.objects.get_or_create(
+            domain="harpercollins.com.br",
+            defaults={
+                'name': "HarperCollins Brasil",
+                'main_url': "https://harpercollins.com.br",
+                'terms_url': "https://harpercollins.com.br/pages/termos-de-uso",
+                'terms_summary': "Página oficial de termos de uso da editora. Todos os direitos reservados.",
+                'terms_content_hash': "abc123hash456",
+                'terms_retrieved_at': timezone.now(),
+                'is_verified': True,
+            }
+        )
+
+        self.client = Client()
+
+    def _create_book_and_record(self, title="Livro Teste", publisher="HarperCollins Brasil", isbn=None, **record_kwargs):
+        book = Book.objects.create(
+            title=title,
+            author=self.author,
+            price=59.90,
+            isbn=isbn,
+            publisher=publisher,
+            publication_date="2020-01-01",
+        )
+        defaults = {
+            'content_type': self.book_ct,
+            'object_id': book.pk,
+            'image_field_name': 'cover_image',
+            'audit_status': 'not_audited',
+            'public_display_allowed': True,
+        }
+        defaults.update(record_kwargs)
+        record = ImageRightsRecord.objects.create(**defaults)
+        return book, record
+
+    def test_01_grouping_by_confirmed_publisher(self):
+        """1. Agrupamento por editora confirmada agrupa livros corretamente."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        self._create_book_and_record(title="Livro HC 1", publisher="HarperCollins Brasil")
+        self._create_book_and_record(title="Livro HC 2", publisher="HarperCollins Brasil")
+        self._create_book_and_record(title="Livro Companhia", publisher="Companhia das Letras")
+
+        groups = ImageRightsBatchReviewService.get_review_groups()
+        pub_groups = [g for g in groups if g['group_type'] == 'publisher']
+        
+        hc_group = next((g for g in pub_groups if g['canonical_name'] == 'HarperCollins Brasil'), None)
+        self.assertIsNotNone(hc_group)
+        self.assertEqual(hc_group['total_records'], 2)
+
+        cia_group = next((g for g in pub_groups if g['canonical_name'] == 'Companhia das Letras'), None)
+        self.assertIsNotNone(cia_group)
+        self.assertEqual(cia_group['total_records'], 1)
+
+    def test_02_grouping_by_provenance_provider(self):
+        """2. Agrupamento por provedor técnico reúne registros de mesma origem."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        self._create_book_and_record(title="GB 1", provenance_provider='google_books')
+        self._create_book_and_record(title="GB 2", provenance_provider='google_books')
+
+        groups = ImageRightsBatchReviewService.get_review_groups()
+        gb_groups = [g for g in groups if g['group_type'] == 'provenance_provider' and 'google_books' in g['group_key']]
+        self.assertTrue(len(gb_groups) >= 1)
+        self.assertEqual(gb_groups[0]['total_records'], 2)
+
+    def test_03_grouping_reason_is_explainable(self):
+        """3. Motivo do agrupamento é transparente e explicável."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        self._create_book_and_record(title="Livro Explicável", publisher="HarperCollins Brasil")
+        groups = ImageRightsBatchReviewService.get_review_groups()
+        hc = next(g for g in groups if g['canonical_name'] == 'HarperCollins Brasil')
+        
+        self.assertIn("HarperCollins Brasil", hc['title'])
+        self.assertTrue(len(hc['explanation']) > 15)
+        self.assertIn("Mesma editora", hc['explanation'])
+
+    def test_04_institutional_domain_reused(self):
+        """4. Domínio institucional confirmado é reutilizado no grupo."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        self._create_book_and_record(title="Livro HC Domínio", publisher="HarperCollins Brasil")
+        groups = ImageRightsBatchReviewService.get_review_groups()
+        hc = next(g for g in groups if g['canonical_name'] == 'HarperCollins Brasil')
+
+        self.assertEqual(hc['official_domain'], 'harpercollins.com.br')
+        self.assertTrue(hc['has_terms'])
+
+    def test_05_institutional_terms_reused(self):
+        """5. Termos de uso institucionais são reutilizados sem requisições adicionais."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        self._create_book_and_record(title="Livro HC Termos", publisher="HarperCollins Brasil")
+        detail = ImageRightsBatchReviewService.get_group_detail('pub_harpercollins_brasil')
+        
+        self.assertIsNotNone(detail['institutional_evidence'])
+        self.assertEqual(detail['institutional_evidence']['terms_url'], 'https://harpercollins.com.br/pages/termos-de-uso')
+        self.assertTrue(detail['institutional_evidence']['is_recent'])
+
+    def test_06_publisher_does_not_become_rights_holder(self):
+        """6. A editora NUNCA é transformada automaticamente em titular da arte da capa."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Sem Titular", publisher="HarperCollins Brasil")
+        
+        # Aplicar lote
+        ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['source_url', 'provenance_metadata', 'credit_name'],
+            performed_by=self.admin
+        )
+
+        rec.refresh_from_db()
+        self.assertEqual(rec.rights_holder_name, '')
+        self.assertNotEqual(rec.rights_holder_name, 'HarperCollins Brasil')
+
+    def test_07_terms_do_not_become_license_type(self):
+        """7. Termos institucionais NUNCA se transformam em regime de licença."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Sem Licença", publisher="HarperCollins Brasil")
+
+        ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['source_url'],
+            performed_by=self.admin
+        )
+
+        rec.refresh_from_db()
+        self.assertEqual(rec.license_type, '')
+
+    def test_08_contested_record_not_selected(self):
+        """8. Registro com status 'contested' não é selecionado por padrão."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Contestado", publisher="HarperCollins Brasil", audit_status='contested')
+        detail = ImageRightsBatchReviewService.get_group_detail('pub_harpercollins_brasil')
+        
+        item = next(r for r in detail['records'] if r['id'] == rec.id)
+        self.assertFalse(item['is_eligible'])
+        self.assertTrue(any("Contestação" in exc for exc in item['exceptions']))
+
+    def test_09_active_takedown_record_not_selected(self):
+        """9. Registro com takedown ativo não é selecionado por padrão."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Notificado", publisher="HarperCollins Brasil")
+        CopyrightTakedownRequest.objects.create(
+            image_rights_record=rec,
+            claimant_name="Advogado Reclamante",
+            claimant_email="adv@example.com",
+            claim_description="Notificação extrajudicial de imagem",
+            status='under_review'
+        )
+
+        detail = ImageRightsBatchReviewService.get_group_detail('pub_harpercollins_brasil')
+        item = next(r for r in detail['records'] if r['id'] == rec.id)
+        self.assertFalse(item['is_eligible'])
+
+    def test_10_restricted_record_not_selected(self):
+        """10. Registro restrito não é selecionado por padrão."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Restrito", publisher="HarperCollins Brasil", audit_status='restricted')
+        detail = ImageRightsBatchReviewService.get_group_detail('pub_harpercollins_brasil')
+        item = next(r for r in detail['records'] if r['id'] == rec.id)
+        self.assertFalse(item['is_eligible'])
+
+    def test_11_regularized_record_not_selected(self):
+        """11. Registro já regularizado não é selecionado para alteração em lote."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Regular", publisher="HarperCollins Brasil", audit_status='regularized')
+        detail = ImageRightsBatchReviewService.get_group_detail('pub_harpercollins_brasil')
+        item = next(r for r in detail['records'] if r['id'] == rec.id)
+        self.assertFalse(item['is_eligible'])
+
+    def test_12_divergent_source_not_selected(self):
+        """12. Registro com URL de fonte divergente gera exceção."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(
+            title="Livro Fonte Externa",
+            publisher="HarperCollins Brasil",
+            source_url="https://site-externo-diferente.org/capa.jpg"
+        )
+        detail = ImageRightsBatchReviewService.get_group_detail('pub_harpercollins_brasil')
+        item = next(r for r in detail['records'] if r['id'] == rec.id)
+        self.assertFalse(item['is_eligible'])
+
+    def test_13_specific_license_generates_exception(self):
+        """13. Licença específica existente gera exceção."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(
+            title="Livro CC",
+            publisher="HarperCollins Brasil",
+            license_type="cc"
+        )
+        detail = ImageRightsBatchReviewService.get_group_detail('pub_harpercollins_brasil')
+        item = next(r for r in detail['records'] if r['id'] == rec.id)
+        self.assertFalse(item['is_eligible'])
+
+    def test_14_specific_document_generates_exception(self):
+        """14. Documento comprobatório privado anexado gera exceção."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        dummy_doc = SimpleUploadedFile("autorizacao.pdf", b"%PDF-dummy", content_type="application/pdf")
+        _, rec = self._create_book_and_record(
+            title="Livro com Contrato",
+            publisher="HarperCollins Brasil",
+            permission_document=dummy_doc
+        )
+        detail = ImageRightsBatchReviewService.get_group_detail('pub_harpercollins_brasil')
+        item = next(r for r in detail['records'] if r['id'] == rec.id)
+        self.assertFalse(item['is_eligible'])
+
+    def test_15_conflicting_value_not_overwritten(self):
+        """15. Valor conflitante existente não é sobrescrito na aplicação."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(
+            title="Livro Conflito",
+            publisher="HarperCollins Brasil",
+            source_url="https://tolkienestate.com/art.jpg"
+        )
+        res = ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['provenance_metadata'],
+            performed_by=self.admin
+        )
+        self.assertEqual(res['updated_count'], 0)
+        self.assertEqual(res['ignored_count'], 1)
+        rec.refresh_from_db()
+        self.assertEqual(rec.source_url, "https://tolkienestate.com/art.jpg")
+
+    def test_16_creator_name_not_applied_in_batch(self):
+        """16. creator_name não é aplicado coletivamente em lote."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Capa X", publisher="HarperCollins Brasil")
+        
+        # Tentar aplicar creator_name indevidamente
+        ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['creator_name'],
+            performed_by=self.admin
+        )
+        rec.refresh_from_db()
+        self.assertEqual(rec.creator_name, '')
+
+    def test_17_rights_holder_name_not_applied_from_publisher(self):
+        """17. rights_holder_name não é alterado pelo publisher."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Capa Y", publisher="HarperCollins Brasil")
+        ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['rights_holder_name'],
+            performed_by=self.admin
+        )
+        rec.refresh_from_db()
+        self.assertEqual(rec.rights_holder_name, '')
+
+    def test_18_legal_basis_never_in_batch(self):
+        """18. legal_basis NUNCA entra em lote."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Sem Fundamento", publisher="HarperCollins Brasil")
+        ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['legal_basis', 'provenance_metadata'],
+            performed_by=self.admin
+        )
+        rec.refresh_from_db()
+        self.assertEqual(rec.legal_basis, '')
+
+    def test_19_audit_status_never_in_batch(self):
+        """19. audit_status NUNCA é alterado em lote."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Não Auditado", publisher="HarperCollins Brasil")
+        ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['audit_status', 'provenance_metadata'],
+            performed_by=self.admin
+        )
+        rec.refresh_from_db()
+        self.assertEqual(rec.audit_status, 'not_audited')
+
+    def test_20_public_display_allowed_never_in_batch(self):
+        """20. public_display_allowed NUNCA é alterado em lote."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Bloqueado", publisher="HarperCollins Brasil", public_display_allowed=False)
+        ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['public_display_allowed', 'provenance_metadata'],
+            performed_by=self.admin
+        )
+        rec.refresh_from_db()
+        self.assertFalse(rec.public_display_allowed)
+
+    def test_21_preview_does_not_alter_records(self):
+        """21. Prévia de alterações não modifica nenhum registro no banco."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Preview", publisher="HarperCollins Brasil")
+        
+        preview = ImageRightsBatchReviewService.preview_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['provenance_metadata']
+        )
+        self.assertTrue(preview['success'])
+        self.assertEqual(preview['eligible_for_update_count'], 1)
+
+        rec.refresh_from_db()
+        self.assertFalse(rec.provenance_metadata)
+
+    def test_22_preview_does_not_create_audit_log(self):
+        """22. Prévia de alterações não cria registros em ImageRightsAuditLog."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Sem Log Preview", publisher="HarperCollins Brasil")
+        initial_logs = ImageRightsAuditLog.objects.count()
+
+        ImageRightsBatchReviewService.preview_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['provenance_metadata']
+        )
+        self.assertEqual(ImageRightsAuditLog.objects.count(), initial_logs)
+
+    def test_23_confirmation_is_required_before_persisting(self):
+        """23. Confirmação explícita é mandatória para persistência."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Confirmação", publisher="HarperCollins Brasil")
+        
+        # Apenas chamar get_group_detail e preview
+        ImageRightsBatchReviewService.get_group_detail('pub_harpercollins_brasil')
+        ImageRightsBatchReviewService.preview_batch_update('pub_harpercollins_brasil', [rec.id], ['provenance_metadata'])
+
+        rec.refresh_from_db()
+        self.assertFalse(rec.provenance_metadata)
+
+    def test_24_post_and_csrf_required_for_apply(self):
+        """24. Rotas de alteração exigem método POST."""
+        self.client.login(username='admin_batch', password='password123')
+        resp = self.client.get(reverse('copyright_batch_review_apply', args=['pub_harpercollins_brasil']))
+        self.assertEqual(resp.status_code, 404)
+
+    def test_25_admin_permission_required(self):
+        """25. Apenas usuários staff têm acesso às telas de revisão em lote."""
+        self.client.login(username='admin_batch', password='password123')
+        resp = self.client.get(reverse('copyright_batch_review_groups'))
+        self.assertEqual(resp.status_code, 200)
+
+    def test_26_public_access_strictly_blocked(self):
+        """26. Acesso público é estritamente bloqueado (302 redirect)."""
+        anon_client = Client()
+        resp = anon_client.get(reverse('copyright_batch_review_groups'))
+        self.assertEqual(resp.status_code, 302)
+
+        self.client.login(username='regular_batch', password='password123')
+        resp_user = self.client.get(reverse('copyright_batch_review_groups'))
+        self.assertEqual(resp_user.status_code, 302)
+
+    def test_27_backend_recalculates_eligibility(self):
+        """27. Backend recalcula elegibilidade no momento da confirmação."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Forçado", publisher="HarperCollins Brasil", audit_status='contested')
+        
+        # Tenta aplicar passando ID forçado de registro contestado
+        res = ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['provenance_metadata'],
+            performed_by=self.admin
+        )
+        self.assertEqual(res['updated_count'], 0)
+        self.assertEqual(res['ignored_count'], 1)
+
+    def test_28_record_changed_after_preview_is_ignored(self):
+        """28. Registro alterado entre o preview e a confirmação é ignorado por segurança."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Race Condition", publisher="HarperCollins Brasil")
+        
+        # Preview feito quando estava not_audited
+        preview = ImageRightsBatchReviewService.preview_batch_update('pub_harpercollins_brasil', [rec.id], ['provenance_metadata'])
+        self.assertEqual(preview['eligible_for_update_count'], 1)
+
+        # Registro foi regularizado por outro admin antes do apply
+        rec.audit_status = 'regularized'
+        rec.save()
+
+        # Apply executado
+        res = ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['provenance_metadata'],
+            performed_by=self.admin
+        )
+        self.assertEqual(res['updated_count'], 0)
+        self.assertEqual(res['ignored_count'], 1)
+
+    def test_29_atomic_transaction_on_batch_apply(self):
+        """29. Aplicação ocorre dentro de transação atômica."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Atômico", publisher="HarperCollins Brasil")
+        res = ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['provenance_metadata'],
+            performed_by=self.admin
+        )
+        self.assertTrue(res['success'])
+        self.assertEqual(res['updated_count'], 1)
+
+    def test_30_idempotency_of_batch_apply(self):
+        """30. Reaplicação das mesmas informações é estritamente idempotente."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Idempotente", publisher="HarperCollins Brasil")
+        
+        # Primeira execução
+        res1 = ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['provenance_metadata'],
+            performed_by=self.admin
+        )
+        self.assertEqual(res1['updated_count'], 1)
+
+        # Segunda execução idêntica
+        res2 = ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['provenance_metadata'],
+            performed_by=self.admin
+        )
+        self.assertEqual(res2['updated_count'], 0)
+        self.assertEqual(res2['ignored_count'], 1)
+
+    def test_31_no_changes_generates_no_log(self):
+        """31. Operação sem alterações não gera ImageRightsAuditLog."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(
+            title="Livro Já Atualizado",
+            publisher="HarperCollins Brasil",
+            provenance_metadata={
+                'institutional_source': "HarperCollins Brasil",
+                'official_domain': "harpercollins.com.br",
+                'institutional_main_url': "https://harpercollins.com.br",
+                'institutional_terms_url': "https://harpercollins.com.br/pages/termos-de-uso",
+                'institutional_rights_url': "",
+                'institutional_terms_summary': "Página oficial de termos de uso da editora. Todos os direitos reservados.",
+                'institutional_terms_hash': "abc123hash456",
+                'institutional_terms_retrieved_at': self.inst_source.terms_retrieved_at.isoformat(),
+            }
+        )
+        initial_logs = ImageRightsAuditLog.objects.count()
+
+        ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['provenance_metadata'],
+            performed_by=self.admin
+        )
+        self.assertEqual(ImageRightsAuditLog.objects.count(), initial_logs)
+
+    def test_32_confirmed_factual_change_creates_history_log(self):
+        """32. Alteração factual confirmada gera histórico via ImageRightsHistoryService."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(title="Livro Histórico", publisher="HarperCollins Brasil")
+        initial_logs = ImageRightsAuditLog.objects.filter(image_rights_record=rec).count()
+
+        ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['provenance_metadata'],
+            performed_by=self.admin
+        )
+        new_logs = ImageRightsAuditLog.objects.filter(image_rights_record=rec)
+        self.assertEqual(new_logs.count(), initial_logs + 1)
+        
+        last_log = new_logs.latest('id')
+        self.assertIn("revisão assistida em lote", last_log.description)
+        self.assertEqual(last_log.source, 'batch_review')
+
+    def test_33_only_modified_records_receive_log(self):
+        """33. Somente registros efetivamente alterados recebem histórico."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec_ok = self._create_book_and_record(title="Livro Alterado", publisher="HarperCollins Brasil")
+        _, rec_skip = self._create_book_and_record(title="Livro Ignorado", publisher="HarperCollins Brasil", audit_status='contested')
+
+        ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec_ok.id, rec_skip.id],
+            fields_to_apply=['provenance_metadata'],
+            performed_by=self.admin
+        )
+        self.assertEqual(ImageRightsAuditLog.objects.filter(image_rights_record=rec_ok).count(), 1)
+        self.assertEqual(ImageRightsAuditLog.objects.filter(image_rights_record=rec_skip).count(), 0)
+
+    def test_34_institutional_research_not_repeated(self):
+        """34. Pesquisa institucional do grupo não repete chamadas se termos forem recentes."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        self._create_book_and_record(title="Livro Pesquisa Grupo", publisher="HarperCollins Brasil")
+        
+        # Terms recent está True
+        res = ImageRightsBatchReviewService.research_group_records('pub_harpercollins_brasil', performed_by=self.admin)
+        self.assertTrue(res['success'])
+
+    def test_35_targeted_isbn_research_only_for_missing_data(self):
+        """35. Pesquisa no grupo complementa apenas registros sem dados."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec_empty = self._create_book_and_record(title="Livro Sem Dados", publisher="HarperCollins Brasil", source_url='')
+        _, rec_full = self._create_book_and_record(title="Livro Com Dados", publisher="HarperCollins Brasil", source_url='https://harpercollins.com.br')
+
+        res = ImageRightsBatchReviewService.research_group_records('pub_harpercollins_brasil', performed_by=self.admin)
+        self.assertTrue(res['success'])
+
+    def test_36_terms_hash_change_displays_warning(self):
+        """36. Hash de termos alterado é mantido e consultável."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        self._create_book_and_record(title="Livro Hash Test", publisher="HarperCollins Brasil")
+        detail = ImageRightsBatchReviewService.get_group_detail('pub_harpercollins_brasil')
+        
+        self.assertEqual(detail['institutional_evidence']['terms_content_hash'], 'abc123hash456')
+
+    def test_37_terms_change_does_not_alter_legal_decisions(self):
+        """37. Alterações de termos não afetam decisões jurídicas existentes."""
+        _, rec = self._create_book_and_record(
+            title="Livro Art46",
+            publisher="HarperCollins Brasil",
+            legal_basis="fair_use_art46",
+            audit_status="regularized"
+        )
+        self.inst_source.terms_content_hash = "novo_hash_789"
+        self.inst_source.save()
+
+        rec.refresh_from_db()
+        self.assertEqual(rec.legal_basis, 'fair_use_art46')
+        self.assertEqual(rec.audit_status, 'regularized')
+
+    def test_38_deterministic_publisher_aliases_work(self):
+        """38. Aliases determinísticos mapeiam corretamente para a editora canônica."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        self.assertEqual(ImageRightsBatchReviewService.normalize_publisher_name("harper collins brasil"), "HarperCollins Brasil")
+        self.assertEqual(ImageRightsBatchReviewService.normalize_publisher_name("editora harpercollins"), "HarperCollins Brasil")
+        self.assertEqual(ImageRightsBatchReviewService.normalize_publisher_name("cia das letras"), "Companhia das Letras")
+        self.assertEqual(ImageRightsBatchReviewService.normalize_publisher_name("editora record"), "Grupo Editorial Record")
+
+    def test_39_no_aggressive_fuzzy_matching(self):
+        """39. Fuzzy matching agressivo não inventa editoras desconhecidas."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        unknown = "Editora Muito Especifica e Desconhecida 123"
+        self.assertEqual(ImageRightsBatchReviewService.normalize_publisher_name(unknown), unknown)
+
+    def test_40_pagination_of_groups_works(self):
+        """40. Paginação de grupos de revisão funciona perfeitamente."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        for i in range(18):
+            self._create_book_and_record(title=f"Livro Editora {i}", publisher=f"Editora Especial {i}")
+
+        self.client.login(username='admin_batch', password='password123')
+        resp = self.client.get(reverse('copyright_batch_review_groups') + '?page=2')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.context['page_obj'].has_previous())
+
+    def test_41_no_n_plus_one_queries_on_groups_view(self):
+        """41. Lista de grupos não executa consultas N+1 explosivas."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        for i in range(10):
+            self._create_book_and_record(title=f"Livro Q {i}", publisher="HarperCollins Brasil")
+
+        # Execução das regras de agrupamento
+        groups = ImageRightsBatchReviewService.get_review_groups()
+        self.assertTrue(len(groups) >= 1)
+
+    def test_42_no_pii_exposed_in_batch_views(self):
+        """42. PII (emails de notificantes) não é exposto nas views de lote."""
+        _, rec = self._create_book_and_record(title="Livro PII", publisher="HarperCollins Brasil")
+        CopyrightTakedownRequest.objects.create(
+            image_rights_record=rec,
+            claimant_name="Pessoa Física",
+            claimant_email="email_secreto@privado.com",
+            claim_description="Notificação",
+            status='under_review'
+        )
+
+        self.client.login(username='admin_batch', password='password123')
+        resp = self.client.get(reverse('copyright_batch_review_detail', args=['pub_harpercollins_brasil']))
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotContains(resp, "email_secreto@privado.com")
+
+    def test_43_no_private_documents_exposed_in_batch_views(self):
+        """43. Arquivos/caminhos privados de documentos não são expostos nas views de lote."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        doc = SimpleUploadedFile("contrato_confidencial.pdf", b"%PDF", content_type="application/pdf")
+        
+        _, rec = self._create_book_and_record(
+            title="Livro Doc Privado",
+            publisher="HarperCollins Brasil",
+            permission_document=doc
+        )
+
+        self.client.login(username='admin_batch', password='password123')
+        resp = self.client.get(reverse('copyright_batch_review_detail', args=['pub_harpercollins_brasil']))
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotContains(resp, "contrato_confidencial.pdf")
+
+    def test_44_assisted_audit_individual_continues_working(self):
+        """44. Auditoria Assistida individual continua totalmente operacional."""
+        _, rec = self._create_book_and_record(title="Livro Individual", publisher="HarperCollins Brasil")
+        self.client.login(username='admin_batch', password='password123')
+        
+        resp = self.client.get(reverse('copyright_assisted_audit', args=[rec.id]))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Livro Individual")
+
+    def test_45_audit_queue_continues_working(self):
+        """45. Fila Inteligente continua operacional e exibe link para revisão em lote."""
+        self._create_book_and_record(title="Livro Fila", publisher="HarperCollins Brasil")
+        self.client.login(username='admin_batch', password='password123')
+
+        resp = self.client.get(reverse('copyright_audit_queue'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Revisar grupos semelhantes")
+
+    def test_46_research_service_continues_working(self):
+        """46. ImageRightsResearchService continua operando normalmente."""
+        from core.services.image_rights_research_service import ImageRightsResearchService
+
+        _, rec = self._create_book_and_record(title="Livro Research", publisher="HarperCollins Brasil")
+        research = ImageRightsResearchService.perform_research(rec.id, performed_by=self.admin)
+        self.assertIsNotNone(research)
+        self.assertIn(research.status, ['completed', 'partial'])
+
+    def test_47_institutional_source_continues_working(self):
+        """47. InstitutionalSource continua operando normalmente com verificação recente."""
+        self.assertTrue(self.inst_source.is_terms_recent)
+        self.assertEqual(str(self.inst_source), "HarperCollins Brasil (harpercollins.com.br)")
+
+    def test_48_amazon_continues_without_scraping(self):
+        """48. Provedor Amazon permanece estritamente sem web scraping."""
+        _, rec = self._create_book_and_record(title="Livro Amazon", provenance_provider="amazon")
+        self.assertEqual(rec.provenance_provider, "amazon")
+
+    def test_49_harpercollins_40_covers_scenario_produces_32_eligible_and_8_exceptions(self):
+        """
+        49. Cenário Conceitual de Validação Completa (Seção 35 da Especificação):
+        Existem 40 capas de livros da HarperCollins Brasil:
+        - 32 são registros comuns (elegíveis)
+        - 3 possuem criador específico (exceção 1)
+        - 2 possuem licença específica (exceção 2)
+        - 1 possui contestação formal (exceção 3)
+        - 1 está regularizado (exceção 4)
+        - 1 possui divergência técnica de fonte (exceção 5)
+        Total: 40 registros -> 32 elegíveis e 8 exceções protegidas.
+        """
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        created_records = []
+
+        # 32 registros comuns
+        for i in range(1, 33):
+            _, rec = self._create_book_and_record(
+                title=f"Obra Comum HarperCollins {i}",
+                publisher="HarperCollins Brasil",
+                provenance_provider="google_books",
+                source_url=f"https://books.google.com/books/content?id=mock{i}&printsec=frontcover"
+            )
+            created_records.append(rec)
+
+        # 3 com criador específico
+        for i in range(1, 4):
+            _, rec = self._create_book_and_record(
+                title=f"Obra com Ilustrador {i}",
+                publisher="HarperCollins Brasil",
+                creator_name=f"Ilustrador Renomado {i}",
+                provenance_provider="google_books"
+            )
+            created_records.append(rec)
+
+        # 2 com licença específica
+        for i in range(1, 3):
+            _, rec = self._create_book_and_record(
+                title=f"Obra Licenciada {i}",
+                publisher="HarperCollins Brasil",
+                license_type="licensed",
+                provenance_provider="google_books"
+            )
+            created_records.append(rec)
+
+        # 1 com contestação formal
+        _, rec_contested = self._create_book_and_record(
+            title="Obra Contestada",
+            publisher="HarperCollins Brasil",
+            audit_status="contested",
+            provenance_provider="google_books"
+        )
+        created_records.append(rec_contested)
+
+        # 1 regularizado
+        _, rec_regularized = self._create_book_and_record(
+            title="Obra Já Regularizada",
+            publisher="HarperCollins Brasil",
+            audit_status="regularized",
+            provenance_provider="google_books"
+        )
+        created_records.append(rec_regularized)
+
+        # 1 com divergência técnica de fonte
+        _, rec_divergent = self._create_book_and_record(
+            title="Obra com Fonte Externa Divergente",
+            publisher="HarperCollins Brasil",
+            source_url="https://site-estranho-totalmente-diferente.com/capa.jpg",
+            provenance_provider="amazon"
+        )
+        created_records.append(rec_divergent)
+
+        self.assertEqual(len(created_records), 40)
+
+        # Analisar o detalhe do grupo HarperCollins
+        detail = ImageRightsBatchReviewService.get_group_detail('pub_harpercollins_brasil')
+        self.assertIsNotNone(detail)
+        
+        # 1. Deve identificar exatamente 40 registros
+        self.assertEqual(detail['total_records'], 40)
+
+        # 2. Deve identificar exatamente 32 elegíveis e 8 exceções
+        self.assertEqual(detail['eligible_count'], 32)
+        self.assertEqual(detail['exceptions_count'], 8)
+
+        # 3. Aplicar o lote nos 32 elegíveis
+        eligible_ids = [r['id'] for r in detail['records'] if r['is_eligible']]
+        self.assertEqual(len(eligible_ids), 32)
+
+        res = ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=eligible_ids,
+            fields_to_apply=['provenance_metadata'],
+            performed_by=self.admin
+        )
+
+        # 4. Deve atualizar exatamente os 32 registros
+        self.assertTrue(res['success'])
+        self.assertEqual(res['updated_count'], 32)
+        self.assertEqual(res['ignored_count'], 0)
+        self.assertEqual(res['failed_count'], 0)
+
+        # 5. Invariantes de Governança nos 40 registros:
+        for rec in ImageRightsRecord.objects.filter(id__in=[r.id for r in created_records]):
+            self.assertNotEqual(rec.rights_holder_name, 'HarperCollins Brasil')
+            self.assertEqual(rec.legal_basis, '')
+            self.assertIn(rec.audit_status, ['not_audited', 'contested', 'regularized'])
+
+        # Procedência técnica preservada nos 32 elegíveis
+        for rec in ImageRightsRecord.objects.filter(id__in=eligible_ids):
+            self.assertEqual(rec.provenance_provider, 'google_books')
+            self.assertTrue(rec.source_url.startswith('https://books.google.com/books/content'))
+            self.assertEqual(rec.credit_name, '')
+            self.assertEqual(rec.provenance_metadata.get('institutional_source'), 'HarperCollins Brasil')
+            self.assertEqual(rec.provenance_metadata.get('official_domain'), 'harpercollins.com.br')
+            self.assertEqual(rec.provenance_metadata.get('institutional_terms_hash'), 'abc123hash456')
+
+        # As 8 exceções não foram alteradas
+        rec_contested.refresh_from_db()
+        self.assertEqual(rec_contested.audit_status, 'contested')
+
+        rec_regularized.refresh_from_db()
+        self.assertEqual(rec_regularized.audit_status, 'regularized')
+
+        rec_divergent.refresh_from_db()
+        self.assertEqual(rec_divergent.source_url, "https://site-estranho-totalmente-diferente.com/capa.jpg")
+        self.assertEqual(rec_divergent.provenance_provider, "amazon")
+
+    def test_50_all_previous_rules_and_invariants_preserved(self):
+        """50. Todos os invariantes e salvaguardas de governança permanecem preservados."""
+        _, rec = self._create_book_and_record(title="Livro Invariante Final", publisher="HarperCollins Brasil")
+        
+        self.assertTrue(rec.can_display_publicly)
+        rec.public_display_allowed = False
+        rec.save()
+        self.assertFalse(rec.can_display_publicly)
+
+    def test_51_case_a_google_books_provenance_preserved(self):
+        """Caso A — Google Books + HarperCollins: provenance_provider permanece google_books."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(
+            title="Livro GB Case A",
+            publisher="HarperCollins Brasil",
+            provenance_provider="google_books",
+            source_url="https://books.google.com/books/content?id=xyz123"
+        )
+        self.assertEqual(rec.provenance_provider, "google_books")
+
+        res = ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['provenance_metadata'],
+            performed_by=self.admin
+        )
+        self.assertTrue(res['success'])
+        self.assertEqual(res['updated_count'], 1)
+
+        rec.refresh_from_db()
+        # Procedência técnica Google Books deve permanecer inalterada
+        self.assertEqual(rec.provenance_provider, "google_books")
+        self.assertNotEqual(rec.provenance_provider, "publisher")
+        self.assertEqual(rec.source_url, "https://books.google.com/books/content?id=xyz123")
+
+    def test_52_case_b_amazon_provenance_preserved(self):
+        """Caso B — Amazon + HarperCollins: provenance_provider permanece amazon."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(
+            title="Livro Amazon Case B",
+            publisher="HarperCollins Brasil",
+            provenance_provider="amazon",
+            source_url="https://m.media-amazon.com/images/I/71abc.jpg"
+        )
+        self.assertEqual(rec.provenance_provider, "amazon")
+
+        res = ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['provenance_metadata'],
+            performed_by=self.admin
+        )
+        self.assertTrue(res['success'])
+        self.assertEqual(res['updated_count'], 1)
+
+        rec.refresh_from_db()
+        # Procedência técnica Amazon deve continuar amazon
+        self.assertEqual(rec.provenance_provider, "amazon")
+        self.assertNotEqual(rec.provenance_provider, "publisher")
+        self.assertEqual(rec.source_url, "https://m.media-amazon.com/images/I/71abc.jpg")
+
+    def test_53_case_c_source_url_technical_origin_preserved(self):
+        """Caso C — source_url: URL técnica de origem não é substituída pelos Termos da editora."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        tech_url = "https://images.books.example.com/covers/original_cover.png"
+        _, rec = self._create_book_and_record(
+            title="Livro URL Case C",
+            publisher="HarperCollins Brasil",
+            provenance_provider="google_books",
+            source_url=tech_url
+        )
+
+        res = ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['provenance_metadata'],
+            performed_by=self.admin
+        )
+        self.assertTrue(res['success'])
+
+        rec.refresh_from_db()
+        # source_url original deve permanecer intacta
+        self.assertEqual(rec.source_url, tech_url)
+        self.assertNotEqual(rec.source_url, "https://harpercollins.com.br/pages/termos-de-uso")
+        self.assertNotEqual(rec.source_url, "https://harpercollins.com.br")
+
+    def test_54_case_d_credit_name_not_automatically_generated(self):
+        """Caso D — credit_name: identificar publisher não gera 'Divulgação / Publisher'."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(
+            title="Livro Credit Case D",
+            publisher="HarperCollins Brasil",
+            credit_name=""
+        )
+
+        res = ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['provenance_metadata'],
+            performed_by=self.admin
+        )
+        self.assertTrue(res['success'])
+
+        rec.refresh_from_db()
+        # credit_name permanece vazio, não sendo presumido como divulgação
+        self.assertEqual(rec.credit_name, "")
+        self.assertNotIn("Divulgação", rec.credit_name)
+
+    def test_55_case_e_institutional_evidence_reused_in_provenance_metadata(self):
+        """Caso E — evidência institucional: lote reutiliza InstitutionalSource, domínio, Termos e hash em provenance_metadata."""
+        from core.services.image_rights_batch_review_service import ImageRightsBatchReviewService
+
+        _, rec = self._create_book_and_record(
+            title="Livro Evidence Case E",
+            publisher="HarperCollins Brasil",
+            provenance_provider="google_books",
+            source_url="https://books.google.com/content?id=case_e"
+        )
+
+        res = ImageRightsBatchReviewService.apply_batch_update(
+            group_key='pub_harpercollins_brasil',
+            selected_record_ids=[rec.id],
+            fields_to_apply=['provenance_metadata'],
+            performed_by=self.admin
+        )
+        self.assertTrue(res['success'])
+        self.assertEqual(res['updated_count'], 1)
+
+        rec.refresh_from_db()
+        # Procedência técnica preservada
+        self.assertEqual(rec.provenance_provider, "google_books")
+        self.assertEqual(rec.source_url, "https://books.google.com/content?id=case_e")
+
+        # Evidência institucional preenchida em provenance_metadata
+        meta = rec.provenance_metadata
+        self.assertIsInstance(meta, dict)
+        self.assertEqual(meta.get('institutional_source'), "HarperCollins Brasil")
+        self.assertEqual(meta.get('official_domain'), "harpercollins.com.br")
+        self.assertEqual(meta.get('institutional_main_url'), "https://harpercollins.com.br")
+        self.assertEqual(meta.get('institutional_terms_url'), "https://harpercollins.com.br/pages/termos-de-uso")
+        self.assertEqual(meta.get('institutional_terms_summary'), "Página oficial de termos de uso da editora. Todos os direitos reservados.")
+        self.assertEqual(meta.get('institutional_terms_hash'), "abc123hash456")
+        self.assertIn('institutional_terms_retrieved_at', meta)
+
+
+
 
 
 

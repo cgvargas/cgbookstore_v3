@@ -1,0 +1,133 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Resultado da Aplicação em Lote | {{ site_title|default:"CG.BookStore Admin" }}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    :root, [data-theme="light"] {
+        --card-bg: #ffffff;
+        --card-border: #e9ecef;
+        --card-title: #2c3e50;
+        --card-desc: #7f8c8d;
+        --item-bg: #f8f9fa;
+        --item-border: #e9ecef;
+        --table-bg: #ffffff;
+        --table-header-bg: #f8f9fa;
+        --table-border: #e9ecef;
+        --text-primary: #2c3e50;
+    }
+    [data-theme="dark"], [data-theme="auto"] {
+        --card-bg: var(--darkened-bg, #1e1e1e);
+        --card-border: var(--border-color, #333333);
+        --card-title: var(--body-loud-color, #f1f2f6);
+        --card-desc: var(--body-quiet-color, #a4b0be);
+        --item-bg: var(--darkened-bg, #2b2b2b);
+        --item-border: var(--border-color, #383838);
+        --table-bg: var(--darkened-bg, #1e1e1e);
+        --table-header-bg: var(--darkened-bg, #252525);
+        --table-border: var(--border-color, #333333);
+        --text-primary: var(--body-fg, #e0e0e0);
+    }
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+            --card-bg: var(--darkened-bg, #1e1e1e);
+            --card-border: var(--border-color, #333333);
+            --card-title: var(--body-loud-color, #f1f2f6);
+            --card-desc: var(--body-quiet-color, #a4b0be);
+            --item-bg: var(--darkened-bg, #2b2b2b);
+            --item-border: var(--border-color, #383838);
+            --table-bg: var(--darkened-bg, #1e1e1e);
+            --table-header-bg: var(--darkened-bg, #252525);
+            --table-border: var(--border-color, #333333);
+            --text-primary: var(--body-fg, #e0e0e0);
+        }
+    }
+    .batch-container { max-width: 1000px; margin: 0 auto; padding: 20px 10px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .batch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+    .batch-title { margin: 0; font-size: 1.6rem; font-weight: 700; color: var(--card-title); display: flex; align-items: center; gap: 10px; }
+    
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 22px; }
+    .kpi-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); text-align: center; }
+    .kpi-num { font-size: 2rem; font-weight: 800; line-height: 1.1; margin-bottom: 5px; }
+    .kpi-label { font-size: 0.78rem; color: var(--card-desc); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    
+    .panel-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 24px; margin-bottom: 22px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .panel-title { font-size: 1.15rem; font-weight: 700; color: var(--card-title); margin: 0 0 14px 0; display: flex; align-items: center; gap: 8px; }
+    
+    .result-alert { padding: 16px 20px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; margin-bottom: 20px; }
+    .alert-success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    
+    .page-link-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border: 1px solid var(--card-border); border-radius: 8px; text-decoration: none; color: var(--text-primary); font-size: 0.9rem; background: var(--card-bg); font-weight: 600; }
+    .page-link-btn:hover { background: var(--item-bg); }
+    .btn-primary { background: #6c5ce7; color: #fff; border-color: #5a4bcf; }
+    .btn-primary:hover { background: #5a4bcf; color: #fff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="batch-container">
+    <!-- Header -->
+    <div class="batch-header">
+        <div>
+            <h1 class="batch-title">
+                🎉 Resultado da Operação em Lote
+            </h1>
+            <p style="margin: 4px 0 0 0; color: var(--card-desc); font-size: 0.92rem;">
+                Grupo: <strong>{{ group_info.title|default:group_key }}</strong>
+            </p>
+        </div>
+    </div>
+
+    <!-- Alerta de Sucesso -->
+    <div class="result-alert alert-success">
+        ✓ Operação concluída com sucesso! Os registros confirmados foram atualizados e a trilha de auditoria append-only foi registrada.
+    </div>
+
+    <!-- KPIs do Resultado -->
+    <div class="kpi-grid">
+        <div class="kpi-card" style="border-top: 4px solid #10b981;">
+            <div class="kpi-num" style="color: #10b981;">{{ result.updated_count }}</div>
+            <div class="kpi-label">Atualizados com Sucesso</div>
+        </div>
+        <div class="kpi-card" style="border-top: 4px solid #f59e0b;">
+            <div class="kpi-num" style="color: #f59e0b;">{{ result.ignored_count }}</div>
+            <div class="kpi-label">Ignorados / Protegidos</div>
+        </div>
+        <div class="kpi-card" style="border-top: 4px solid #ef4444;">
+            <div class="kpi-num" style="color: #ef4444;">{{ result.failed_count }}</div>
+            <div class="kpi-label">Falhas</div>
+        </div>
+    </div>
+
+    <!-- Lista de Ignorados se houver -->
+    {% if result.ignored_records %}
+    <div class="panel-card" style="border-top: 4px solid #f59e0b;">
+        <h2 class="panel-title" style="color: #b45309;">
+            ℹ️ Detalhes dos Registros Ignorados / Protegidos
+        </h2>
+        <ul style="margin: 0; padding-left: 20px; font-size: 0.88rem; color: var(--card-desc); line-height: 1.6;">
+            {% for item in result.ignored_records %}
+                <li><strong>#{{ item.id }}:</strong> {{ item.reason }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Ações de Navegação -->
+    <div class="panel-card" style="text-align: center; padding: 25px;">
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'copyright_batch_review_groups' %}" class="page-link-btn btn-primary">
+                ← Voltar para Todos os Grupos
+            </a>
+            <a href="{% url 'copyright_batch_review_detail' group_key %}" class="page-link-btn">
+                Revisar Novamente Este Grupo
+            </a>
+            <a href="{% url 'copyright_audit_queue' %}" class="page-link-btn">
+                📋 Ir para Fila Inteligente
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

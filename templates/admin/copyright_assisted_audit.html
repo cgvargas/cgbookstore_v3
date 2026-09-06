@@ -308,6 +308,227 @@
         color: var(--card-desc);
         line-height: 1.5;
     }
+
+    /* ====== Fase 3A: Pesquisa Assistida ====== */
+    .btn-research {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+        color: #fff !important;
+        border-color: #6366f1 !important;
+        font-weight: 700 !important;
+    }
+    .btn-research:hover {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed) !important;
+        transform: translateY(-1px);
+    }
+
+    .research-results-box {
+        border-color: var(--accent-purple, #8b5cf6) !important;
+        border-width: 2px !important;
+    }
+    .research-meta-badge {
+        font-size: 0.75rem;
+        color: var(--card-desc);
+        background: var(--item-bg);
+        padding: 3px 10px;
+        border-radius: 12px;
+        border: 1px solid var(--item-border);
+    }
+
+    .research-summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px 16px;
+    }
+    .summary-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+    .badge-found { background: rgba(34, 197, 94, 0.12); color: #16a34a; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .badge-not-found { background: rgba(156, 163, 175, 0.12); color: #6b7280; border: 1px solid rgba(156, 163, 175, 0.3); }
+    .badge-divergent { background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-conflict { background: rgba(239, 68, 68, 0.12); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    .suggestion-card {
+        margin: 8px 16px;
+        padding: 14px 16px;
+        background: var(--item-bg);
+        border: 1px solid var(--item-border);
+        border-radius: 10px;
+        transition: opacity 0.3s ease;
+    }
+    .suggestion-divergent {
+        border-color: #f59e0b !important;
+        border-width: 2px !important;
+    }
+    .suggestion-not-found {
+        opacity: 0.6;
+    }
+
+    .suggestion-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+    .suggestion-field-label {
+        font-weight: 700;
+        font-size: 0.88rem;
+        color: var(--card-title);
+    }
+    .confidence-badge {
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 2px 10px;
+        border-radius: 12px;
+    }
+    .conf-high { background: rgba(34, 197, 94, 0.15); color: #16a34a; }
+    .conf-medium { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+    .conf-low { background: rgba(239, 68, 68, 0.15); color: #dc2626; }
+    .conf-not-found { background: rgba(156, 163, 175, 0.15); color: #6b7280; }
+
+    .suggestion-value {
+        font-size: 0.9rem;
+        padding: 6px 0;
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+    .suggestion-divergence {
+        background: rgba(245, 158, 11, 0.05);
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin: 6px 0;
+    }
+    .divergence-row {
+        display: flex;
+        gap: 8px;
+        font-size: 0.82rem;
+        margin: 3px 0;
+    }
+    .div-label {
+        font-weight: 700;
+        min-width: 90px;
+        color: var(--card-desc);
+    }
+    .div-value { color: var(--text-primary); }
+    .divergence-note {
+        font-size: 0.78rem;
+        color: #d97706;
+        font-weight: 600;
+        margin-top: 4px;
+    }
+
+    .suggestion-source {
+        font-size: 0.75rem;
+        color: var(--card-desc);
+        margin-top: 6px;
+    }
+    .source-label { font-weight: 600; }
+    .suggestion-reason {
+        font-size: 0.78rem;
+        color: var(--card-desc);
+        margin-top: 4px;
+        font-style: italic;
+    }
+
+    .suggestion-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    .btn-apply-suggestion, .btn-ignore-suggestion {
+        padding: 5px 14px;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid var(--item-border);
+        transition: all 0.15s ease;
+    }
+    .btn-apply-suggestion {
+        background: rgba(34, 197, 94, 0.12);
+        color: #16a34a;
+        border-color: rgba(34, 197, 94, 0.3);
+    }
+    .btn-apply-suggestion:hover { background: rgba(34, 197, 94, 0.25); }
+    .btn-apply-suggestion.applied {
+        background: #16a34a !important;
+        color: #fff !important;
+        pointer-events: none;
+    }
+    .btn-ignore-suggestion {
+        background: var(--card-bg);
+        color: var(--card-desc);
+    }
+    .btn-ignore-suggestion:hover { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+
+    .conflicts-section {
+        margin: 16px 16px 8px;
+    }
+    .conflicts-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+        color: #d97706;
+    }
+    .conflict-card {
+        background: rgba(245, 158, 11, 0.05);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-bottom: 8px;
+    }
+    .conflict-field { font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
+    .conflict-values { font-size: 0.82rem; }
+    .conflict-row { margin: 2px 0; }
+    .conflict-note { font-size: 0.75rem; color: #d97706; font-style: italic; margin-top: 4px; }
+
+    .errors-section {
+        margin: 8px 16px;
+    }
+    .error-item {
+        background: rgba(239, 68, 68, 0.06);
+        border: 1px solid rgba(239, 68, 68, 0.15);
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 0.8rem;
+        margin-bottom: 6px;
+        color: var(--text-primary);
+    }
+
+    .sources-details {
+        margin: 8px 16px 12px;
+        font-size: 0.8rem;
+    }
+    .sources-details summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--card-desc);
+        padding: 6px 0;
+    }
+    .sources-list { padding: 6px 0; }
+    .source-item { padding: 3px 0; font-size: 0.78rem; }
+
+    .research-legal-note {
+        margin: 12px 16px 16px;
+        padding: 10px 14px;
+        background: rgba(99, 102, 241, 0.06);
+        border: 1px solid rgba(99, 102, 241, 0.15);
+        border-radius: 8px;
+        font-size: 0.75rem;
+        color: var(--card-desc);
+        line-height: 1.5;
+    }
+    .research-legal-note code {
+        font-size: 0.7rem;
+        background: rgba(0,0,0,0.06);
+        padding: 1px 5px;
+        border-radius: 3px;
+    }
 </style>
 {% endblock %}
 
@@ -418,6 +639,21 @@
             </a>
         {% endif %}
 
+        <!-- Fase 3A: Botão de Pesquisa Assistida -->
+        <form method="post" action="{% url 'copyright_research_start' record.pk %}" style="display: inline;">
+            {% csrf_token %}
+            {% if latest_research and latest_research.is_reusable %}
+                <input type="hidden" name="force_new" value="1">
+                <button type="submit" class="btn-admin btn-research" title="Pesquisar novamente (última pesquisa: {{ latest_research.researched_at|date:'d/m/Y H:i' }})">
+                    🔄 Pesquisar novamente
+                </button>
+            {% else %}
+                <button type="submit" class="btn-admin btn-research">
+                    🔎 Pesquisar informações
+                </button>
+            {% endif %}
+        </form>
+
         {% if record.source_url %}
             <a href="{{ record.source_url }}" class="btn-admin btn-sec-source" target="_blank" rel="noopener noreferrer">
                 🌐 Abrir fonte original
@@ -440,6 +676,187 @@
             </a>
         {% endif %}
     </div>
+
+    <!-- ============================================================ -->
+    <!-- FASE 3A: RESULTADO DA PESQUISA ASSISTIDA                    -->
+    <!-- ============================================================ -->
+    {% if latest_research %}
+    <div class="card-box research-results-box" id="research-results">
+        <div class="card-box-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <span>🔎 Resultado da Pesquisa Assistida</span>
+            <span class="research-meta-badge">
+                {% if latest_research.status == 'completed' %}✅{% elif latest_research.status == 'partial' %}⚠️{% else %}❌{% endif %}
+                {{ latest_research.get_status_display }}
+                · {{ latest_research.researched_at|date:"d/m/Y H:i" }}
+            </span>
+        </div>
+
+        <!-- Resumo Rápido -->
+        <div class="research-summary">
+            {% if latest_research.found_count > 0 %}
+                <span class="summary-badge badge-found">{{ latest_research.found_count }} informaç{{ latest_research.found_count|pluralize:"ão,ões" }} encontrada{{ latest_research.found_count|pluralize:"s" }}</span>
+            {% endif %}
+            {% if latest_research.not_found_count > 0 %}
+                <span class="summary-badge badge-not-found">{{ latest_research.not_found_count }} não localizada{{ latest_research.not_found_count|pluralize:"s" }}</span>
+            {% endif %}
+            {% if latest_research.divergent_count > 0 %}
+                <span class="summary-badge badge-divergent">{{ latest_research.divergent_count }} divergência{{ latest_research.divergent_count|pluralize:"s" }}</span>
+            {% endif %}
+            {% if latest_research.conflict_count > 0 %}
+                <span class="summary-badge badge-conflict">{{ latest_research.conflict_count }} conflito{{ latest_research.conflict_count|pluralize:"s" }} entre fontes</span>
+            {% endif %}
+        </div>
+
+        <!-- Painel de Fonte Institucional Oficial (Fase 3A.1) -->
+        {% if latest_research.sources_consulted %}
+        <div style="margin: 12px 16px; padding: 14px; background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px;">
+            <div style="font-weight: 700; font-size: 0.88rem; color: var(--card-title); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                🏛️ Fonte Institucional Oficial
+            </div>
+            <div style="font-size: 0.82rem; line-height: 1.6; color: var(--text-primary);">
+                {% for src in latest_research.sources_consulted %}
+                    {% if src.source_type == 'institutional' %}
+                    <div style="margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div>
+                            {% if src.status == 'success' %}✅{% else %}⚪{% endif %}
+                            <strong>{{ src.source_name }}:</strong>
+                            {% if src.url %}
+                                <a href="{{ src.url }}" target="_blank" rel="noopener noreferrer" style="margin-left: 4px;">{{ src.url|truncatechars:60 }} ↗</a>
+                            {% else %}
+                                <span style="color: var(--card-desc);">Não localizada</span>
+                            {% endif %}
+                        </div>
+                        {% if src.url %}
+                        <a href="{{ src.url }}" target="_blank" rel="noopener noreferrer" class="btn-admin" style="padding: 3px 8px; font-size: 0.72rem; background: var(--card-border); color: var(--text-primary); text-decoration: none; border-radius: 4px;">
+                            Abrir ↗
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Cards de Sugestão -->
+        {% for suggestion in latest_research.suggestions %}
+            {% if suggestion.suggested_value %}
+            <div class="suggestion-card {% if suggestion.is_divergent %}suggestion-divergent{% endif %}">
+                <div class="suggestion-header">
+                    <span class="suggestion-field-label">{{ suggestion.field_label }}</span>
+                    {% if suggestion.confidence == 'high' %}
+                        <span class="confidence-badge conf-high">🟢 Alta</span>
+                    {% elif suggestion.confidence == 'medium' %}
+                        <span class="confidence-badge conf-medium">🟡 Média</span>
+                    {% elif suggestion.confidence == 'low' %}
+                        <span class="confidence-badge conf-low">🔴 Baixa</span>
+                    {% endif %}
+                </div>
+
+                {% if suggestion.is_divergent %}
+                <div class="suggestion-divergence">
+                    <div class="divergence-row">
+                        <span class="div-label">Atual:</span>
+                        <span class="div-value">{{ suggestion.current_value }}</span>
+                    </div>
+                    <div class="divergence-row">
+                        <span class="div-label">Encontrado:</span>
+                        <span class="div-value">{{ suggestion.suggested_value }}</span>
+                    </div>
+                    <div class="divergence-note">⚠️ Revisar divergência.</div>
+                </div>
+                {% else %}
+                <div class="suggestion-value">
+                    {{ suggestion.suggested_value }}
+                </div>
+                {% endif %}
+
+                <div class="suggestion-source">
+                    <span class="source-label">Fonte:</span> {{ suggestion.source_title }}
+                    {% if suggestion.source_url %}
+                        · <a href="{{ suggestion.source_url }}" target="_blank" rel="noopener noreferrer" style="font-size: 0.75rem;">ver fonte ↗</a>
+                    {% endif %}
+                </div>
+                <div class="suggestion-reason">{{ suggestion.short_reason }}</div>
+
+                <!-- Botões: Aplicar / Ignorar -->
+                <div class="suggestion-actions">
+                    <button type="button" class="btn-apply-suggestion"
+                            data-field="{{ suggestion.field_name }}"
+                            data-value="{{ suggestion.suggested_value }}"
+                            data-record="{{ record.pk }}"
+                            onclick="applySuggestion(this)">
+                        ✅ Aplicar
+                    </button>
+                    <button type="button" class="btn-ignore-suggestion" onclick="this.closest('.suggestion-card').style.opacity='0.4'; this.disabled=true;">
+                        ❌ Ignorar
+                    </button>
+                </div>
+            </div>
+            {% elif not suggestion.suggested_value %}
+            <!-- Campo não localizado -->
+            <div class="suggestion-card suggestion-not-found">
+                <div class="suggestion-header">
+                    <span class="suggestion-field-label">{{ suggestion.field_label }}</span>
+                    <span class="confidence-badge conf-not-found">⚪ Não localizado</span>
+                </div>
+                <div class="suggestion-reason">{{ suggestion.short_reason }}</div>
+            </div>
+            {% endif %}
+        {% endfor %}
+
+        <!-- Conflitos entre Fontes -->
+        {% if latest_research.conflicts %}
+        <div class="conflicts-section">
+            <div class="conflicts-title">⚠️ Conflitos entre Fontes</div>
+            {% for conflict in latest_research.conflicts %}
+            <div class="conflict-card">
+                <div class="conflict-field">{{ conflict.field_label }}</div>
+                <div class="conflict-values">
+                    <div class="conflict-row"><strong>{{ conflict.source_a }}:</strong> {{ conflict.value_a }}</div>
+                    <div class="conflict-row"><strong>{{ conflict.source_b }}:</strong> {{ conflict.value_b }}</div>
+                </div>
+                <div class="conflict-note">{{ conflict.note }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Erros Técnicos -->
+        {% if latest_research.errors %}
+        <div class="errors-section">
+            {% for error in latest_research.errors %}
+            <div class="error-item">
+                ⚠️ <strong>{{ error.source }}:</strong> {{ error.error }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Fontes Consultadas (Recolhido) -->
+        {% if latest_research.sources_consulted %}
+        <details class="sources-details">
+            <summary>📚 Fontes consultadas ({{ latest_research.sources_consulted|length }})</summary>
+            <div class="sources-list">
+                {% for src in latest_research.sources_consulted %}
+                <div class="source-item">
+                    {% if src.status == 'success' %}✅{% elif src.status == 'error' or src.status == 'timeout' %}❌{% elif src.status == 'skipped' %}⏭️{% else %}⚪{% endif %}
+                    {{ src.source_name }}
+                    {% if src.url %}<span style="font-size: 0.7rem; color: var(--card-desc);">· {{ src.url|truncatechars:80 }}</span>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </details>
+        {% endif %}
+
+        <!-- Nota Legal -->
+        <div class="research-legal-note">
+            ⚖️ Esta pesquisa é operacional e não constitui decisão jurídica.
+            Os campos <code>audit_status</code>, <code>public_display_allowed</code> e <code>legal_basis</code>
+            não são alterados automaticamente. A confirmação de cada campo é humana.
+        </div>
+    </div>
+    {% endif %}
 
     <!-- 4. RESUMO DA PROCEDÊNCIA -->
     <div class="card-box">
@@ -608,4 +1025,78 @@
     </details>
 
 </div>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function applySuggestion(button) {
+    const fieldName = button.getAttribute('data-field');
+    const value = button.getAttribute('data-value');
+    const recordId = button.getAttribute('data-record');
+    
+    if (!fieldName || !value || !recordId) {
+        alert('Dados insuficientes para aplicar a sugestão.');
+        return;
+    }
+    
+    button.disabled = true;
+    const originalText = button.innerHTML;
+    button.innerHTML = '⏳ Aplicando...';
+    
+    const csrfToken = getCookie('csrftoken') || (document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : '');
+    
+    const formData = new FormData();
+    formData.append('field_name', fieldName);
+    formData.append('value', value);
+    
+    fetch(`/admin/copyright/research/${recordId}/apply/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+        },
+        body: formData,
+    })
+    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+    .then(result => {
+        if (result.body && result.body.success) {
+            button.classList.add('applied');
+            button.innerHTML = '✓ Aplicado';
+            const card = button.closest('.suggestion-card');
+            if (card) {
+                card.style.borderColor = '#16a34a';
+                const divNote = card.querySelector('.divergence-note');
+                if (divNote) {
+                    divNote.innerHTML = '✓ Valor atualizado no registro.';
+                    divNote.style.color = '#16a34a';
+                }
+            }
+            setTimeout(() => {
+                window.location.reload();
+            }, 800);
+        } else {
+            button.disabled = false;
+            button.innerHTML = originalText;
+            alert(result.body.message || 'Erro ao aplicar sugestão.');
+        }
+    })
+    .catch(err => {
+        button.disabled = false;
+        button.innerHTML = originalText;
+        alert('Erro de comunicação ao aplicar sugestão: ' + err.message);
+    });
+}
+</script>
 {% endblock %}

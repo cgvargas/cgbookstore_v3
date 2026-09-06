@@ -122,7 +122,8 @@
                 Ordenação operacional prioritária de ativos visuais que requerem revisão administrativa.
             </p>
         </div>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="{% url 'copyright_batch_review_groups' %}" class="page-link-btn" style="background: rgba(108, 92, 231, 0.1); color: #6c5ce7; font-weight: 700; border-color: rgba(108, 92, 231, 0.3);">📚 Revisar grupos semelhantes</a>
             <a href="{% url 'copyright_audit_dashboard' %}" class="page-link-btn">📊 Dashboard Geral</a>
             <a href="{% url 'copyright_compliance_map' %}" class="page-link-btn">🗺️ Mapa de Conformidade</a>
         </div>

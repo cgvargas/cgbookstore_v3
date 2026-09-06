@@ -1,0 +1,191 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Revisão em Lote — Grupos Semelhantes | {{ site_title|default:"CG.BookStore Admin" }}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    :root, [data-theme="light"] {
+        --card-bg: #ffffff;
+        --card-border: #e9ecef;
+        --card-title: #2c3e50;
+        --card-desc: #7f8c8d;
+        --item-bg: #f8f9fa;
+        --item-border: #e9ecef;
+        --table-bg: #ffffff;
+        --table-header-bg: #f8f9fa;
+        --table-border: #e9ecef;
+        --text-primary: #2c3e50;
+    }
+    [data-theme="dark"], [data-theme="auto"] {
+        --card-bg: var(--darkened-bg, #1e1e1e);
+        --card-border: var(--border-color, #333333);
+        --card-title: var(--body-loud-color, #f1f2f6);
+        --card-desc: var(--body-quiet-color, #a4b0be);
+        --item-bg: var(--darkened-bg, #2b2b2b);
+        --item-border: var(--border-color, #383838);
+        --table-bg: var(--darkened-bg, #1e1e1e);
+        --table-header-bg: var(--darkened-bg, #252525);
+        --table-border: var(--border-color, #333333);
+        --text-primary: var(--body-fg, #e0e0e0);
+    }
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+            --card-bg: var(--darkened-bg, #1e1e1e);
+            --card-border: var(--border-color, #333333);
+            --card-title: var(--body-loud-color, #f1f2f6);
+            --card-desc: var(--body-quiet-color, #a4b0be);
+            --item-bg: var(--darkened-bg, #2b2b2b);
+            --item-border: var(--border-color, #383838);
+            --table-bg: var(--darkened-bg, #1e1e1e);
+            --table-header-bg: var(--darkened-bg, #252525);
+            --table-border: var(--border-color, #333333);
+            --text-primary: var(--body-fg, #e0e0e0);
+        }
+    }
+    .batch-container { max-width: 1400px; margin: 0 auto; padding: 20px 10px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .batch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+    .batch-title { margin: 0; font-size: 1.8rem; font-weight: 700; color: var(--card-title); display: flex; align-items: center; gap: 10px; }
+    
+    .governance-alert { background: rgba(108, 92, 231, 0.08); border-left: 4px solid #6c5ce7; padding: 14px 18px; border-radius: 6px; margin-bottom: 25px; font-size: 0.9rem; color: var(--text-primary); line-height: 1.5; }
+    
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .kpi-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); text-align: center; }
+    .kpi-num { font-size: 1.8rem; font-weight: 800; line-height: 1.1; margin-bottom: 5px; }
+    .kpi-label { font-size: 0.78rem; color: var(--card-desc); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    
+    .group-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .group-card:hover { border-color: #6c5ce7; box-shadow: 0 4px 12px rgba(108,92,231,0.12); }
+    
+    .group-info { flex: 1; min-width: 300px; }
+    .group-name { font-size: 1.25rem; font-weight: 700; color: var(--card-title); margin: 0 0 6px 0; display: flex; align-items: center; gap: 8px; }
+    .group-desc { font-size: 0.88rem; color: var(--card-desc); margin: 0 0 12px 0; line-height: 1.4; }
+    
+    .badge-tag { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; margin-right: 6px; margin-bottom: 4px; }
+    .badge-primary { background: rgba(108, 92, 231, 0.12); color: #6c5ce7; border: 1px solid rgba(108, 92, 231, 0.3); }
+    .badge-success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .badge-warning { background: #fef9c3; color: #854d0e; border: 1px solid #facc15; }
+    .badge-danger { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+    .badge-info { background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+    
+    .btn-action { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 0.88rem; font-weight: 700; text-decoration: none; cursor: pointer; transition: all 0.2s; }
+    .btn-review { background: #6c5ce7; color: #fff; border: 1px solid #5a4bcf; }
+    .btn-review:hover { background: #5a4bcf; color: #fff; }
+    .page-link-btn { padding: 8px 14px; border: 1px solid var(--card-border); border-radius: 6px; text-decoration: none; color: var(--text-primary); font-size: 0.88rem; background: var(--card-bg); font-weight: 600; }
+    .page-link-btn:hover { background: var(--item-bg); }
+    
+    .pagination-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 25px; flex-wrap: wrap; gap: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="batch-container">
+    <!-- Header -->
+    <div class="batch-header">
+        <div>
+            <h1 class="batch-title">📚 Revisão Assistida em Lote</h1>
+            <p style="margin: 5px 0 0 0; color: var(--card-desc); font-size: 0.95rem;">
+                Agrupamento determinístico de ativos visuais para reaproveitamento factual de evidências e produtividade administrativa.
+            </p>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="{% url 'copyright_audit_queue' %}" class="page-link-btn">📋 Fila Inteligente</a>
+            <a href="{% url 'copyright_audit_dashboard' %}" class="page-link-btn">📊 Dashboard Geral</a>
+        </div>
+    </div>
+
+    <!-- Diretriz Central de Governança -->
+    <div class="governance-alert">
+        <strong>⚖️ Princípio de Governança da Fase 3B:</strong>
+        <em>"Semelhança permite reaproveitar evidências. Semelhança NÃO permite presumir a mesma conclusão jurídica."</em><br>
+        A revisão em lote permite vincular domínios e termos institucionais confirmados para registros elegíveis. Nenhuma imagem é regularizada automaticamente e nenhum fundamento jurídico (Art. 46 / Domínio Público) é atribuído em massa.
+    </div>
+
+    <!-- KPIs dos Grupos -->
+    <div class="kpi-grid">
+        <div class="kpi-card" style="border-top: 4px solid #6c5ce7;">
+            <div class="kpi-num" style="color: #6c5ce7;">{{ total_groups }}</div>
+            <div class="kpi-label">Grupos Identificados</div>
+        </div>
+        <div class="kpi-card" style="border-top: 4px solid #3498db;">
+            <div class="kpi-num" style="color: #3498db;">{{ total_records_in_groups }}</div>
+            <div class="kpi-label">Total de Registros nos Grupos</div>
+        </div>
+        <div class="kpi-card" style="border-top: 4px solid #10b981;">
+            <div class="kpi-num" style="color: #10b981;">{{ total_eligible_in_groups }}</div>
+            <div class="kpi-label">Elegíveis para Reutilização</div>
+        </div>
+        <div class="kpi-card" style="border-top: 4px solid #f59e0b;">
+            <div class="kpi-num" style="color: #f59e0b;">{{ total_exceptions_in_groups }}</div>
+            <div class="kpi-label">Exceções Protegidas</div>
+        </div>
+    </div>
+
+    <!-- Lista de Grupos -->
+    {% if groups %}
+        {% for group in groups %}
+        <div class="group-card">
+            <div class="group-info">
+                <h2 class="group-name">
+                    {% if group.group_type == 'publisher' %}📚{% else %}🔍{% endif %}
+                    {{ group.title }}
+                </h2>
+                <p class="group-desc">{{ group.explanation }}</p>
+
+                <div>
+                    <span class="badge-tag badge-primary">{{ group.total_records }} registro{{ group.total_records|pluralize }}</span>
+                    <span class="badge-tag badge-warning">{{ group.pending_records_count }} aguardando auditoria</span>
+                    
+                    {% if group.has_terms %}
+                        <span class="badge-tag badge-success">✓ Termos institucionais: confirmados</span>
+                    {% else %}
+                        <span class="badge-tag badge-info">Termos institucionais: não localizados</span>
+                    {% endif %}
+
+                    {% if group.official_domain %}
+                        <span class="badge-tag badge-info">🌐 {{ group.official_domain }}</span>
+                    {% endif %}
+
+                    {% if group.exceptions_count > 0 %}
+                        <span class="badge-tag badge-danger">⚠ {{ group.exceptions_count }} exceç{{ group.exceptions_count|pluralize:"ão,ões" }} identificada{{ group.exceptions_count|pluralize }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                <a href="{% url 'copyright_batch_review_detail' group.group_key %}" class="btn-action btn-review">
+                    Revisar Grupo →
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Paginação -->
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="pagination-nav">
+            <div>
+                <span style="font-size: 0.88rem; color: var(--card-desc);">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }} ({{ total_groups }} grupos no total)
+                </span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" class="page-link-btn">← Anterior</a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="page-link-btn">Próxima →</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+    {% else %}
+        <div class="group-card" style="text-align: center; justify-content: center; padding: 40px 20px;">
+            <p style="font-size: 1.1rem; color: var(--card-desc); margin: 0;">
+                Nenhum grupo de revisão em lote localizado no momento.
+            </p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

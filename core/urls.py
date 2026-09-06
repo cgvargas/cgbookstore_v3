@@ -120,9 +120,6 @@ urlpatterns = [
     path('universo/<slug:slug>/', LiteraryUniverseView.as_view(), name='literary_universe'),
     path('termos/', TermsOfServiceView.as_view(), name='terms_of_service'),
     path('privacidade/', PrivacyPolicyView.as_view(), name='privacy_policy'),
-    # Download Seguro de Documentos de Direitos Autorais / Takedowns
-    path('admin/copyright-doc/<int:record_id>/', copyright_views.protected_copyright_document_download, name='protected_copyright_document_download'),
-    path('admin/takedown-doc/<int:takedown_id>/', copyright_views.protected_takedown_document_download, name='protected_takedown_document_download'),
     # Redirecionamento para URLs antigas (compatibilidade)
     path('book/<int:book_id>/', BookRedirectView.as_view(), name='book_redirect'),
 
@@ -247,5 +244,19 @@ urlpatterns = [
         'api/admin/book/create-category-quick/',
         admin_ai_views.create_category_quick,
         name='admin_book_create_category_quick'
+    ),
+
+    # ==========================================
+    # GOVERNANÇA DE DIREITOS AUTORAIS - DOCUMENTOS PROTEGIDOS
+    # ==========================================
+    path(
+        'admin/copyright-doc/<int:record_id>/',
+        copyright_views.protected_copyright_document_download,
+        name='protected_copyright_document_download'
+    ),
+    path(
+        'admin/takedown-doc/<int:takedown_id>/',
+        copyright_views.protected_takedown_document_download,
+        name='protected_takedown_document_download'
     ),
 ]

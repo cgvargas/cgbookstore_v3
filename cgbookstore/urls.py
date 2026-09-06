@@ -47,6 +47,16 @@ urlpatterns = [
     path('admin/audit/image-copyright/queue/', copyright_views.copyright_audit_queue, name='copyright_audit_queue'),
     path('admin/audit/image-copyright/assisted/<int:record_id>/', copyright_views.copyright_assisted_audit, name='copyright_assisted_audit'),
     path('admin/audit/image-copyright/compliance-map/', copyright_views.copyright_compliance_map, name='copyright_compliance_map'),
+    # Fase 3A - Pesquisa Assistida e Pré-preenchimento
+    path('admin/audit/image-copyright/research/<int:record_id>/start/', copyright_views.copyright_research_start, name='copyright_research_start'),
+    path('admin/audit/image-copyright/research/<int:record_id>/apply/', copyright_views.copyright_research_apply, name='copyright_research_apply'),
+    path('admin/audit/image-copyright/research/<int:record_id>/data/', copyright_views.copyright_research_data, name='copyright_research_data'),
+    # Fase 3B - Revisão Assistida em Lote
+    path('admin/audit/image-copyright/batch/', copyright_views.copyright_batch_review_groups, name='copyright_batch_review_groups'),
+    path('admin/audit/image-copyright/batch/<str:group_key>/', copyright_views.copyright_batch_review_detail, name='copyright_batch_review_detail'),
+    path('admin/audit/image-copyright/batch/<str:group_key>/preview/', copyright_views.copyright_batch_review_preview, name='copyright_batch_review_preview'),
+    path('admin/audit/image-copyright/batch/<str:group_key>/apply/', copyright_views.copyright_batch_review_apply, name='copyright_batch_review_apply'),
+    path('admin/audit/image-copyright/batch/<str:group_key>/research/', copyright_views.copyright_batch_review_research, name='copyright_batch_review_research'),
     path('admin/copyright-doc/<int:record_id>/', copyright_views.protected_copyright_document_download, name='protected_copyright_document'),
     path('admin/takedown-doc/<int:takedown_id>/', copyright_views.protected_takedown_document_download, name='protected_takedown_document'),
     path('admin/', admin.site.urls),
