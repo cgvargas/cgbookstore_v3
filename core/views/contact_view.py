@@ -157,6 +157,22 @@ class ContactView(FormView):
             logger.info(
                 f"✅ Email de contato enviado com sucesso: '{subject}' de {sender_email}"
             )
+
+            # Alerta Urgente via WhatsApp se for Direitos Autorais / Takedown
+            if category_code == 'copyright_takedown':
+                try:
+                    from monitoring.whatsapp_service import get_whatsapp_notifier
+                    notifier = get_whatsapp_notifier()
+                    notifier.send_copyright_takedown_alert(
+                        claimant_name=name,
+                        claimant_email=sender_email,
+                        subject=subject,
+                        message=message,
+                    )
+                    logger.info("📲 Alerta urgente de Takedown enviado via WhatsApp para o administrador.")
+                except Exception as wa_err:
+                    logger.error(f"⚠️ Erro ao disparar alerta WhatsApp de takedown: {wa_err}", exc_info=True)
+
             messages.success(
                 self.request,
                 'Mensagem enviada com sucesso! Entraremos em contato em breve. 📬'
@@ -166,7 +182,7 @@ class ContactView(FormView):
             messages.error(
                 self.request,
                 'Ocorreu um erro ao enviar sua mensagem. Tente novamente ou entre em contato '
-                'diretamente pelo email: cg.bookstore.online@outlook.com'
+                'diretamente pelo email: suporte@cgbookstore.com.br'
             )
 
         return super().form_valid(form)

@@ -196,3 +196,32 @@ class ContactViewAntiBotTestCase(TestCase):
         self.assertEqual(len(mail.outbox), 1)  # E-mail enviado!
         self.assertIn('[CG.BookStore]', mail.outbox[0].subject)
         self.assertIn('Maria Leitora', mail.outbox[0].body)
+
+    def test_contact_takedown_triggers_whatsapp_alert(self):
+        """Notificação com categoria Direitos Autorais / Takedown deve disparar alerta urgente no WhatsApp."""
+        from unittest.mock import patch
+        data = {
+            'name': 'Advogado do Autor',
+            'email': 'juridico@editora.com',
+            'category': 'copyright_takedown',
+            'subject': 'Notificação de Takedown Obra X',
+            'message': 'Solicito a retirada da capa da obra X com base na Lei 9.610/98.',
+            'website_hp': '',
+            'bot_token': self.valid_human_token,
+        }
+        request = self.factory.post('/contato/', data)
+        from django.contrib.messages.storage.fallback import FallbackStorage
+        setattr(request, 'session', {})
+        messages = FallbackStorage(request)
+        setattr(request, '_messages', messages)
+
+        with patch('monitoring.whatsapp_service.WhatsAppNotifier.send_copyright_takedown_alert') as mock_wa:
+            mock_wa.return_value = True
+            response = ContactView.as_view()(request)
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(len(mail.outbox), 1)
+            self.assertIn('[DIREITOS AUTORAIS / TAKEDOWN]', mail.outbox[0].subject)
+            mock_wa.assert_called_once()
+            call_kwargs = mock_wa.call_args[1]
+            self.assertEqual(call_kwargs['claimant_name'], 'Advogado do Autor')
+            self.assertEqual(call_kwargs['claimant_email'], 'juridico@editora.com')

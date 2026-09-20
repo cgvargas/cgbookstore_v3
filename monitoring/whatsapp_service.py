@@ -246,6 +246,51 @@ class WhatsAppNotifier:
 
         return self._send_message(text)
 
+    def send_copyright_takedown_alert(
+        self,
+        claimant_name: str,
+        claimant_email: str,
+        subject: str,
+        message: str,
+        takedown_id: int = None,
+    ) -> bool:
+        """
+        Envia alerta urgente de notificação ou contestação de direitos autorais / takedown.
+
+        Args:
+            claimant_name: Nome do titular ou representante
+            claimant_email: E-mail de contato
+            subject: Assunto específico ou obra contestada
+            message: Mensagem detalhada da notificação
+            takedown_id: ID do registro de takedown no admin (opcional)
+
+        Returns:
+            True se enviado com sucesso para o WhatsApp do administrador.
+        """
+        now = timezone.localtime(timezone.now())
+        msg_preview = message[:180] + ('...' if len(message) > 180 else '')
+
+        site_url = getattr(settings, 'SITE_URL', 'https://cgbookstore-v3.onrender.com').rstrip('/')
+        if 'localhost' in site_url or '127.0.0.1' in site_url:
+            admin_url = "https://cgbookstore-v3.onrender.com/admin/audit/image-copyright/"
+        else:
+            admin_url = f"{site_url}/admin/audit/image-copyright/"
+
+        if takedown_id:
+            admin_url = f"{site_url}/admin/core/copyrighttakedownrequest/{takedown_id}/change/"
+
+        text = (
+            "🚨 *URGENTE: DIREITOS AUTORAIS / TAKEDOWN* 🚨\n\n"
+            f"👤 *Reclamante:* {claimant_name}\n"
+            f"📧 *E-mail:* {claimant_email}\n"
+            f"📑 *Assunto:* {subject}\n"
+            f"💬 *Mensagem:* _{msg_preview}_\n"
+            f"🕐 *Horário:* {now.strftime('%d/%m/%Y às %H:%M')}\n\n"
+            f"🔗 *Painel de Auditoria:* {admin_url}"
+        )
+        logger.info(f"[WhatsApp] Disparando alerta urgente de Direitos Autorais / Takedown para {self.phone}")
+        return self._send_message(text)
+
     def send_test_message(self) -> bool:
         """Envia mensagem de teste para validar configuração."""
         now = timezone.localtime(timezone.now())
