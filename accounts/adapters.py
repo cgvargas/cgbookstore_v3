@@ -36,6 +36,19 @@ class CustomAccountAdapter(DefaultAccountAdapter):
         """
         return getattr(settings, 'ACCOUNT_ALLOW_REGISTRATION', True)
 
+    def clean_email(self, email):
+        """Valida se o email não pertence a serviços temporários ou descartáveis."""
+        from django import forms
+        from core.utils.anti_bot import is_disposable_email
+
+        email = super().clean_email(email)
+        if email and is_disposable_email(email):
+            logger.warning(f"[AntiBot Adapter] Bloqueado cadastro com email descartável: {email}")
+            raise forms.ValidationError(
+                "Endereços de e-mail temporários ou descartáveis não são permitidos."
+            )
+        return email
+
     def send_mail(self, template_prefix, email, context):
         """
         Sobrescreve envio de email para usar formato HTML.

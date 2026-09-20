@@ -232,6 +232,13 @@
                     <form method="POST" class="contact-form">
                         {% csrf_token %}
                         
+                        <!-- Proteção Anti-Bot Invisível (Honeypot + Time-Gate) -->
+                        <div style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none;" aria-hidden="true">
+                            <label for="id_website_hp">Website (não preencha)</label>
+                            <input type="text" name="website_hp" id="id_website_hp" tabindex="-1" autocomplete="off" value="">
+                        </div>
+                        {{ form.bot_token }}
+                        
                         <div class="mb-3">
                             <label for="{{ form.name.id_for_label }}" class="form-label">
                                 {{ form.name.label }}

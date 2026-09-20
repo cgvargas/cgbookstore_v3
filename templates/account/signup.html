@@ -385,6 +385,13 @@ body {
         <form method="post" class="auth-form" id="signupForm" novalidate>
             {% csrf_token %}
 
+            <!-- Proteção Anti-Bot Invisível (Honeypot + Time-Gate) -->
+            <div style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none;" aria-hidden="true">
+                <label for="id_website_hp">Website (deixe em branco)</label>
+                <input type="text" name="website_hp" id="id_website_hp" tabindex="-1" autocomplete="off" value="">
+            </div>
+            {{ form.bot_token }}
+
             <!-- Mensagens de erro backend -->
             {% if form.non_field_errors %}
                 <div class="alert alert-error" role="alert">

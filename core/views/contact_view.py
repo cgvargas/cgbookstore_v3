@@ -8,12 +8,20 @@ from django import forms
 from django.core.mail import EmailMessage as DjangoEmailMessage
 from django.conf import settings
 
+from core.utils.anti_bot import (
+    generate_bot_token,
+    validate_bot_token,
+    is_disposable_email,
+    check_rate_limit,
+)
+
 logger = logging.getLogger(__name__)
 
 
 class ContactForm(forms.Form):
     """
     Formulário de contato com envio de email e categorização de assuntos (incluindo Direitos Autorais/Takedown).
+    Inclui proteção anti-bot com honeypot e time-gate criptográfico.
     """
     CATEGORY_CHOICES = [
         ('general', 'Dúvidas Gerais / Atendimento'),
@@ -23,6 +31,22 @@ class ContactForm(forms.Form):
         ('copyright_takedown', '🛡️ Direitos Autorais / Solicitação de Remoção de Conteúdo (Takedown)'),
         ('other', 'Outro Assunto'),
     ]
+
+    # Campos anti-bot
+    website_hp = forms.CharField(
+        required=False,
+        label='',
+        widget=forms.TextInput(attrs={
+            'autocomplete': 'off',
+            'tabindex': '-1',
+            'style': 'position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none;',
+            'aria-hidden': 'true',
+        })
+    )
+    bot_token = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput()
+    )
 
     name = forms.CharField(
         max_length=100,
@@ -53,11 +77,16 @@ class ContactForm(forms.Form):
         })
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.is_bound:
+            self.fields['bot_token'].initial = generate_bot_token()
+
 
 class ContactView(FormView):
     """
     View para página de contato.
-    Envia email via Brevo ao submeter o formulário.
+    Envia email via Brevo ao submeter o formulário após validação anti-bot.
     """
     template_name = 'core/contact.html'
     form_class = ContactForm
@@ -65,7 +94,7 @@ class ContactView(FormView):
 
     def form_valid(self, form):
         """
-        Processa o formulário e envia email via Brevo com destaque para comunicações de direitos autorais.
+        Processa o formulário com filtragem anti-bot e envia email via Brevo.
         """
         name = form.cleaned_data['name']
         sender_email = form.cleaned_data['email']
@@ -73,6 +102,27 @@ class ContactView(FormView):
         category_label = dict(ContactForm.CATEGORY_CHOICES).get(category_code, category_code)
         subject = form.cleaned_data['subject']
         message = form.cleaned_data['message']
+
+        # Verificação de segurança Anti-Bot
+        website_hp = form.cleaned_data.get('website_hp')
+        bot_token = self.request.POST.get('bot_token') or form.cleaned_data.get('bot_token')
+        is_valid_token, reason = validate_bot_token(bot_token, min_seconds=2.0)
+        disposable = is_disposable_email(sender_email)
+        allowed_rate = check_rate_limit(self.request, action='contact', max_attempts=5, window_seconds=600)
+
+        # Se for identificado como bot ou abuso:
+        if website_hp or not is_valid_token or disposable or not allowed_rate:
+            logger.warning(
+                f"[AntiBot Contact] Mensagem de SPAM descartada silenciosamente: "
+                f"hp='{website_hp}', token_ok={is_valid_token} ({reason}), disposable={disposable}, "
+                f"rate_ok={allowed_rate}, email={sender_email}, subject='{subject}'"
+            )
+            # Responde sucesso falso para despistar robôs sem enviar e-mail ao Brevo
+            messages.success(
+                self.request,
+                'Mensagem enviada com sucesso! Entraremos em contato em breve. 📬'
+            )
+            return super().form_valid(form)
 
         # Prefixo de identificação administrativa prioritária
         prefix = "[DIREITOS AUTORAIS / TAKEDOWN]" if category_code == 'copyright_takedown' else "[CG.BookStore]"

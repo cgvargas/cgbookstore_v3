@@ -640,6 +640,11 @@ ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = LOGIN_REDIRECT_URL
 # Permitir usuários registrarem-se
 ACCOUNT_SIGNUP_ENABLED = True
 
+# Formulários customizados do Allauth com proteção Anti-Bot
+ACCOUNT_FORMS = {
+    'signup': 'accounts.forms_signup.CustomSignupForm',
+}
+
 # Não permitir emails duplicados
 ACCOUNT_UNIQUE_EMAIL = True
 

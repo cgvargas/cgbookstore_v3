@@ -84,4 +84,6 @@ Thumbs.db
 tmp/
 temp/
 *.tmp
+scratch/
+*.csv
 nul
