@@ -29,7 +29,7 @@
   },{% endif %}
   {% if book.publication_date %}"datePublished": "{{ book.publication_date|date:'Y-m-d' }}",{% endif %}
   "inLanguage": "{{ book.language|default:'pt-BR' }}",
-  {% if book.cover_image_url %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image_url }}",{% endif %}
+  {% if book.cover_image_url %}"image": "{% if 'http' in book.cover_image_url %}{{ book.cover_image_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image_url }}{% endif %}",{% endif %}
   "description": "{{ book.description|striptags|truncatewords:40|escapejs }}",
   "workExample": {
     "@type": "Book",

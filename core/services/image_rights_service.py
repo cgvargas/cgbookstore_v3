@@ -177,8 +177,7 @@ class ImageRightsAuditService:
         from core.services.image_rights_history_service import ImageRightsHistoryService
 
         file_attr = getattr(obj, field_name, None)
-        if not file_attr or not hasattr(file_attr, 'name') or not file_attr.name:
-            return 'no_image', None
+        has_file = bool(file_attr and hasattr(file_attr, 'name') and file_attr.name)
 
         ct = ContentType.objects.get_for_model(obj)
         rights_record = ImageRightsRecord.objects.filter(
@@ -187,25 +186,39 @@ class ImageRightsAuditService:
             image_field_name=field_name
         ).first()
 
-        if not rights_record:
+        # Determinar se é um ativo remoto registrado (ex: Open Library Covers API)
+        is_remote_asset = bool(
+            rights_record
+            and (
+                rights_record.provenance_method in ['remote_display', 'api_reference']
+                or bool(rights_record.source_url)
+            )
+        )
+
+        # Se não há arquivo local nem ativo remoto registrado
+        if not has_file and not is_remote_asset:
+            return 'no_image', None
+
+        # Se há arquivo local mas não existe registro de direitos correspondente
+        if has_file and not rights_record:
             return 'missing', None
 
-        # Sincronizar metadados do arquivo se necessário
-        if file_attr:
+        # Sincronizar metadados do arquivo se for um arquivo local
+        if has_file:
             cls.sync_file_metadata(rights_record, file_attr)
 
-        # 1. Checagem técnica de integridade: Checksum SHA-256
-        if rights_record.image_checksum:
-            current_checksum = ImageRightsRecord.calculate_file_checksum(file_attr)
-            if current_checksum and current_checksum != rights_record.image_checksum:
-                # Registrar evento na trilha de auditoria com proteção anti-duplicação
-                ImageRightsHistoryService.log_integrity_divergence(
-                    record=rights_record,
-                    expected_checksum=rights_record.image_checksum,
-                    detected_checksum=current_checksum,
-                    source='system'
-                )
-                return 'divergent', rights_record
+            # 1. Checagem técnica de integridade: Checksum SHA-256 (apenas para arquivos locais)
+            if rights_record.image_checksum:
+                current_checksum = ImageRightsRecord.calculate_file_checksum(file_attr)
+                if current_checksum and current_checksum != rights_record.image_checksum:
+                    # Registrar evento na trilha de auditoria com proteção anti-duplicação
+                    ImageRightsHistoryService.log_integrity_divergence(
+                        record=rights_record,
+                        expected_checksum=rights_record.image_checksum,
+                        detected_checksum=current_checksum,
+                        source='system'
+                    )
+                    return 'divergent', rights_record
 
         # 2. Respeito às decisões administrativas restritivas / contestações e suspensão preventiva
         if not rights_record.public_display_allowed or rights_record.audit_status == 'restricted':

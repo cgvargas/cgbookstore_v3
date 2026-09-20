@@ -4774,11 +4774,331 @@ class ImageRightsBatchReviewTestCase(TestCase):
         self.assertIn('institutional_terms_retrieved_at', meta)
 
 
+class ImageRightsAssistedResearchCorrectionTestCase(TestCase):
+    """
+    Testes de Regressão Obrigatórios — Correção Pontual da Pesquisa Assistida de Direitos Autorais.
+    Garante a estrita separação conceitual:
+    - Editora da obra ≠ titular dos direitos da arte da capa (rights_holder_name).
+    - Editora da obra ≠ licenciante da arte da capa (licensor_name).
+    - Termos de Uso institucionais ≠ licença específica da imagem (license_url).
+    - Página de catálogo ≠ procedência técnica do arquivo (source_url).
+    - Autor do livro ≠ criador da arte da capa (creator_name).
+    - Conflito editorial ≠ conflito jurídico.
+    - Preservação integral da procedência técnica existente (Amazon, etc.).
+    """
 
+    def setUp(self):
+        from core.services.image_rights_research_service import ImageRightsResearchService
+        self.research_service = ImageRightsResearchService
+        self.user = User.objects.create_superuser(
+            username='admin_research_test',
+            email='admin_research@cgbookstore.com.br',
+            password='password123'
+        )
+        self.author = Author.objects.create(name="J.R.R. Tolkien")
+        self.book_ct = ContentType.objects.get_for_model(Book)
 
+        # InstitutionalSource HarperCollins Brasil
+        self.inst_source, _ = InstitutionalSource.objects.get_or_create(
+            domain="harpercollins.com.br",
+            defaults={
+                'name': "HarperCollins Brasil",
+                'main_url': "https://harpercollins.com.br",
+                'terms_url': "https://harpercollins.com.br/pages/termos-de-uso",
+                'terms_summary': "Página oficial de termos de uso da editora. Todos os direitos reservados.",
+                'terms_content_hash': "abc123hash456",
+                'terms_retrieved_at': timezone.now(),
+                'is_verified': True,
+            }
+        )
 
+    def _create_book_and_record(self, title="O Senhor dos Anéis: O Retorno do Rei", publisher="HarperCollins Brasil", isbn="9788595086371", **record_kwargs):
+        book = Book.objects.create(
+            title=title,
+            author=self.author,
+            price=59.90,
+            isbn=isbn,
+            publisher=publisher,
+            publication_date="2019-11-25",
+        )
+        defaults = {
+            'content_type': self.book_ct,
+            'object_id': book.pk,
+            'image_field_name': 'cover_image',
+            'audit_status': 'not_audited',
+            'public_display_allowed': True,
+        }
+        defaults.update(record_kwargs)
+        record = ImageRightsRecord.objects.create(**defaults)
+        return book, record
 
+    def test_a_publisher_harpercollins_not_rights_holder(self):
+        """Teste A — Google Books publisher = HarperCollins Brasil NÃO vira rights_holder_name."""
+        book, record = self._create_book_and_record(
+            title="Livro Teste A",
+            publisher="HarperCollins Brasil",
+            rights_holder_name=""
+        )
+        internal_data = self.research_service._collect_internal_data(record)
 
+        gb_mock_data = {
+            'publisher': 'HarperCollins Brasil',
+            'title': 'Livro Teste A',
+            'authors': ['J.R.R. Tolkien'],
+            'google_book_id': 'gb_test_a',
+            'info_link': 'https://books.google.com/books?id=gb_test_a',
+        }
 
+        from unittest.mock import patch
+        with patch('core.utils.google_books_api.search_books', return_value={'books': [gb_mock_data]}):
+            gb_result = self.research_service._research_google_books(record, internal_data)
 
+        suggested_fields = [s['field_name'] for s in gb_result.get('suggestions', [])]
+        self.assertNotIn('rights_holder_name', suggested_fields)
 
+        with patch('core.utils.google_books_api.search_books', return_value={'books': [gb_mock_data]}):
+            with patch('requests.get') as mock_get:
+                mock_get.return_value.status_code = 404
+                research = self.research_service.perform_research(record.id, performed_by=self.user)
+
+        rh_sug = [s for s in research.suggestions if s['field_name'] == 'rights_holder_name' and s.get('suggested_value')]
+        self.assertEqual(len(rh_sug), 0)
+
+    def test_b_publisher_harlequin_not_rights_holder(self):
+        """Teste B — Google Books publisher alternativo = HARLEQUIN NÃO vira rights_holder_name."""
+        book, record = self._create_book_and_record(
+            title="Livro Teste B",
+            publisher="HarperCollins Brasil",
+            rights_holder_name=""
+        )
+        internal_data = self.research_service._collect_internal_data(record)
+
+        gb_mock_data = {
+            'publisher': 'HARLEQUIN',
+            'title': 'Livro Teste B',
+            'authors': ['Autor Exemplo'],
+            'google_book_id': 'gb_test_b',
+            'info_link': 'https://books.google.com/books?id=gb_test_b',
+        }
+
+        from unittest.mock import patch
+        with patch('core.utils.google_books_api.search_books', return_value={'books': [gb_mock_data]}):
+            gb_result = self.research_service._research_google_books(record, internal_data)
+
+        suggested_fields = [s['field_name'] for s in gb_result.get('suggestions', [])]
+        self.assertNotIn('rights_holder_name', suggested_fields)
+
+        with patch('core.utils.google_books_api.search_books', return_value={'books': [gb_mock_data]}):
+            with patch('requests.get') as mock_get:
+                mock_get.return_value.status_code = 404
+                research = self.research_service.perform_research(record.id, performed_by=self.user)
+
+        harlequin_sug = [s for s in research.suggestions if s.get('suggested_value') == 'HARLEQUIN' and s['field_name'] == 'rights_holder_name']
+        self.assertEqual(len(harlequin_sug), 0)
+
+    def test_c_institutional_source_not_licensor(self):
+        """Teste C — InstitutionalSource = HarperCollins Brasil NÃO vira licensor_name sem evidência explícita."""
+        book, record = self._create_book_and_record(
+            title="Livro Teste C",
+            publisher="HarperCollins Brasil",
+            licensor_name=""
+        )
+        internal_data = self.research_service._collect_internal_data(record)
+
+        inst_result = self.research_service._research_institutional_source(record, internal_data)
+        suggested_fields = [s['field_name'] for s in inst_result.get('suggestions', [])]
+        self.assertNotIn('licensor_name', suggested_fields)
+
+        from unittest.mock import patch
+        with patch('core.utils.google_books_api.search_books', return_value={'books': []}):
+            research = self.research_service.perform_research(record.id, performed_by=self.user)
+
+        lic_sug = [s for s in research.suggestions if s['field_name'] == 'licensor_name' and s.get('suggested_value')]
+        self.assertEqual(len(lic_sug), 0)
+
+    def test_d_institutional_terms_url_not_license_url(self):
+        """Teste D — institutional_terms_url NÃO vira license_url."""
+        book, record = self._create_book_and_record(
+            title="Livro Teste D",
+            publisher="HarperCollins Brasil",
+            license_url=""
+        )
+        internal_data = self.research_service._collect_internal_data(record)
+
+        inst_result = self.research_service._research_institutional_source(record, internal_data)
+
+        suggested_fields = [s['field_name'] for s in inst_result.get('suggestions', [])]
+        self.assertNotIn('license_url', suggested_fields)
+
+        terms_sources = [src for src in inst_result.get('sources', []) if 'termos' in src.get('source_name', '').lower()]
+        self.assertTrue(len(terms_sources) > 0)
+        self.assertEqual(terms_sources[0]['url'], "https://harpercollins.com.br/pages/termos-de-uso")
+
+    def test_e_google_books_not_source_url(self):
+        """Teste E — Página do Google Books NÃO vira source_url / Fonte Original da Imagem."""
+        book, record = self._create_book_and_record(
+            title="Livro Teste E",
+            publisher="HarperCollins Brasil",
+            source_url="",
+            provenance_provider=""
+        )
+        internal_data = self.research_service._collect_internal_data(record)
+
+        gb_mock_data = {
+            'title': 'Livro Teste E',
+            'publisher': 'HarperCollins Brasil',
+            'google_book_id': 'vol_test_e',
+            'info_link': 'https://books.google.com/books?id=vol_test_e',
+        }
+
+        from unittest.mock import patch
+        with patch('core.utils.google_books_api.search_books', return_value={'books': [gb_mock_data]}):
+            gb_result = self.research_service._research_google_books(record, internal_data)
+
+        suggested_fields = [s['field_name'] for s in gb_result.get('suggestions', [])]
+        self.assertNotIn('source_url', suggested_fields)
+
+    def test_f_amazon_provenance_preservation(self):
+        """Teste F — Preservação da procedência técnica existente (Amazon)."""
+        book, record = self._create_book_and_record(
+            title="Livro Teste F",
+            publisher="HarperCollins Brasil",
+            provenance_provider="amazon",
+            provenance_method="manual_import",
+            source_url="https://www.amazon.com.br/dp/8595086370"
+        )
+        internal_data = self.research_service._collect_internal_data(record)
+
+        from unittest.mock import patch
+        gb_mock_data = {
+            'title': 'Livro Teste F',
+            'publisher': 'HarperCollins Brasil',
+            'google_book_id': 'vol_test_f',
+            'info_link': 'https://books.google.com/books?id=vol_test_f',
+        }
+        with patch('core.utils.google_books_api.search_books', return_value={'books': [gb_mock_data]}):
+            research = self.research_service.perform_research(record.id, performed_by=self.user)
+
+        record.refresh_from_db()
+        self.assertEqual(record.provenance_provider, 'amazon')
+        self.assertEqual(record.provenance_method, 'manual_import')
+        self.assertEqual(record.source_url, "https://www.amazon.com.br/dp/8595086370")
+
+        source_sug = [s for s in research.suggestions if s['field_name'] == 'source_url' and s.get('suggested_value')]
+        self.assertEqual(len(source_sug), 0)
+
+    def test_g_editorial_conflict_not_legal_conflict(self):
+        """Teste G — Conflito editorial (Google Books HARLEQUIN vs HarperCollins) NÃO gera conflito em rights_holder_name."""
+        book, record = self._create_book_and_record(
+            title="Livro Teste G",
+            publisher="HarperCollins Brasil",
+            rights_holder_name=""
+        )
+
+        gb_mock_data = {
+            'title': 'Livro Teste G',
+            'publisher': 'HARLEQUIN',
+            'google_book_id': 'vol_test_g',
+            'info_link': 'https://books.google.com/books?id=vol_test_g',
+        }
+
+        from unittest.mock import patch
+        with patch('core.utils.google_books_api.search_books', return_value={'books': [gb_mock_data]}):
+            research = self.research_service.perform_research(record.id, performed_by=self.user)
+
+        rh_conflicts = [c for c in research.conflicts if c.get('field_name') == 'rights_holder_name']
+        self.assertEqual(len(rh_conflicts), 0)
+
+    def test_h_book_author_not_cover_creator(self):
+        """Teste H — Autor do livro ('J.R.R. Tolkien') NÃO vira criador da capa (creator_name)."""
+        book, record = self._create_book_and_record(
+            title="O Senhor dos Anéis: O Retorno do Rei",
+            publisher="HarperCollins Brasil",
+            creator_name=""
+        )
+        internal_data = self.research_service._collect_internal_data(record)
+
+        gb_mock_data = {
+            'title': 'O Senhor dos Anéis: O Retorno do Rei',
+            'publisher': 'HarperCollins Brasil',
+            'authors': ['J.R.R. Tolkien'],
+            'google_book_id': 'vol_test_h',
+            'info_link': 'https://books.google.com/books?id=vol_test_h',
+        }
+
+        from unittest.mock import patch
+        with patch('core.utils.google_books_api.search_books', return_value={'books': [gb_mock_data]}):
+            gb_result = self.research_service._research_google_books(record, internal_data)
+
+        suggested_fields = [s['field_name'] for s in gb_result.get('suggestions', [])]
+        self.assertNotIn('creator_name', suggested_fields)
+
+        with patch('core.utils.google_books_api.search_books', return_value={'books': [gb_mock_data]}):
+            research = self.research_service.perform_research(record.id, performed_by=self.user)
+
+        creator_sug = next((s for s in research.suggestions if s['field_name'] == 'creator_name'), None)
+        self.assertIsNotNone(creator_sug)
+        self.assertEqual(creator_sug['suggested_value'], '')
+        self.assertIn('Não localizado', creator_sug['short_reason'])
+
+    def test_real_scenario_retorno_do_rei(self):
+        """Cenário Real de Validação — O Senhor dos Anéis: O Retorno do Rei (HarperCollins Brasil)."""
+        book, record = self._create_book_and_record(
+            title="O Senhor dos Anéis: O Retorno do Rei",
+            publisher="HarperCollins Brasil",
+            isbn="9788595086371",
+            creator_name="",
+            rights_holder_name="",
+            licensor_name="",
+            license_url="",
+            source_url=""
+        )
+
+        gb_mock_data = {
+            'title': 'O Senhor dos Anéis: O Retorno do Rei',
+            'publisher': 'HarperCollins Brasil',
+            'authors': ['J.R.R. Tolkien'],
+            'google_book_id': 'lotr_rotk_hc',
+            'info_link': 'https://books.google.com/books?id=lotr_rotk_hc',
+        }
+
+        from unittest.mock import patch
+        with patch('core.utils.google_books_api.search_books', return_value={'books': [gb_mock_data]}):
+            research = self.research_service.perform_research(record.id, performed_by=self.user)
+
+        # 1. Título sugerido
+        work_title_sug = next((s for s in research.suggestions if s['field_name'] == 'work_title'), None)
+        self.assertIsNotNone(work_title_sug)
+        self.assertEqual(work_title_sug['suggested_value'], 'O Senhor dos Anéis: O Retorno do Rei')
+
+        # 2. NÃO deve sugerir HARLEQUIN ou HarperCollins Brasil como rights_holder_name
+        rh_sugs = [s for s in research.suggestions if s['field_name'] == 'rights_holder_name' and s.get('suggested_value')]
+        self.assertEqual(len(rh_sugs), 0)
+
+        # 3. NÃO deve sugerir HarperCollins Brasil como licensor_name
+        lic_sugs = [s for s in research.suggestions if s['field_name'] == 'licensor_name' and s.get('suggested_value')]
+        self.assertEqual(len(lic_sugs), 0)
+
+        # 4. NÃO deve sugerir Termos de Uso como license_url
+        lic_url_sugs = [s for s in research.suggestions if s['field_name'] == 'license_url' and s.get('suggested_value')]
+        self.assertEqual(len(lic_url_sugs), 0)
+
+        # 5. NÃO deve sugerir Google Books como source_url
+        source_url_sugs = [s for s in research.suggestions if s['field_name'] == 'source_url' and s.get('suggested_value')]
+        self.assertEqual(len(source_url_sugs), 0)
+
+        # 6. creator_name, rights_holder_name, source_url e license_type devem ser 'não localizados'
+        not_found_fields = {s['field_name']: s for s in research.suggestions if not s.get('suggested_value')}
+        self.assertIn('creator_name', not_found_fields)
+        self.assertIn('rights_holder_name', not_found_fields)
+        self.assertIn('source_url', not_found_fields)
+        self.assertIn('license_type', not_found_fields)
+
+        # 7. Fontes consultadas contêm Google Books e Termos da HarperCollins
+        source_names = [src['source_name'] for src in research.sources_consulted]
+        self.assertTrue(any('Google Books' in n for n in source_names))
+        self.assertTrue(any('HarperCollins' in n for n in source_names))
+
+        # 8. Nenhum conflito jurídico gerado
+        rh_conflicts = [c for c in research.conflicts if c.get('field_name') == 'rights_holder_name']
+        self.assertEqual(len(rh_conflicts), 0)

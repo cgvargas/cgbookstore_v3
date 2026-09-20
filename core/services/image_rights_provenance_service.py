@@ -354,14 +354,16 @@ class ImageRightsProvenanceService:
             'gutenberg_id', 'ebook_id', 'photo_id', 'user_username', 'user_name',
             'width', 'height', 'color', 'format', 'download_location', 'source_page',
             'license_code', 'wikimedia_page_id', 'wikimedia_title', 'categories',
-            'publisher_declared', 'published_date', 'isbn_10', 'isbn_13', 'subjects', 'source'
+            'publisher_declared', 'published_date', 'isbn_10', 'isbn_13', 'subjects', 'source',
+            'edition_key', 'is_remote_storage', 'stored_locally', 'cover_size', 'source_type'
         }
 
         for k, v in meta.items():
             k_lower = str(k).lower()
             # Bloquear tokens, senhas, auth, headers
             if any(forbidden in k_lower for forbidden in ['token', 'secret', 'key', 'auth', 'pass', 'bearer', 'header', 'email', 'credential', 'sign']):
-                continue
+                if k_lower not in ('edition_key', 'key'):
+                    continue
             if k_lower in allowed_keys or len(k_lower) < 30:
                 # Truncar strings muito longas para evitar estourar limites
                 if isinstance(v, str):
@@ -372,3 +374,68 @@ class ImageRightsProvenanceService:
                     safe_dict[k] = [str(item)[:100] for item in v if isinstance(item, (str, int, float))]
 
         return safe_dict
+
+    @classmethod
+    @transaction.atomic
+    def register_open_library_cover(
+        cls,
+        book: Any,
+        source_url: str,
+        isbn: str,
+        provider_asset_id: str = '',
+        cover_id: Optional[int] = None,
+        edition_key: str = '',
+        safe_metadata: Optional[Dict[str, Any]] = None,
+        performed_by: Any = None,
+        source: str = 'open_library_cover_service',
+    ) -> Optional[ImageRightsRecord]:
+        """
+        Registra a proveniência técnica de uma capa remota obtida via Open Library Covers API.
+
+        INVARIANTES DE GOVERNANÇA E CLASSIFICAÇÃO SEMÂNTICA/JURÍDICA:
+        - Fonte/Proveniência técnica: provenance_provider='open_library'.
+        - Método de disponibilização técnica: provenance_method='remote_display'.
+        - license_type é vazio ('') — licença autoral não identificada. A Open Library é tratada
+          estritamente como canal técnico e fonte de proveniência, NUNCA como licença autoral.
+        - licensor_name e license_url são vazios ('') — Open Library não é licenciante autoral.
+        - audit_status é SEMPRE 'not_audited'.
+        - legal_basis é SEMPRE vazio ('') — nenhuma presunção jurídica automática (nem CC, nem domínio público).
+        - public_display_allowed é mantido True para permissão operacional de exibição remota,
+          sujeito a bloqueio preventivo (takedown/contestação/decisão restritiva).
+        - Não faz download da imagem nem cálculo de checksum local.
+        - Idempotente: não duplica registros existentes.
+        - Preserva dados auditados manualmente caso o registro já tenha sido avaliado por um auditor.
+        """
+        metadata = {
+            'isbn': isbn,
+            'source_type': 'open_library',
+            'service': 'open_library_covers_api',
+            'is_remote_storage': True,
+            'stored_locally': False,
+        }
+        if cover_id:
+            metadata['cover_id'] = cover_id
+        if edition_key:
+            metadata['edition_key'] = edition_key
+        if safe_metadata:
+            metadata.update(safe_metadata)
+
+        asset_id = str(provider_asset_id or cover_id or edition_key or isbn)
+
+        return cls.register_external_provenance(
+            target_obj=book,
+            image_field_name='cover_image',
+            provider=cls.PROVIDER_OPEN_LIBRARY,
+            source_url=source_url,
+            creator_name='',
+            rights_holder_name='',
+            licensor_name='',
+            license_type='',
+            license_url='',
+            provider_asset_id=asset_id,
+            provenance_method='remote_display',
+            safe_metadata=metadata,
+            performed_by=performed_by,
+            source=source,
+            is_ai_generated=False,
+        )

@@ -192,6 +192,31 @@ SUGGESTABLE_FIELDS = {
     'provider_asset_id': 'Identificador Externo do Ativo',
 }
 
+# Classificação Semântica das Fontes e Evidências
+# Garante a estrita separação entre dimensões:
+# Editorial/Bibliográfico ≠ Jurídico/Direitos ≠ Institucional ≠ Procedência Técnica
+SEMANTIC_CATEGORIES = {
+    'TECHNICAL_PROVENANCE': 'Procedência Técnica',
+    'BIBLIOGRAPHIC_METADATA': 'Metadados Bibliográficos',
+    'INSTITUTIONAL_EVIDENCE': 'Evidência Institucional',
+    'AUTHORSHIP_EVIDENCE': 'Evidência de Autoria Visual',
+    'RIGHTS_EVIDENCE': 'Evidência de Direitos Autorais',
+    'LICENSE_EVIDENCE': 'Evidência de Licenciamento',
+}
+
+# Mapeamento do campo para a dimensão semântica correspondente
+FIELD_SEMANTIC_CATEGORY = {
+    'provenance_provider': 'TECHNICAL_PROVENANCE',
+    'source_url': 'TECHNICAL_PROVENANCE',
+    'provider_asset_id': 'BIBLIOGRAPHIC_METADATA',
+    'work_title': 'BIBLIOGRAPHIC_METADATA',
+    'creator_name': 'AUTHORSHIP_EVIDENCE',
+    'rights_holder_name': 'RIGHTS_EVIDENCE',
+    'licensor_name': 'RIGHTS_EVIDENCE',
+    'license_type': 'LICENSE_EVIDENCE',
+    'license_url': 'LICENSE_EVIDENCE',
+}
+
 # Prefixos de domínios bloqueados (proteção SSRF)
 SSRF_BLOCKED_HOSTS = {
     'localhost', '127.0.0.1', '0.0.0.0', '::1',
@@ -556,51 +581,12 @@ class ImageRightsResearchService:
             source_entry['status'] = 'success'
             result['sources'].append(source_entry)
 
-            # Extrair sugestões factuais
-            now_iso = timezone.now().isoformat()
-
-            # Publisher / Editora → rights_holder_name (confiança média pois editora ≠ titular da capa)
-            publisher = book_data.get('publisher', '')
-            if publisher:
-                result['suggestions'].append(cls._make_suggestion(
-                    field_name='rights_holder_name',
-                    suggested_value=publisher,
-                    current_value=record.rights_holder_name,
-                    source_url=source_entry['url'],
-                    source_type='api',
-                    source_title='Google Books API',
-                    confidence='medium',
-                    short_reason='Editora da edição identificada via Google Books. Editora nem sempre é titular da arte da capa.',
-                ))
-
-            # Autores → creator_name (somente se for Book com cover_image — autores do livro, não da capa)
-            authors = book_data.get('authors', [])
-            if authors and not record.creator_name:
-                author_str = ', '.join(authors)
-                # Para capas, o autor do livro NÃO é o criador da imagem
-                # Apenas registrar como dado informativo com confiança baixa
-                if record.image_field_name == 'cover_image':
-                    result['suggestions'].append(cls._make_suggestion(
-                        field_name='work_title',
-                        suggested_value=book_data.get('title', ''),
-                        current_value=record.work_title,
-                        source_url=source_entry['url'],
-                        source_type='api',
-                        source_title='Google Books API',
-                        confidence='high',
-                        short_reason='Título da obra obtido do catálogo Google Books.',
-                    ))
-                else:
-                    result['suggestions'].append(cls._make_suggestion(
-                        field_name='creator_name',
-                        suggested_value=author_str,
-                        current_value=record.creator_name,
-                        source_url=source_entry['url'],
-                        source_type='api',
-                        source_title='Google Books API',
-                        confidence='medium',
-                        short_reason='Autor(es) declarado(s) no Google Books.',
-                    ))
+            # Metadados bibliográficos factuais do Google Books
+            # NOTA JURÍDICA:
+            # - Editora ≠ titular dos direitos da arte da capa (rights_holder_name NÃO é sugerido).
+            # - Autor da obra ≠ criador da arte da capa (creator_name NÃO é sugerido).
+            # - Link de catálogo ≠ procedência técnica do arquivo (source_url NÃO é sugerido).
+            # Publisher e Info Link ficam registrados estritamente como evidência bibliográfica / fontes consultadas.
 
             # Título da obra
             title = book_data.get('title', '')
@@ -616,7 +602,7 @@ class ImageRightsResearchService:
                     short_reason='Título da obra obtido do catálogo Google Books.',
                 ))
 
-            # Provider asset ID
+            # Provider asset ID (ID de catálogo no Google Books)
             gb_id = book_data.get('google_book_id', '')
             if gb_id and not record.provider_asset_id:
                 result['suggestions'].append(cls._make_suggestion(
@@ -629,22 +615,6 @@ class ImageRightsResearchService:
                     confidence='high',
                     short_reason='Volume ID do Google Books.',
                 ))
-
-            # Info Link como source_url
-            info_link = book_data.get('info_link', '')
-            if info_link and not record.source_url:
-                clean_url = ProvenanceService_sanitize_url(info_link)
-                if clean_url:
-                    result['suggestions'].append(cls._make_suggestion(
-                        field_name='source_url',
-                        suggested_value=clean_url,
-                        current_value=record.source_url,
-                        source_url=source_entry['url'],
-                        source_type='api',
-                        source_title='Google Books API',
-                        confidence='high',
-                        short_reason='Link oficial da obra no Google Books.',
-                    ))
 
         except Exception as e:
             source_entry['status'] = 'error'
@@ -706,45 +676,34 @@ class ImageRightsResearchService:
 
             book_data = data[book_key]
             source_entry['status'] = 'success'
+
+            # Verificar se a Open Library possui capa cadastrada para esta edição
+            cover_data = book_data.get('cover', {})
+            cover_url = cover_data.get('large') or cover_data.get('medium') or cover_data.get('small') or ''
+            cover_id = None
+            if cover_url:
+                cover_id_match = re.search(r'/b/id/(\d+)-', cover_url)
+                if cover_id_match:
+                    cover_id = cover_id_match.group(1)
+
+            edition_key = book_data.get('key', '').replace('/books/', '')
+            canonical_cover_url = f"https://covers.openlibrary.org/b/isbn/{clean_isbn}-L.jpg"
+
+            # Registrar detalhes da capa e edição em sources_consulted
+            source_entry['has_cover'] = bool(cover_url)
+            source_entry['cover_url'] = canonical_cover_url if cover_url else ''
+            source_entry['cover_id'] = cover_id
+            source_entry['edition_key'] = edition_key
+
             result['sources'].append(source_entry)
 
-            # Editora
-            publishers = book_data.get('publishers', [])
-            if publishers:
-                publisher_name = publishers[0].get('name', '') if isinstance(publishers[0], dict) else str(publishers[0])
-                if publisher_name:
-                    result['suggestions'].append(cls._make_suggestion(
-                        field_name='rights_holder_name',
-                        suggested_value=publisher_name,
-                        current_value=record.rights_holder_name,
-                        source_url=api_url,
-                        source_type='api',
-                        source_title='Open Library API',
-                        confidence='medium',
-                        short_reason='Editora identificada via Open Library. Editora nem sempre é titular da arte da capa.',
-                    ))
+            # Metadados bibliográficos factuais da Open Library
+            # NOTA JURÍDICA:
+            # - Editora ≠ titular dos direitos da arte da capa (rights_holder_name NÃO é sugerido).
+            # - Autor da obra ≠ criador da arte da capa (creator_name NÃO é sugerido).
+            # - Os dados da Open Library ficam registrados estritamente como fonte consultada / metadados bibliográficos.
 
-            # Autores
-            authors = book_data.get('authors', [])
-            if authors:
-                author_names = []
-                for a in authors[:3]:
-                    name = a.get('name', '') if isinstance(a, dict) else str(a)
-                    if name:
-                        author_names.append(name)
-                if author_names and record.image_field_name != 'cover_image':
-                    result['suggestions'].append(cls._make_suggestion(
-                        field_name='creator_name',
-                        suggested_value=', '.join(author_names),
-                        current_value=record.creator_name,
-                        source_url=api_url,
-                        source_type='api',
-                        source_title='Open Library API',
-                        confidence='medium',
-                        short_reason='Autor(es) declarado(s) na Open Library.',
-                    ))
-
-            # Título
+            # Título da obra
             title = book_data.get('title', '')
             if title and not record.work_title:
                 result['suggestions'].append(cls._make_suggestion(
@@ -758,18 +717,31 @@ class ImageRightsResearchService:
                     short_reason='Título da obra obtido da Open Library.',
                 ))
 
-            # URL da Open Library como source
-            ol_url = book_data.get('url', '')
-            if ol_url and not record.source_url:
+            # Identificador de Ativo Externo (Cover ID ou Edition OLID)
+            asset_id = cover_id or edition_key
+            if asset_id and not record.provider_asset_id:
                 result['suggestions'].append(cls._make_suggestion(
-                    field_name='source_url',
-                    suggested_value=ol_url,
-                    current_value=record.source_url,
+                    field_name='provider_asset_id',
+                    suggested_value=str(asset_id),
+                    current_value=record.provider_asset_id,
                     source_url=api_url,
                     source_type='api',
                     source_title='Open Library API',
                     confidence='high',
-                    short_reason='Página oficial da obra na Open Library.',
+                    short_reason=f'Identificador ({("Cover ID " + cover_id) if cover_id else ("OLID " + edition_key)}) na Open Library.',
+                ))
+
+            # Fonte original da imagem (apenas sugerido se o provedor for Open Library e source_url estiver vazio)
+            if record.provenance_provider == 'open_library' and not record.source_url and cover_url:
+                result['suggestions'].append(cls._make_suggestion(
+                    field_name='source_url',
+                    suggested_value=canonical_cover_url,
+                    current_value=record.source_url,
+                    source_url=api_url,
+                    source_type='api',
+                    source_title='Open Library Covers API',
+                    confidence='high',
+                    short_reason='URL oficial da capa na Open Library Covers API.',
                 ))
 
         except requests.exceptions.Timeout:
@@ -825,20 +797,9 @@ class ImageRightsResearchService:
                 short_reason='Procedência Amazon identificada pela URL de origem.',
             ))
 
-        # Extrair editora do objeto relacionado se disponível
-        publisher = internal_data.get('publisher', '')
-        if publisher and not record.rights_holder_name:
-            result['suggestions'].append(cls._make_suggestion(
-                field_name='rights_holder_name',
-                suggested_value=publisher,
-                current_value=record.rights_holder_name,
-                source_url='',
-                source_type='internal',
-                source_title='Dados internos do catálogo',
-                confidence='medium',
-                short_reason='Editora do catálogo interno. NÃO se presume que Amazon seja titular da arte da capa.',
-            ))
-
+        # NOTA JURÍDICA:
+        # Editora do catálogo interno não é sugerida como rights_holder_name da imagem
+        # (Editora da obra ≠ titular dos direitos da arte da capa).
         return result
 
     @classmethod
@@ -982,25 +943,12 @@ class ImageRightsResearchService:
         source_entry = {
             'source_name': 'Editora (Dados Internos)',
             'source_type': 'internal',
-            'url': '',
-            'status': 'success',
             'retrieved_at': timezone.now().isoformat(),
         }
         result['sources'].append(source_entry)
-
-        publisher = internal_data.get('publisher', '')
-        if publisher and not record.licensor_name:
-            result['suggestions'].append(cls._make_suggestion(
-                field_name='licensor_name',
-                suggested_value=publisher,
-                current_value=record.licensor_name,
-                source_url='',
-                source_type='internal',
-                source_title='Catálogo interno',
-                confidence='medium',
-                short_reason='Editora do catálogo interno. NÃO se infere que a arte da capa pertence integralmente à editora.',
-            ))
-
+        # NOTA JURÍDICA:
+        # Editora da obra ≠ licenciante da arte da capa.
+        # Publisher permanece registrado apenas como fonte de dados internos consultada.
         return result
 
     @classmethod
@@ -1086,47 +1034,22 @@ class ImageRightsResearchService:
         }
         result['sources'].append(source_entry)
 
-        # Sugerir editora como licensor e rights_holder com ressalva factual
-        if not record.licensor_name:
-            result['suggestions'].append(cls._make_suggestion(
-                field_name='licensor_name',
-                suggested_value=inst_source.name,
-                current_value=record.licensor_name,
-                source_url=main_url,
-                source_type='institutional',
-                source_title=f'Site Oficial ({inst_source.name})',
-                confidence='high',
-                short_reason=f'Editora institucional oficial identificada ({inst_source.domain}).',
-            ))
-
-        if not record.rights_holder_name:
-            result['suggestions'].append(cls._make_suggestion(
-                field_name='rights_holder_name',
-                suggested_value=inst_source.name,
-                current_value=record.rights_holder_name,
-                source_url=main_url,
-                source_type='institutional',
-                source_title=f'Site Oficial ({inst_source.name})',
-                confidence='medium',
-                short_reason='Editora identificada via domínio institucional. Editora nem sempre detém a totalidade dos direitos visuais da arte da capa.',
-            ))
+        # NOTA JURÍDICA:
+        # - Editora da obra ≠ titular dos direitos da arte da capa (rights_holder_name NÃO é sugerido).
+        # - Editora da obra ≠ licenciante da arte da capa (licensor_name NÃO é sugerido).
+        # A editora institucional fica registrada como evidência institucional / fontes consultadas.
 
         # 4. Termos de Uso Institucionais
+        # NOTA JURÍDICA:
+        # - Termos de Uso institucionais ≠ licença específica da imagem (license_url NÃO é sugerido).
+        # A URL e os termos de uso são mantidos/atualizados na base institucional e registrados
+        # como evidência institucional consultada (governança).
         terms_url = inst_source.terms_url
         terms_summary = inst_source.terms_summary or ''
 
         if terms_url and inst_source.is_terms_recent:
-            # Reutilização imediata de termos já confirmados recentemente (< 30 dias)
-            result['suggestions'].append(cls._make_suggestion(
-                field_name='license_url',
-                suggested_value=terms_url,
-                current_value=record.license_url,
-                source_url=terms_url,
-                source_type='institutional',
-                source_title=f'Termos de Uso ({inst_source.name})',
-                confidence='high',
-                short_reason=f'Termos institucionais já localizados anteriormente. {terms_summary[:150]}'.strip(),
-            ))
+            # Reutilização de termos conhecidos recentes (< 30 dias) como evidência consultada
+            pass
         elif terms_url and not inst_source.is_terms_recent:
             # Revalidar termos já conhecidos com proteção SSRF
             if cls._is_url_safe(terms_url):
@@ -1148,17 +1071,6 @@ class ImageRightsResearchService:
                         inst_source.terms_retrieved_at = timezone.now()
                         inst_source.terms_summary = terms_summary
                         inst_source.save(update_fields=['terms_content_hash', 'terms_retrieved_at', 'terms_summary'])
-
-                        result['suggestions'].append(cls._make_suggestion(
-                            field_name='license_url',
-                            suggested_value=terms_url,
-                            current_value=record.license_url,
-                            source_url=terms_url,
-                            source_type='institutional',
-                            source_title=f'Termos de Uso ({inst_source.name})',
-                            confidence='high',
-                            short_reason=f'Termos oficiais confirmados no domínio da editora. {terms_summary[:150]}'.strip(),
-                        ))
                 except Exception as e:
                     logger.warning(f"Erro ao revalidar termos {terms_url}: {e}")
         else:
@@ -1191,20 +1103,21 @@ class ImageRightsResearchService:
                         inst_source.terms_content_hash = content_hash
                         inst_source.terms_retrieved_at = timezone.now()
                         inst_source.save(update_fields=['terms_url', 'terms_summary', 'terms_content_hash', 'terms_retrieved_at'])
-
-                        result['suggestions'].append(cls._make_suggestion(
-                            field_name='license_url',
-                            suggested_value=resp.url,
-                            current_value=record.license_url,
-                            source_url=resp.url,
-                            source_type='institutional',
-                            source_title=f'Termos de Uso ({inst_source.name})',
-                            confidence='high',
-                            short_reason=terms_summary,
-                        ))
                         break
                 except Exception:
                     pass
+
+        # Registrar termos de uso institucionais nas fontes consultadas (se localizados)
+        if inst_source.terms_url:
+            terms_source_entry = {
+                'source_name': f'Termos de Uso Institucionais ({inst_source.name})',
+                'source_type': 'institutional',
+                'url': inst_source.terms_url,
+                'status': 'success',
+                'retrieved_at': timezone.now().isoformat(),
+                'note': terms_summary[:200] if terms_summary else 'Termos de uso institucionais da editora.',
+            }
+            result['sources'].append(terms_source_entry)
 
         # 5. Página Oficial da Obra na Editora
         isbn = internal_data.get('isbn', '').replace('-', '').strip()
@@ -1247,17 +1160,10 @@ class ImageRightsResearchService:
                 'retrieved_at': timezone.now().isoformat(),
             }
             result['sources'].append(source_book_entry)
-            if not record.source_url:
-                result['suggestions'].append(cls._make_suggestion(
-                    field_name='source_url',
-                    suggested_value=book_page_url,
-                    current_value=record.source_url,
-                    source_url=book_page_url,
-                    source_type='institutional',
-                    source_title=f'Página Oficial da Obra ({inst_source.name})',
-                    confidence='high',
-                    short_reason=f'Página oficial da obra identificada no catálogo da editora ({inst_source.domain}).',
-                ))
+            # NOTA JURÍDICA:
+            # Página de catálogo da editora ≠ procedência técnica do arquivo de imagem (source_url NÃO é sugerido).
+            # A URL é registrada estritamente como fonte consultada.
+            pass
         else:
             source_book_entry = {
                 'source_name': f'Página Oficial da Obra ({inst_source.name})',
@@ -1341,9 +1247,11 @@ class ImageRightsResearchService:
         source_title: str,
         confidence: str,
         short_reason: str,
+        semantic_category: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Cria uma entrada de sugestão padronizada."""
+        """Cria uma entrada de sugestão padronizada e semanticamente classificada."""
         is_divergent = bool(current_value and suggested_value and current_value.strip() != suggested_value.strip())
+        category = semantic_category or FIELD_SEMANTIC_CATEGORY.get(field_name, 'BIBLIOGRAPHIC_METADATA')
         return {
             'field_name': field_name,
             'field_label': SUGGESTABLE_FIELDS.get(field_name, field_name),
@@ -1356,23 +1264,27 @@ class ImageRightsResearchService:
             'confidence': confidence,
             'short_reason': short_reason[:500] if short_reason else '',
             'is_divergent': is_divergent,
+            'semantic_category': category,
+            'semantic_category_label': SEMANTIC_CATEGORIES.get(category, category),
         }
 
     @classmethod
     def _detect_conflicts(cls, record: ImageRightsRecord, suggestions: List, conflicts: List):
         """
         Detecta conflitos entre sugestões de fontes diferentes para o mesmo campo.
+        Verifica se há divergência semântica real entre fontes confiáveis.
         """
         field_values = {}
         for s in suggestions:
             fname = s.get('field_name', '')
             value = s.get('suggested_value', '')
             source = s.get('source_title', '')
+            category = s.get('semantic_category', '')
             if not fname or not value:
                 continue
             if fname not in field_values:
                 field_values[fname] = []
-            field_values[fname].append({'value': value, 'source': source})
+            field_values[fname].append({'value': value, 'source': source, 'category': category})
 
         for fname, entries in field_values.items():
             if len(entries) < 2:
@@ -1380,9 +1292,12 @@ class ImageRightsResearchService:
             # Verificar se há divergência entre fontes
             unique_values = set(e['value'].strip().lower() for e in entries)
             if len(unique_values) > 1:
+                cat = entries[0].get('category') or FIELD_SEMANTIC_CATEGORY.get(fname, 'BIBLIOGRAPHIC_METADATA')
                 conflicts.append({
                     'field_name': fname,
                     'field_label': SUGGESTABLE_FIELDS.get(fname, fname),
+                    'semantic_category': cat,
+                    'semantic_category_label': SEMANTIC_CATEGORIES.get(cat, cat),
                     'source_a': entries[0]['source'],
                     'value_a': entries[0]['value'],
                     'source_b': entries[1]['source'],
@@ -1409,6 +1324,7 @@ class ImageRightsResearchService:
         for fname, label in important_fields.items():
             current = getattr(record, fname, '')
             if not current and fname not in found_fields:
+                cat = FIELD_SEMANTIC_CATEGORY.get(fname, 'BIBLIOGRAPHIC_METADATA')
                 suggestions.append({
                     'field_name': fname,
                     'field_label': label,
@@ -1421,6 +1337,8 @@ class ImageRightsResearchService:
                     'confidence': '',
                     'short_reason': 'Não localizado em fonte confiável.',
                     'is_divergent': False,
+                    'semantic_category': cat,
+                    'semantic_category_label': SEMANTIC_CATEGORIES.get(cat, cat),
                 })
 
     @staticmethod
