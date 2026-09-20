@@ -17,6 +17,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--whatsapp', action='store_true', help='Envia mensagem de teste via WhatsApp')
+        parser.add_argument('--copyright', action='store_true', help='Envia alerta de teste de Direitos Autorais / Takedown via WhatsApp')
         parser.add_argument('--check', action='store_true', help='Verifica a configuracao')
         parser.add_argument('--stats', action='store_true', help='Exibe estatisticas atuais')
         parser.add_argument('--daily-summary', action='store_true', help='Dispara o resumo diario')
@@ -26,13 +27,15 @@ class Command(BaseCommand):
             self._check_config()
         elif options['whatsapp']:
             self._test_whatsapp()
+        elif options['copyright']:
+            self._test_copyright_alert()
         elif options['stats']:
             self._show_stats()
         elif options['daily_summary']:
             self._send_daily_summary()
         else:
             self._check_config()
-            self.stdout.write('\nUse --whatsapp para enviar mensagem de teste')
+            self.stdout.write('\nUse --whatsapp para mensagem de teste ou --copyright para testar alerta de Direitos Autorais')
 
     def _check_config(self):
         """Verifica se a configuracao esta correta."""
@@ -89,6 +92,33 @@ class Command(BaseCommand):
         else:
             self.stdout.write(self.style.ERROR(
                 '[X] Falha ao enviar mensagem. Verifique os logs para mais detalhes.'
+            ))
+
+    def _test_copyright_alert(self):
+        """Envia alerta de teste de Direitos Autorais / Takedown via WhatsApp."""
+        self.stdout.write(self.style.HTTP_INFO('\n[WA] Disparando alerta de teste de Direitos Autorais / Takedown...\n'))
+
+        from monitoring.whatsapp_service import get_whatsapp_notifier
+        notifier = get_whatsapp_notifier()
+
+        if not notifier.enabled:
+            self.stdout.write(self.style.ERROR('[X] WhatsApp nao configurado. Use --check para ver instrucoes.'))
+            return
+
+        success = notifier.send_copyright_takedown_alert(
+            claimant_name="Dr. Claudio (Teste de Auditoria Jurídica)",
+            claimant_email="juridico.teste@editora-exemplo.com.br",
+            subject="Notificação Extrajudicial de Teste - Obra Exemplo",
+            message="Este é um teste real do agente de alerta de direitos autorais e takedown. O sistema está pronto para notificar com urgência.",
+        )
+
+        if success:
+            self.stdout.write(self.style.SUCCESS(
+                f'[OK] Alerta urgente de Direitos Autorais enviado com sucesso para {notifier.phone}!'
+            ))
+        else:
+            self.stdout.write(self.style.ERROR(
+                '[X] Falha ao enviar alerta de Direitos Autorais. Verifique os logs ou a conexão com a API CallMeBot.'
             ))
 
     def _show_stats(self):
