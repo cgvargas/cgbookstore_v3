@@ -16,6 +16,7 @@ class Author(models.Model):
     )
 
     slug = models.SlugField(
+        max_length=220,
         unique=True,
         blank=True,
         verbose_name="Slug"
@@ -69,7 +70,8 @@ class Author(models.Model):
     def save(self, *args, **kwargs):
         """Gera slug automaticamente a partir do nome, garantindo unicidade."""
         if not self.slug:
-            base_slug = slugify(self.name)
+            max_slug_len = self._meta.get_field('slug').max_length or 220
+            base_slug = slugify(self.name)[:max_slug_len - 15].rstrip('-') or 'autor'
             slug = base_slug
             counter = 1
             # Verificar se o slug já existe (excluindo o próprio objeto se já tem pk)

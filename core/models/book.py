@@ -121,7 +121,7 @@ class Book(models.Model):
 
     # ========== CAMPOS DE INTEGRAÇÃO COM GOOGLE BOOKS API ==========
     google_books_id = models.CharField(
-        max_length=50,
+        max_length=100,
         unique=True,
         null=True,
         blank=True,
@@ -270,7 +270,8 @@ class Book(models.Model):
     def save(self, *args, **kwargs):
         """Gera slug automaticamente a partir do título, garantindo unicidade."""
         if not self.slug:
-            base_slug = slugify(self.title)
+            max_slug_len = self._meta.get_field('slug').max_length or 350
+            base_slug = slugify(self.title)[:max_slug_len - 15].rstrip('-') or 'livro'
             slug = base_slug
             counter = 1
             

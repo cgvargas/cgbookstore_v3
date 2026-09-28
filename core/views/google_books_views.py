@@ -119,10 +119,11 @@ def google_books_import(request, google_book_id):
         return redirect('admin:google_books_search')
 
     try:
-        # Verificar se já existe pelo ISBN
-        isbn = book_data.get('isbn_13') or book_data.get('isbn_10')
-        if isbn and Book.objects.filter(isbn=isbn).exists():
-            messages.warning(request, f'Livro já existe no catálogo (ISBN: {isbn})')
+        # Verificar se já existe pelo ISBN (higienizado)
+        raw_isbn = book_data.get('isbn_13') or book_data.get('isbn_10')
+        clean_isbn = str(raw_isbn).replace('-', '').strip()[:14] if raw_isbn else ''
+        if clean_isbn and Book.objects.filter(isbn=clean_isbn).exists():
+            messages.warning(request, f'Livro já existe no catálogo (ISBN: {clean_isbn})')
             return redirect('admin:core_book_changelist')
 
         # Criar/buscar autor (case-insensitive e normalizado)
@@ -131,50 +132,96 @@ def google_books_import(request, google_book_id):
         if authors_list:
             author_name = authors_list[0]  # Pegar primeiro autor
             # Normalizar: remover espaços extras e formatar corretamente
-            author_name = ' '.join(author_name.split()).strip()
+            author_name = ' '.join(str(author_name).split()).strip()[:200]
             
-            # Buscar autor existente (case-insensitive)
-            existing_author = Author.objects.filter(name__iexact=author_name).first()
-            
-            if existing_author:
-                author = existing_author
-            else:
-                # Criar novo autor apenas se não existir
-                author = Author.objects.create(
-                    name=author_name,
-                    slug=slugify(author_name),
-                    bio=f'Autor(a) de {book_data.get("title")}'
-                )
+            if author_name:
+                # Buscar autor existente (case-insensitive)
+                existing_author = Author.objects.filter(name__iexact=author_name).first()
+                
+                if existing_author:
+                    author = existing_author
+                else:
+                    # Obter tamanho máximo seguro do slug (compatível com varchar(50) ou varchar(220))
+                    author_slug_field = Author._meta.get_field('slug')
+                    author_max_len = getattr(author_slug_field, 'max_length', 50) or 50
+                    safe_slug_len = min(author_max_len, 220)
+                    
+                    base_slug = slugify(author_name)[:safe_slug_len - 15].rstrip('-') or 'autor'
+                    slug = base_slug
+                    counter = 1
+                    while Author.objects.filter(slug=slug).exists():
+                        slug = f"{base_slug}-{counter}"
+                        counter += 1
+
+                    raw_title = book_data.get('title') or ''
+                    author = Author.objects.create(
+                        name=author_name,
+                        slug=slug,
+                        bio=f'Autor(a) de {raw_title}'[:500] if raw_title else ''
+                    )
 
         # Criar/buscar categoria
         category = None
         categories_list = book_data.get('categories', [])
         if categories_list:
-            category_name = categories_list[0]  # Pegar primeira categoria
-            category, created = Category.objects.get_or_create(
-                name=category_name,
-                defaults={'slug': slugify(category_name)}
-            )
+            raw_category_name = categories_list[0]  # Pegar primeira categoria
+            category_name = ' '.join(str(raw_category_name).split()).strip()[:200]
+            
+            if category_name:
+                category = Category.objects.filter(name__iexact=category_name).first()
+                if not category:
+                    cat_slug_field = Category._meta.get_field('slug')
+                    cat_max_len = getattr(cat_slug_field, 'max_length', 50) or 50
+                    safe_slug_len = min(cat_max_len, 220)
 
-        # Criar livro
+                    base_slug = slugify(category_name)[:safe_slug_len - 15].rstrip('-') or 'categoria'
+                    slug = base_slug
+                    counter = 1
+                    while Category.objects.filter(slug=slug).exists():
+                        slug = f"{base_slug}-{counter}"
+                        counter += 1
+
+                    category = Category.objects.create(
+                        name=category_name,
+                        slug=slug
+                    )
+
+        # Criar livro com campos sanitizados e protegidos contra overflow
+        raw_title = book_data.get('title') or 'Sem título'
+        title = ' '.join(str(raw_title).split()).strip()[:300]
+        
+        raw_subtitle = book_data.get('subtitle') or ''
+        subtitle = ' '.join(str(raw_subtitle).split()).strip()[:500] if raw_subtitle else ''
+        
+        book_slug_field = Book._meta.get_field('slug')
+        book_max_len = getattr(book_slug_field, 'max_length', 350) or 350
+        base_slug = slugify(title)[:book_max_len - 15].rstrip('-') or 'livro'
+        book_slug = base_slug
+        counter = 1
+        while Book.objects.filter(slug=book_slug).exists():
+            book_slug = f"{base_slug}-{counter}"
+            counter += 1
+
+        google_books_id_val = str(book_data.get('google_book_id') or '').strip()[:100]
+
         book = Book.objects.create(
-            title=book_data.get('title'),
-            subtitle=book_data.get('subtitle', ''),
-            slug=slugify(book_data.get('title')),
+            title=title,
+            subtitle=subtitle,
+            slug=book_slug,
             author=author,
             category=category,
-            publisher=book_data.get('publisher', ''),
+            publisher=str(book_data.get('publisher') or '').strip()[:200],
             publication_date=parse_google_books_date(book_data.get('published_date')),
-            isbn=isbn or '',
+            isbn=clean_isbn or None,
             page_count=book_data.get('page_count'),
-            language=book_data.get('language', 'pt-BR'),
-            description=book_data.get('description', ''),
+            language=str(book_data.get('language') or 'pt-BR').strip()[:10],
+            description=book_data.get('description', '') or '',
             price=book_data.get('price') or None,
-            average_rating=book_data.get('average_rating', 0.0),
-            ratings_count=book_data.get('ratings_count', 0),
-            preview_link=book_data.get('preview_link', ''),
-            info_link=book_data.get('info_link', ''),
-            google_books_id=book_data.get('google_book_id', '')
+            average_rating=book_data.get('average_rating', 0.0) or 0.0,
+            ratings_count=book_data.get('ratings_count', 0) or 0,
+            preview_link=book_data.get('preview_link', '') or '',
+            info_link=book_data.get('info_link', '') or '',
+            google_books_id=google_books_id_val or None
         )
 
         # Baixar capa
@@ -192,11 +239,11 @@ def google_books_import(request, google_book_id):
                     image_field_name='cover_image',
                     provider=ImageRightsProvenanceService.PROVIDER_GOOGLE_BOOKS,
                     source_url=thumbnail,
-                    provider_asset_id=book_data.get('google_book_id', ''),
+                    provider_asset_id=google_books_id_val,
                     license_type='google_books',
                     provenance_method='api_download',
                     safe_metadata={
-                        'google_book_id': book_data.get('google_book_id'),
+                        'google_book_id': google_books_id_val,
                         'publisher_declared': book_data.get('publisher'),
                         'published_date': book_data.get('published_date'),
                     },

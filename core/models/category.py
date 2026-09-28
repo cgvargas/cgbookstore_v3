@@ -11,13 +11,15 @@ class Category(models.Model):
     """Categoria de livros (Ficção, Romance, Tecnologia, etc.)."""
 
     name = models.CharField(
-        max_length=100,
+        max_length=200,
         unique=True,
         verbose_name="Nome"
     )
     slug = models.SlugField(
+        max_length=220,
         unique=True,
-        blank=True
+        blank=True,
+        verbose_name="Slug"
     )
     featured = models.BooleanField(
         default=False,
@@ -36,7 +38,8 @@ class Category(models.Model):
     def save(self, *args, **kwargs):
         """Gera slug automaticamente a partir do nome."""
         if not self.slug:
-            base_slug = slugify(self.name)
+            max_slug_len = self._meta.get_field('slug').max_length or 220
+            base_slug = slugify(self.name)[:max_slug_len - 15].rstrip('-') or 'categoria'
             slug = base_slug
             counter = 1
             while type(self).objects.filter(slug=slug).exclude(pk=self.pk).exists():
