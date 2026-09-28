@@ -56,7 +56,8 @@
     .info-label { font-size: 0.78rem; font-weight: 700; color: var(--card-desc); text-transform: uppercase; margin-bottom: 4px; }
     .info-value { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); word-break: break-word; }
     
-    .records-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--table-bg); border: 1px solid var(--table-border); border-radius: 10px; overflow: hidden; margin-top: 15px; }
+    .records-table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 15px; }
+    .records-table { width: 100%; min-width: 980px; border-collapse: separate; border-spacing: 0; background: var(--table-bg); border: 1px solid var(--table-border); border-radius: 10px; overflow: hidden; }
     .records-table th { background: var(--table-header-bg); padding: 12px 14px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--card-desc); text-align: left; border-bottom: 1px solid var(--table-border); }
     .records-table td { padding: 12px 14px; font-size: 0.88rem; vertical-align: middle; border-bottom: 1px solid var(--table-border); color: var(--text-primary); }
     .records-table tr:last-child td { border-bottom: none; }
@@ -64,9 +65,37 @@
     
     .row-exception td { background: rgba(245, 158, 11, 0.04); }
     
-    .badge-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 16px; font-size: 0.75rem; font-weight: 600; margin-top: 3px; }
-    .badge-eligible { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-    .badge-exception { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+    .badge-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-top: 3px; max-width: 100%; box-sizing: border-box; }
+    .badge-eligible { background: #dcfce7; color: #166534; border: 1px solid #86efac; border-radius: 12px; white-space: nowrap; }
+    .badge-exception { 
+        display: block; 
+        background: #fef3c7; 
+        color: #92400e; 
+        border: 1px solid #fcd34d; 
+        border-radius: 6px; 
+        padding: 5px 9px; 
+        font-size: 0.76rem; 
+        font-weight: 500; 
+        line-height: 1.35; 
+        white-space: normal; 
+        word-break: break-word; 
+        overflow-wrap: break-word; 
+        max-width: 100%; 
+        box-sizing: border-box; 
+        text-align: left; 
+    }
+    [data-theme="dark"] .badge-exception,
+    :root:not([data-theme="light"]) .badge-exception {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fcd34d;
+        border-color: rgba(245, 158, 11, 0.35);
+    }
+    [data-theme="dark"] .badge-eligible,
+    :root:not([data-theme="light"]) .badge-eligible {
+        background: rgba(22, 101, 52, 0.2);
+        color: #86efac;
+        border-color: rgba(134, 239, 172, 0.35);
+    }
     
     .field-select-card { background: var(--item-bg); border: 1px solid var(--item-border); border-radius: 8px; padding: 16px; margin: 15px 0; }
     .field-checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; cursor: pointer; }
@@ -76,8 +105,9 @@
     .btn-preview:hover { background: #5a4bcf; }
     .btn-research { background: #0284c7; color: #fff; }
     .btn-research:hover { background: #0369a1; }
-    .page-link-btn { padding: 8px 14px; border: 1px solid var(--card-border); border-radius: 6px; text-decoration: none; color: var(--text-primary); font-size: 0.88rem; background: var(--card-bg); font-weight: 600; }
+    .page-link-btn { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; padding: 8px 14px; border: 1px solid var(--card-border); border-radius: 6px; text-decoration: none; color: var(--text-primary); font-size: 0.88rem; background: var(--card-bg); font-weight: 600; }
     .page-link-btn:hover { background: var(--item-bg); }
+    .btn-action-audit { font-size: 0.78rem; padding: 5px 10px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
     
     .thumb-img { width: 44px; height: 58px; object-fit: cover; border-radius: 4px; border: 1px solid var(--card-border); }
     .thumb-placeholder { width: 44px; height: 58px; background: rgba(0,0,0,0.05); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--card-desc); border: 1px solid var(--card-border); }
@@ -222,75 +252,77 @@
                 </div>
             </div>
 
-            <table class="records-table">
-                <thead>
-                    <tr>
-                        <th style="width: 40px; text-align: center;">
-                            <input type="checkbox" id="masterCheckbox" onchange="toggleSelectAll(this.checked)">
-                        </th>
-                        <th style="width: 60px;">Imagem</th>
-                        <th>Obra / Ativo</th>
-                        <th>Status</th>
-                        <th>Procedência / Fonte</th>
-                        <th>Elegibilidade / Exceções</th>
-                        <th style="text-align: right;">Ação</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in records %}
-                    <tr class="{% if not item.is_eligible %}row-exception{% endif %}">
-                        <td style="text-align: center;">
-                            <input type="checkbox" 
-                                   name="selected_records" 
-                                   value="{{ item.id }}" 
-                                   class="record-cb {% if item.is_eligible %}cb-eligible{% else %}cb-exception{% endif %}"
-                                   {% if item.is_eligible %}checked{% endif %}>
-                        </td>
-                        <td>
-                            {% if item.has_safe_image and item.image_url %}
-                                <img src="{{ item.image_url }}" alt="Capa" class="thumb-img">
-                            {% else %}
-                                <div class="thumb-placeholder">📷</div>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <strong style="color: var(--text-primary);">{{ item.work_title }}</strong>
-                            <div style="font-size: 0.75rem; color: var(--card-desc);">
-                                ID: #{{ item.id }}
-                                {% if item.creator_name %} | Criador: {{ item.creator_name }}{% endif %}
-                            </div>
-                        </td>
-                        <td>
-                            <span class="badge-tag" style="background: rgba(0,0,0,0.06); color: var(--text-primary);">
-                                {{ item.audit_status_display }}
-                            </span>
-                        </td>
-                        <td>
-                            <div style="font-size: 0.82rem;">{{ item.provenance_provider_display|default:"Não informada" }}</div>
-                            {% if item.source_url %}
-                                <div style="font-size: 0.75rem; color: var(--card-desc); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    {{ item.source_url }}
+            <div class="records-table-wrapper">
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px; text-align: center;">
+                                <input type="checkbox" id="masterCheckbox" onchange="toggleSelectAll(this.checked)">
+                            </th>
+                            <th style="width: 60px; text-align: center;">Imagem</th>
+                            <th style="min-width: 180px;">Obra / Ativo</th>
+                            <th style="width: 120px; white-space: nowrap;">Status</th>
+                            <th style="width: 170px;">Procedência / Fonte</th>
+                            <th style="width: 250px; min-width: 220px; max-width: 280px;">Elegibilidade / Exceções</th>
+                            <th style="width: 155px; min-width: 155px; text-align: right; white-space: nowrap;">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in records %}
+                        <tr class="{% if not item.is_eligible %}row-exception{% endif %}">
+                            <td style="text-align: center;">
+                                <input type="checkbox" 
+                                       name="selected_records" 
+                                       value="{{ item.id }}" 
+                                       class="record-cb {% if item.is_eligible %}cb-eligible{% else %}cb-exception{% endif %}"
+                                       {% if item.is_eligible %}checked{% endif %}>
+                            </td>
+                            <td style="text-align: center;">
+                                {% if item.has_safe_image and item.image_url %}
+                                    <img src="{{ item.image_url }}" alt="Capa" class="thumb-img">
+                                {% else %}
+                                    <div class="thumb-placeholder">📷</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong style="color: var(--text-primary);">{{ item.work_title }}</strong>
+                                <div style="font-size: 0.75rem; color: var(--card-desc);">
+                                    ID: #{{ item.id }}
+                                    {% if item.creator_name %} | Criador: {{ item.creator_name }}{% endif %}
                                 </div>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if item.is_eligible %}
-                                <span class="badge-tag badge-eligible">✓ Elegível para lote</span>
-                            {% else %}
-                                {% for exc in item.exceptions %}
-                                    <div class="badge-tag badge-exception">{{ exc }}</div>
-                                {% endfor %}
-                            {% endif %}
-                        </td>
-                        <td style="text-align: right;">
-                            <a href="{% url 'copyright_assisted_audit' item.id %}" target="_blank" class="page-link-btn" style="font-size: 0.78rem; padding: 4px 8px;">
-                                Auditoria Individual ↗
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            </td>
+                            <td style="white-space: nowrap;">
+                                <span class="badge-tag" style="background: rgba(0,0,0,0.06); color: var(--text-primary);">
+                                    {{ item.audit_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="font-size: 0.82rem;">{{ item.provenance_provider_display|default:"Não informada" }}</div>
+                                {% if item.source_url %}
+                                    <div style="font-size: 0.75rem; color: var(--card-desc); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ item.source_url }}">
+                                        {{ item.source_url }}
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td style="max-width: 280px;">
+                                {% if item.is_eligible %}
+                                    <span class="badge-tag badge-eligible">✓ Elegível para lote</span>
+                                {% else %}
+                                    {% for exc in item.exceptions %}
+                                        <div class="badge-tag badge-exception">{{ exc }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </td>
+                            <td style="width: 155px; min-width: 155px; text-align: right; white-space: nowrap;">
+                                <a href="{% url 'copyright_assisted_audit' item.id %}" target="_blank" class="page-link-btn btn-action-audit">
+                                    Auditoria Individual ↗
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </form>
 </div>
