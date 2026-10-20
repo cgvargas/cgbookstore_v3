@@ -86,8 +86,8 @@ def render_image_rights(obj, field_name, show_info_icon=True):
     content_html = ' '.join(parts)
     icon_html = '<i class="fas fa-creative-commons me-1"></i>' if record.license_type == 'cc' else '<i class="fas fa-camera me-1"></i>'
 
-    # Componente Informativo Opcional (ⓘ)
-    modal_trigger_html = ''
+    modal_button_html = ''
+    modal_dialog_html = ''
     if show_info_icon:
         unique_modal_id = f"imgRightsModal_{uuid.uuid4().hex[:8]}"
         
@@ -121,39 +121,61 @@ def render_image_rights(obj, field_name, show_info_icon=True):
             '</div>'
         )
 
-        modal_trigger_html = f'''
-        <button type="button" class="btn btn-link p-0 ms-1 text-secondary opacity-75" 
-                style="font-size: 0.75rem; text-decoration: none;" 
+        modal_button_html = f'''
+        <button type="button" class="btn btn-link p-0 ms-1 text-secondary image-rights-info-btn" 
+                style="font-size: 0.78rem; text-decoration: none; vertical-align: baseline; cursor: pointer; opacity: 0.85;" 
                 data-bs-toggle="modal" 
                 data-bs-target="#{unique_modal_id}" 
-                title="Informações da Imagem">
+                onclick="var m=document.getElementById('{unique_modal_id}');if(m&&m.parentNode!==document.body)document.body.appendChild(m);" 
+                title="Informações da Imagem"
+                aria-label="Informações da Imagem">
             <i class="fas fa-info-circle"></i>
         </button>
+        '''
 
+        # O modal é renderizado fora da div image-rights-credit e anexado ao document.body
+        # para nunca ser bloqueado por contextos de empilhamento (stacking context / opacity / z-index de badges)
+        modal_dialog_html = f'''
         <!-- Modal de Informações Públicas da Imagem -->
-        <div class="modal fade" id="{unique_modal_id}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
-                <div class="modal-content text-start">
-                    <div class="modal-header py-2 bg-light">
-                        <h6 class="modal-header-title mb-0 font-weight-bold text-dark" style="font-size: 0.85rem;">
-                            <i class="fas fa-shield-alt me-1 text-primary"></i> Informações e Direitos da Imagem
+        <div class="modal fade image-rights-modal" id="{unique_modal_id}" tabindex="-1" aria-labelledby="{unique_modal_id}Label" aria-hidden="true" style="z-index: 1065;">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 480px; z-index: 1070; pointer-events: auto;">
+                <div class="modal-content text-start shadow-lg border" style="border-radius: 12px; overflow: hidden; background-color: var(--modal-bg, #ffffff); color: var(--text-primary, #212529); border-color: var(--border-color, #dee2e6); pointer-events: auto;">
+                    <div class="modal-header py-2 px-3 border-bottom" style="background-color: var(--sidebar-bg, #f8f9fa); border-color: var(--border-color, #dee2e6);">
+                        <h6 class="modal-title mb-0 fw-bold d-flex align-items-center" id="{unique_modal_id}Label" style="font-size: 0.88rem; color: var(--text-primary, #212529);">
+                            <i class="fas fa-shield-alt me-2 text-primary"></i> Informações e Direitos da Imagem
                         </h6>
                         <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="Fechar"></button>
                     </div>
-                    <div class="modal-body py-3" style="font-size: 0.8rem; color: #2c3e50;">
+                    <div class="modal-body py-3 px-3" style="font-size: 0.82rem; line-height: 1.5; color: var(--text-primary, #2c3e50);">
                         {"".join(modal_fields_html)}
                         {disclaimer_html}
                     </div>
                 </div>
             </div>
         </div>
+        <script>
+        (function() {{
+            function relocateModal_{unique_modal_id}() {{
+                var m = document.getElementById("{unique_modal_id}");
+                if (m && m.parentNode !== document.body) {{
+                    document.body.appendChild(m);
+                }}
+            }}
+            if (document.readyState === 'loading') {{
+                document.addEventListener('DOMContentLoaded', relocateModal_{unique_modal_id});
+            }} else {{
+                relocateModal_{unique_modal_id}();
+            }}
+        }})();
+        </script>
         '''
 
     html = f'''
     <div class="image-rights-credit text-secondary opacity-75 mt-1 d-inline-flex align-items-center flex-wrap justify-content-center" style="font-size: 0.73rem; line-height: 1.3;">
         <span>{icon_html}Arte / Crédito: {content_html}</span>
-        {modal_trigger_html}
+        {modal_button_html}
     </div>
+    {modal_dialog_html}
     '''
     return mark_safe(html)
 

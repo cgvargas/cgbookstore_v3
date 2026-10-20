@@ -1154,6 +1154,17 @@
     <!-- Cookie Consent Manager - LGPD -->
     <script src="{% static 'js/cookie-consent.js' %}?v=1.0" defer></script>
 
+    <!-- Global Fix: Prevenir que modais fiquem presos em stacking contexts (ex: direitos de imagem) -->
+    <script>
+    document.addEventListener('show.bs.modal', function(event) {
+        if (event.target && (event.target.classList.contains('image-rights-modal') || (event.target.id && event.target.id.indexOf('imgRightsModal_') === 0))) {
+            if (event.target.parentNode !== document.body) {
+                document.body.appendChild(event.target);
+            }
+        }
+    });
+    </script>
+
 </body>
 
 </html>
