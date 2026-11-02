@@ -251,6 +251,12 @@ class BannerCarousel {
 
         if (state.loaderEl) {
             state.loaderEl.classList.add('loaded');
+            state.loaderEl.style.opacity = '0';
+            setTimeout(() => {
+                if (state.loaderEl) {
+                    state.loaderEl.style.display = 'none';
+                }
+            }, 300);
         }
 
         // Se for o slide que está visível agora, agenda a contagem do carrossel e pré-carrega o próximo

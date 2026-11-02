@@ -11,36 +11,7 @@
                  data-banner-id="{{ banner.id }}"
                  style="height: {{ banner.height|default:700 }}px;">
                     <div class="banner-image-wrapper">
-                        <!-- Loader: Círculo roxo com interrupção girando + contador percentual no centro -->
-                        <div class="banner-media-loader" id="bannerLoader-{{ banner.id }}" aria-live="polite">
-                            <div class="banner-loader-spinner-box">
-                                <svg class="banner-loader-svg" viewBox="0 0 100 100" aria-hidden="true">
-                                    <defs>
-                                        <linearGradient id="purpleRingGrad-{{ banner.id }}" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" stop-color="#c084fc" />
-                                            <stop offset="50%" stop-color="#a855f7" />
-                                            <stop offset="100%" stop-color="#7c3aed" />
-                                        </linearGradient>
-                                    </defs>
-                                    <!-- Trilha de fundo circular -->
-                                    <circle class="banner-loader-circle-bg" cx="50" cy="50" r="40"></circle>
-                                    <!-- Círculo roxo com interrupção que gira -->
-                                    <circle class="banner-loader-circle-spinner"
-                                            cx="50" cy="50" r="40"
-                                            stroke="url(#purpleRingGrad-{{ banner.id }})"></circle>
-                                </svg>
-                                <!-- Contador no centro: numeral com % -->
-                                <div class="banner-loader-counter">
-                                    <span class="banner-loader-num">0</span><span class="banner-loader-pct">%</span>
-                                </div>
-                            </div>
-                            <div class="banner-loader-status">
-                                <span class="banner-loader-dot"></span>
-                                <span class="banner-loader-msg">Carregando banner...</span>
-                            </div>
-                        </div>
-
-                        <!-- OTIMIZAÇÃO LCP & CLOUDFLARE: primeiro banner com prioridade alta e preload auto -->
+                        <!-- Mídia do Banner (Vídeo ou Imagem) - Mantida em primeiro plano -->
                         {% if banner.video_file %}
                             <video class="banner-image" src="{{ banner.video_file.url }}"
                                    {% if banner.image %}poster="{{ banner.image.url }}"{% endif %}
@@ -58,6 +29,18 @@
                                  {% if forloop.first %}fetchpriority="high" loading="eager"{% else %}loading="lazy"{% endif %}
                                  style="object-position: {{ banner.image_position_horizontal|default:'center' }} {{ banner.image_position_vertical|default:'center' }};">
                         {% endif %}
+
+                        <!-- Mini Loader no tamanho de uma moeda de 1 Real (36px) com círculo roxo, interrupção girando e contador % -->
+                        <div class="banner-media-loader" id="bannerLoader-{{ banner.id }}" aria-live="polite"
+                             style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; z-index: 6; pointer-events: none; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(18, 10, 34, 0.75); box-shadow: 0 0 10px rgba(124, 58, 237, 0.5), inset 0 0 4px rgba(0, 0, 0, 0.8); transition: opacity 0.3s ease, transform 0.3s ease;">
+                            <svg width="36" height="36" viewBox="0 0 36 36" style="width: 36px; height: 36px; position: absolute; top: 0; left: 0; transform-origin: center center; animation: bannerRingSpin 1s linear infinite;" aria-hidden="true">
+                                <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(147, 51, 234, 0.25)" stroke-width="2.5"></circle>
+                                <circle cx="18" cy="18" r="14" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="64 24" style="filter: drop-shadow(0 0 3px #a855f7);"></circle>
+                            </svg>
+                            <div class="banner-loader-counter" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; align-items: baseline; justify-content: center; line-height: 1; user-select: none; pointer-events: none;">
+                                <span class="banner-loader-num" style="font-family: var(--font-primary, system-ui, sans-serif); font-size: 10px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; text-shadow: 0 0 4px #c084fc;">0</span><span class="banner-loader-pct" style="font-size: 7px; font-weight: 700; color: #c084fc; margin-left: 0.5px;">%</span>
+                            </div>
+                        </div>
 
                         <!-- Overlay com opacidade controlável -->
                         <div class="banner-overlay" style="background: rgba(0, 0, 0, {{ banner.overlay_opacity|default:0.3 }});"></div>

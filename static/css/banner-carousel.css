@@ -95,7 +95,7 @@
 }
 
 /* ============================================
-   BANNER MEDIA LOADER (SPINNER ROXO COM CONTADOR %)
+   BANNER MEDIA LOADER (MINI-LOADER MOEDA 1 REAL - 36px)
    ============================================ */
 
 .banner-media-loader {
@@ -103,64 +103,37 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 5;
-    padding: 1.5rem 2.2rem;
-    background: rgba(15, 8, 30, 0.72);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1.5px solid rgba(168, 85, 247, 0.4);
-    border-radius: 24px;
-    box-shadow: 0 12px 45px rgba(0, 0, 0, 0.6), 
-                0 0 30px rgba(124, 58, 237, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
-    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                visibility 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background: rgba(18, 10, 34, 0.75) !important;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    box-shadow: 0 0 10px rgba(124, 58, 237, 0.5), inset 0 0 4px rgba(0, 0, 0, 0.8) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 6;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
     pointer-events: none;
     user-select: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .banner-media-loader.loaded {
-    opacity: 0;
-    visibility: hidden;
-    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0 !important;
+    visibility: hidden !important;
+    display: none !important;
+    pointer-events: none !important;
 }
 
-.banner-loader-spinner-box {
-    position: relative;
-    width: 104px;
-    height: 104px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.banner-loader-svg {
-    width: 100%;
-    height: 100%;
-    transform-origin: center center;
-    animation: bannerRingSpin 1.15s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-}
-
-/* Trilha circular de fundo suave */
-.banner-loader-circle-bg {
-    fill: none;
-    stroke: rgba(147, 51, 234, 0.18);
-    stroke-width: 5;
-}
-
-/* Círculo roxo com interrupção (gap) girando */
-.banner-loader-circle-spinner {
-    fill: none;
-    stroke-width: 5.5;
-    stroke-linecap: round;
-    /* Perímetro 2 * PI * 40 ≈ 251.3px -> 176px traço, 75px interrupção (gap nítido) */
-    stroke-dasharray: 176 75;
-    filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.85));
+.banner-media-loader svg {
+    width: 36px !important;
+    height: 36px !important;
+    display: block;
+    animation: bannerRingSpin 1s linear infinite;
 }
 
 @keyframes bannerRingSpin {
@@ -172,7 +145,6 @@
     }
 }
 
-/* Contador central no meio do anel */
 .banner-loader-counter {
     position: absolute;
     top: 50%;
@@ -181,80 +153,25 @@
     display: flex;
     align-items: baseline;
     justify-content: center;
+    line-height: 1;
     pointer-events: none;
 }
 
 .banner-loader-num {
-    font-family: var(--font-primary, system-ui, -apple-system, sans-serif);
-    font-size: 1.7rem;
+    font-family: var(--font-primary, system-ui, sans-serif);
+    font-size: 10px !important;
     font-weight: 800;
     line-height: 1;
     color: #ffffff;
-    letter-spacing: -0.03em;
-    text-shadow: 0 0 16px rgba(192, 132, 252, 0.85), 0 2px 6px rgba(0, 0, 0, 0.8);
+    letter-spacing: -0.5px;
+    text-shadow: 0 0 4px #c084fc;
 }
 
 .banner-loader-pct {
-    font-size: 0.95rem;
+    font-size: 7px !important;
     font-weight: 700;
     color: #c084fc;
-    margin-left: 2px;
-    text-shadow: 0 0 10px rgba(168, 85, 247, 0.7);
-}
-
-/* Status / legenda com ponto pulsante */
-.banner-loader-status {
-    margin-top: 0.8rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: #e9d5ff;
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
-}
-
-.banner-loader-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #a855f7;
-    box-shadow: 0 0 10px #a855f7, 0 0 20px #7c3aed;
-    animation: bannerDotPulse 1.2s ease-in-out infinite;
-}
-
-@keyframes bannerDotPulse {
-    0%, 100% {
-        opacity: 0.45;
-        transform: scale(0.85);
-    }
-    50% {
-        opacity: 1;
-        transform: scale(1.25);
-    }
-}
-
-/* Responsividade do loader */
-@media (max-width: 768px) {
-    .banner-media-loader {
-        padding: 1.2rem 1.6rem;
-        border-radius: 20px;
-    }
-    .banner-loader-spinner-box {
-        width: 84px;
-        height: 84px;
-    }
-    .banner-loader-num {
-        font-size: 1.4rem;
-    }
-    .banner-loader-pct {
-        font-size: 0.85rem;
-    }
-    .banner-loader-status {
-        font-size: 0.75rem;
-    }
+    margin-left: 0.5px;
 }
 
 /* Overlay para melhorar legibilidade do texto */
