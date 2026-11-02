@@ -49,7 +49,10 @@ class Command(BaseCommand):
                             f,
                             r2_bucket,
                             r2_path,
-                            ExtraArgs={'ContentType': self.guess_content_type(file_name)}
+                            ExtraArgs={
+                                'ContentType': self.guess_content_type(file_name),
+                                'CacheControl': 'public, max-age=31536000, immutable'
+                            }
                         )
                     self.stdout.write(self.style.SUCCESS(f"Sucesso: -> {r2_path}"))
                     total_migrados += 1
@@ -65,5 +68,9 @@ class Command(BaseCommand):
         if ext == 'png': return 'image/png'
         if ext == 'webp': return 'image/webp'
         if ext == 'gif': return 'image/gif'
+        if ext == 'svg': return 'image/svg+xml'
+        if ext == 'mp4': return 'video/mp4'
+        if ext == 'webm': return 'video/webm'
+        if ext in ['mov', 'm4v']: return 'video/mp4'
         if ext == 'pdf': return 'application/pdf'
         return 'application/octet-stream'

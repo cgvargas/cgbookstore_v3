@@ -361,9 +361,14 @@ from django.core.files.storage import FileSystemStorage
 class CloudflareR2MediaStorage(FileSystemStorage if S3Boto3Storage is object else S3Boto3Storage):
     """
     Storage backend customizado para Cloudflare R2
+    Garante URLs limpas e cache permanente no Cloudflare Edge CDN.
     """
     location = ''
     file_overwrite = False
+    querystring_auth = False
+    object_parameters = {
+        'CacheControl': 'public, max-age=31536000, immutable',
+    }
     
     def get_available_name(self, name, max_length=None):
         """

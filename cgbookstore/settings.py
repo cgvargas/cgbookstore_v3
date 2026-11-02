@@ -411,6 +411,11 @@ if USE_R2_STORAGE:
     AWS_S3_ENDPOINT_URL = f"https://{R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
     AWS_S3_REGION_NAME = 'auto'  # R2 requer região 'auto'
     AWS_S3_SIGNATURE_VERSION = 's3v4'  # R2 requer assinatura v4 (SigV4)
+    AWS_QUERYSTRING_AUTH = env.bool('AWS_QUERYSTRING_AUTH', default=False)
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'public, max-age=31536000, immutable',
+    }
     
     AWS_S3_CUSTOM_DOMAIN = env('R2_CUSTOM_DOMAIN', default=None)
     if not AWS_S3_CUSTOM_DOMAIN:

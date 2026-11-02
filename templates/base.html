@@ -89,6 +89,9 @@
     <!-- CSS do Sistema de Debates -->
     <link rel="stylesheet" href="{% static 'css/debates.css' %}">
 
+    <!-- Extra Head / Preloads / Tags específicas de página -->
+    {% block extra_head %}{% endblock %}
+
     <!-- CSS Extra (para páginas específicas) -->
     {% block extra_css %}{% endblock %}
 

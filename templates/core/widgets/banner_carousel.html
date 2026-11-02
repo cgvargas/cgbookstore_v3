@@ -11,11 +11,42 @@
                  data-banner-id="{{ banner.id }}"
                  style="height: {{ banner.height|default:700 }}px;">
                     <div class="banner-image-wrapper">
-                        <!-- OTIMIZAÇÃO LCP: primeiro banner com prioridade alta -->
+                        <!-- Loader: Círculo roxo com interrupção girando + contador percentual no centro -->
+                        <div class="banner-media-loader" id="bannerLoader-{{ banner.id }}" aria-live="polite">
+                            <div class="banner-loader-spinner-box">
+                                <svg class="banner-loader-svg" viewBox="0 0 100 100" aria-hidden="true">
+                                    <defs>
+                                        <linearGradient id="purpleRingGrad-{{ banner.id }}" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="#c084fc" />
+                                            <stop offset="50%" stop-color="#a855f7" />
+                                            <stop offset="100%" stop-color="#7c3aed" />
+                                        </linearGradient>
+                                    </defs>
+                                    <!-- Trilha de fundo circular -->
+                                    <circle class="banner-loader-circle-bg" cx="50" cy="50" r="40"></circle>
+                                    <!-- Círculo roxo com interrupção que gira -->
+                                    <circle class="banner-loader-circle-spinner"
+                                            cx="50" cy="50" r="40"
+                                            stroke="url(#purpleRingGrad-{{ banner.id }})"></circle>
+                                </svg>
+                                <!-- Contador no centro: numeral com % -->
+                                <div class="banner-loader-counter">
+                                    <span class="banner-loader-num">0</span><span class="banner-loader-pct">%</span>
+                                </div>
+                            </div>
+                            <div class="banner-loader-status">
+                                <span class="banner-loader-dot"></span>
+                                <span class="banner-loader-msg">Carregando banner...</span>
+                            </div>
+                        </div>
+
+                        <!-- OTIMIZAÇÃO LCP & CLOUDFLARE: primeiro banner com prioridade alta e preload auto -->
                         {% if banner.video_file %}
                             <video class="banner-image" src="{{ banner.video_file.url }}"
                                    {% if banner.image %}poster="{{ banner.image.url }}"{% endif %}
                                    autoplay loop muted playsinline
+                                   preload="auto"
+                                   {% if forloop.first %}fetchpriority="high"{% endif %}
                                    oncanplay="this.play()"
                                    onloadedmetadata="this.muted = true"
                                    style="object-position: {{ banner.image_position_horizontal|default:'center' }} {{ banner.image_position_vertical|default:'center' }}; background-color: var(--card-bg);">
